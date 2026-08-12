@@ -295,122 +295,196 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const goldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.2, metalness: 0.95 });
 
 /**
- * בונה דמות לוחם לפי הגדרות מראה.
+ * בונה דמות לוחם לפי הגדרות מראה, בסגנון מונפש (ראש גדול, עיניים גדולות).
  * cfg:
  *   skin, hair            - צבעים
  *   hairStyle             - 'curly' (תלתלים) | 'spiky' (קוצני)
+ *   eyeColor              - צבע הקשתית
  *   ears                  - 'round' | 'pointed' (אוזניים חדות)
  *   top                   - צבע גופייה, או null לגוף חשוף
  *   pants                 - צבע מכנסיים ארוכים, או null
  *   boxers                - צבע תחתונים, או null
- *   shoes                 - צבע נעליים, או null לרגליים יחפות
+ *   boots                 - צבע מגפיים, או null לרגליים יחפות
+ *   handWraps             - תחבושות לבנות על האגרופים
  *   noseRing, fingerRing  - תכשיטי זהב
  */
 function createFighter(cfg) {
   const g = new THREE.Group();
 
-  const skinMat  = new THREE.MeshStandardMaterial({ color: cfg.skin, roughness: 0.62, metalness: 0.02 });
-  const hairMat  = new THREE.MeshStandardMaterial({ color: cfg.hair, roughness: 0.8 });
-  const topMat    = cfg.top    ? new THREE.MeshStandardMaterial({ color: cfg.top,    roughness: 0.88 }) : null;
-  const pantsMat  = cfg.pants  ? new THREE.MeshStandardMaterial({ color: cfg.pants,  roughness: 0.88 }) : null;
-  const boxerMat  = cfg.boxers ? new THREE.MeshStandardMaterial({ color: cfg.boxers, roughness: 0.8 })  : null;
-  const shoeMat   = cfg.shoes  ? new THREE.MeshStandardMaterial({ color: cfg.shoes,  roughness: 0.55 }) : skinMat;
-  const beltMat   = new THREE.MeshStandardMaterial({ color: 0x4a3527, roughness: 0.7 });
-  const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf7f7f7, roughness: 0.35 });
-  const eyeDarkMat  = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.3 });
-  const mouthMat    = new THREE.MeshStandardMaterial({ color: 0x8a3b3b, roughness: 0.6 });
+  // ---------- חומרים ----------
+  const skinMat = new THREE.MeshStandardMaterial({ color: cfg.skin, roughness: 0.55, metalness: 0.02 });
+  const hairMat = new THREE.MeshStandardMaterial({ color: cfg.hair, roughness: 0.85 });
+  const topMat   = cfg.top    ? new THREE.MeshStandardMaterial({ color: cfg.top,    roughness: 0.9 })  : null;
+  const pantsMat = cfg.pants  ? new THREE.MeshStandardMaterial({ color: cfg.pants,  roughness: 0.92 }) : null;
+  const boxerMat = cfg.boxers ? new THREE.MeshStandardMaterial({ color: cfg.boxers, roughness: 0.85 }) : null;
+  const bootMat  = cfg.boots  ? new THREE.MeshStandardMaterial({ color: cfg.boots,  roughness: 0.5 })  : null;
+  const soleMat  = new THREE.MeshStandardMaterial({ color: 0x3a2b20, roughness: 0.9 });
+  const laceMat  = new THREE.MeshStandardMaterial({ color: 0xe4d5b8, roughness: 0.8 });
+  const cuffMat  = cfg.pants ? new THREE.MeshStandardMaterial({ color: 0x9fb4d6, roughness: 0.92 }) : null;
+  const beltMat  = new THREE.MeshStandardMaterial({ color: 0x543a25, roughness: 0.55 });
+  const buckleMat = new THREE.MeshStandardMaterial({ color: 0xb9a06a, roughness: 0.3, metalness: 0.85 });
+  const wrapMat  = new THREE.MeshStandardMaterial({ color: 0xf0ece2, roughness: 0.95 });
+  const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xfbfbfb, roughness: 0.25 });
+  const irisMat  = new THREE.MeshStandardMaterial({ color: cfg.eyeColor ?? 0x6b4423, roughness: 0.3 });
+  const pupilMat = new THREE.MeshStandardMaterial({ color: 0x140f0c, roughness: 0.2 });
+  const glintMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const mouthMat = new THREE.MeshStandardMaterial({ color: 0x7a3535, roughness: 0.6 });
 
-  // חומר הרגליים: מכנסיים ארוכים אם יש, אחרת עור חשוף
-  const legMat = pantsMat || skinMat;
-  // חומר האגן: מכנסיים > תחתונים > עור
-  const hipMat = pantsMat || boxerMat || skinMat;
+  const legMat = pantsMat || skinMat;              // מכנסיים אם יש, אחרת עור חשוף
+  const hipMat = pantsMat || boxerMat || skinMat;  // מכנסיים > תחתונים > עור
 
-  // --- נקודות שלד (הדמות פונה לכיוון +Z) ---
-  const ankleL = V(-0.135, 0.12, 0), ankleR = V(0.135, 0.12, 0);
-  const kneeL  = V(-0.145, 0.52, 0.01), kneeR = V(0.145, 0.52, 0.01);
-  const hipL   = V(-0.125, 0.92, 0),  hipR  = V(0.125, 0.92, 0);
-  const pelvis = V(0, 0.94, 0);
-  const chest  = V(0, 1.36, 0);
-  const shoulderL = V(-0.235, 1.32, 0), shoulderR = V(0.235, 1.32, 0);
-  const elbowL = V(-0.30, 1.02, 0.02),  elbowR = V(0.30, 1.02, 0.02);
-  const wristL = V(-0.315, 0.74, 0.05), wristR = V(0.315, 0.74, 0.05);
-  const neckBase = V(0, 1.40, 0), neckTop = V(0, 1.55, 0);
-  const headCenter = V(0, 1.70, 0);
+  // ---------- נקודות שלד: עמידת קרב ----------
+  // הדמות פונה לכיוון +Z. רגליים פשוקות, ברכיים כפופות, אגרופים מורמים לשמירה.
+  const ankleL = V(-0.33, 0.17, -0.05), ankleR = V( 0.30, 0.17, 0.17);
+  const kneeL  = V(-0.24, 0.53,  0.05), kneeR  = V( 0.22, 0.53, 0.21);
+  const hipL   = V(-0.135, 0.86, 0.0),  hipR   = V( 0.135, 0.86, 0.02);
+  const pelvis = V(0, 0.88, 0);
+  const chest  = V(0, 1.27, 0.01);
+  const shoulderL = V(-0.245, 1.22, 0.0), shoulderR = V( 0.245, 1.22, 0.0);
+  const elbowL = V(-0.325, 0.95, 0.11),   elbowR = V( 0.345, 0.96, 0.03);
+  const wristL = V(-0.175, 1.14, 0.30),   wristR = V( 0.205, 1.29, 0.20);
+  const neckBase = V(0, 1.30, 0), neckTop = V(0, 1.44, 0);
+  const headCenter = V(0, 1.61, 0);
 
-  // --- רגליים ---
-  g.add(bone(legMat, 0.10, 0.115, kneeL, ankleL));
-  g.add(bone(legMat, 0.10, 0.115, kneeR, ankleR));
-  g.add(bone(legMat, 0.14, 0.105, hipL, kneeL));
-  g.add(bone(legMat, 0.14, 0.105, hipR, kneeR));
-  g.add(joint(legMat, 0.105, kneeL));
-  g.add(joint(legMat, 0.105, kneeR));
-  g.add(joint(legMat, 0.14, hipL));
-  g.add(joint(legMat, 0.14, hipR));
+  // חצאי הצירים של אליפסואיד הראש (משמש למיקום שיער ותווי פנים)
+  const HEAD_R = 0.175;
+  const hx = HEAD_R * 0.96, hy = HEAD_R * 1.10, hz = HEAD_R;
 
-  // כפות רגליים - צמודות לקרסול
-  [ankleL, ankleR].forEach((a) => {
-    g.add(joint(skinMat, 0.095, a));
-    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.11, 0.32), shoeMat);
-    foot.position.set(a.x, 0.055, 0.07);
-    foot.castShadow = true;
-    foot.receiveShadow = true;
-    g.add(foot);
+  // ---------- רגליים ----------
+  g.add(bone(legMat, 0.105, 0.12, kneeL, ankleL));
+  g.add(bone(legMat, 0.105, 0.12, kneeR, ankleR));
+  g.add(bone(legMat, 0.15, 0.11, hipL, kneeL));
+  g.add(bone(legMat, 0.15, 0.11, hipR, kneeR));
+  g.add(joint(legMat, 0.11, kneeL));
+  g.add(joint(legMat, 0.11, kneeR));
+  g.add(joint(legMat, 0.15, hipL));
+  g.add(joint(legMat, 0.15, hipR));
+
+  // ---------- כפות רגליים / מגפיים ----------
+  // כיוון כל כף רגל נגזר מהמיקום שלה, כדי שתצביע החוצה בעמידת הקרב
+  [[ankleL, kneeL, -0.35], [ankleR, kneeR, 0.30]].forEach(([ankle, knee, yaw]) => {
+    if (bootMat) {
+      // מגף עור גבוה: שוק + כף + סוליה + שרוכים
+      const bootGrp = new THREE.Group();
+      bootGrp.position.set(ankle.x, 0, ankle.z);
+      bootGrp.rotation.y = yaw;
+
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.108, 0.122, 0.30, 16), bootMat);
+      shaft.position.set(0, 0.21, 0);
+      shaft.castShadow = true;
+      bootGrp.add(shaft);
+
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.15, 0.35), bootMat);
+      foot.position.set(0, 0.095, 0.075);
+      foot.castShadow = true;
+      bootGrp.add(foot);
+
+      const sole = new THREE.Mesh(new THREE.BoxGeometry(0.215, 0.05, 0.37), soleMat);
+      sole.position.set(0, 0.025, 0.075);
+      sole.castShadow = true;
+      bootGrp.add(sole);
+
+      [0.19, 0.25, 0.31].forEach((ly) => {
+        const lace = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.016, 0.02), laceMat);
+        lace.position.set(0, ly, 0.108);
+        bootGrp.add(lace);
+      });
+
+      bootGrp.traverse((o) => { if (o.isMesh) o.receiveShadow = true; });
+      g.add(bootGrp);
+
+      // שולי מכנסיים מקופלים מעל המגף
+      if (cuffMat) {
+        const t = 0.62; // נקודה על הקו ברך→קרסול, בגובה שפת המגף
+        const cuffPos = ankle.clone().lerp(knee, t);
+        const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.128, 0.10, 16), cuffMat);
+        cuff.position.copy(cuffPos);
+        cuff.castShadow = true;
+        g.add(cuff);
+      }
+    } else {
+      // רגל יחפה
+      g.add(joint(skinMat, 0.10, ankle));
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.11, 0.32), skinMat);
+      foot.position.set(ankle.x, 0.055, ankle.z + 0.09);
+      foot.rotation.y = yaw;
+      foot.castShadow = true;
+      foot.receiveShadow = true;
+      g.add(foot);
+    }
   });
 
-  // --- אגן ---
-  g.add(bone(hipMat, 0.195, 0.185, V(0, 1.0, 0), V(0, 0.85, 0)));
+  // ---------- אגן ----------
+  g.add(bone(hipMat, 0.205, 0.195, V(0, 0.95, 0), V(0, 0.80, 0)));
 
   // תחתונים (בוקסר) - שכבה מעט רחבה יותר על האגן וראש הירכיים
   if (boxerMat && !pantsMat) {
-    g.add(bone(boxerMat, 0.205, 0.20, V(0, 1.0, 0), V(0, 0.86, 0)));
+    g.add(bone(boxerMat, 0.215, 0.21, V(0, 0.95, 0), V(0, 0.81, 0)));
     [hipL, hipR].forEach((h) => {
-      g.add(bone(boxerMat, 0.152, 0.13, V(h.x, 0.94, 0), V(h.x * 1.06, 0.68, 0.004)));
+      g.add(bone(boxerMat, 0.163, 0.14, V(h.x, 0.90, h.z), V(h.x * 1.12, 0.63, h.z + 0.02)));
     });
   }
 
-  // חגורה - רק כשיש מכנסיים ארוכים
+  // חגורה עם אבזם - רק כשיש מכנסיים ארוכים
   if (pantsMat) {
-    const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.205, 0.205, 0.07, 20), beltMat);
-    belt.position.set(0, 0.985, 0);
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.215, 0.215, 0.075, 22), beltMat);
+    belt.position.set(0, 0.935, 0);
     belt.castShadow = true;
     g.add(belt);
+
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.075, 0.03), buckleMat);
+    buckle.position.set(0, 0.935, 0.21);
+    buckle.castShadow = true;
+    g.add(buckle);
   }
 
-  // --- פלג גוף עליון (תמיד עור; הבגד מונח מעליו) ---
-  g.add(bone(skinMat, 0.225, 0.185, chest, pelvis));
-  g.add(joint(skinMat, 0.225, chest));
-  g.add(joint(skinMat, 0.17, shoulderL));
-  g.add(joint(skinMat, 0.17, shoulderR));
+  // ---------- פלג גוף עליון (תמיד עור; הבגד מונח מעליו) ----------
+  g.add(bone(skinMat, 0.235, 0.19, chest, pelvis));
+  g.add(joint(skinMat, 0.235, chest));
+  g.add(joint(skinMat, 0.175, shoulderL));
+  g.add(joint(skinMat, 0.175, shoulderR));
 
-  // גופייה - שכבה מעל פלג הגוף, עם שתי כתפיות שעוברות מעל הכתפיים
+  // גופייה - שכבה מעל פלג הגוף, עם שתי כתפיות מעל הכתפיים
   if (topMat) {
-    g.add(bone(topMat, 0.234, 0.198, V(0, 1.28, 0), V(0, 0.93, 0)));
+    g.add(bone(topMat, 0.244, 0.203, V(0, 1.19, 0.005), V(0, 0.87, 0)));
     [-1, 1].forEach((s) => {
-      const frontPt    = V(s * 0.115, 1.27, 0.185);
-      const shoulderPt = V(s * 0.20, 1.42, 0.0);
-      const backPt     = V(s * 0.135, 1.27, -0.17);
-      g.add(bone(topMat, 0.03, 0.03, frontPt, shoulderPt));
-      g.add(bone(topMat, 0.03, 0.03, shoulderPt, backPt));
-      g.add(joint(topMat, 0.032, shoulderPt));
+      const frontPt    = V(s * 0.12, 1.185, 0.195);
+      const shoulderPt = V(s * 0.205, 1.325, 0.0);
+      const backPt     = V(s * 0.14, 1.185, -0.18);
+      g.add(bone(topMat, 0.032, 0.032, frontPt, shoulderPt));
+      g.add(bone(topMat, 0.032, 0.032, shoulderPt, backPt));
+      g.add(joint(topMat, 0.034, shoulderPt));
     });
   }
 
-  // --- זרועות ---
+  // ---------- זרועות ----------
   [[shoulderL, elbowL, wristL], [shoulderR, elbowR, wristR]].forEach(([sh, el, wr]) => {
-    g.add(bone(skinMat, 0.085, 0.07, sh, el));
-    g.add(joint(skinMat, 0.072, el));
-    g.add(bone(skinMat, 0.068, 0.058, el, wr));
-    g.add(joint(skinMat, 0.075, wr));
+    g.add(bone(skinMat, 0.09, 0.072, sh, el));
+    g.add(joint(skinMat, 0.074, el));
+    g.add(bone(skinMat, 0.07, 0.06, el, wr));
+
+    if (cfg.handWraps) {
+      // תחבושת סביב האמה + אגרוף עטוף
+      const dir = new THREE.Vector3().subVectors(wr, el).normalize();
+      g.add(bone(wrapMat, 0.074, 0.08, wr.clone().addScaledVector(dir, -0.17), wr.clone().addScaledVector(dir, -0.01)));
+      const fist = new THREE.Mesh(new THREE.SphereGeometry(0.092, 14, 14), wrapMat);
+      fist.position.copy(wr);
+      fist.castShadow = true;
+      fist.receiveShadow = true;
+      g.add(fist);
+    } else {
+      g.add(joint(skinMat, 0.085, wr));
+    }
   });
 
-  // --- צוואר ---
-  g.add(bone(skinMat, 0.078, 0.09, neckTop, neckBase));
-  g.add(joint(skinMat, 0.082, neckTop));
+  // ---------- צוואר ----------
+  g.add(bone(skinMat, 0.085, 0.10, neckTop, neckBase));
+  g.add(joint(skinMat, 0.088, neckTop));
 
-  // --- ראש ---
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.155, 20, 20), skinMat);
+  // ---------- ראש ----------
+  const head = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R, 24, 24), skinMat);
   head.position.copy(headCenter);
-  head.scale.set(0.94, 1.12, 1.0);
+  head.scale.set(0.96, 1.10, 1.0);
   head.castShadow = true;
   head.receiveShadow = true;
   g.add(head);
@@ -419,113 +493,127 @@ function createFighter(cfg) {
   [-1, 1].forEach((s) => {
     let ear;
     if (cfg.ears === 'pointed') {
-      ear = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.20, 10), skinMat);
-      ear.position.set(s * 0.152, headCenter.y + 0.055, -0.012);
+      ear = new THREE.Mesh(new THREE.ConeGeometry(0.062, 0.23, 10), skinMat);
+      ear.position.set(s * 0.168, headCenter.y + 0.06, -0.012);
       ear.rotation.z = s * -0.45;
       ear.rotation.x = -0.25;
       ear.scale.set(0.55, 1, 0.9);
     } else {
-      ear = new THREE.Mesh(new THREE.SphereGeometry(0.042, 8, 8), skinMat);
-      ear.position.set(s * 0.147, headCenter.y + 0.005, -0.005);
-      ear.scale.set(0.55, 1, 0.75);
+      ear = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 10), skinMat);
+      ear.position.set(s * 0.163, headCenter.y - 0.005, -0.008);
+      ear.scale.set(0.5, 1.05, 0.8);
     }
     ear.castShadow = true;
     g.add(ear);
   });
 
-  // --- פנים ---
-  const faceZ = 0.128;
-
+  // ---------- פנים (עיניים גדולות בסגנון מונפש) ----------
   [-1, 1].forEach((s) => {
-    const white = new THREE.Mesh(new THREE.SphereGeometry(0.036, 12, 12), eyeWhiteMat);
-    white.position.set(s * 0.058, headCenter.y + 0.035, faceZ);
-    white.scale.set(1, 0.8, 0.6);
+    const eyeX = s * 0.075, eyeY = headCenter.y + 0.028;
+
+    const white = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 16), eyeWhiteMat);
+    white.position.set(eyeX, eyeY, 0.132);
+    white.scale.set(1, 0.94, 0.5);
     g.add(white);
 
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 10), eyeDarkMat);
-    pupil.position.set(s * 0.058, headCenter.y + 0.035, faceZ + 0.02);
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(0.029, 14, 14), irisMat);
+    iris.position.set(eyeX + s * 0.004, eyeY - 0.004, 0.156);
+    iris.scale.set(1, 1, 0.55);
+    g.add(iris);
+
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.015, 12, 12), pupilMat);
+    pupil.position.set(eyeX + s * 0.004, eyeY - 0.004, 0.166);
+    pupil.scale.set(1, 1, 0.55);
     g.add(pupil);
 
-    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.072, 0.016, 0.03), hairMat);
-    brow.position.set(s * 0.058, headCenter.y + 0.086, faceZ + 0.005);
-    brow.rotation.z = s * -0.12;
+    // ניצוץ - מה שנותן לעין מבט "חי"
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.011, 8, 8), glintMat);
+    glint.position.set(eyeX + s * 0.017, eyeY + 0.019, 0.171);
+    g.add(glint);
+
+    // גבה עבה
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.026, 0.035), hairMat);
+    brow.position.set(eyeX, headCenter.y + 0.105, 0.142);
+    brow.rotation.z = s * -0.14;
+    brow.castShadow = true;
     g.add(brow);
   });
 
-  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.075, 10), skinMat);
-  nose.position.set(0, headCenter.y - 0.01, faceZ + 0.025);
-  nose.rotation.x = Math.PI / 2;
+  // אף קטן ורך
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.036, 12, 12), skinMat);
+  nose.position.set(0, headCenter.y - 0.022, 0.158);
+  nose.scale.set(0.9, 0.85, 0.8);
   nose.castShadow = true;
   g.add(nose);
 
-  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.022, 0.03), mouthMat);
-  mouth.position.set(0, headCenter.y - 0.078, faceZ + 0.005);
-  g.add(mouth);
+  // חיוך - חצי טבעת שפונה כלפי מטה
+  const smile = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.012, 8, 20, Math.PI), mouthMat);
+  smile.position.set(0, headCenter.y - 0.075, 0.15);
+  smile.rotation.z = Math.PI;
+  g.add(smile);
 
-  // --- עגיל באף (טבעת ספטום התלויה מתחת לאף) ---
+  // ---------- עגיל באף ----------
   if (cfg.noseRing) {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.007, 8, 18), goldMat);
-    ring.position.set(0, headCenter.y - 0.062, faceZ + 0.03);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.0075, 8, 18), goldMat);
+    ring.position.set(0, headCenter.y - 0.062, 0.168);
     ring.castShadow = true;
     g.add(ring);
   }
 
-  // --- טבעת באצבע (יד ימין) ---
+  // ---------- טבעת באצבע (יד ימין) ----------
   if (cfg.fingerRing) {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.011, 8, 18), goldMat);
-    ring.position.set(wristR.x, wristR.y - 0.055, wristR.z);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.012, 8, 18), goldMat);
+    ring.position.set(wristR.x, wristR.y - 0.06, wristR.z + 0.01);
     ring.rotation.x = Math.PI / 2;
     ring.castShadow = true;
     g.add(ring);
   }
 
-  // --- שיער ---
-  // כיפת בסיס שצמודה לגולגולת
+  // ---------- שיער ----------
   const hairCap = new THREE.Mesh(
-    new THREE.SphereGeometry(0.162, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.5),
+    new THREE.SphereGeometry(HEAD_R * 1.03, 22, 22, 0, Math.PI * 2, 0, Math.PI * 0.5),
     hairMat
   );
   hairCap.position.copy(headCenter);
-  hairCap.position.y += 0.01;
-  hairCap.scale.set(0.96, 1.2, 1.02);
+  hairCap.position.y += 0.012;
+  hairCap.scale.set(0.97, 1.18, 1.02);
   hairCap.castShadow = true;
   g.add(hairCap);
 
-  // צורות שיער - מונחות על פני הגולגולת לפי טבעות זווית,
+  // צורות שיער מונחות על פני הגולגולת לפי טבעות זווית,
   // ומדלגות על אזור המצח כדי שהפנים יישארו חשופות
   const HAIR_RINGS = [
-    { phi: 0.30, count: 6 },
-    { phi: 0.66, count: 10 },
-    { phi: 1.00, count: 13 },
-    { phi: 1.32, count: 15 },
+    { phi: 0.26, count: 6 },
+    { phi: 0.60, count: 10 },
+    { phi: 0.94, count: 14 },
+    { phi: 1.26, count: 16 },
+    { phi: 1.55, count: 16 },
   ];
-  const rx = 0.152, ry = 0.178, rz = 0.163;
 
   HAIR_RINGS.forEach(({ phi, count }) => {
     for (let i = 0; i < count; i++) {
       const theta = (i / count) * Math.PI * 2 + phi * 1.7;
-      const lx = Math.sin(phi) * Math.cos(theta) * rx;
-      const ly = Math.cos(phi) * ry;
-      const lz = Math.sin(phi) * Math.sin(theta) * rz;
+      const lx = Math.sin(phi) * Math.cos(theta) * hx;
+      const ly = Math.cos(phi) * hy;
+      const lz = Math.sin(phi) * Math.sin(theta) * hz;
 
       // דילוג על המצח והפנים (קו שיער בגובה הגבות)
-      if (lz > 0.05 && ly < 0.085) continue;
+      if (lz > 0.05 && ly < 0.105) continue;
 
-      const jitter = () => (Math.random() - 0.5) * 0.022;
-      const px = headCenter.x + lx + jitter();
-      const py = headCenter.y + ly + jitter();
-      const pz = lz + jitter();
+      const jitter = () => (Math.random() - 0.5) * 0.028;
+      const px = headCenter.x + lx * 1.04 + jitter();
+      const py = headCenter.y + ly * 1.04 + jitter();
+      const pz = lz * 1.04 + jitter();
 
       let tuft;
       if (cfg.hairStyle === 'spiky') {
-        tuft = new THREE.Mesh(new THREE.ConeGeometry(0.036, 0.13, 7), hairMat);
-        // הקוץ מצביע החוצה מהראש
+        tuft = new THREE.Mesh(new THREE.ConeGeometry(0.042, 0.16, 7), hairMat);
         const dir = new THREE.Vector3(lx, ly, lz).normalize();
-        tuft.position.set(px + dir.x * 0.04, py + dir.y * 0.04, pz + dir.z * 0.04);
+        tuft.position.set(px + dir.x * 0.05, py + dir.y * 0.05, pz + dir.z * 0.05);
         tuft.quaternion.setFromUnitVectors(UP, dir);
       } else {
-        // תלתלים - כדורים קטנים וצפופים
-        const r = 0.036 + Math.random() * 0.011;
+        // תלתלים - כדורים גדולים וצפופים שנותנים נפח
+        const r = 0.048 + Math.random() * 0.016;
         tuft = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 10), hairMat);
         tuft.position.set(px, py, pz);
       }
@@ -539,15 +627,17 @@ function createFighter(cfg) {
 
 // ---------- הצבת הלוחמים על הבמה ----------
 
-// סווארק - גופייה לבנה, ג'ינס, תלתלים חומים
+// סווארק - גופייה לבנה, ג'ינס עם חגורה, מגפי עור, תלתלים חומים, תחבושות על האגרופים
 const player = createFighter({
-  skin: 0xe3ab78,
-  hair: 0x5a3a1c,
+  skin: 0xf0bd92,
+  hair: 0x3a2718,
   hairStyle: 'curly',
+  eyeColor: 0x6b4423,
   ears: 'round',
-  top: 0xf2f2ef,      // גופייה לבנה
-  pants: 0x35578f,    // ג'ינס
-  shoes: 0x2b2320,
+  top: 0xf6f5f1,      // גופייה לבנה
+  pants: 0x7089b5,    // ג'ינס
+  boots: 0x8a5733,    // מגפי עור חומים
+  handWraps: true,
 });
 player.position.set(-1.7, RING_TOP + 0.04, 0);
 player.rotation.y = 1.05;   // 3/4 - פונה ליריב אבל הפנים נראות למצלמה
@@ -556,13 +646,14 @@ scene.add(player);
 // בו - איש כחול, אוזניים חדות, שיער ירוק, עגיל באף וטבעת באצבע, רק בוקסר שחור
 const enemy = createFighter({
   skin: 0x4a93d4,
-  hair: 0x2fbf44,
+  hair: 0x33c04a,
   hairStyle: 'spiky',
+  eyeColor: 0xc8a02a,
   ears: 'pointed',
   top: null,          // בלי חולצה
   pants: null,        // בלי מכנסיים
   boxers: 0x16181c,   // בוקסר שחור
-  shoes: null,        // יחף
+  boots: null,        // יחף
   noseRing: true,
   fingerRing: true,
 });
