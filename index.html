@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>משחק הקרבות</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(180deg, #2b1055, #7597de);
+    color: #fff;
+  }
+  .game {
+    width: 100%;
+    max-width: 480px;
+    padding: 24px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+    text-shadow: 2px 2px 0 #000;
+  }
+  .fighters {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .fighter {
+    flex: 1;
+    background: rgba(0,0,0,0.25);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .fighter .emoji { font-size: 3rem; }
+  .fighter .name { font-size: 1.2rem; font-weight: bold; margin: 8px 0; }
+  .hp-bar-bg {
+    background: #333;
+    border-radius: 10px;
+    height: 22px;
+    overflow: hidden;
+    border: 2px solid #000;
+  }
+  .hp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    transition: width 0.3s ease;
+  }
+  .fighter.enemy .hp-bar-fill {
+    background: linear-gradient(90deg, #e53935, #ff7043);
+  }
+  .hp-text { margin-top: 6px; font-size: 0.95rem; }
+  #log {
+    background: rgba(0,0,0,0.3);
+    border-radius: 12px;
+    padding: 12px;
+    min-height: 60px;
+    max-height: 100px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    text-align: right;
+  }
+  #log div { margin: 2px 0; }
+  #attackBtn {
+    font-size: 1.4rem;
+    padding: 16px 40px;
+    border: none;
+    border-radius: 14px;
+    background: #ffb300;
+    color: #2b1055;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #c17f00;
+  }
+  #attackBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #c17f00; }
+  #attackBtn:disabled { background: #888; box-shadow: 0 4px 0 #555; cursor: default; }
+
+  #resultScreen {
+    display: none;
+  }
+  #resultScreen h2 { font-size: 2.4rem; margin-bottom: 8px; }
+  #resultScreen.win h2 { color: #ffd54f; }
+  #resultScreen.lose h2 { color: #ff7043; }
+  #playAgainBtn {
+    font-size: 1.2rem;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 14px;
+    background: #29b6f6;
+    color: #06263a;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #0288d1;
+    margin-top: 12px;
+  }
+  #playAgainBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #0288d1; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="game">
+    <h1>⚔️ משחק הקרבות</h1>
+
+    <div id="battleScreen">
+      <div class="fighters">
+        <div class="fighter player">
+          <div class="emoji">🧑‍🦱</div>
+          <div class="name">סווארק</div>
+          <div class="hp-bar-bg"><div class="hp-bar-fill" id="playerHpFill"></div></div>
+          <div class="hp-text"><span id="playerHpText"></span> חיים</div>
+        </div>
+        <div class="fighter enemy">
+          <div class="emoji">👹</div>
+          <div class="name">בריון</div>
+          <div class="hp-bar-bg"><div class="hp-bar-fill" id="enemyHpFill"></div></div>
+          <div class="hp-text"><span id="enemyHpText"></span> חיים</div>
+        </div>
+      </div>
+
+      <div id="log"></div>
+
+      <button id="attackBtn">⚔️ תקוף (אבן חדה)</button>
+    </div>
+
+    <div id="resultScreen">
+      <h2 id="resultTitle"></h2>
+      <p id="resultSubtitle"></p>
+      <button id="playAgainBtn">🔄 שחק שוב</button>
+    </div>
+  </div>
+
+<script>
+  // --- הגדרות משחק (קל לשנות מספרים כאן בהמשך) ---
+  const CONFIG = {
+    player: { name: "סווארק", maxHp: 100, weaponDamage: 7 },
+    enemy: { name: "בריון", maxHp: 40, damage: 5 }
+  };
+
+  let playerHp, enemyHp, battleOver;
+
+  const playerHpFill = document.getElementById('playerHpFill');
+  const enemyHpFill = document.getElementById('enemyHpFill');
+  const playerHpText = document.getElementById('playerHpText');
+  const enemyHpText = document.getElementById('enemyHpText');
+  const log = document.getElementById('log');
+  const attackBtn = document.getElementById('attackBtn');
+  const battleScreen = document.getElementById('battleScreen');
+  const resultScreen = document.getElementById('resultScreen');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultSubtitle = document.getElementById('resultSubtitle');
+  const playAgainBtn = document.getElementById('playAgainBtn');
+
+  function addLog(text) {
+    const line = document.createElement('div');
+    line.textContent = text;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function updateBars() {
+    const playerPct = Math.max(0, playerHp / CONFIG.player.maxHp * 100);
+    const enemyPct = Math.max(0, enemyHp / CONFIG.enemy.maxHp * 100);
+    playerHpFill.style.width = playerPct + '%';
+    enemyHpFill.style.width = enemyPct + '%';
+    playerHpText.textContent = Math.max(0, playerHp);
+    enemyHpText.textContent = Math.max(0, enemyHp);
+  }
+
+  function startBattle() {
+    playerHp = CONFIG.player.maxHp;
+    enemyHp = CONFIG.enemy.maxHp;
+    battleOver = false;
+    log.innerHTML = '';
+    addLog('הקרב מתחיל! סווארק מול בריון.');
+    updateBars();
+    attackBtn.disabled = false;
+    battleScreen.classList.remove('hidden');
+    resultScreen.style.display = 'none';
+  }
+
+  function endBattle(won) {
+    battleOver = true;
+    attackBtn.disabled = true;
+    resultScreen.classList.remove('win', 'lose');
+    resultScreen.classList.add(won ? 'win' : 'lose');
+    resultTitle.textContent = won ? '🏆 ניצחון!' : '❌ הפסד!';
+    resultSubtitle.textContent = won
+      ? `ניצחת את ${CONFIG.enemy.name}!`
+      : `${CONFIG.enemy.name} ניצח הפעם... נסה שוב!`;
+    resultScreen.style.display = 'block';
+  }
+
+  function attack() {
+    if (battleOver) return;
+
+    // תור השחקן
+    enemyHp -= CONFIG.player.weaponDamage;
+    addLog(`סווארק תוקף באבן חדה וגורם ${CONFIG.player.weaponDamage} נזק!`);
+
+    if (enemyHp <= 0) {
+      updateBars();
+      addLog(`${CONFIG.enemy.name} הובס!`);
+      endBattle(true);
+      return;
+    }
+
+    // תור האויב
+    playerHp -= CONFIG.enemy.damage;
+    addLog(`${CONFIG.enemy.name} תוקף ומחזיר ${CONFIG.enemy.damage} נזק!`);
+    updateBars();
+
+    if (playerHp <= 0) {
+      addLog('סווארק נפל בקרב...');
+      endBattle(false);
+    }
+  }
+
+  attackBtn.addEventListener('click', attack);
+  playAgainBtn.addEventListener('click', startBattle);
+
+  startBattle();
+</script>
+</body>
+</html>
