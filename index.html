@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>משחק הקרבות - זירת אגרוף</title>
+<title>משחק הקרבות - סווארק מול בו</title>
 <style>
   html, body {
     margin: 0;
@@ -29,7 +29,7 @@
 </style>
 </head>
 <body>
-<div id="label">🥊 שלב גרפיקה: זירת אגרוף - סווארק מול בריון (עדיין בלי תנועה)</div>
+<div id="label">🥊 שלב גרפיקה: זירת אגרוף - סווארק מול בו (עדיין בלי תנועה)</div>
 
 <script type="importmap">
 {
@@ -291,17 +291,39 @@ function joint(mat, r, pos) {
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
-function createFighter({ skin, shirt, pants, hair }) {
+// חומר זהב משותף לתכשיטים (עגילים / טבעות)
+const goldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.2, metalness: 0.95 });
+
+/**
+ * בונה דמות לוחם לפי הגדרות מראה.
+ * cfg:
+ *   skin, hair            - צבעים
+ *   hairStyle             - 'curly' (תלתלים) | 'spiky' (קוצני)
+ *   ears                  - 'round' | 'pointed' (אוזניים חדות)
+ *   top                   - צבע גופייה, או null לגוף חשוף
+ *   pants                 - צבע מכנסיים ארוכים, או null
+ *   boxers                - צבע תחתונים, או null
+ *   shoes                 - צבע נעליים, או null לרגליים יחפות
+ *   noseRing, fingerRing  - תכשיטי זהב
+ */
+function createFighter(cfg) {
   const g = new THREE.Group();
 
-  const skinMat  = new THREE.MeshStandardMaterial({ color: skin,  roughness: 0.62, metalness: 0.02 });
-  const shirtMat = new THREE.MeshStandardMaterial({ color: shirt, roughness: 0.78 });
-  const pantsMat = new THREE.MeshStandardMaterial({ color: pants, roughness: 0.8 });
-  const hairMat  = new THREE.MeshStandardMaterial({ color: hair,  roughness: 0.75 });
-  const shoeMat  = new THREE.MeshStandardMaterial({ color: 0x241d1a, roughness: 0.55 });
+  const skinMat  = new THREE.MeshStandardMaterial({ color: cfg.skin, roughness: 0.62, metalness: 0.02 });
+  const hairMat  = new THREE.MeshStandardMaterial({ color: cfg.hair, roughness: 0.8 });
+  const topMat    = cfg.top    ? new THREE.MeshStandardMaterial({ color: cfg.top,    roughness: 0.88 }) : null;
+  const pantsMat  = cfg.pants  ? new THREE.MeshStandardMaterial({ color: cfg.pants,  roughness: 0.88 }) : null;
+  const boxerMat  = cfg.boxers ? new THREE.MeshStandardMaterial({ color: cfg.boxers, roughness: 0.8 })  : null;
+  const shoeMat   = cfg.shoes  ? new THREE.MeshStandardMaterial({ color: cfg.shoes,  roughness: 0.55 }) : skinMat;
+  const beltMat   = new THREE.MeshStandardMaterial({ color: 0x4a3527, roughness: 0.7 });
   const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf7f7f7, roughness: 0.35 });
   const eyeDarkMat  = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.3 });
   const mouthMat    = new THREE.MeshStandardMaterial({ color: 0x8a3b3b, roughness: 0.6 });
+
+  // חומר הרגליים: מכנסיים ארוכים אם יש, אחרת עור חשוף
+  const legMat = pantsMat || skinMat;
+  // חומר האגן: מכנסיים > תחתונים > עור
+  const hipMat = pantsMat || boxerMat || skinMat;
 
   // --- נקודות שלד (הדמות פונה לכיוון +Z) ---
   const ankleL = V(-0.135, 0.12, 0), ankleR = V(0.135, 0.12, 0);
@@ -316,14 +338,14 @@ function createFighter({ skin, shirt, pants, hair }) {
   const headCenter = V(0, 1.70, 0);
 
   // --- רגליים ---
-  g.add(bone(pantsMat, 0.10, 0.115, kneeL, ankleL));
-  g.add(bone(pantsMat, 0.10, 0.115, kneeR, ankleR));
-  g.add(bone(pantsMat, 0.14, 0.105, hipL, kneeL));
-  g.add(bone(pantsMat, 0.14, 0.105, hipR, kneeR));
-  g.add(joint(pantsMat, 0.105, kneeL));
-  g.add(joint(pantsMat, 0.105, kneeR));
-  g.add(joint(pantsMat, 0.14, hipL));
-  g.add(joint(pantsMat, 0.14, hipR));
+  g.add(bone(legMat, 0.10, 0.115, kneeL, ankleL));
+  g.add(bone(legMat, 0.10, 0.115, kneeR, ankleR));
+  g.add(bone(legMat, 0.14, 0.105, hipL, kneeL));
+  g.add(bone(legMat, 0.14, 0.105, hipR, kneeR));
+  g.add(joint(legMat, 0.105, kneeL));
+  g.add(joint(legMat, 0.105, kneeR));
+  g.add(joint(legMat, 0.14, hipL));
+  g.add(joint(legMat, 0.14, hipR));
 
   // כפות רגליים - צמודות לקרסול
   [ankleL, ankleR].forEach((a) => {
@@ -335,12 +357,43 @@ function createFighter({ skin, shirt, pants, hair }) {
     g.add(foot);
   });
 
-  // --- אגן ופלג גוף עליון ---
-  g.add(bone(pantsMat, 0.195, 0.185, V(0, 1.0, 0), V(0, 0.85, 0)));
-  g.add(bone(shirtMat, 0.225, 0.185, chest, pelvis));
-  g.add(joint(shirtMat, 0.225, chest));
-  g.add(joint(shirtMat, 0.17, shoulderL));
-  g.add(joint(shirtMat, 0.17, shoulderR));
+  // --- אגן ---
+  g.add(bone(hipMat, 0.195, 0.185, V(0, 1.0, 0), V(0, 0.85, 0)));
+
+  // תחתונים (בוקסר) - שכבה מעט רחבה יותר על האגן וראש הירכיים
+  if (boxerMat && !pantsMat) {
+    g.add(bone(boxerMat, 0.205, 0.20, V(0, 1.0, 0), V(0, 0.86, 0)));
+    [hipL, hipR].forEach((h) => {
+      g.add(bone(boxerMat, 0.152, 0.13, V(h.x, 0.94, 0), V(h.x * 1.06, 0.68, 0.004)));
+    });
+  }
+
+  // חגורה - רק כשיש מכנסיים ארוכים
+  if (pantsMat) {
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.205, 0.205, 0.07, 20), beltMat);
+    belt.position.set(0, 0.985, 0);
+    belt.castShadow = true;
+    g.add(belt);
+  }
+
+  // --- פלג גוף עליון (תמיד עור; הבגד מונח מעליו) ---
+  g.add(bone(skinMat, 0.225, 0.185, chest, pelvis));
+  g.add(joint(skinMat, 0.225, chest));
+  g.add(joint(skinMat, 0.17, shoulderL));
+  g.add(joint(skinMat, 0.17, shoulderR));
+
+  // גופייה - שכבה מעל פלג הגוף, עם שתי כתפיות שעוברות מעל הכתפיים
+  if (topMat) {
+    g.add(bone(topMat, 0.234, 0.198, V(0, 1.28, 0), V(0, 0.93, 0)));
+    [-1, 1].forEach((s) => {
+      const frontPt    = V(s * 0.115, 1.27, 0.185);
+      const shoulderPt = V(s * 0.20, 1.42, 0.0);
+      const backPt     = V(s * 0.135, 1.27, -0.17);
+      g.add(bone(topMat, 0.03, 0.03, frontPt, shoulderPt));
+      g.add(bone(topMat, 0.03, 0.03, shoulderPt, backPt));
+      g.add(joint(topMat, 0.032, shoulderPt));
+    });
+  }
 
   // --- זרועות ---
   [[shoulderL, elbowL, wristL], [shoulderR, elbowR, wristR]].forEach(([sh, el, wr]) => {
@@ -362,10 +415,20 @@ function createFighter({ skin, shirt, pants, hair }) {
   head.receiveShadow = true;
   g.add(head);
 
+  // אוזניים - עגולות רגילות או חדות ומחודדות כלפי מעלה
   [-1, 1].forEach((s) => {
-    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.042, 8, 8), skinMat);
-    ear.position.set(s * 0.147, headCenter.y + 0.005, -0.005);
-    ear.scale.set(0.55, 1, 0.75);
+    let ear;
+    if (cfg.ears === 'pointed') {
+      ear = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.20, 10), skinMat);
+      ear.position.set(s * 0.152, headCenter.y + 0.055, -0.012);
+      ear.rotation.z = s * -0.45;
+      ear.rotation.x = -0.25;
+      ear.scale.set(0.55, 1, 0.9);
+    } else {
+      ear = new THREE.Mesh(new THREE.SphereGeometry(0.042, 8, 8), skinMat);
+      ear.position.set(s * 0.147, headCenter.y + 0.005, -0.005);
+      ear.scale.set(0.55, 1, 0.75);
+    }
     ear.castShadow = true;
     g.add(ear);
   });
@@ -399,27 +462,110 @@ function createFighter({ skin, shirt, pants, hair }) {
   mouth.position.set(0, headCenter.y - 0.078, faceZ + 0.005);
   g.add(mouth);
 
+  // --- עגיל באף (טבעת ספטום התלויה מתחת לאף) ---
+  if (cfg.noseRing) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.007, 8, 18), goldMat);
+    ring.position.set(0, headCenter.y - 0.062, faceZ + 0.03);
+    ring.castShadow = true;
+    g.add(ring);
+  }
+
+  // --- טבעת באצבע (יד ימין) ---
+  if (cfg.fingerRing) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.011, 8, 18), goldMat);
+    ring.position.set(wristR.x, wristR.y - 0.055, wristR.z);
+    ring.rotation.x = Math.PI / 2;
+    ring.castShadow = true;
+    g.add(ring);
+  }
+
   // --- שיער ---
+  // כיפת בסיס שצמודה לגולגולת
   const hairCap = new THREE.Mesh(
-    new THREE.SphereGeometry(0.163, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.52),
+    new THREE.SphereGeometry(0.162, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.5),
     hairMat
   );
   hairCap.position.copy(headCenter);
-  hairCap.position.y += 0.012;
+  hairCap.position.y += 0.01;
   hairCap.scale.set(0.96, 1.2, 1.02);
   hairCap.castShadow = true;
   g.add(hairCap);
+
+  // צורות שיער - מונחות על פני הגולגולת לפי טבעות זווית,
+  // ומדלגות על אזור המצח כדי שהפנים יישארו חשופות
+  const HAIR_RINGS = [
+    { phi: 0.30, count: 6 },
+    { phi: 0.66, count: 10 },
+    { phi: 1.00, count: 13 },
+    { phi: 1.32, count: 15 },
+  ];
+  const rx = 0.152, ry = 0.178, rz = 0.163;
+
+  HAIR_RINGS.forEach(({ phi, count }) => {
+    for (let i = 0; i < count; i++) {
+      const theta = (i / count) * Math.PI * 2 + phi * 1.7;
+      const lx = Math.sin(phi) * Math.cos(theta) * rx;
+      const ly = Math.cos(phi) * ry;
+      const lz = Math.sin(phi) * Math.sin(theta) * rz;
+
+      // דילוג על המצח והפנים (קו שיער בגובה הגבות)
+      if (lz > 0.05 && ly < 0.085) continue;
+
+      const jitter = () => (Math.random() - 0.5) * 0.022;
+      const px = headCenter.x + lx + jitter();
+      const py = headCenter.y + ly + jitter();
+      const pz = lz + jitter();
+
+      let tuft;
+      if (cfg.hairStyle === 'spiky') {
+        tuft = new THREE.Mesh(new THREE.ConeGeometry(0.036, 0.13, 7), hairMat);
+        // הקוץ מצביע החוצה מהראש
+        const dir = new THREE.Vector3(lx, ly, lz).normalize();
+        tuft.position.set(px + dir.x * 0.04, py + dir.y * 0.04, pz + dir.z * 0.04);
+        tuft.quaternion.setFromUnitVectors(UP, dir);
+      } else {
+        // תלתלים - כדורים קטנים וצפופים
+        const r = 0.036 + Math.random() * 0.011;
+        tuft = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 10), hairMat);
+        tuft.position.set(px, py, pz);
+      }
+      tuft.castShadow = true;
+      g.add(tuft);
+    }
+  });
 
   return g;
 }
 
 // ---------- הצבת הלוחמים על הבמה ----------
-const player = createFighter({ skin: 0xe3ab78, shirt: 0x2565d4, pants: 0x33383f, hair: 0x3b2a1a });
+
+// סווארק - גופייה לבנה, ג'ינס, תלתלים חומים
+const player = createFighter({
+  skin: 0xe3ab78,
+  hair: 0x5a3a1c,
+  hairStyle: 'curly',
+  ears: 'round',
+  top: 0xf2f2ef,      // גופייה לבנה
+  pants: 0x35578f,    // ג'ינס
+  shoes: 0x2b2320,
+});
 player.position.set(-1.7, RING_TOP + 0.04, 0);
 player.rotation.y = 1.05;   // 3/4 - פונה ליריב אבל הפנים נראות למצלמה
 scene.add(player);
 
-const enemy = createFighter({ skin: 0xa8724f, shirt: 0x9c2020, pants: 0x27292e, hair: 0x141414 });
+// בו - איש כחול, אוזניים חדות, שיער ירוק, עגיל באף וטבעת באצבע, רק בוקסר שחור
+const enemy = createFighter({
+  skin: 0x4a93d4,
+  hair: 0x2fbf44,
+  hairStyle: 'spiky',
+  ears: 'pointed',
+  top: null,          // בלי חולצה
+  pants: null,        // בלי מכנסיים
+  boxers: 0x16181c,   // בוקסר שחור
+  shoes: null,        // יחף
+  noseRing: true,
+  fingerRing: true,
+});
 enemy.position.set(1.7, RING_TOP + 0.04, 0);
 enemy.rotation.y = -1.05;
 scene.add(enemy);
