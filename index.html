@@ -106,12 +106,14 @@ ring.position.y = 0.03;
 ring.receiveShadow = true;
 scene.add(ring);
 
-// קיר זירה מקיף (תחושת קולוסיאום)
+// קיר זירה מקיף (תחושת קולוסיאום) - ברדיוס גדול בהרבה ממרחק המצלמה,
+// כדי שהמצלמה תישאר בתוכו ולא תביט על הפאה החיצונית שלו
+const wallRadius = 20;
 const wall = new THREE.Mesh(
-  new THREE.CylinderGeometry(arenaRadius + 0.3, arenaRadius + 0.6, 2.2, 48, 1, true),
+  new THREE.CylinderGeometry(wallRadius, wallRadius + 1, 4, 48, 1, true),
   new THREE.MeshStandardMaterial({ color: 0x9a8c7a, roughness: 0.9, side: THREE.DoubleSide })
 );
-wall.position.y = 1.0;
+wall.position.y = 1.6;
 wall.receiveShadow = true;
 scene.add(wall);
 
