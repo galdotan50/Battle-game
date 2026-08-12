@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>משחק הקרבות - זירה תלת מימדית</title>
+<title>משחק הקרבות - זירת אגרוף</title>
 <style>
   html, body {
     margin: 0;
@@ -18,7 +18,7 @@
     left: 50%;
     transform: translateX(-50%);
     color: #fff;
-    background: rgba(0,0,0,0.45);
+    background: rgba(0,0,0,0.5);
     padding: 8px 20px;
     border-radius: 10px;
     font-size: 1rem;
@@ -29,7 +29,7 @@
 </style>
 </head>
 <body>
-<div id="label">🏟️ שלב גרפיקה: זירה תלת מימדית - סווארק מול בריון (עדיין בלי תנועה)</div>
+<div id="label">🥊 שלב גרפיקה: זירת אגרוף - סווארק מול בריון (עדיין בלי תנועה)</div>
 
 <script type="importmap">
 {
@@ -44,13 +44,12 @@ import * as THREE from 'three';
 
 // ---------- בסיס: סצנה, מצלמה, רנדרר ----------
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x9fc7e8);
-scene.fog = new THREE.Fog(0x9fc7e8, 12, 30);
+scene.background = new THREE.Color(0x101826);
+scene.fog = new THREE.Fog(0x101826, 22, 45);
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-// מצלמה קבועה מהצד - סגנון משחקי לחימה קלאסיים
-camera.position.set(0, 1.9, 8.5);
-camera.lookAt(0, 1.1, 0);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 3.1, 11.5);
+camera.lookAt(0, 1.55, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -58,7 +57,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 1.1;
 document.body.appendChild(renderer.domElement);
 
 window.addEventListener('resize', () => {
@@ -68,156 +67,363 @@ window.addEventListener('resize', () => {
 });
 
 // ---------- תאורה ----------
-const hemiLight = new THREE.HemisphereLight(0xbfd9ff, 0x554433, 0.55);
-scene.add(hemiLight);
+scene.add(new THREE.HemisphereLight(0x9db6d8, 0x2b2620, 0.45));
 
-const sunLight = new THREE.DirectionalLight(0xfff2d6, 1.6);
-sunLight.position.set(-6, 10, 6);
-sunLight.castShadow = true;
-sunLight.shadow.mapSize.set(2048, 2048);
-sunLight.shadow.camera.left = -10;
-sunLight.shadow.camera.right = 10;
-sunLight.shadow.camera.top = 10;
-sunLight.shadow.camera.bottom = -10;
-sunLight.shadow.bias = -0.0015;
-scene.add(sunLight);
+const ringLightA = new THREE.SpotLight(0xfff4e0, 260, 26, Math.PI / 5, 0.45, 1.6);
+ringLightA.position.set(-4, 11, 4);
+ringLightA.target.position.set(0, 0.7, 0);
+ringLightA.castShadow = true;
+ringLightA.shadow.mapSize.set(2048, 2048);
+ringLightA.shadow.bias = -0.0012;
+scene.add(ringLightA, ringLightA.target);
 
-const rimLight = new THREE.PointLight(0x88aaff, 0.6, 20);
-rimLight.position.set(4, 3, -4);
-scene.add(rimLight);
+const ringLightB = new THREE.SpotLight(0xe8f0ff, 180, 26, Math.PI / 5, 0.5, 1.6);
+ringLightB.position.set(5, 11, -3);
+ringLightB.target.position.set(0, 0.7, 0);
+scene.add(ringLightB, ringLightB.target);
 
-// ---------- זירה ----------
-const arenaRadius = 6;
+scene.add(new THREE.AmbientLight(0x404a5c, 0.6));
 
-const floor = new THREE.Mesh(
-  new THREE.CylinderGeometry(arenaRadius, arenaRadius, 0.3, 48),
-  new THREE.MeshStandardMaterial({ color: 0x8a7357, roughness: 0.95, metalness: 0.02 })
+// ---------- מידות הזירה ----------
+const RING_HALF = 4.2;        // חצי רוחב הבמה
+const RING_TOP = 0.7;         // גובה פני הבמה
+const POST_HEIGHT = 1.75;     // גובה עמודי הפינה מעל הבמה
+const ROPE_HEIGHTS = [0.5, 0.95, 1.4]; // 3 חבלים בכל צלע
+
+// ---------- רצפת האולם ----------
+const hallFloor = new THREE.Mesh(
+  new THREE.PlaneGeometry(120, 120),
+  new THREE.MeshStandardMaterial({ color: 0x2a2f3a, roughness: 1 })
 );
-floor.position.y = -0.15;
-floor.receiveShadow = true;
-scene.add(floor);
+hallFloor.rotation.x = -Math.PI / 2;
+hallFloor.receiveShadow = true;
+scene.add(hallFloor);
 
-// טבעת פנימית (רצפת קרב מוגבהת קלות)
-const ring = new THREE.Mesh(
-  new THREE.CylinderGeometry(arenaRadius - 0.4, arenaRadius - 0.4, 0.05, 48),
-  new THREE.MeshStandardMaterial({ color: 0xb08d5f, roughness: 0.85 })
+// ---------- במת הזירה ----------
+const ringGroup = new THREE.Group();
+scene.add(ringGroup);
+
+// גוף הבמה
+const platform = new THREE.Mesh(
+  new THREE.BoxGeometry(RING_HALF * 2 + 0.8, RING_TOP, RING_HALF * 2 + 0.8),
+  new THREE.MeshStandardMaterial({ color: 0x1e3a6e, roughness: 0.85 })
 );
-ring.position.y = 0.03;
-ring.receiveShadow = true;
-scene.add(ring);
+platform.position.y = RING_TOP / 2;
+platform.castShadow = true;
+platform.receiveShadow = true;
+ringGroup.add(platform);
 
-// קיר זירה מקיף (תחושת קולוסיאום) - ברדיוס גדול בהרבה ממרחק המצלמה,
-// כדי שהמצלמה תישאר בתוכו ולא תביט על הפאה החיצונית שלו
-const wallRadius = 20;
-const wall = new THREE.Mesh(
-  new THREE.CylinderGeometry(wallRadius, wallRadius + 1, 4, 48, 1, true),
-  new THREE.MeshStandardMaterial({ color: 0x9a8c7a, roughness: 0.9, side: THREE.DoubleSide })
+// יריעת הקנבס (משטח הלחימה)
+const canvasMat = new THREE.Mesh(
+  new THREE.BoxGeometry(RING_HALF * 2 + 0.85, 0.06, RING_HALF * 2 + 0.85),
+  new THREE.MeshStandardMaterial({ color: 0x3f7fd6, roughness: 0.95 })
 );
-wall.position.y = 1.6;
-wall.receiveShadow = true;
-scene.add(wall);
+canvasMat.position.y = RING_TOP + 0.01;
+canvasMat.receiveShadow = true;
+ringGroup.add(canvasMat);
 
-// רצפת רקע רחוקה (כדי שלא ייראה ריק אחרי הקיר)
-const groundFar = new THREE.Mesh(
-  new THREE.PlaneGeometry(200, 200),
-  new THREE.MeshStandardMaterial({ color: 0x6f9954, roughness: 1 })
-);
-groundFar.rotation.x = -Math.PI / 2;
-groundFar.position.y = -0.2;
-groundFar.receiveShadow = true;
-scene.add(groundFar);
+// עמודי פינה + כריות פינה
+const cornerColors = [0xd32f2f, 0x1565c0, 0xd32f2f, 0x1565c0];
+const corners = [
+  [-RING_HALF, -RING_HALF],
+  [ RING_HALF, -RING_HALF],
+  [ RING_HALF,  RING_HALF],
+  [-RING_HALF,  RING_HALF],
+];
 
-// ---------- בניית דמות אנושית (פרימיטיבים בפרופורציה אנושית) ----------
-function createFighter({ skin, shirt, pants, hair }) {
-  const group = new THREE.Group();
+corners.forEach(([cx, cz], i) => {
+  const post = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.085, 0.085, POST_HEIGHT, 14),
+    new THREE.MeshStandardMaterial({ color: 0xb9c0cc, roughness: 0.4, metalness: 0.7 })
+  );
+  post.position.set(cx, RING_TOP + POST_HEIGHT / 2, cz);
+  post.castShadow = true;
+  ringGroup.add(post);
 
-  const skinMat = new THREE.MeshStandardMaterial({ color: skin, roughness: 0.6, metalness: 0.05 });
-  const shirtMat = new THREE.MeshStandardMaterial({ color: shirt, roughness: 0.75 });
-  const pantsMat = new THREE.MeshStandardMaterial({ color: pants, roughness: 0.8 });
-  const hairMat = new THREE.MeshStandardMaterial({ color: hair, roughness: 0.7 });
-  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x2b2320, roughness: 0.6 });
+  // כרית ריפוד צבעונית על העמוד
+  const pad = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.17, 0.17, 1.15, 14),
+    new THREE.MeshStandardMaterial({ color: cornerColors[i], roughness: 0.8 })
+  );
+  pad.position.set(cx, RING_TOP + 0.95, cz);
+  pad.castShadow = true;
+  ringGroup.add(pad);
+});
 
-  function part(mesh) { mesh.castShadow = true; mesh.receiveShadow = true; return mesh; }
+// חבלים - 3 בכל אחת מ-4 הצלעות
+const ropeMat = new THREE.MeshStandardMaterial({ color: 0xf2f2f2, roughness: 0.6 });
+const ropeLen = RING_HALF * 2;
 
-  // רגליים
-  const legGeo = new THREE.CapsuleGeometry(0.11, 0.42, 4, 8);
-  const legL = part(new THREE.Mesh(legGeo, pantsMat));
-  legL.position.set(-0.13, 0.46, 0);
-  const legR = part(new THREE.Mesh(legGeo, pantsMat));
-  legR.position.set(0.13, 0.46, 0);
-  group.add(legL, legR);
+ROPE_HEIGHTS.forEach((h) => {
+  const y = RING_TOP + h;
 
-  // כפות רגליים
-  const footGeo = new THREE.BoxGeometry(0.15, 0.08, 0.26);
-  const footL = part(new THREE.Mesh(footGeo, shoeMat));
-  footL.position.set(-0.13, 0.05, 0.05);
-  const footR = part(new THREE.Mesh(footGeo, shoeMat));
-  footR.position.set(0.13, 0.05, 0.05);
-  group.add(footL, footR);
+  // שתי צלעות המקבילות לציר X (קדימה ואחורה)
+  [-RING_HALF, RING_HALF].forEach((z) => {
+    const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, ropeLen, 10), ropeMat);
+    rope.rotation.z = Math.PI / 2;
+    rope.position.set(0, y, z);
+    rope.castShadow = true;
+    ringGroup.add(rope);
+  });
 
-  // אגן/מותניים
-  const hips = part(new THREE.Mesh(new THREE.CapsuleGeometry(0.19, 0.06, 4, 8), pantsMat));
-  hips.position.set(0, 0.75, 0);
-  group.add(hips);
+  // שתי צלעות המקבילות לציר Z (שמאל וימין)
+  [-RING_HALF, RING_HALF].forEach((x) => {
+    const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, ropeLen, 10), ropeMat);
+    rope.rotation.x = Math.PI / 2;
+    rope.position.set(x, y, 0);
+    rope.castShadow = true;
+    ringGroup.add(rope);
+  });
+});
 
-  // פלג גוף עליון
-  const torso = part(new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.42, 4, 8), shirtMat));
-  torso.position.set(0, 1.12, 0);
-  group.add(torso);
+// ---------- יציעים וקהל ----------
+const TIERS = 5;
+const crowdPositions = [];
 
-  // זרועות (כתף עד מרפק, מרפק עד יד) - תלויות בזווית קלה לצד
-  function buildArm(sideSign) {
-    const armGroup = new THREE.Group();
-    armGroup.position.set(sideSign * 0.29, 1.35, 0);
+for (let t = 0; t < TIERS; t++) {
+  const half = 7.0 + t * 1.9;
+  const height = 0.55 + t * 0.6;
 
-    const upperArm = part(new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.3, 4, 8), skinMat));
-    upperArm.position.set(0, -0.17, 0);
-    upperArm.rotation.z = sideSign * 0.12;
-    armGroup.add(upperArm);
+  const tier = new THREE.Mesh(
+    new THREE.BoxGeometry(half * 2, height, half * 2),
+    new THREE.MeshStandardMaterial({ color: t % 2 ? 0x39404e : 0x323845, roughness: 0.95 })
+  );
+  tier.position.y = height / 2;
+  tier.receiveShadow = true;
+  scene.add(tier);
 
-    const lowerArm = part(new THREE.Mesh(new THREE.CapsuleGeometry(0.065, 0.28, 4, 8), skinMat));
-    lowerArm.position.set(sideSign * 0.02, -0.46, 0.02);
-    lowerArm.rotation.z = sideSign * 0.05;
-    armGroup.add(lowerArm);
-
-    const hand = part(new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 10), skinMat));
-    hand.position.set(sideSign * 0.03, -0.62, 0.03);
-    armGroup.add(hand);
-
-    return armGroup;
+  // פיזור אנשים לאורך היקף היציע (רצועה ליד הקצה הפנימי של המדרגה)
+  const bandInner = half - 1.55;
+  const step = 0.85;
+  for (let side = 0; side < 4; side++) {
+    for (let d = -bandInner; d <= bandInner; d += step) {
+      const jitterA = (Math.random() - 0.5) * 0.35;
+      const jitterB = (Math.random() - 0.5) * 0.5;
+      const along = d + jitterA;
+      const out = bandInner + 0.55 + jitterB;
+      let x, z;
+      if (side === 0) { x = along; z = -out; }
+      else if (side === 1) { x = along; z = out; }
+      else if (side === 2) { x = -out; z = along; }
+      else { x = out; z = along; }
+      crowdPositions.push({ x, y: height, z, phase: Math.random() * Math.PI * 2 });
+    }
   }
-  group.add(buildArm(-1));
-  group.add(buildArm(1));
-
-  // צוואר וראש
-  const neck = part(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.08, 10), skinMat));
-  neck.position.set(0, 1.38, 0);
-  group.add(neck);
-
-  const head = part(new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), skinMat));
-  head.position.set(0, 1.53, 0);
-  group.add(head);
-
-  const hairCap = part(new THREE.Mesh(new THREE.SphereGeometry(0.155, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), hairMat));
-  hairCap.position.set(0, 1.56, 0);
-  group.add(hairCap);
-
-  return group;
 }
 
-const player = createFighter({ skin: 0xe0a874, shirt: 0x2e6fd1, pants: 0x3a3a3a, hair: 0x3b2a1a });
-player.position.set(-1.8, 0, 0);
-player.rotation.y = Math.PI / 2.4; // פונה לעבר היריב
+const crowdCount = crowdPositions.length;
+
+const crowdBodyGeo = new THREE.CapsuleGeometry(0.17, 0.34, 4, 8);
+const crowdHeadGeo = new THREE.SphereGeometry(0.145, 10, 10);
+const crowdMat = new THREE.MeshStandardMaterial({ roughness: 0.85 });
+
+const crowdBodies = new THREE.InstancedMesh(crowdBodyGeo, crowdMat, crowdCount);
+const crowdHeads = new THREE.InstancedMesh(crowdHeadGeo, crowdMat, crowdCount);
+crowdBodies.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+crowdHeads.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+const shirtPalette = [0xe74c3c, 0x3498db, 0xf1c40f, 0x2ecc71, 0x9b59b6, 0xe67e22, 0xecf0f1, 0x1abc9c];
+const skinPalette = [0xf0c39a, 0xd9a273, 0xb07a4e, 0x8a5a35, 0x66401f];
+
+const dummy = new THREE.Object3D();
+const colorTmp = new THREE.Color();
+
+crowdPositions.forEach((p, i) => {
+  dummy.position.set(p.x, p.y + 0.36, p.z);
+  dummy.updateMatrix();
+  crowdBodies.setMatrixAt(i, dummy.matrix);
+
+  dummy.position.set(p.x, p.y + 0.76, p.z);
+  dummy.updateMatrix();
+  crowdHeads.setMatrixAt(i, dummy.matrix);
+
+  crowdBodies.setColorAt(i, colorTmp.setHex(shirtPalette[Math.floor(Math.random() * shirtPalette.length)]));
+  crowdHeads.setColorAt(i, colorTmp.setHex(skinPalette[Math.floor(Math.random() * skinPalette.length)]));
+});
+
+scene.add(crowdBodies, crowdHeads);
+
+// ---------- בניית דמות אנושית מחוברת ----------
+// כל "עצם" נמתחת בין שתי נקודות, ובכל מפרק יש כדור שמסתיר את התפר.
+// כך אין פערים ואין חפיפות כפולות.
+
+const UP = new THREE.Vector3(0, 1, 0);
+
+function bone(mat, rTop, rBottom, from, to) {
+  const dir = new THREE.Vector3().subVectors(to, from);
+  const len = dir.length();
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, len, 14), mat);
+  mesh.position.copy(from).add(to).multiplyScalar(0.5);
+  mesh.quaternion.setFromUnitVectors(UP, dir.clone().normalize());
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+function joint(mat, r, pos) {
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 12), mat);
+  mesh.position.copy(pos);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+
+function createFighter({ skin, shirt, pants, hair }) {
+  const g = new THREE.Group();
+
+  const skinMat  = new THREE.MeshStandardMaterial({ color: skin,  roughness: 0.62, metalness: 0.02 });
+  const shirtMat = new THREE.MeshStandardMaterial({ color: shirt, roughness: 0.78 });
+  const pantsMat = new THREE.MeshStandardMaterial({ color: pants, roughness: 0.8 });
+  const hairMat  = new THREE.MeshStandardMaterial({ color: hair,  roughness: 0.75 });
+  const shoeMat  = new THREE.MeshStandardMaterial({ color: 0x241d1a, roughness: 0.55 });
+  const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf7f7f7, roughness: 0.35 });
+  const eyeDarkMat  = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.3 });
+  const mouthMat    = new THREE.MeshStandardMaterial({ color: 0x8a3b3b, roughness: 0.6 });
+
+  // --- נקודות שלד (הדמות פונה לכיוון +Z) ---
+  const ankleL = V(-0.135, 0.12, 0), ankleR = V(0.135, 0.12, 0);
+  const kneeL  = V(-0.145, 0.52, 0.01), kneeR = V(0.145, 0.52, 0.01);
+  const hipL   = V(-0.125, 0.92, 0),  hipR  = V(0.125, 0.92, 0);
+  const pelvis = V(0, 0.94, 0);
+  const chest  = V(0, 1.36, 0);
+  const shoulderL = V(-0.235, 1.32, 0), shoulderR = V(0.235, 1.32, 0);
+  const elbowL = V(-0.30, 1.02, 0.02),  elbowR = V(0.30, 1.02, 0.02);
+  const wristL = V(-0.315, 0.74, 0.05), wristR = V(0.315, 0.74, 0.05);
+  const neckBase = V(0, 1.40, 0), neckTop = V(0, 1.55, 0);
+  const headCenter = V(0, 1.70, 0);
+
+  // --- רגליים (שוק + ירך + מפרקים) ---
+  g.add(bone(pantsMat, 0.10, 0.115, kneeL, ankleL));   // שוק שמאל
+  g.add(bone(pantsMat, 0.10, 0.115, kneeR, ankleR));   // שוק ימין
+  g.add(bone(pantsMat, 0.14, 0.105, hipL, kneeL));     // ירך שמאל
+  g.add(bone(pantsMat, 0.14, 0.105, hipR, kneeR));     // ירך ימין
+  g.add(joint(pantsMat, 0.105, kneeL));
+  g.add(joint(pantsMat, 0.105, kneeR));
+  g.add(joint(pantsMat, 0.14, hipL));
+  g.add(joint(pantsMat, 0.14, hipR));
+
+  // כפות רגליים - צמודות לקרסול, בלי פער
+  [ankleL, ankleR].forEach((a) => {
+    g.add(joint(skinMat, 0.095, a));
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.11, 0.32), shoeMat);
+    foot.position.set(a.x, 0.055, 0.07);
+    foot.castShadow = true;
+    foot.receiveShadow = true;
+    g.add(foot);
+  });
+
+  // --- אגן ופלג גוף עליון ---
+  g.add(bone(pantsMat, 0.195, 0.185, V(0, 1.0, 0), V(0, 0.85, 0)));
+  g.add(bone(shirtMat, 0.225, 0.185, chest, pelvis));
+  g.add(joint(shirtMat, 0.225, chest));
+  g.add(joint(shirtMat, 0.17, shoulderL));
+  g.add(joint(shirtMat, 0.17, shoulderR));
+
+  // --- זרועות: זרוע עליונה, מרפק, אמה, כף יד ---
+  [[shoulderL, elbowL, wristL], [shoulderR, elbowR, wristR]].forEach(([sh, el, wr]) => {
+    g.add(bone(skinMat, 0.085, 0.07, sh, el));  // זרוע עליונה
+    g.add(joint(skinMat, 0.072, el));           // מרפק
+    g.add(bone(skinMat, 0.068, 0.058, el, wr)); // אמה
+    g.add(joint(skinMat, 0.075, wr));           // כף יד
+  });
+
+  // --- צוואר (בולט מעל פלג הגוף, לא מוסתר) ---
+  g.add(bone(skinMat, 0.078, 0.09, neckTop, neckBase));
+  g.add(joint(skinMat, 0.082, neckTop));
+
+  // --- ראש ---
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.155, 20, 20), skinMat);
+  head.position.copy(headCenter);
+  head.scale.set(0.94, 1.12, 1.0);
+  head.castShadow = true;
+  head.receiveShadow = true;
+  g.add(head);
+
+  // אוזניים
+  [-1, 1].forEach((s) => {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.042, 8, 8), skinMat);
+    ear.position.set(s * 0.147, headCenter.y + 0.005, -0.005);
+    ear.scale.set(0.55, 1, 0.75);
+    ear.castShadow = true;
+    g.add(ear);
+  });
+
+  // --- פנים ---
+  const faceZ = 0.128;
+
+  [-1, 1].forEach((s) => {
+    const white = new THREE.Mesh(new THREE.SphereGeometry(0.036, 12, 12), eyeWhiteMat);
+    white.position.set(s * 0.058, headCenter.y + 0.035, faceZ);
+    white.scale.set(1, 0.8, 0.6);
+    g.add(white);
+
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 10), eyeDarkMat);
+    pupil.position.set(s * 0.058, headCenter.y + 0.035, faceZ + 0.02);
+    g.add(pupil);
+
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.072, 0.016, 0.03), hairMat);
+    brow.position.set(s * 0.058, headCenter.y + 0.086, faceZ + 0.005);
+    brow.rotation.z = s * -0.12;
+    g.add(brow);
+  });
+
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.075, 10), skinMat);
+  nose.position.set(0, headCenter.y - 0.01, faceZ + 0.025);
+  nose.rotation.x = Math.PI / 2;
+  nose.castShadow = true;
+  g.add(nose);
+
+  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.022, 0.03), mouthMat);
+  mouth.position.set(0, headCenter.y - 0.078, faceZ + 0.005);
+  g.add(mouth);
+
+  // --- שיער ---
+  const hairCap = new THREE.Mesh(
+    new THREE.SphereGeometry(0.163, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.52),
+    hairMat
+  );
+  hairCap.position.copy(headCenter);
+  hairCap.position.y += 0.012;
+  hairCap.scale.set(0.96, 1.2, 1.02);
+  hairCap.castShadow = true;
+  g.add(hairCap);
+
+  return g;
+}
+
+// ---------- הצבת הלוחמים על הבמה ----------
+const player = createFighter({ skin: 0xe3ab78, shirt: 0x2565d4, pants: 0x33383f, hair: 0x3b2a1a });
+player.position.set(-1.7, RING_TOP + 0.04, 0);
+player.rotation.y = 1.05;   // 3/4 - פונה ליריב אבל הפנים נראות למצלמה
 scene.add(player);
 
-const enemy = createFighter({ skin: 0x9c6b4f, shirt: 0x8a2a2a, pants: 0x2a2a2a, hair: 0x161616 });
-enemy.position.set(1.8, 0, 0);
-enemy.rotation.y = -Math.PI / 2.4;
+const enemy = createFighter({ skin: 0xa8724f, shirt: 0x9c2020, pants: 0x27292e, hair: 0x141414 });
+enemy.position.set(1.7, RING_TOP + 0.04, 0);
+enemy.rotation.y = -1.05;
 scene.add(enemy);
 
 // ---------- לולאת רינדור ----------
+const clock = new THREE.Clock();
+
 function animate() {
   requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // תנועת קהל עדינה - נותנת חיים לאולם
+  crowdPositions.forEach((p, i) => {
+    const bob = Math.sin(t * 2.2 + p.phase) * 0.06;
+    dummy.position.set(p.x, p.y + 0.36 + bob, p.z);
+    dummy.updateMatrix();
+    crowdBodies.setMatrixAt(i, dummy.matrix);
+    dummy.position.set(p.x, p.y + 0.76 + bob, p.z);
+    dummy.updateMatrix();
+    crowdHeads.setMatrixAt(i, dummy.matrix);
+  });
+  crowdBodies.instanceMatrix.needsUpdate = true;
+  crowdHeads.instanceMatrix.needsUpdate = true;
+
   renderer.render(scene, camera);
 }
 animate();
