@@ -289,6 +289,27 @@ function garment(mat, curve, bodyProfile, opts = {}) {
   return sweepCurve(mat, curve, profileFn, { ...rest, uRange: [u0, u1] });
 }
 
+/**
+ * מסלול שרץ *על פני* בגד, בזווית קבועה סביבו.
+ * משמש לתפרים, לשרוכים וללשונית — כל דבר שצריך לשבת על המשטח ולא לרחף לידו.
+ *  theta - 0 = כיוון N, π/2 = כיוון B. במסלול רגל: π/2 הוא החזית.
+ */
+function seamPath(curve, profile, pad, theta, u0, u1, n = 10, refDir = V(1, 0, 0)) {
+  const pts = [];
+  const c = Math.cos(theta), s = Math.sin(theta);
+  for (let i = 0; i < n; i++) {
+    const u = u0 + (u1 - u0) * (i / (n - 1));
+    const p = curve.getPointAt(u);
+    const T = curve.getTangentAt(u).normalize();
+    const { N, B } = frameAt(T, refDir);
+    const { rx, rz } = profileAt(profile, u);
+    pts.push(p.clone()
+      .addScaledVector(N, (rx + pad) * c)
+      .addScaledVector(B, (rz + pad) * s));
+  }
+  return pts;
+}
+
 // ============================================================================
 //  פרופורציות — הכל ביחידות רדיוס-גולגולת R, נמדד מתמונת הרפרנס.
 //  שינוי R לבדו משנה את גודל הדמות כולה בלי לשבור אף יחס.
@@ -383,6 +404,7 @@ export function createFighter(cfg) {
   const cuffMat = cfg.pants ? new THREE.MeshStandardMaterial({
     color: 0x89a2cb, roughness: 0.94, map: denimTex('#ffffff'),
   }) : null;
+  const threadMat = M(0xd8b276, 0.85);
   const beltMat  = new THREE.MeshStandardMaterial({ color: 0x4a3323, roughness: 0.5, map: leatherTex('#ffffff') });
   const buckleMat = M(0xb9a06a, 0.28, 0.85);
   const wrapMat = new THREE.MeshStandardMaterial({
@@ -439,6 +461,12 @@ export function createFighter(cfg) {
       }));
       // שול ג'ינס מקופל (יש ברפרנס) — שכבה קצרה מעל אותו מסלול
       g.add(garment(cuffMat, c, LEG_PROFILE, { u0: 0.665, u1: 0.775, pad: 0.021, steps: 12 }));
+
+      // תפר חיצוני — חוט בגוון חול, יושב על פני הבד ולא לידו
+      const outer = c === legCurves[0] ? Math.PI : 0;
+      g.add(sweep(threadMat, seamPath(c, LEG_PROFILE, 0.012, outer, 0.10, 0.70, 10),
+        [pr(0, 0.028, 0.028), pr(1, 0.028, 0.028)],
+        { steps: 22, radial: 8, capStart: 'round', capEnd: 'round' }));
     });
 
     g.add(garment(beltMat, torsoCurve, TORSO_PROFILE, { u0: 0.335, u1: 0.390, pad: 0.015, steps: 8 }));
@@ -467,21 +495,39 @@ export function createFighter(cfg) {
         pr(0.00, 0.38, 0.37), pr(0.34, 0.42, 0.34), pr(0.70, 0.40, 0.30), pr(1.00, 0.31, 0.23),
       ], { steps: 24, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round', domeScale: 0.7 }));
 
+      // כיסוי בוהן — מדרגה עדינה בעור, כמו במגף עבודה
+      g.add(sweep(bootMat,
+        [mid.clone().addScaledVector(fwd, 0.012), toe.clone().addScaledVector(fwd, -0.012)],
+        [pr(0.00, 0.43, 0.325), pr(1.00, 0.345, 0.255)],
+        { steps: 12, refDir: V(0, 1, 0), capStart: 'flat', capEnd: 'round', domeScale: 0.7 }));
+
       // סוליה
       g.add(sweep(soleMat,
         [heel.clone().setY(y - 0.038), mid.clone().setY(y - 0.044), toe.clone().setY(y - 0.046)],
         [pr(0.00, 0.22, 0.40), pr(0.5, 0.24, 0.37), pr(1.00, 0.18, 0.28)],
         { steps: 18, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round', domeScale: 0.7 }));
 
-      // שרוכים
-      [0.80, 0.88, 0.96].forEach((u) => {
-        const p = legCurve.getPointAt(u);
-        const pf = profileAt(LEG_PROFILE, u);
-        const lace = new THREE.Mesh(new THREE.BoxGeometry(0.062, 0.010, 0.012), laceMat);
-        lace.position.set(p.x, p.y, p.z + pf.rz + 0.020);
-        lace.rotation.y = yaw;
-        g.add(lace);
-      });
+      // עקב
+      g.add(sweep(soleMat,
+        [heel.clone().setY(y - 0.062).addScaledVector(fwd, 0.004),
+         heel.clone().setY(y - 0.062).addScaledVector(fwd, 0.062)],
+        [pr(0, 0.20, 0.36), pr(1, 0.21, 0.37)],
+        { steps: 6, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'flat', domeScale: 0.6 }));
+
+      // לשונית — יושבת על חזית השוק, מתחת לשרוכים
+      g.add(sweep(bootMat, seamPath(legCurve, LEG_PROFILE, 0.013, Math.PI / 2, 0.775, 0.995, 6),
+        [pr(0, 0.20, 0.05), pr(0.5, 0.23, 0.06), pr(1, 0.21, 0.05)],
+        { steps: 12, radial: 18, refDir: V(1, 0, 0) }));
+
+      // שרוכים משוכלים בין שני טורי לולאות
+      const colL = seamPath(legCurve, LEG_PROFILE, 0.024, Math.PI / 2 + 0.62, 0.785, 0.985, 4);
+      const colR = seamPath(legCurve, LEG_PROFILE, 0.024, Math.PI / 2 - 0.62, 0.785, 0.985, 4);
+      for (let i = 0; i < colL.length - 1; i++) {
+        [[colL[i], colR[i + 1]], [colR[i], colL[i + 1]]].forEach(([a, b]) => {
+          g.add(sweep(laceMat, [a, b], [pr(0, 0.038, 0.038), pr(1, 0.038, 0.038)],
+            { steps: 4, radial: 8, capStart: 'round', capEnd: 'round', domeScale: 0.8 }));
+        });
+      }
     } else {
       g.add(sweep(skinMat, [heel, mid, toe], [
         pr(0.00, 0.36, 0.33), pr(0.4, 0.40, 0.30), pr(0.75, 0.38, 0.27), pr(1.00, 0.29, 0.20),
@@ -516,6 +562,19 @@ export function createFighter(cfg) {
         [pr(0.00, 0.30, 0.28), pr(0.5, 0.44, 0.40), pr(1.00, 0.41, 0.37)],
         { steps: 16, refDir: across, capEnd: 'round', domeScale: 0.8 }));
 
+      // פרקי אצבעות — ארבע בליטות קטנות בחזית האגרוף
+      const up2 = new THREE.Vector3().crossVectors(across, dir).normalize();
+      [-1.5, -0.5, 0.5, 1.5].forEach((k) => {
+        const kn = new THREE.Mesh(new THREE.SphereGeometry(R * 0.075, 12, 10), fistMat);
+        kn.position.copy(wr.clone()
+          .addScaledVector(dir, 0.052)
+          .addScaledVector(across, k * 0.0175)
+          .addScaledVector(up2, 0.014));
+        kn.scale.set(1, 0.85, 0.8);
+        kn.castShadow = true;
+        g.add(kn);
+      });
+
       // אגודל מקופל על צד האגרוף
       g.add(sweep(fistMat,
         [wr.clone().addScaledVector(dir, 0.004).addScaledVector(across, side * 0.036),
@@ -539,7 +598,7 @@ export function createFighter(cfg) {
     // המסגרת של פלג הגוף היא N=+X, ולכן: θ=0 ימין, θ=π/2 גב, θ=π שמאל, θ=3π/2 חזית.
     // הקצה גבוה בכתפיים (שם נוצרות הכתפיות) ונמוך בחזית ובגב (המחשוף).
     // הזרוע יוצאת מבית החזה מתחת לקצה הגבוה — וזה מייצר את פתח השרוול.
-    const edgeU = (th) => 0.870 + 0.122 * Math.pow(Math.abs(Math.cos(th)), 1.15);
+    const edgeU = (th) => 0.880 + 0.112 * Math.pow(Math.abs(Math.cos(th)), 2.1);
     const shirtProfile = (u) => {
       const b = profileAt(TORSO_PROFILE, u);
       return { rx: b.rx + 0.008, rz: b.rz + 0.008 };
@@ -566,8 +625,8 @@ export function createFighter(cfg) {
   // נשאר *בתוך* אליפסואיד הראש בכל הכיוונים חוץ מלמטה, ולכן הוא מוסיף סנטר
   // בלי ליצור טבעת תפר נראית סביב הפנים.
   const jaw = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78, 34, 26), skinMat);
-  jaw.position.set(0, HC.y - R * 0.52, R * 0.06);
-  jaw.scale.set(0.74, 0.86, 0.84);
+  jaw.position.set(0, HC.y - R * 0.55, R * 0.05);
+  jaw.scale.set(0.68, 0.88, 0.78);
   jaw.castShadow = true;
   g.add(jaw);
 
@@ -617,6 +676,15 @@ export function createFighter(cfg) {
     glint.position.set(ex + s * R * 0.058, ey + R * 0.062, ez + R * 0.105);
     g.add(glint);
 
+    // עפעף עליון — כיפה בצבע עור שמכסה את החלק העליון של גלגל העין.
+    // בלי זה העין נשארת עיגול שלם והמבט יוצא פעור וקפוא.
+    const lid = new THREE.Mesh(
+      new THREE.SphereGeometry(R * 0.222, 24, 18, 0, Math.PI * 2, 0, 0.85), skinMat);
+    lid.position.set(ex, ey + R * 0.012, ez);
+    lid.scale.set(1, 0.70, 0.44);
+    lid.castShadow = true;
+    g.add(lid);
+
     // גבה עבה ומעוקלת (בולטת ברפרנס) — רצועה, לא קופסה
     g.add(sweep(hairMat,
       [V(ex - s * R * 0.30, HC.y + R * 0.235, R * 0.780),
@@ -659,8 +727,8 @@ export function createFighter(cfg) {
     new THREE.SphereGeometry(R * 1.02, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.54), hairMat);
   cap.position.copy(HC);
   cap.position.y += R * 0.06;
-  cap.position.z -= R * 0.16;
-  cap.rotation.x = -0.30;
+  cap.position.z -= R * 0.21;
+  cap.rotation.x = -0.44;
   // מסת השיער רחבה מהגולגולת עצמה — ברפרנס היא מה שנותן לראש את הנוכחות.
   cap.scale.set(HEAD_SCALE.x * 1.04, HEAD_SCALE.y * 1.02, HEAD_SCALE.z * 1.04);
   cap.castShadow = true;
@@ -679,7 +747,7 @@ export function createFighter(cfg) {
       const ly = Math.cos(phi) * hy;
       const lz = Math.sin(phi) * Math.sin(theta) * hz;
       // קו השיער: בחזית הוא נעצר גבוה (מעל הגבות), בצדדים ובעורף הוא יורד
-      if (lz > R * 0.15 && ly < R * 0.95 - lz * 0.28) continue;
+      if (lz > R * 0.15 && ly < R * 0.82 - lz * 0.20) continue;
 
       const jit = () => (rand() - 0.5) * R * 0.18;
       const px = HC.x + lx * 1.16 + jit();
