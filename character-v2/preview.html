@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סווארק - שיטת בנייה חדשה (תצוגה מקדימה)</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #6a7382;
+               font-family: "Segoe UI", Arial, sans-serif; }
+  canvas { display: block; }
+  #hint { position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+          color: #fff; background: rgba(0,0,0,.45); padding: 8px 18px;
+          border-radius: 10px; font-size: .9rem; z-index: 10; }
+</style>
+</head>
+<body>
+<div id="hint">גרור עם העכבר כדי לסובב · גלגלת כדי להתקרב</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { createFighter } from './character.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x6a7382);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+
+// תאורת סטודיו: מפתח + מילוי + קו מתאר מאחור
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const key = new THREE.DirectionalLight(0xffffff, 2.0);
+key.position.set(3, 6, 5);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { left: -3, right: 3, top: 4, bottom: -1 });
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xbfd4ff, 0.7); fill.position.set(-5, 3, 4); scene.add(fill);
+const rim  = new THREE.DirectionalLight(0xffffff, 1.1); rim.position.set(-2, 4, -6); scene.add(rim);
+
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(20, 20),
+  new THREE.MeshStandardMaterial({ color: 0x4a525e, roughness: 1 }));
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+const swark = createFighter({
+  skin: 0xf3c9a0, hair: 0x3a2718, hairStyle: 'curly', eyeColor: 0x6b4423,
+  ears: 'round', top: 0xf7f6f3, pants: 0x6f8dc4, boots: 0x7a4b2a, handWraps: true,
+});
+scene.add(swark);
+
+// ---------- מצלמה מסתובבת ----------
+const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.05, 100);
+let yaw = 0, pitch = 0.06, dist = 4.6;
+const target = new THREE.Vector3(0, 0.95, 0);
+
+function place() {
+  camera.position.set(
+    target.x + dist * Math.cos(pitch) * Math.sin(yaw),
+    target.y + dist * Math.sin(pitch),
+    target.z + dist * Math.cos(pitch) * Math.cos(yaw));
+  camera.lookAt(target);
+}
+place();
+
+let dragging = false, lx = 0, ly = 0;
+addEventListener('pointerdown', (e) => { dragging = true; lx = e.clientX; ly = e.clientY; });
+addEventListener('pointerup', () => { dragging = false; });
+addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  yaw -= (e.clientX - lx) * 0.008;
+  pitch = Math.max(-0.4, Math.min(0.9, pitch + (e.clientY - ly) * 0.005));
+  lx = e.clientX; ly = e.clientY;
+  place();
+});
+addEventListener('wheel', (e) => {
+  dist = Math.max(1.2, Math.min(9, dist + e.deltaY * 0.002));
+  place();
+}, { passive: true });
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+renderer.setAnimationLoop(() => renderer.render(scene, camera));
+</script>
+</body>
+</html>
