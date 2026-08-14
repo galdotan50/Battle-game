@@ -25,11 +25,37 @@
     text-align: center;
     z-index: 10;
   }
+  #controls {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    background: rgba(0,0,0,0.5);
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    text-align: center;
+    z-index: 10;
+    line-height: 1.7;
+  }
+  #controls b {
+    display: inline-block;
+    background: #ffffff;
+    color: #111;
+    border-radius: 5px;
+    padding: 1px 7px;
+    margin: 0 3px;
+    font-family: monospace;
+  }
   canvas { display: block; }
 </style>
 </head>
 <body>
-<div id="label">🥊 שלב גרפיקה: זירת אגרוף - סווארק מול בו (עדיין בלי תנועה)</div>
+<div id="label">🥊 סווארק מול בו - שלב תנועה (עדיין בלי חיים ובלי נזק)</div>
+<div id="controls">
+  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>D</b> חסימה
+</div>
 
 <script type="importmap">
 {
@@ -642,11 +668,187 @@ function rng(seed) {                  // זרע קבוע → רינדורים נ
 }
 
 // ============================================================================
+//  שלד עצמות + הצמדת עור (Skinning)
+//
+//  עד עכשיו הדמות הייתה פסל: משטח קפוא. כאן נשתלות בתוכה עצמות, וכל קודקוד
+//  על פני העור מקבל שיוך לעצם הקרובה אליו. כשעצם מסתובבת — העור נמתח איתה.
+//
+//  שני סוגי שיוך:
+//   • קשיח   — כל החלק נצמד לעצם אחת (ראש, שיער, פנים, אגרוף, כף רגל).
+//              אלה חלקים שלא אמורים להתעוות בפנים, רק לזוז יחד עם האיבר.
+//   • רך     — כל קודקוד משויך בנפרד לפי המקום שלו לאורך שרשרת העצמות,
+//              ובאזור המפרק הוא מתחלק בין שתי עצמות → כיפוף חלק בלי שבר.
+//
+//  עמידת הקרב הקיימת היא *תנוחת הכריכה* (bind pose). כל סיבוב עצם באנימציה
+//  הוא סטייה מהעמידה הזו, ולכן ברירת המחדל (אפס סיבוב) היא בדיוק המראה הישן.
+// ============================================================================
+
+// כיוון קדימה של כף רגל — נחוץ גם לבניית המגף וגם לקצה שרשרת הרגל
+const FOOT_YAW = { L: -0.20, R: 0.17 };
+const toeOf = (ankle, yaw) => V(
+  ankle.x + Math.sin(yaw) * 0.160, 0.056, ankle.z + Math.cos(yaw) * 0.160);
+
+// ---------- מפרקים: מיקום מנוחה של כל עצם ----------
+const J = {
+  root:  SKEL.pelvis.clone(),
+  spine: SKEL.waist.clone(),
+  chest: SKEL.chest.clone(),
+  neck:  V(0, 1.365, 0.002),
+  head:  V(0, 1.490, -0.004),
+  shoulderL: SKEL.shoulderL.clone(), shoulderR: SKEL.shoulderR.clone(),
+  elbowL: SKEL.elbowL.clone(),       elbowR: SKEL.elbowR.clone(),
+  wristL: SKEL.wristL.clone(),       wristR: SKEL.wristR.clone(),
+  hipL:   SKEL.hipL.clone(),         hipR:   SKEL.hipR.clone(),
+  kneeL:  SKEL.kneeL.clone(),        kneeR:  SKEL.kneeR.clone(),
+  ankleL: SKEL.ankleL.clone(),       ankleR: SKEL.ankleR.clone(),
+};
+// קצוות (לא עצמות — רק סוף שרשרת, כדי שלקטע האחרון יהיה אורך)
+const TIP = {
+  headTop: V(0, 1.640, -0.004),
+  torsoTop: V(0, 1.400, 0.004),
+  handL: V(-0.118, 1.300, 0.268), handR: V(0.182, 1.396, 0.184),
+  toeL: toeOf(SKEL.ankleL, FOOT_YAW.L), toeR: toeOf(SKEL.ankleR, FOOT_YAW.R),
+};
+
+// ---------- עץ העצמות ----------
+// הסדר חשוב: הורה תמיד לפני ילדיו.
+const BONE_TREE = [
+  ['root', null],
+  ['spine', 'root'], ['chest', 'spine'], ['neck', 'chest'], ['head', 'neck'],
+  ['shoulderL', 'chest'], ['elbowL', 'shoulderL'], ['wristL', 'elbowL'],
+  ['shoulderR', 'chest'], ['elbowR', 'shoulderR'], ['wristR', 'elbowR'],
+  ['hipL', 'root'], ['kneeL', 'hipL'], ['ankleL', 'kneeL'],
+  ['hipR', 'root'], ['kneeR', 'hipR'], ['ankleR', 'kneeR'],
+];
+const BONE_NAMES = BONE_TREE.map(([n]) => n);
+const BONE_INDEX = Object.fromEntries(BONE_NAMES.map((n, i) => [n, i]));
+
+function buildBones() {
+  const byName = {};
+  const bones = BONE_TREE.map(([name, parent]) => {
+    const b = new THREE.Bone();
+    b.name = name;
+    // מיקום מקומי = ההפרש מההורה. סיבוב מנוחה = אפס בכל העצמות, ולכן
+    // הצירים המקומיים של כל עצם זהים לצירי הדמות — קל מאוד לאנימציה.
+    const p = J[name];
+    b.position.copy(parent ? p.clone().sub(J[parent]) : p);
+    byName[name] = b;
+    if (parent) byName[parent].add(b);
+    return b;
+  });
+  return { bones, byName, root: bones[0] };
+}
+
+// ---------- שרשרת: קטע = [שם העצם ששולטת בו, נקודת התחלה, נקודת סוף] ----------
+const CH = {
+  torso: [['root', J.root, J.spine], ['spine', J.spine, J.chest], ['chest', J.chest, TIP.torsoTop]],
+  neck:  [['chest', J.chest, J.neck], ['neck', J.neck, J.head], ['head', J.head, TIP.headTop]],
+  armL:  [['chest', J.chest, J.shoulderL], ['shoulderL', J.shoulderL, J.elbowL],
+          ['elbowL', J.elbowL, J.wristL], ['wristL', J.wristL, TIP.handL]],
+  armR:  [['chest', J.chest, J.shoulderR], ['shoulderR', J.shoulderR, J.elbowR],
+          ['elbowR', J.elbowR, J.wristR], ['wristR', J.wristR, TIP.handR]],
+  legL:  [['root', J.root, J.hipL], ['hipL', J.hipL, J.kneeL],
+          ['kneeL', J.kneeL, J.ankleL], ['ankleL', J.ankleL, TIP.toeL]],
+  legR:  [['root', J.root, J.hipR], ['hipR', J.hipR, J.kneeR],
+          ['kneeR', J.kneeR, J.ankleR], ['ankleR', J.ankleR, TIP.toeR]],
+};
+
+/**
+ * בונה פונקציית שיוך לשרשרת: מקבלת נקודה, מחזירה עד 2 עצמות ומשקלים.
+ *
+ * השיטה: מוצאים את הקטע הקרוב ביותר, מחשבים כמה רחוק הקודקוד "התקדם" לאורך
+ * השרשרת, ובחלון קטן סביב כל מפרק מחלקים את המשקל בין שתי העצמות השכנות.
+ * זה מה שהופך את הכיפוף לחלק במקום לשבר חד.
+ *  wnd - חצי-רוחב אזור הערבוב סביב המפרק (ביחידות של הדמות)
+ */
+function chainBinder(chain, wnd = 0.052) {
+  let cum = 0;
+  const segs = chain.map(([bone, a, b]) => {
+    const d = b.clone().sub(a);
+    const len = Math.max(d.length(), 1e-6);
+    const s = { bone: BONE_INDEX[bone], a, d, len, dir: d.clone().divideScalar(len), s0: cum };
+    cum += len;
+    s.s1 = cum;
+    return s;
+  });
+
+  const tmp = new THREE.Vector3();
+  return (p) => {
+    let best = 0, bestD = Infinity, bestT = 0;
+    for (let i = 0; i < segs.length; i++) {
+      const s = segs[i];
+      let t = tmp.copy(p).sub(s.a).dot(s.dir) / s.len;
+      t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const dd = tmp.copy(s.a).addScaledVector(s.d, t).distanceToSquared(p);
+      if (dd < bestD) { bestD = dd; best = i; bestT = t; }
+    }
+    const s = segs[best];
+    const arc = s.s0 + bestT * s.len;
+    const smooth = (a) => a * a * (3 - 2 * a);
+
+    // קרוב למפרק ההתחלה → מתערבב עם העצם שלפני; קרוב לסוף → עם זו שאחרי
+    if (best > 0 && arc - s.s0 < wnd) {
+      const k = smooth(0.5 + 0.5 * ((arc - s.s0) / wnd));
+      return [s.bone, segs[best - 1].bone, k, 1 - k];
+    }
+    if (best < segs.length - 1 && s.s1 - arc < wnd) {
+      const k = smooth(0.5 + 0.5 * ((s.s1 - arc) / wnd));
+      return [s.bone, segs[best + 1].bone, k, 1 - k];
+    }
+    return [s.bone, 0, 1, 0];
+  };
+}
+
+// חלון הערבוב סביב המפרק. בכתף הוא רחב יותר: שם המעבר הוא מגוף עבה מאוד
+// לזרוע דקה, ובחלון צר נוצר קמט חד בדלתא בכל הרמת יד.
+const CHAIN_WND = { armL: 0.085, armR: 0.085 };
+
+const BINDER_CACHE = new Map();
+function binderFor(key) {
+  if (!BINDER_CACHE.has(key)) BINDER_CACHE.set(key, chainBinder(CH[key], CHAIN_WND[key] ?? 0.052));
+  return BINDER_CACHE.get(key);
+}
+
+/** ממיר מש רגיל למש עם עור מוצמד לעצמות. */
+function toSkinned(mesh, chainKey) {
+  const geo = mesh.geometry;
+  const pos = geo.attributes.position;
+  const n = pos.count;
+  const idx = new Uint16Array(n * 4);
+  const wgt = new Float32Array(n * 4);
+  const bind = binderFor(chainKey);
+  const p = new THREE.Vector3();
+
+  for (let i = 0; i < n; i++) {
+    p.fromBufferAttribute(pos, i);
+    const [b0, b1, w0, w1] = bind(p);
+    idx[i * 4] = b0; idx[i * 4 + 1] = b1;
+    wgt[i * 4] = w0; wgt[i * 4 + 1] = w1;
+  }
+  geo.setAttribute('skinIndex', new THREE.BufferAttribute(idx, 4));
+  geo.setAttribute('skinWeight', new THREE.BufferAttribute(wgt, 4));
+
+  const sm = new THREE.SkinnedMesh(geo, mesh.material);
+  sm.castShadow = true;
+  sm.receiveShadow = true;
+  sm.frustumCulled = false;      // התיבה התוחמת לא מתעדכנת בעיוות → אחרת נעלם
+  return sm;
+}
+
+// ============================================================================
 
 function createFighter(cfg) {
   const g = new THREE.Group();
   const rand = rng(cfg.seed ?? 12345);
   const S = SKEL;
+
+  // כל חלק נרשם יחד עם השיוך שלו לעצמות. BIND הוא "השיוך הנוכחי" ומשתנה
+  // בראש כל אזור בגוף, כדי שלא צריך לחזור עליו בכל שורה.
+  //   { chain: 'legL' } → עור רך שמתעוות
+  //   { bone: 'head' }  → חלק קשיח שנוסע עם עצם אחת
+  const parts = [];
+  let BIND = null;
+  const part = (m) => { parts.push({ m, bind: BIND }); g.add(m); return m; };
   const M = (color, roughness, metalness = 0) =>
     new THREE.MeshStandardMaterial({ color, roughness, metalness });
 
@@ -687,25 +889,30 @@ function createFighter(cfg) {
   // מסלול רציף מהאגן עד קו הכתפיים, עם כיפה רדודה שיוצרת את שיפוע הטרפז.
   // אין כדור חזה ואין כדור אגן.
   const torsoCurve = makeCurve([S.pelvis, S.waist, S.chest, S.torsoTop]);
-  g.add(sweepCurve(skinMat, torsoCurve, TORSO_PROFILE, {
+  BIND = { chain: 'torso' };
+  part(sweepCurve(skinMat, torsoCurve, TORSO_PROFILE, {
     refDir: V(1, 0, 0), steps: 38, capEnd: 'round', domeScale: 0.55,
   }));
 
   // ---------- רגליים ----------
   // המסלול מתחיל *בתוך* האגן → החיבור קבור ואינו נראה מבחוץ.
   const legCurves = [];
-  [[S.hipL, S.kneeL, S.ankleL], [S.hipR, S.kneeR, S.ankleR]].forEach(([hip, knee, ankle]) => {
+  const LEG_KEYS = ['legL', 'legR'];
+  [[S.hipL, S.kneeL, S.ankleL], [S.hipR, S.kneeR, S.ankleR]].forEach(([hip, knee, ankle], li) => {
     const hipIn = V(hip.x * 0.40, hip.y + 0.055, hip.z);
     const c = makeCurve([hipIn, hip, knee, ankle]);
     legCurves.push(c);
-    g.add(sweepCurve(legMat, c, LEG_PROFILE, { refDir: V(1, 0, 0), steps: 34 }));
+    BIND = { chain: LEG_KEYS[li] };
+    part(sweepCurve(legMat, c, LEG_PROFILE, { refDir: V(1, 0, 0), steps: 34 }));
   });
 
   // ---------- תחתונים ----------
   if (boxerMat && !pantsMat) {
-    g.add(garment(boxerMat, torsoCurve, TORSO_PROFILE, { u0: 0, u1: 0.38, pad: 0.011, steps: 18 }));
-    legCurves.forEach((c) => {
-      g.add(garment(boxerMat, c, LEG_PROFILE, { u0: 0.02, u1: 0.26, pad: 0.010, steps: 12 }));
+    BIND = { chain: 'torso' };
+    part(garment(boxerMat, torsoCurve, TORSO_PROFILE, { u0: 0, u1: 0.38, pad: 0.011, steps: 18 }));
+    legCurves.forEach((c, li) => {
+      BIND = { chain: LEG_KEYS[li] };
+      part(garment(boxerMat, c, LEG_PROFILE, { u0: 0.02, u1: 0.26, pad: 0.010, steps: 12 }));
     });
   }
 
@@ -713,37 +920,46 @@ function createFighter(cfg) {
   // רצים על אותו מסלול של הרגל עם מרווח קבוע → הבד צמוד.
   // השול המקופל הוא תוספת מקומית לאותו משטח, לא טבעת מרחפת.
   if (pantsMat) {
-    g.add(garment(pantsMat, torsoCurve, TORSO_PROFILE, { u0: 0, u1: 0.40, pad: 0.012, steps: 20 }));
+    BIND = { chain: 'torso' };
+    part(garment(pantsMat, torsoCurve, TORSO_PROFILE, { u0: 0, u1: 0.40, pad: 0.012, steps: 20 }));
 
     const CUFF_BULGE = [
       { t: 0.00, rx: 0, rz: 0 }, { t: 0.80, rx: 0, rz: 0 },
       { t: 0.90, rx: 0.011, rz: 0.011 }, { t: 1.00, rx: 0.009, rz: 0.009 },
     ];
-    legCurves.forEach((c) => {
-      g.add(garment(pantsMat, c, LEG_PROFILE, {
+    legCurves.forEach((c, li) => {
+      BIND = { chain: LEG_KEYS[li] };
+      part(garment(pantsMat, c, LEG_PROFILE, {
         u0: 0.02, u1: 0.755, pad: 0.011, bulge: CUFF_BULGE, steps: 30,
       }));
       // שול ג'ינס מקופל (יש ברפרנס) — שכבה קצרה מעל אותו מסלול
-      g.add(garment(cuffMat, c, LEG_PROFILE, { u0: 0.665, u1: 0.775, pad: 0.021, steps: 12 }));
+      part(garment(cuffMat, c, LEG_PROFILE, { u0: 0.665, u1: 0.775, pad: 0.021, steps: 12 }));
 
       // תפר חיצוני — חוט בגוון חול, יושב על פני הבד ולא לידו
       const outer = c === legCurves[0] ? Math.PI : 0;
-      g.add(sweep(threadMat, seamPath(c, LEG_PROFILE, 0.012, outer, 0.10, 0.70, 10),
+      part(sweep(threadMat, seamPath(c, LEG_PROFILE, 0.012, outer, 0.10, 0.70, 10),
         [pr(0, 0.028, 0.028), pr(1, 0.028, 0.028)],
         { steps: 22, radial: 8, capStart: 'round', capEnd: 'round' }));
     });
 
-    g.add(garment(beltMat, torsoCurve, TORSO_PROFILE, { u0: 0.335, u1: 0.390, pad: 0.015, steps: 8 }));
+    BIND = { chain: 'torso' };
+    part(garment(beltMat, torsoCurve, TORSO_PROFILE, { u0: 0.335, u1: 0.390, pad: 0.015, steps: 8 }));
     const bp = torsoCurve.getPointAt(0.362);
     const bprof = profileAt(TORSO_PROFILE, 0.362);
     const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.046, 0.02), buckleMat);
     buckle.position.set(bp.x, bp.y, bp.z + bprof.rz + 0.014);
     buckle.castShadow = true;
-    g.add(buckle);
+    BIND = { bone: 'root' };
+    part(buckle);
   }
 
   // ---------- כפות רגליים / מגפיים ----------
-  [[S.ankleL, legCurves[0], -0.20], [S.ankleR, legCurves[1], 0.17]].forEach(([ankle, legCurve, yaw]) => {
+  // שוק המגף עדיין מתעוות עם הרגל, אבל הכף עצמה נוסעת קשיח עם עצם הקרסול.
+  const ANKLE_BONES = ['ankleL', 'ankleR'];
+  [[S.ankleL, legCurves[0], FOOT_YAW.L], [S.ankleR, legCurves[1], FOOT_YAW.R]]
+      .forEach(([ankle, legCurve, yaw], fi) => {
+    const legKey = LEG_KEYS[fi];
+    const footBone = { bone: ANKLE_BONES[fi] };
     const fwd = V(Math.sin(yaw), 0, Math.cos(yaw));
     const y = 0.066;
     const heel = ankle.clone().setY(y).addScaledVector(fwd, -0.060);
@@ -752,34 +968,36 @@ function createFighter(cfg) {
 
     if (bootMat) {
       // שוק המגף — המשך ישיר של מסלול הרגל, לא גליל נפרד
-      g.add(garment(bootMat, legCurve, LEG_PROFILE, { u0: 0.735, u1: 1.0, pad: 0.019, steps: 16 }));
+      BIND = { chain: legKey };
+      part(garment(bootMat, legCurve, LEG_PROFILE, { u0: 0.735, u1: 1.0, pad: 0.019, steps: 16 }));
 
       // כף המגף — מסלול אופקי, חתך רחב ושטוח, קצוות מעוגלים
-      g.add(sweep(bootMat, [heel, mid, toe], [
+      BIND = footBone;
+      part(sweep(bootMat, [heel, mid, toe], [
         pr(0.00, 0.38, 0.37), pr(0.34, 0.42, 0.34), pr(0.70, 0.40, 0.30), pr(1.00, 0.31, 0.23),
       ], { steps: 24, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round', domeScale: 0.7 }));
 
       // כיסוי בוהן — מדרגה עדינה בעור, כמו במגף עבודה
-      g.add(sweep(bootMat,
+      part(sweep(bootMat,
         [mid.clone().addScaledVector(fwd, 0.012), toe.clone().addScaledVector(fwd, -0.012)],
         [pr(0.00, 0.43, 0.325), pr(1.00, 0.345, 0.255)],
         { steps: 12, refDir: V(0, 1, 0), capStart: 'flat', capEnd: 'round', domeScale: 0.7 }));
 
       // סוליה
-      g.add(sweep(soleMat,
+      part(sweep(soleMat,
         [heel.clone().setY(y - 0.038), mid.clone().setY(y - 0.044), toe.clone().setY(y - 0.046)],
         [pr(0.00, 0.22, 0.40), pr(0.5, 0.24, 0.37), pr(1.00, 0.18, 0.28)],
         { steps: 18, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round', domeScale: 0.7 }));
 
       // עקב
-      g.add(sweep(soleMat,
+      part(sweep(soleMat,
         [heel.clone().setY(y - 0.062).addScaledVector(fwd, 0.004),
          heel.clone().setY(y - 0.062).addScaledVector(fwd, 0.062)],
         [pr(0, 0.20, 0.36), pr(1, 0.21, 0.37)],
         { steps: 6, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'flat', domeScale: 0.6 }));
 
       // לשונית — יושבת על חזית השוק, מתחת לשרוכים
-      g.add(sweep(bootMat, seamPath(legCurve, LEG_PROFILE, 0.013, Math.PI / 2, 0.775, 0.995, 6),
+      part(sweep(bootMat, seamPath(legCurve, LEG_PROFILE, 0.013, Math.PI / 2, 0.775, 0.995, 6),
         [pr(0, 0.20, 0.05), pr(0.5, 0.23, 0.06), pr(1, 0.21, 0.05)],
         { steps: 12, radial: 18, refDir: V(1, 0, 0) }));
 
@@ -788,13 +1006,14 @@ function createFighter(cfg) {
       const colR = seamPath(legCurve, LEG_PROFILE, 0.024, Math.PI / 2 - 0.62, 0.785, 0.985, 4);
       for (let i = 0; i < colL.length - 1; i++) {
         [[colL[i], colR[i + 1]], [colR[i], colL[i + 1]]].forEach(([a, b]) => {
-          g.add(sweep(laceMat, [a, b], [pr(0, 0.038, 0.038), pr(1, 0.038, 0.038)],
+          part(sweep(laceMat, [a, b], [pr(0, 0.038, 0.038), pr(1, 0.038, 0.038)],
             { steps: 4, radial: 8, capStart: 'round', capEnd: 'round', domeScale: 0.8 }));
         });
       }
     } else {
       // מתחילה גבוה ועבה מספיק כדי להיבלע בקרסול, אחרת נראית צביטה
-      g.add(sweep(skinMat,
+      BIND = footBone;
+      part(sweep(skinMat,
         [heel.clone().setY(y + 0.016), mid.clone().setY(y + 0.008), toe],
         [pr(0.00, 0.46, 0.32), pr(0.4, 0.42, 0.31), pr(0.75, 0.38, 0.27), pr(1.00, 0.28, 0.19)],
         { steps: 22, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round', domeScale: 0.8 }));
@@ -804,24 +1023,29 @@ function createFighter(cfg) {
   // ---------- זרועות ----------
   // המסלול מתחיל בתוך בית החזה, והדלתא היא פשוט הקטע העבה של הזרוע.
   // אין כדור כתף בכלל — זה מה שהעיף את "הידיים הנפוחות".
+  const ARM_KEYS = ['armL', 'armR'];
+  const WRIST_BONES = ['wristL', 'wristR'];
   [[S.shoulderL, S.elbowL, S.wristL, -1], [S.shoulderR, S.elbowR, S.wristR, 1]]
-    .forEach(([sh, el, wr, side]) => {
+    .forEach(([sh, el, wr, side], ai) => {
       const shIn = V(sh.x * 0.38, sh.y - 0.045, sh.z);
       const armCurve = makeCurve([shIn, sh, el, wr]);
-      g.add(sweepCurve(skinMat, armCurve, ARM_PROFILE, { refDir: V(0, 1, 0), steps: 36 }));
+      BIND = { chain: ARM_KEYS[ai] };
+      part(sweepCurve(skinMat, armCurve, ARM_PROFILE, { refDir: V(0, 1, 0), steps: 36 }));
 
       const dir = armCurve.getTangentAt(1).normalize();
       const across = new THREE.Vector3().crossVectors(dir, V(0, 1, 0)).normalize();
 
       // תחבושת צמודה לאמה — לא עבה ממנה, כמו ברפרנס
       if (cfg.handWraps) {
-        g.add(garment(wrapMat, armCurve, ARM_PROFILE, { u0: 0.76, u1: 1.0, pad: 0.006, steps: 14 }));
+        part(garment(wrapMat, armCurve, ARM_PROFILE, { u0: 0.76, u1: 1.0, pad: 0.006, steps: 14 }));
       }
 
       // ---------- אגרוף ----------
       // לא כדור: רחב מעומקו, מתנפח בפרקי האצבעות ומתעגל בקצה.
+      // האגרוף על כל פרטיו נוסע קשיח עם עצם שורש כף היד.
       const fistMat = cfg.handWraps ? wrapMat : skinMat;
-      g.add(sweep(fistMat,
+      BIND = { bone: WRIST_BONES[ai] };
+      part(sweep(fistMat,
         [wr.clone().addScaledVector(dir, -0.010),
          wr.clone().addScaledVector(dir, 0.030),
          wr.clone().addScaledVector(dir, 0.068)],
@@ -838,11 +1062,11 @@ function createFighter(cfg) {
           .addScaledVector(up2, 0.014));
         kn.scale.set(1, 0.85, 0.8);
         kn.castShadow = true;
-        g.add(kn);
+        part(kn);
       });
 
       // אגודל מקופל על צד האגרוף
-      g.add(sweep(fistMat,
+      part(sweep(fistMat,
         [wr.clone().addScaledVector(dir, 0.004).addScaledVector(across, side * 0.036),
          wr.clone().addScaledVector(dir, 0.048).addScaledVector(across, side * 0.022)],
         [pr(0, 0.16, 0.16), pr(1, 0.13, 0.13)],
@@ -853,7 +1077,7 @@ function createFighter(cfg) {
         ring.position.copy(wr.clone().addScaledVector(dir, 0.036));
         ring.quaternion.setFromUnitVectors(V(0, 0, 1), dir);
         ring.castShadow = true;
-        g.add(ring);
+        part(ring);
       }
     });
 
@@ -869,23 +1093,28 @@ function createFighter(cfg) {
       const b = profileAt(TORSO_PROFILE, u);
       return { rx: b.rx + 0.008, rz: b.rz + 0.008 };
     };
-    g.add(sweepShapedEdge(topMat, torsoCurve, shirtProfile,
+    BIND = { chain: 'torso' };
+    part(sweepShapedEdge(topMat, torsoCurve, shirtProfile,
       { u0: 0.28, edgeU, radial: 44, steps: 30, refDir: V(1, 0, 0) }));
   }
 
   // ---------- צוואר ----------
   // קבור משני צדדיו (בחזה ובראש) → אין תפר נראה, ואין כדור מפרק.
-  g.add(sweep(skinMat, [V(0, 1.285, 0.006), V(0, 1.38, 0.0), V(0, 1.495, -0.006)],
+  BIND = { chain: 'neck' };
+  part(sweep(skinMat, [V(0, 1.285, 0.006), V(0, 1.38, 0.0), V(0, 1.495, -0.006)],
     NECK_PROFILE, { steps: 12, radial: 26 }));
 
   // ---------- ראש ----------
+  // מכאן ועד סוף הפונקציה: ראש, פנים, אוזניים ושיער — הכול קשיח על עצם הראש.
+  // אלה חלקים שלא אמורים להתעוות מבפנים, רק לפנות יחד עם הראש.
+  BIND = { bone: 'head' };
   const HC = S.headCenter;
   const head = new THREE.Mesh(new THREE.SphereGeometry(R, 44, 34), skinMat);
   head.position.copy(HC);
   head.scale.set(HEAD_SCALE.x, HEAD_SCALE.y, HEAD_SCALE.z);
   head.castShadow = true;
   head.receiveShadow = true;
-  g.add(head);
+  part(head);
 
   // לסת וסנטר — מרככים את "הכדור המושלם" לצורת פנים
   // נשאר *בתוך* אליפסואיד הראש בכל הכיוונים חוץ מלמטה, ולכן הוא מוסיף סנטר
@@ -894,12 +1123,12 @@ function createFighter(cfg) {
   jaw.position.set(0, HC.y - R * 0.55, R * 0.05);
   jaw.scale.set(0.68, 0.88, 0.78);
   jaw.castShadow = true;
-  g.add(jaw);
+  part(jaw);
 
   // ---------- אוזניים ----------
   [-1, 1].forEach((s) => {
     if (cfg.ears === 'pointed') {
-      g.add(sweep(skinMat,
+      part(sweep(skinMat,
         [V(s * R * 0.70, HC.y + R * 0.02, -R * 0.04),
          V(s * R * 1.00, HC.y + R * 0.62, -R * 0.26),
          V(s * R * 1.22, HC.y + R * 1.22, -R * 0.48)],
@@ -910,7 +1139,7 @@ function createFighter(cfg) {
       ear.position.set(s * R * 0.72, HC.y - R * 0.06, -R * 0.06);
       ear.scale.set(0.40, 1.15, 0.75);
       ear.castShadow = true;
-      g.add(ear);
+      part(ear);
     }
   });
 
@@ -925,22 +1154,22 @@ function createFighter(cfg) {
     const white = new THREE.Mesh(new THREE.SphereGeometry(R * 0.21, 24, 22), eyeWhiteMat);
     white.position.set(ex, ey, ez);
     white.scale.set(1, 0.70, 0.42);
-    g.add(white);
+    part(white);
 
     // הקשתית תופסת ~45% מרוחב העין, ולכן הלובן נראה משני צדדיה.
     const iris = new THREE.Mesh(new THREE.SphereGeometry(R * 0.095, 20, 18), irisMat);
     iris.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.055);
     iris.scale.set(1, 1, 0.45);
-    g.add(iris);
+    part(iris);
 
     const pupil = new THREE.Mesh(new THREE.SphereGeometry(R * 0.042, 16, 14), pupilMat);
     pupil.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.088);
     pupil.scale.set(1, 1, 0.45);
-    g.add(pupil);
+    part(pupil);
 
     const glint = new THREE.Mesh(new THREE.SphereGeometry(R * 0.028, 10, 10), glintMat);
     glint.position.set(ex + s * R * 0.058, ey + R * 0.062, ez + R * 0.105);
-    g.add(glint);
+    part(glint);
 
     // עפעף עליון — כיפה בצבע עור שמכסה את החלק העליון של גלגל העין.
     // בלי זה העין נשארת עיגול שלם והמבט יוצא פעור וקפוא.
@@ -949,10 +1178,10 @@ function createFighter(cfg) {
     lid.position.set(ex, ey + R * 0.012, ez);
     lid.scale.set(1, 0.70, 0.44);
     lid.castShadow = true;
-    g.add(lid);
+    part(lid);
 
     // גבה עבה ומעוקלת (בולטת ברפרנס) — רצועה, לא קופסה
-    g.add(sweep(hairMat,
+    part(sweep(hairMat,
       [V(ex - s * R * 0.30, HC.y + R * 0.235, R * 0.780),
        V(ex,                HC.y + R * 0.290, R * 0.856),
        V(ex + s * R * 0.30, HC.y + R * 0.245, R * 0.780)],
@@ -962,7 +1191,7 @@ function createFighter(cfg) {
 
   // אף = גשר שיוצא מבין הגבות ויורד אל קצה מעוגל, ואז חוזר לתוך הפנים.
   // הגשר קבור בתוך הראש, ולכן אין תפר — רק הקצה בולט החוצה.
-  g.add(sweep(skinMat, [
+  part(sweep(skinMat, [
     V(0, HC.y + R * 0.20, R * 0.72),
     V(0, HC.y + R * 0.00, R * 0.80),
     V(0, HC.y - R * 0.15, R * 0.875),
@@ -976,13 +1205,13 @@ function createFighter(cfg) {
     new THREE.TorusGeometry(R * 0.215, R * 0.034, 10, 26, Math.PI * 0.78), mouthMat);
   smile.position.set(0, HC.y - R * 0.48, R * 0.775);
   smile.rotation.z = Math.PI * 1.10;
-  g.add(smile);
+  part(smile);
 
   if (cfg.noseRing) {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(R * 0.15, R * 0.038, 10, 20), goldMat);
     ring.position.set(0, HC.y - R * 0.31, R * 0.845);
     ring.castShadow = true;
-    g.add(ring);
+    part(ring);
   }
 
   // ---------- שיער ----------
@@ -998,7 +1227,7 @@ function createFighter(cfg) {
   // מסת השיער רחבה מהגולגולת עצמה — ברפרנס היא מה שנותן לראש את הנוכחות.
   cap.scale.set(HEAD_SCALE.x * 1.04, HEAD_SCALE.y * 1.02, HEAD_SCALE.z * 1.04);
   cap.castShadow = true;
-  g.add(cap);
+  part(cap);
 
   const hx = R * HEAD_SCALE.x * 1.24, hy = R * HEAD_SCALE.y * 1.06, hz = R * HEAD_SCALE.z * 1.14;
   const RINGS = [
@@ -1022,7 +1251,7 @@ function createFighter(cfg) {
 
       if (cfg.hairStyle === 'spiky') {
         const d = V(lx, ly, lz).normalize();
-        g.add(sweep(hairMat,
+        part(sweep(hairMat,
           [V(px, py, pz),
            V(px + d.x * R * 0.34, py + d.y * R * 0.34, pz + d.z * R * 0.34),
            V(px + d.x * R * 0.76, py + d.y * R * 0.76, pz + d.z * R * 0.76)],
@@ -1040,7 +1269,7 @@ function createFighter(cfg) {
         const len = R * (0.30 + rand() * 0.18);
         const thick = 0.135 + rand() * 0.065;
 
-        g.add(sweep(hairMat, [
+        part(sweep(hairMat, [
           V(px, py, pz),
           V(px + d.x * len * 0.55 + tang.x * len * 0.5 * bend,
             py + d.y * len * 0.55 + tang.y * len * 0.5 * bend + len * 0.12,
@@ -1055,13 +1284,57 @@ function createFighter(cfg) {
     }
   });
 
-  return g;
+  return { group: g, parts };
 }
 
-// ---------- הצבת הלוחמים על הבמה ----------
+// ============================================================================
+//  הרכבת לוחם: דמות + שלד + הצמדת עור
+// ============================================================================
+
+const STANCE_YAW = 1.05;      // 3/4 - פונה ליריב אבל הפנים נראות למצלמה
+const GROUND_Y = RING_TOP + 0.04;
+
+function makeFighter(cfg, startX, facing) {
+  const { group, parts } = createFighter(cfg);
+  const { bones, byName, root } = buildBones();
+  group.add(root);
+  group.position.set(startX, GROUND_Y, 0);
+  group.rotation.y = facing * STANCE_YAW;
+  scene.add(group);
+
+  // חובה לפני החישוב: מטריצות העולם של העצמות ושל החלקים חייבות להיות עדכניות,
+  // אחרת ההיפוכים של תנוחת הכריכה יוצאים שגויים והדמות מתפוצצת בפריים הראשון.
+  scene.updateMatrixWorld(true);
+  const skeleton = new THREE.Skeleton(bones);
+
+  parts.forEach(({ m, bind }) => {
+    if (bind.bone) {
+      byName[bind.bone].attach(m);          // attach שומר על המיקום בעולם
+    } else {
+      const sm = toSkinned(m, bind.chain);
+      group.remove(m);
+      group.add(sm);
+      sm.updateMatrixWorld(true);
+      sm.bind(skeleton, sm.matrixWorld.clone());
+    }
+  });
+
+  return {
+    group, byName, skeleton,
+    x: startX, facing,
+    near: facing > 0 ? 'L' : 'R',   // הצד שקרוב למצלמה — שם המכות נראות הכי טוב
+    mv: 0, phase: 0, bob: 0,
+    // side מתחיל בצד הרחוק, כדי שהאגרוף *הראשון* יהיה של היד הקרובה למצלמה
+    action: null, actionT: 0, side: facing > 0 ? 'R' : 'L',
+    blocking: false, blockAmt: 0,
+    cool: 0, think: 0, mode: 'wait', blockTimer: 0,
+  };
+}
+
+// ---------- שני הלוחמים ----------
 
 // סווארק - גופייה לבנה, ג'ינס עם חגורה, מגפי עור, תלתלים חומים, תחבושות על האגרופים
-const player = createFighter({
+const player = makeFighter({
   skin: 0xf3c9a0,
   hair: 0x3a2718,
   hairStyle: 'curly',
@@ -1071,13 +1344,10 @@ const player = createFighter({
   pants: 0x6f8dc4,    // ג'ינס
   boots: 0x7a4b2a,    // מגפי עור חומים
   handWraps: true,
-});
-player.position.set(-1.7, RING_TOP + 0.04, 0);
-player.rotation.y = 1.05;   // 3/4 - פונה ליריב אבל הפנים נראות למצלמה
-scene.add(player);
+}, -1.7, 1);
 
 // בו - איש כחול, אוזניים חדות, שיער ירוק, עגיל באף וטבעת באצבע, רק בוקסר שחור
-const enemy = createFighter({
+const enemy = makeFighter({
   skin: 0x4a93d4,
   hair: 0x33c04a,
   hairStyle: 'spiky',
@@ -1089,17 +1359,252 @@ const enemy = createFighter({
   boots: null,        // יחף
   noseRing: true,
   fingerRing: true,
+}, 1.7, -1);
+
+// ============================================================================
+//  תנוחות ואנימציה
+//
+//  כל התנועה היא *סטייה מעמידת הקרב*: אפס בכל הצירים = בדיוק העמידה הקפואה
+//  שהייתה קודם. לכן אי אפשר "לאבד" את התנוחה הבסיסית.
+//
+//  כיווני הסיבוב בצירי הדמות (כולם זהים בכל העצמות, כי סיבוב המנוחה הוא אפס):
+//   rotation.x שלילי → איבר נע קדימה (לכיוון היריב)
+//   rotation.x חיובי → איבר נע אחורה / ברך מתכופפת
+//   rotation.y חיובי → כתף שמאל מגיחה קדימה (פיתול הגוף במכה)
+// ============================================================================
+
+const DUR = { punch: 0.40, kick: 0.58 };
+const smoothstep = (a) => a * a * (3 - 2 * a);
+
+/** עקומת מכה: יציאה מהירה, חזרה מעט איטית יותר. 0 → 1 → 0 */
+function strike(u, peak) {
+  const a = u < peak ? u / peak : 1 - (u - peak) / (1 - peak);
+  return smoothstep(Math.max(0, Math.min(1, a)));
+}
+
+function startAction(f, kind) {
+  if (f.action) return;
+  f.action = kind;
+  f.actionT = 0;
+  // אגרוף מתחלף בין הידיים; בעיטה תמיד ברגל שקרובה למצלמה
+  f.side = kind === 'punch' ? (f.side === f.near ? (f.near === 'L' ? 'R' : 'L') : f.near) : f.near;
+}
+
+function poseFighter(f, t, dt) {
+  const P = {};
+  const rot = (n, x, y, z) => {
+    const a = P[n] || (P[n] = [0, 0, 0]);
+    a[0] += x; a[1] += y; a[2] += z;
+  };
+  let bob = 0;
+
+  // ---------- נשימה ותנועת שמירה ----------
+  // בלי זה הדמות נראית מתה כשלא לוחצים כלום.
+  const br = Math.sin(t * 2.0 + f.facing);
+  rot('spine', 0.016 * br, 0, 0);
+  rot('chest', 0.030 * br, 0, 0);
+  rot('shoulderL', 0.045 * br, 0, 0.028 * br);
+  rot('shoulderR', 0.045 * br, 0, -0.028 * br);
+  rot('elbowL', 0.05 * br, 0, 0);
+  rot('elbowR', 0.05 * br, 0, 0);
+  rot('head', -0.018 * br, 0, 0.012 * Math.sin(t * 1.3));
+  bob += 0.006 * br;
+
+  // ---------- הליכה ----------
+  if (f.mv !== 0 && !f.action) {
+    const s = Math.sin(f.phase);
+    const c = Math.cos(f.phase);
+    rot('hipL', -0.40 * s, 0, 0);
+    rot('hipR', 0.40 * s, 0, 0);
+    rot('kneeL', 0.42 * Math.max(0, s), 0, 0);
+    rot('kneeR', 0.42 * Math.max(0, -s), 0, 0);
+    rot('ankleL', -0.18 * Math.max(0, s), 0, 0);
+    rot('ankleR', -0.18 * Math.max(0, -s), 0, 0);
+    // הכתפיים מתנדנדות הפוך לרגליים — זה מה שהופך צעידה לטבעית
+    rot('shoulderL', 0.13 * s, 0, 0);
+    rot('shoulderR', -0.13 * s, 0, 0);
+    rot('spine', 0, -0.06 * s, 0);
+    bob -= 0.020 * Math.abs(c);
+  }
+
+  // ---------- חסימה ----------
+  // הידיים עולות לפני הפנים, המרפקים נצמדים לגוף והברכיים מתכופפות מעט.
+  const k = f.blockAmt;
+  if (k > 0.001) {
+    rot('shoulderL', 0.16 * k, 0, 0.30 * k);
+    rot('shoulderR', 0.16 * k, 0, -0.30 * k);
+    rot('elbowL', 0.42 * k, 0, 0);
+    rot('elbowR', 0.42 * k, 0, 0);
+    rot('spine', -0.13 * k, 0, 0);
+    rot('neck', 0.15 * k, 0, 0);
+    rot('kneeL', 0.15 * k, 0, 0);
+    rot('kneeR', 0.15 * k, 0, 0);
+    bob -= 0.035 * k;
+  }
+
+  // ---------- מכות ----------
+  if (f.action === 'punch') {
+    const a = strike(f.actionT / DUR.punch, 0.34);
+    const S = f.side === 'L' ? 1 : -1;      // לאיזה צד הגוף מתפתל
+    const sh = 'shoulder' + f.side, el = 'elbow' + f.side;
+    const oSh = 'shoulder' + (f.side === 'L' ? 'R' : 'L');
+
+    // הזוויות לא נוחשו: הן נפתרו. במנוחה האמה מצביעה (0.094,0.180,0.107),
+    // וסיבוב של +1.0 סביב X מיישר אותה קדימה — לכן שני המספרים כאן תמיד
+    // מסתכמים ב-1.0, וזה מה ששומר על אגרוף *ישר* ולא אלכסוני.
+    // הזרוע העליונה נשארת בכוונה נמוכה: הרמה מלאה לאופק קורעת את כתפיית
+    // הגופייה, כי הבד מוצמד לגוף והזרוע עוברת דרכו.
+    rot(sh, -0.75 * a, 0, -0.10 * a * S);
+    rot(el, 1.75 * a, 0, 0);                // האמה נפתחת קדימה — זה עיקר המכה
+    rot(oSh, 0.16 * a, 0, 0);               // היד השנייה נמשכת אחורה לאיזון
+    rot('chest', 0, 0.30 * a * S, 0);
+    rot('spine', 0, 0.15 * a * S, 0);
+    rot('root', 0, 0.08 * a * S, 0);
+    rot('head', 0, 0.09 * a * S, 0);
+    rot('knee' + (f.side === 'L' ? 'R' : 'L'), 0.10 * a, 0, 0);
+  }
+
+  if (f.action === 'kick') {
+    const u = f.actionT / DUR.kick;
+    const a = strike(u, 0.42);
+    const hip = 'hip' + f.side, knee = 'knee' + f.side;
+    const oHip = 'hip' + (f.side === 'L' ? 'R' : 'L');
+    const oKnee = 'knee' + (f.side === 'L' ? 'R' : 'L');
+
+    // הברך מתכופפת בהרמה ואז נפתחת בשיא — ככה בעיטה נראית כמו שוט ולא כמו מוט
+    // -1.45 מרים את הירך עד שכף הרגל מגיעה לגובה האגן (y≈0.60, z≈0.56).
+    // פחות מזה והבעיטה נראית כמו צעד גדול, לא כמו בעיטה.
+    rot(hip, -1.45 * a, 0, 0);
+    rot(knee, 0.95 * strike(u, 0.16) * (1 - a), 0, 0);
+    rot('ankle' + f.side, -0.25 * a, 0, 0);
+    rot(oHip, 0.14 * a, 0, 0);              // רגל התמיכה נשענת אחורה
+    rot(oKnee, 0.22 * a, 0, 0);
+    rot('spine', -0.26 * a, 0, 0);          // הגוף נשען אחורה כנגד המשקל
+    rot('chest', -0.12 * a, 0, 0);
+    rot('shoulderL', -0.20 * a, 0, 0);
+    rot('shoulderR', -0.20 * a, 0, 0);
+    bob -= 0.030 * a;
+  }
+
+  // ---------- החלה עם החלקה ----------
+  // בלי ההחלקה כל מעבר מצב היה קופץ בפריים אחד. עם החלקה חזקה זה עדיין חד,
+  // אבל בלי קפיצות.
+  const K = 1 - Math.exp(-dt * 24);
+  const Z = [0, 0, 0];
+  for (const n of BONE_NAMES) {
+    const b = f.byName[n];
+    const tg = P[n] || Z;
+    b.rotation.x += (tg[0] - b.rotation.x) * K;
+    b.rotation.y += (tg[1] - b.rotation.y) * K;
+    b.rotation.z += (tg[2] - b.rotation.z) * K;
+  }
+  f.bob += (bob - f.bob) * K;
+  f.byName.root.position.y = J.root.y + f.bob;
+}
+
+// ============================================================================
+//  שליטה ותנועה בזירה
+// ============================================================================
+
+const KEYS = {};
+const WATCHED = ['ArrowLeft', 'ArrowRight', 'KeyA', 'KeyS', 'KeyD', 'Space'];
+addEventListener('keydown', (e) => {
+  KEYS[e.code] = true;
+  if (WATCHED.includes(e.code)) e.preventDefault();
 });
-enemy.position.set(1.7, RING_TOP + 0.04, 0);
-enemy.rotation.y = -1.05;
-scene.add(enemy);
+addEventListener('keyup', (e) => { KEYS[e.code] = false; });
+addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; });
+
+const WALK_SPEED = 1.95;
+const BLOCK_SPEED = 0.75;
+const MIN_GAP = 0.95;                 // כמה קרוב מותר להתקרב — בלי לעבור דרך היריב
+const EDGE = RING_HALF - 0.75;
+
+function moveFighter(f, other, dt) {
+  const speed = f.blocking ? BLOCK_SPEED : WALK_SPEED;
+  let nx = f.x + f.mv * speed * dt;
+  nx = Math.max(-EDGE, Math.min(EDGE, nx));
+  // חוסם מעבר דרך היריב: כל אחד נשאר בצד שלו
+  nx = f.facing > 0 ? Math.min(nx, other.x - MIN_GAP) : Math.max(nx, other.x + MIN_GAP);
+
+  if (Math.abs(nx - f.x) < 1e-5) f.mv = 0;   // נלחץ בקיר → לא לצעוד במקום
+  f.x = nx;
+  f.group.position.x = nx;
+  // הפאזה מתקדמת לפי כיוון ההליכה, כך שצעידה אחורה נראית אחורה
+  if (f.mv !== 0) f.phase += dt * 8.5 * (f.mv * f.facing > 0 ? 1 : -1);
+}
+
+function updatePlayer(f, dt) {
+  f.blocking = !!KEYS.KeyD && !f.action;
+  if (!f.action && !f.blocking) {
+    if (KEYS.KeyA) startAction(f, 'punch');
+    else if (KEYS.KeyS) startAction(f, 'kick');
+  }
+  f.mv = f.action ? 0 : ((KEYS.ArrowRight ? 1 : 0) - (KEYS.ArrowLeft ? 1 : 0));
+}
+
+// ---------- בו: המחשב משחק ----------
+// רמת קושי התחלתית: קלה בכוונה. ההפוגות ארוכות והוא לא רודף בלי הפסקה.
+function updateEnemy(f, p, dt) {
+  const dist = Math.abs(p.x - f.x);
+  f.cool -= dt;
+  f.think -= dt;
+  f.blockTimer -= dt;
+
+  if (f.action) { f.mv = 0; f.blocking = false; return; }
+
+  // מגיב למכה של השחקן: לפעמים מרים ידיים
+  if (p.action && dist < 2.0 && f.blockTimer < -0.2 && Math.random() < 0.05) f.blockTimer = 0.55;
+  f.blocking = f.blockTimer > 0;
+  if (f.blocking) { f.mv = 0; return; }
+
+  if (dist < 1.55 && f.cool <= 0) {
+    startAction(f, Math.random() < 0.6 ? 'punch' : 'kick');
+    f.cool = 1.0 + Math.random() * 1.2;
+    f.mv = 0;
+    return;
+  }
+
+  if (f.think <= 0) {
+    f.think = 0.5 + Math.random() * 0.9;
+    const r = Math.random();
+    f.mode = dist > 2.3 ? 'approach'
+           : dist < 1.25 ? 'retreat'
+           : r < 0.45 ? 'approach' : r < 0.75 ? 'retreat' : 'wait';
+  }
+  const toward = Math.sign(p.x - f.x);
+  f.mv = f.mode === 'approach' ? toward : f.mode === 'retreat' ? -toward : 0;
+}
+
+function tickAction(f, dt) {
+  if (!f.action) return;
+  f.actionT += dt;
+  if (f.actionT >= DUR[f.action]) { f.action = null; f.actionT = 0; }
+}
 
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
+  // סדר חשוב: getDelta חייב לרוץ ראשון. getElapsedTime של three.js קורא ל-getDelta
+  // בעצמו ומאפס את הזמן, ואז ה-dt שאחריו יוצא 0 והמשחק קופא לגמרי.
+  const dt = Math.min(clock.getDelta(), 0.05);   // תקרה: מונע קפיצה אחרי לשונית ברקע
+  const t = clock.elapsedTime;
+
+  updatePlayer(player, dt);
+  updateEnemy(enemy, player, dt);
+
+  [player, enemy].forEach((f) => {
+    tickAction(f, dt);
+    f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16));
+  });
+
+  moveFighter(player, enemy, dt);
+  moveFighter(enemy, player, dt);
+
+  poseFighter(player, t, dt);
+  poseFighter(enemy, t, dt);
 
   // תנועת קהל עדינה - נותנת חיים לאולם
   crowdPositions.forEach((p, i) => {
@@ -1117,6 +1622,10 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+
+// ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
+// אין לה שום השפעה על המשחק עצמו.
+window.game = { player, enemy, startAction, KEYS, camera, scene };
 </script>
 </body>
 </html>
