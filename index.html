@@ -129,6 +129,92 @@
     box-shadow: 0 6px 18px rgba(0,0,0,0.4);
   }
   #playAgainBtn:hover { background: #ffd968; }
+  #btnRow { display: flex; gap: 14px; }
+  #lobbyBtn, #backLobbyBtn {
+    font-size: 1.2rem;
+    padding: 12px 34px;
+    border-radius: 14px;
+    border: 2px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #lobbyBtn:hover, #backLobbyBtn:hover { background: rgba(255,255,255,0.18); }
+
+  /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
+  #lobbyOverlay, #shopOverlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(160deg, #16213a, #0c1220);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    z-index: 40;
+    color: #fff;
+    overflow-y: auto;
+    padding: 40px 20px;
+    box-sizing: border-box;
+  }
+  #lobbyOverlay.show, #shopOverlay.show { display: flex; }
+  .screenTitle { font-size: 2.4rem; font-weight: 800; margin-bottom: 34px; text-shadow: 0 3px 12px rgba(0,0,0,0.5); }
+  #lobbyOverlay .bigBtn {
+    font-size: 1.3rem;
+    padding: 20px 50px;
+    margin: 10px;
+    border-radius: 16px;
+    border: none;
+    background: #ffcf4d;
+    color: #1a1a1a;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  }
+  #lobbyOverlay .bigBtn:hover { background: #ffd968; }
+  #lobbyOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
+  #lobbyOverlay .bigBtn.secondary:hover { background: rgba(255,255,255,0.2); }
+
+  #shopNote {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    margin-bottom: 22px;
+    max-width: 640px;
+    text-align: center;
+  }
+  #shopTabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 28px; }
+  .shopTab {
+    font-size: 1.05rem;
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .shopTab:hover { background: rgba(255,255,255,0.16); }
+  .shopTab.active { background: #ffcf4d; color: #1a1a1a; border-color: #ffcf4d; }
+  #shopGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+    width: 100%;
+    max-width: 980px;
+  }
+  .itemCard {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 14px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .itemName { font-size: 1.05rem; font-weight: bold; margin-bottom: 8px; }
+  .itemStat { font-size: 0.85rem; opacity: 0.85; margin: 2px 0; }
+  .itemPrice { margin-top: 8px; font-size: 0.95rem; font-weight: bold; color: #ffcf4d; }
+  #backLobbyBtn { margin-top: 30px; }
 </style>
 </head>
 <body>
@@ -154,7 +240,24 @@
 
 <div id="gameOverOverlay">
   <div id="gameOverTitle"></div>
-  <button id="playAgainBtn">🔄 לשחק שוב</button>
+  <div id="btnRow">
+    <button id="playAgainBtn">🔄 לשחק שוב</button>
+    <button id="lobbyBtn">🏠 לובי</button>
+  </div>
+</div>
+
+<div id="lobbyOverlay">
+  <div class="screenTitle">🏠 לובי</div>
+  <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
+  <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
+</div>
+
+<div id="shopOverlay">
+  <div class="screenTitle">🛒 חנות</div>
+  <div id="shopNote">👀 אפשר לראות מה יש בחנות, אבל עדיין אי אפשר לקנות - זה יגיע כשיהיה כסף במשחק!</div>
+  <div id="shopTabs"></div>
+  <div id="shopGrid"></div>
+  <button id="backLobbyBtn">⬅ חזרה ללובי</button>
 </div>
 
 <script type="importmap">
@@ -1817,6 +1920,139 @@ function resetGame() {
   gameOver = false;
 }
 
+// ============================================================================
+//  לובי וחנות — מסכי תפריט מעל הזירה
+//
+//  שני מסכים חדשים כמסמכי HTML רגילים (לא תלת-מימד - זה תפריט, לא סצנה),
+//  באותו סגנון של מסך הניצחון/הפסד הקיים. `uiScreen` קובע מי נראה, ו-
+//  `animate` כבר בודק אותו (למעלה) כדי להקפיא את הקרב כשלא נמצאים בזירה.
+// ============================================================================
+
+let uiScreen = 'battle';
+
+const lobbyEl = document.getElementById('lobbyOverlay');
+const shopEl = document.getElementById('shopOverlay');
+const shopTabsEl = document.getElementById('shopTabs');
+const shopGridEl = document.getElementById('shopGrid');
+const hpRowEl = document.getElementById('hpRow');
+const controlsEl = document.getElementById('controls');
+
+function showScreen(name) {
+  uiScreen = name;
+  lobbyEl.classList.toggle('show', name === 'lobby');
+  shopEl.classList.toggle('show', name === 'shop');
+  const inBattle = name === 'battle';
+  hpRowEl.style.display = inBattle ? '' : 'none';
+  controlsEl.style.display = inBattle ? '' : 'none';
+}
+
+// נתוני החנות - הועתקו ישירות מ-game-spec.md, מקור האמת למספרים האלה.
+// אין עדיין מערכת כסף, ולכן זו תצוגה בלבד (ראה shopNote למעלה).
+const SHOP_DATA = {
+  characters: { label: '👤 דמויות', rows: [
+    ['סווארק', 'כוח 5/10', 'מהירות 5/10', 'חינם'],
+    ["ג'ני", 'כוח 6.5/10', 'מהירות 8/10', '50₪'],
+    ['ברייק', 'כוח 7.8/10', 'מהירות 10/10', '120₪'],
+    ['לורד', 'כוח 7.9/10', 'מהירות 9/10', '200₪'],
+    ['פלייטי', 'כוח 8.3/10', 'מהירות 4/10', '230₪'],
+    ['ליזי', 'כוח 8.3/10', 'מהירות 7/10', '243₪'],
+    ['ברטו', 'כוח 8.6/10', 'מהירות 8.6/10', '247₪'],
+    ['סטנבר', 'כוח 8.9/10', 'מהירות 9.5/10', '253₪'],
+    ['סלייקי', 'כוח 9.2/10', 'מהירות 10/10', '300₪'],
+    ['קיטי', 'כוח 9.5/10', 'מהירות 9.9/10', '370₪'],
+    ['לוין', 'כוח 10/10', 'מהירות 10/10', '750₪'],
+  ]},
+  weapons: { label: '⚔️ נשקים', rows: [
+    ['אבן חדה', 'נזק 7', 'חינם'],
+    ['גרזן', 'נזק 15', '30₪'],
+    ['פיקקס', 'נזק 22', '45₪'],
+    ['חניט', 'נזק 35', '70₪'],
+    ['כידון', 'נזק 40', '100₪'],
+    ['כילשון', 'נזק 55', '150₪'],
+    ['סכין מחודד', 'נזק 72', '230₪'],
+    ['חרב', 'נזק 100', '300₪'],
+    ['קטאנה', 'נזק 150', '500₪'],
+    ['רובה', 'נזק 210', '1000₪'],
+  ]},
+  shields: { label: '🛡️ מגנים', rows: [
+    ['אבן קצת גדולה אבל שבירה', 'הגנה בסיסית', 'חינם'],
+    ['מגן עץ', 'הגנה בסיסית', '20₪'],
+    ['מגן אבן', 'הגנה טובה יותר', '50₪'],
+    ['מגן ברזל', 'הגנה חזקה', '100₪'],
+    ['מגן טיטניום', 'הגנה חזקה מאוד', '120₪'],
+    ['מגן פלדה', 'הגנה חזקה מאוד', '155₪'],
+    ['כדור מגן ענק מחשמל', 'יורה ברק כשנשק פוגע בו', '230₪'],
+    ['מגן פלדה עם דבק', 'הנשק נדבק והאויב נמשך אליו', '370₪'],
+    ['מגן טיטניום משכפל', 'יורה בחזרה ומשכפל את הנשק', '500₪'],
+    ['מגן טיטניום בלתי נראה', 'מחזיר, משכפל ומגיע עם אבן חדה', '600₪'],
+  ]},
+  food: { label: '🍎 אוכל', rows: [
+    ['תפוח', 'מרפא 3', 'חינם'],
+    ['מלפפון', 'מרפא 5', '10₪'],
+    ['לחם עם חמאה', 'מרפא 10', '30₪'],
+    ['קורנפלקס', 'מרפא 15', '55₪'],
+    ['פיצה', 'מרפא 19', '100₪'],
+    ['המבורגר', 'מרפא 23', '155₪'],
+    ['פסטה', 'מרפא 27', '200₪'],
+    ['קפקייקס', 'מרפא 33', '300₪'],
+    ['טוסט', 'מרפא 37', '350₪'],
+    ['חטיף אנרגיה', 'מרפא 44', '400₪'],
+    ['נקניקייה', 'מרפא 48', '453₪'],
+    ['סטייק', 'מרפא 52', '473₪'],
+    ['גלידה', 'מרפא 57', '550₪'],
+  ]},
+  drinks: { label: '🥤 משקאות', rows: [
+    ['מים', '+3 כוח, +4 מהירות', 'חינם'],
+    ['מיץ ענבים', '+3 כוח, +4 מהירות', '10₪'],
+    ['מיץ תפוזים', '+3 כוח, +4 מהירות', '20₪'],
+    ['לימונדה', '+3 כוח, +4 מהירות', '30₪'],
+    ['לימונענע', '+3 כוח, +4 מהירות', '40₪'],
+    ['מיץ סלק', '+3 כוח, +4 מהירות', '55₪'],
+    ['מיץ מלפפונים חמוצים', '+3 כוח, +4 מהירות', '65₪'],
+    ['מיץ תפוחים', '+3 כוח, +4 מהירות', '75₪'],
+    ['קולה', '+3 כוח, +4 מהירות', '85₪'],
+    ['קולה זירו', '+3 כוח, +4 מהירות', '87₪'],
+    ['פיוזטי', '+3 כוח, +4 מהירות', '97₪'],
+    ['משקה אנרגיה', 'משקה מיוחד וחזק', '107₪'],
+  ]},
+  upgrades: { label: '⭐ שדרוגים', rows: [] },
+};
+
+function renderShopCategory(key) {
+  [...shopTabsEl.children].forEach((btn) => btn.classList.toggle('active', btn.dataset.key === key));
+
+  const { rows } = SHOP_DATA[key];
+  shopGridEl.innerHTML = '';
+  if (rows.length === 0) {
+    shopGridEl.innerHTML = '<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">🚧 עוד לא הוחלט מה יהיה כאן - בקרוב!</div>';
+    return;
+  }
+  rows.forEach(([name, ...stats]) => {
+    const card = document.createElement('div');
+    card.className = 'itemCard';
+    const price = stats[stats.length - 1];
+    const mid = stats.slice(0, -1);
+    card.innerHTML = `<div class="itemName">${name}</div>` +
+      mid.map((s) => `<div class="itemStat">${s}</div>`).join('') +
+      `<div class="itemPrice">${price}</div>`;
+    shopGridEl.appendChild(card);
+  });
+}
+
+Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
+  const btn = document.createElement('button');
+  btn.className = 'shopTab';
+  btn.dataset.key = key;
+  btn.textContent = label;
+  btn.addEventListener('click', () => renderShopCategory(key));
+  shopTabsEl.appendChild(btn);
+});
+
+document.getElementById('lobbyBtn').addEventListener('click', () => { resetGame(); showScreen('lobby'); });
+document.getElementById('startFightBtn').addEventListener('click', () => { resetGame(); showScreen('battle'); });
+document.getElementById('openShopBtn').addEventListener('click', () => { showScreen('shop'); renderShopCategory('characters'); });
+document.getElementById('backLobbyBtn').addEventListener('click', () => showScreen('lobby'));
+
 playAgainBtn.addEventListener('click', resetGame);
 updateHealthUI(player, 'player');
 updateHealthUI(enemy, 'enemy');
@@ -1831,7 +2067,7 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.05);   // תקרה: מונע קפיצה אחרי לשונית ברקע
   const t = clock.elapsedTime;
 
-  if (gameOver) {
+  if (gameOver || uiScreen !== 'battle') {
     player.mv = 0; enemy.mv = 0;
     player.blocking = false; enemy.blocking = false;
   } else {
@@ -1871,7 +2107,10 @@ animate();
 
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
-window.game = { player, enemy, startAction, KEYS, camera, scene, resetGame, endGame, get gameOver() { return gameOver; } };
+window.game = {
+  player, enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen,
+  get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; },
+};
 </script>
 </body>
 </html>
