@@ -786,6 +786,18 @@ const leatherTex = (hex) => canvasTex(128, (ctx, n) => {
   }
 }, 3, 3);
 
+// פסים צבעוניים אופקיים (כמו על ז'קט ורסיטי) - חוזרים לאורך האיבר, לא סביבו,
+// ולכן repeat.set(1, ry): בלי חזרה סביב ההיקף (אין תפר בצבע), הרבה חזרות
+// לאורך (טבעות צבע רצופות מהכתפיים ולמטה).
+const stripeTex = (baseHex, colors) => canvasTex(128, (ctx, n) => {
+  ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+  const bandH = n / (colors.length + 1.4);
+  colors.forEach((c, i) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(0, bandH * (i * 1.4 + 0.7), n, bandH * 0.62);
+  });
+}, 1, 4);
+
 function garment(mat, curve, bodyProfile, opts = {}) {
   const { u0 = 0, u1 = 1, pad = 0.008, bulge = null, ...rest } = opts;
   const profileFn = (u) => {
@@ -1075,6 +1087,15 @@ function createFighter(cfg) {
     color: cfg.top, roughness: 0.92, map: ribbedKnit('#ffffff'),
     side: THREE.DoubleSide,          // לקצה המחשוף יש צד פנימי שנראה
   }) : null;
+  // הצבע על החומר עצמו (לא רק על המרקם) ישכפל את הגוון על פני הפסים ויעמעם
+  // אותם - ולכן כאן, בניגוד לבגדים האחרים, הבסיס האפור נצבע *בתוך* המרקם
+  // עצמו, וצבע החומר נשאר לבן ניטרלי.
+  const jacketMat = cfg.jacket ? new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.85,
+    map: stripeTex('#' + new THREE.Color(cfg.jacket).getHexString(),
+      cfg.jacketStripes ?? ['#e4573d', '#f2b632', '#3fa7a0', '#e85fa0']),
+    side: THREE.DoubleSide,
+  }) : null;
   const pantsMat = cfg.pants ? new THREE.MeshStandardMaterial({
     color: cfg.pants, roughness: 0.94, map: denimTex('#ffffff'),
   }) : null;
@@ -1315,6 +1336,29 @@ function createFighter(cfg) {
       { u0: 0.28, edgeU, radial: 44, steps: 30, refDir: V(1, 0, 0) }));
   }
 
+  // ---------- ז'קט ----------
+  // רץ *מעל* החולצה (pad גדול יותר), ועוצר קצת לפני קו הצווארון שלה -
+  // בדיוק הפער הזה הוא מה שנותן "מציצה" קטנה של החולצה מתחת לז'קט.
+  // השרוולים בונים על אותה שיטה כמו התחבושות - garment() על עקום הזרוע.
+  if (jacketMat) {
+    const jacketEdgeU = (th) => 0.865 + 0.10 * Math.pow(Math.abs(Math.cos(th)), 2.1);
+    const jacketProfile = (u) => {
+      const b = profileAt(TORSO_PROFILE, u);
+      return { rx: b.rx + 0.017, rz: b.rz + 0.017 };
+    };
+    BIND = { chain: 'torso' };
+    part(sweepShapedEdge(jacketMat, torsoCurve, jacketProfile,
+      { u0: 0.26, edgeU: jacketEdgeU, radial: 44, steps: 30, refDir: V(1, 0, 0) }));
+
+    [[S.shoulderL, S.elbowL, S.wristL, 'armL'], [S.shoulderR, S.elbowR, S.wristR, 'armR']]
+      .forEach(([sh, el, wr, chainKey]) => {
+        const shIn = V(sh.x * 0.38, sh.y - 0.045, sh.z);
+        const armCurve = makeCurve([shIn, sh, el, wr]);
+        BIND = { chain: chainKey };
+        part(garment(jacketMat, armCurve, ARM_PROFILE, { u0: 0, u1: 0.86, pad: 0.014, steps: 26 }));
+      });
+  }
+
   // ---------- צוואר ----------
   // קבור משני צדדיו (בחזה ובראש) → אין תפר נראה, ואין כדור מפרק.
   BIND = { chain: 'neck' };
@@ -1474,6 +1518,24 @@ function createFighter(cfg) {
            V(px + d.x * R * 0.76, py + d.y * R * 0.76, pz + d.z * R * 0.76)],
           [pr(0, 0.25, 0.25), pr(0.55, 0.14, 0.14), pr(1, 0.02, 0.02)],
           { steps: 8, radial: 12, capEnd: 'round', domeScale: 0.5 }));
+      } else if (cfg.hairStyle === 'long') {
+        // שיער ארוך גדל רק מהחצי האחורי של הראש (קו שביל באמצע) ונופל
+        // בכבידה כלפי מטה. בלי הסינון הזה שיער שגדל בחזית פשוט נופל *מול*
+        // הפנים ומכסה אותן לגמרי - זה בדיוק מה שקרה בניסיון הראשון.
+        if (lz > -R * 0.02) continue;
+        const d = V(lx, ly, lz).normalize();
+        const out = R * (0.32 + rand() * 0.12);
+        const fall = R * (3.6 + rand() * 0.9);
+        const wave = (rand() - 0.5) * R * 0.55;
+        const thick = 0.075 + rand() * 0.03;
+
+        part(sweep(hairMat, [
+          V(px, py, pz),
+          V(px + d.x * out + wave * 0.3, py - fall * 0.45, pz + d.z * out),
+          V(px + d.x * out * 0.4 + wave, py - fall, pz + d.z * out * 0.4),
+        ], [
+          pr(0, thick, thick), pr(0.5, thick * 0.8, thick * 0.8), pr(1, thick * 0.32, thick * 0.32),
+        ], { steps: 16, radial: 10, capStart: 'round', capEnd: 'round', domeScale: 0.8 }));
       } else {
         // תלתל = קשת קצרה שמתעגלת סביב הגולגולת, לא כדור.
         // אשכול כדורים אחידים נראה כמו פאה; קשתות בגדלים ובכיוונים משתנים
@@ -2144,7 +2206,7 @@ animate();
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
-  player, enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen,
+  player, enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; },
 };
 </script>
