@@ -49,12 +49,112 @@
     font-family: monospace;
   }
   canvas { display: block; }
+
+  #hpRow {
+    position: fixed;
+    top: 12px;
+    left: 0;
+    right: 0;
+    display: flex;
+    direction: ltr;   /* העמוד כולו RTL, אבל סווארק תמיד עומד משמאל בזירה -
+                         חייבים סדר פיזי קבוע כדי שהפס שלו לא יתחלף עם של בו */
+    justify-content: space-between;
+    padding: 0 18px;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .hpBar { display: flex; flex-direction: column; gap: 3px; width: 230px; }
+  .hpEnemy { align-items: flex-end; }
+  .hpName {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.85);
+  }
+  .hpTrack {
+    width: 100%;
+    height: 18px;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.35);
+    border-radius: 9px;
+    overflow: hidden;
+  }
+  .hpEnemy .hpTrack { display: flex; justify-content: flex-end; }
+  .hpFill { height: 100%; width: 100%; transition: width 0.25s ease-out; }
+  .hpPlayer .hpFill { background: linear-gradient(90deg, #3ddc74, #24a852); }
+  .hpEnemy .hpFill { background: linear-gradient(90deg, #ff6b5b, #e63946); }
+  .hpNum { color: #fff; font-size: 0.78rem; opacity: 0.9; text-shadow: 0 1px 3px rgba(0,0,0,0.85); }
+
+  #hitFlash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+    background: radial-gradient(ellipse at center, transparent 45%, rgba(255,25,25,0.5) 100%);
+    opacity: 0;
+  }
+  @keyframes hitFlashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
+  #hitFlash.show { animation: hitFlashAnim 0.35s ease-out; }
+
+  #gameOverOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,8,14,0.74);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  #gameOverOverlay.show { opacity: 1; pointer-events: auto; }
+  #gameOverTitle {
+    font-size: 3rem;
+    color: #fff;
+    text-shadow: 0 4px 18px rgba(0,0,0,0.7);
+    font-weight: 800;
+  }
+  #playAgainBtn {
+    font-size: 1.2rem;
+    padding: 12px 34px;
+    border-radius: 14px;
+    border: none;
+    background: #ffcf4d;
+    color: #1a1a1a;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  }
+  #playAgainBtn:hover { background: #ffd968; }
 </style>
 </head>
 <body>
-<div id="label">🥊 סווארק מול בו - שלב תנועה (עדיין בלי חיים ובלי נזק)</div>
+<div id="label">🥊 סווארק מול בו - שלב חיים ונזק</div>
 <div id="controls">
-  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>D</b> חסימה
+  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> אבן חדה &nbsp;·&nbsp; <b>D</b> חסימה
+</div>
+
+<div id="hpRow">
+  <div class="hpBar hpPlayer">
+    <div class="hpName">סווארק</div>
+    <div class="hpTrack"><div class="hpFill" id="hpFillPlayer"></div></div>
+    <div class="hpNum" id="hpNumPlayer">100 / 100</div>
+  </div>
+  <div class="hpBar hpEnemy">
+    <div class="hpName">בו</div>
+    <div class="hpTrack"><div class="hpFill" id="hpFillEnemy"></div></div>
+    <div class="hpNum" id="hpNumEnemy">75 / 75</div>
+  </div>
+</div>
+
+<div id="hitFlash"></div>
+
+<div id="gameOverOverlay">
+  <div id="gameOverTitle"></div>
+  <button id="playAgainBtn">🔄 לשחק שוב</button>
 </div>
 
 <script type="importmap">
@@ -1294,7 +1394,7 @@ function createFighter(cfg) {
 const STANCE_YAW = 1.05;      // 3/4 - פונה ליריב אבל הפנים נראות למצלמה
 const GROUND_Y = RING_TOP + 0.04;
 
-function makeFighter(cfg, startX, facing) {
+function makeFighter(cfg, startX, facing, maxHp) {
   const { group, parts } = createFighter(cfg);
   const { bones, byName, root } = buildBones();
   group.add(root);
@@ -1319,16 +1419,41 @@ function makeFighter(cfg, startX, facing) {
     }
   });
 
+  const near = facing > 0 ? 'L' : 'R';   // הצד שקרוב למצלמה — שם המכות נראות הכי טוב
   return {
     group, byName, skeleton,
-    x: startX, facing,
-    near: facing > 0 ? 'L' : 'R',   // הצד שקרוב למצלמה — שם המכות נראות הכי טוב
+    x: startX, facing, near,
     mv: 0, phase: 0, bob: 0,
     // side מתחיל בצד הרחוק, כדי שהאגרוף *הראשון* יהיה של היד הקרובה למצלמה
-    action: null, actionT: 0, side: facing > 0 ? 'R' : 'L',
+    action: null, actionT: 0, side: facing > 0 ? 'R' : 'L', hitDone: false,
     blocking: false, blockAmt: 0,
     cool: 0, think: 0, mode: 'wait', blockTimer: 0,
+    hp: maxHp, maxHp, stoneMesh: null,
   };
+}
+
+/**
+ * אבן חדה — הנשק הבסיסי של סווארק מהאפיון. נבנית פעם אחת ותלויה קשיח על עצם
+ * שורש כף היד הקרובה למצלמה, מוסתרת כברירת מחדל ומופיעה רק בזמן מכת האבן
+ * (`poseFighter` מדליק/מכבה `visible` לפי `f.action`).
+ *
+ * המיקום מחושב מהשלד: כיוון "מהמרפק לשורש כף היד" בתנוחת המנוחה, אותו כיוון
+ * שבו האגרוף עצמו בנוי (ראה `createFighter`). לא ניחוש - נגזר מהקואורדינטות.
+ */
+function addStoneProp(f) {
+  const wristKey = 'wrist' + f.near, elbowKey = 'elbow' + f.near;
+  const dir = J[wristKey].clone().sub(J[elbowKey]).normalize();
+
+  const stone = new THREE.Mesh(
+    new THREE.ConeGeometry(0.058, 0.21, 6),
+    new THREE.MeshStandardMaterial({ color: 0xb3a892, roughness: 0.8, flatShading: true })
+  );
+  stone.quaternion.setFromUnitVectors(V(0, 1, 0), dir);
+  stone.position.copy(dir.clone().multiplyScalar(0.155));
+  stone.visible = false;
+  stone.castShadow = true;
+  f.byName[wristKey].add(stone);
+  f.stoneMesh = stone;
 }
 
 // ---------- שני הלוחמים ----------
@@ -1344,7 +1469,7 @@ const player = makeFighter({
   pants: 0x6f8dc4,    // ג'ינס
   boots: 0x7a4b2a,    // מגפי עור חומים
   handWraps: true,
-}, -1.7, 1);
+}, -1.7, 1, 100);
 
 // בו - איש כחול, אוזניים חדות, שיער ירוק, עגיל באף וטבעת באצבע, רק בוקסר שחור
 const enemy = makeFighter({
@@ -1359,7 +1484,10 @@ const enemy = makeFighter({
   boots: null,        // יחף
   noseRing: true,
   fingerRing: true,
-}, 1.7, -1);
+}, 1.7, -1, 75);
+
+addStoneProp(player);
+addStoneProp(enemy);
 
 // ============================================================================
 //  תנוחות ואנימציה
@@ -1373,7 +1501,19 @@ const enemy = makeFighter({
 //   rotation.y חיובי → כתף שמאל מגיחה קדימה (פיתול הגוף במכה)
 // ============================================================================
 
-const DUR = { punch: 0.40, kick: 0.58 };
+// כל מכה מוגדרת פעם אחת במקום אחד: משך, רגע השיא (לצורת התנועה), חלון הפגיעה
+// (u0/u1 - החלק מתוך המשך שבו המכה בפועל "נוגעת"), נזק וטווח. גם poseFighter
+// וגם מערכת הפגיעה קוראים מכאן, כדי שלא יהיו שני מספרים סותרים בשני מקומות.
+// hitAt הוא סף, לא טווח: ברגע שהמכה עברה אותו, הפגיעה נבדקת בפריים הראשון
+// שבו u עבר אותו. לא "בין X ל-Y", כי בקצב פריימים משתנה (מחשב איטי, לשונית
+// ברקע) פריים בודד יכול "לדלג" מעל חלון צר לגמרי ולפספס אותו. hitDone כבר
+// מבטיח שהפגיעה תיספר פעם אחת בלבד, אז אין צורך בגבול עליון בשביל זה.
+const ATTACKS = {
+  punch: { dur: 0.40, peak: 0.34, hitAt: 0.28, dmg: 3, range: 1.35 },
+  kick:  { dur: 0.58, peak: 0.42, hitAt: 0.36, dmg: 5, range: 1.35 },
+  stone: { dur: 0.50, peak: 0.40, hitAt: 0.34, dmg: 7, range: 1.55 },
+};
+
 const smoothstep = (a) => a * a * (3 - 2 * a);
 
 /** עקומת מכה: יציאה מהירה, חזרה מעט איטית יותר. 0 → 1 → 0 */
@@ -1386,7 +1526,8 @@ function startAction(f, kind) {
   if (f.action) return;
   f.action = kind;
   f.actionT = 0;
-  // אגרוף מתחלף בין הידיים; בעיטה תמיד ברגל שקרובה למצלמה
+  f.hitDone = false;
+  // אגרוף מתחלף בין הידיים; בעיטה ומכת האבן תמיד בצד שקרוב למצלמה
   f.side = kind === 'punch' ? (f.side === f.near ? (f.near === 'L' ? 'R' : 'L') : f.near) : f.near;
 }
 
@@ -1427,15 +1568,18 @@ function poseFighter(f, t, dt) {
     bob -= 0.020 * Math.abs(c);
   }
 
-  // ---------- חסימה ----------
-  // הידיים עולות לפני הפנים, המרפקים נצמדים לגוף והברכיים מתכופפות מעט.
+  // ---------- חסימה: איקס עם הידיים ----------
+  // הזוויות נמצאו בניסוי (רונדרו כמה אפשרויות וצולמו ישר מהחזית, לא נוחשו
+  // "בעיניים עצומות"): כל כתף מסתובבת חזק גם קדימה-מעלה (x שלילי) וגם לצד
+  // הנגדי של הגוף (z), עד שהאמות חוצות זו את זו ונפגשות גבוה ליד הסנטר.
+  // סימני ה-z הפוכים בין שמאל לימין, ולכן הן חוצות ולא רק נפגשות באמצע.
   const k = f.blockAmt;
   if (k > 0.001) {
-    rot('shoulderL', 0.16 * k, 0, 0.30 * k);
-    rot('shoulderR', 0.16 * k, 0, -0.30 * k);
-    rot('elbowL', 0.42 * k, 0, 0);
-    rot('elbowR', 0.42 * k, 0, 0);
-    rot('spine', -0.13 * k, 0, 0);
+    rot('shoulderL', -1.50 * k, 0, 1.90 * k);
+    rot('shoulderR', -1.50 * k, 0, -1.90 * k);
+    rot('elbowL', 2.05 * k, 0, 0);
+    rot('elbowR', 2.05 * k, 0, 0);
+    rot('spine', -0.10 * k, 0, 0);
     rot('neck', 0.15 * k, 0, 0);
     rot('kneeL', 0.15 * k, 0, 0);
     rot('kneeR', 0.15 * k, 0, 0);
@@ -1444,7 +1588,7 @@ function poseFighter(f, t, dt) {
 
   // ---------- מכות ----------
   if (f.action === 'punch') {
-    const a = strike(f.actionT / DUR.punch, 0.34);
+    const a = strike(f.actionT / ATTACKS.punch.dur, ATTACKS.punch.peak);
     const S = f.side === 'L' ? 1 : -1;      // לאיזה צד הגוף מתפתל
     const sh = 'shoulder' + f.side, el = 'elbow' + f.side;
     const oSh = 'shoulder' + (f.side === 'L' ? 'R' : 'L');
@@ -1465,8 +1609,8 @@ function poseFighter(f, t, dt) {
   }
 
   if (f.action === 'kick') {
-    const u = f.actionT / DUR.kick;
-    const a = strike(u, 0.42);
+    const u = f.actionT / ATTACKS.kick.dur;
+    const a = strike(u, ATTACKS.kick.peak);
     const hip = 'hip' + f.side, knee = 'knee' + f.side;
     const oHip = 'hip' + (f.side === 'L' ? 'R' : 'L');
     const oKnee = 'knee' + (f.side === 'L' ? 'R' : 'L');
@@ -1485,6 +1629,28 @@ function poseFighter(f, t, dt) {
     rot('shoulderR', -0.20 * a, 0, 0);
     bob -= 0.030 * a;
   }
+
+  // ---------- מכת האבן החדה ----------
+  // מכה גדולה מהאגרוף: הכתף נפתחת רחוק יותר קדימה, מתפתלת יותר חזק, והגוף
+  // רוכן קדימה איתה (spine/chest חיוביים - הפוך מהבעיטה, ששם הגוף נשען
+  // אחורה). זה מה שהופך את זה מ"אגרוף גדול" למכת ריסוק עם משקל.
+  if (f.action === 'stone') {
+    const a = strike(f.actionT / ATTACKS.stone.dur, ATTACKS.stone.peak);
+    const S = f.side === 'L' ? 1 : -1;
+    const sh = 'shoulder' + f.side, el = 'elbow' + f.side;
+    const oSh = 'shoulder' + (f.side === 'L' ? 'R' : 'L');
+
+    rot(sh, -1.30 * a, 0, -0.22 * a * S);
+    rot(el, 1.55 * a, 0, 0);
+    rot(oSh, 0.20 * a, 0, 0.18 * a * S);
+    rot('chest', 0.16 * a, 0.34 * a * S, 0);
+    rot('spine', 0.10 * a, 0.18 * a * S, 0);
+    rot('root', 0, 0.10 * a * S, 0);
+    rot('head', 0.08 * a, 0.10 * a * S, 0);
+    rot('knee' + (f.side === 'L' ? 'R' : 'L'), 0.14 * a, 0, 0);
+    bob -= 0.02 * a;
+  }
+  if (f.stoneMesh) f.stoneMesh.visible = f.action === 'stone';
 
   // ---------- החלה עם החלקה ----------
   // בלי ההחלקה כל מעבר מצב היה קופץ בפריים אחד. עם החלקה חזקה זה עדיין חד,
@@ -1507,7 +1673,7 @@ function poseFighter(f, t, dt) {
 // ============================================================================
 
 const KEYS = {};
-const WATCHED = ['ArrowLeft', 'ArrowRight', 'KeyA', 'KeyS', 'KeyD', 'Space'];
+const WATCHED = ['ArrowLeft', 'ArrowRight', 'KeyA', 'KeyS', 'KeyD', 'KeyW', 'Space'];
 addEventListener('keydown', (e) => {
   KEYS[e.code] = true;
   if (WATCHED.includes(e.code)) e.preventDefault();
@@ -1539,6 +1705,7 @@ function updatePlayer(f, dt) {
   if (!f.action && !f.blocking) {
     if (KEYS.KeyA) startAction(f, 'punch');
     else if (KEYS.KeyS) startAction(f, 'kick');
+    else if (KEYS.KeyW) startAction(f, 'stone');
   }
   f.mv = f.action ? 0 : ((KEYS.ArrowRight ? 1 : 0) - (KEYS.ArrowLeft ? 1 : 0));
 }
@@ -1559,7 +1726,8 @@ function updateEnemy(f, p, dt) {
   if (f.blocking) { f.mv = 0; return; }
 
   if (dist < 1.55 && f.cool <= 0) {
-    startAction(f, Math.random() < 0.6 ? 'punch' : 'kick');
+    const r = Math.random();
+    startAction(f, r < 0.48 ? 'punch' : r < 0.80 ? 'kick' : 'stone');
     f.cool = 1.0 + Math.random() * 1.2;
     f.mv = 0;
     return;
@@ -1579,8 +1747,79 @@ function updateEnemy(f, p, dt) {
 function tickAction(f, dt) {
   if (!f.action) return;
   f.actionT += dt;
-  if (f.actionT >= DUR[f.action]) { f.action = null; f.actionT = 0; }
+  if (f.actionT >= ATTACKS[f.action].dur) { f.action = null; f.actionT = 0; }
 }
+
+// ============================================================================
+//  חיים, נזק וסיום קרב
+// ============================================================================
+
+const hpFillEl = { player: document.getElementById('hpFillPlayer'), enemy: document.getElementById('hpFillEnemy') };
+const hpNumEl  = { player: document.getElementById('hpNumPlayer'), enemy: document.getElementById('hpNumEnemy') };
+const hitFlashEl = document.getElementById('hitFlash');
+const gameOverEl = document.getElementById('gameOverOverlay');
+const gameOverTitleEl = document.getElementById('gameOverTitle');
+const playAgainBtn = document.getElementById('playAgainBtn');
+
+function updateHealthUI(f, who) {
+  const pct = Math.max(0, f.hp / f.maxHp) * 100;
+  hpFillEl[who].style.width = pct + '%';
+  hpNumEl[who].textContent = f.hp + ' / ' + f.maxHp;
+}
+
+function flashHit() {
+  hitFlashEl.classList.remove('show');
+  void hitFlashEl.offsetWidth;          // מכריח את הדפדפן "לשכוח" את האנימציה הקודמת כדי שתתחיל שוב
+  hitFlashEl.classList.add('show');
+}
+
+let gameOver = false;
+
+/**
+ * בודקת אם למכה הנוכחית של attacker יש "מגע" בפריים הזה: בתוך חלון הפגיעה
+ * של האנימציה, בטווח מהיריב, ועוד לא הופעלה באותה מכה (hitDone). חסימה
+ * מבטלת את הנזק לגמרי - זו הבחירה הפשוטה והברורה ביותר לילד: "אם חוסמים,
+ * לא נפגעים".
+ */
+function tickCombat(attacker, defender, who, otherWho) {
+  if (!attacker.action || attacker.hitDone) return;
+  const cfg = ATTACKS[attacker.action];
+  const u = attacker.actionT / cfg.dur;
+  if (u < cfg.hitAt) return;
+  if (Math.abs(attacker.x - defender.x) > cfg.range) return;
+
+  attacker.hitDone = true;
+  if (defender.blocking) return;
+
+  defender.hp = Math.max(0, defender.hp - cfg.dmg);
+  updateHealthUI(defender, otherWho);
+  flashHit();
+  if (defender.hp <= 0) endGame(who);
+}
+
+function endGame(winnerWho) {
+  gameOver = true;
+  gameOverTitleEl.textContent = winnerWho === 'player' ? '🏆 ניצחון!' : '❌ הפסד';
+  gameOverEl.classList.add('show');
+}
+
+function resetGame() {
+  [[player, 'player', -1.7, 1], [enemy, 'enemy', 1.7, -1]].forEach(([f, who, x0]) => {
+    f.hp = f.maxHp;
+    f.x = x0;
+    f.group.position.x = x0;
+    f.action = null; f.actionT = 0; f.hitDone = false;
+    f.blocking = false; f.blockAmt = 0;
+    f.mv = 0; f.cool = 0; f.think = 0; f.mode = 'wait'; f.blockTimer = 0;
+    updateHealthUI(f, who);
+  });
+  gameOverEl.classList.remove('show');
+  gameOver = false;
+}
+
+playAgainBtn.addEventListener('click', resetGame);
+updateHealthUI(player, 'player');
+updateHealthUI(enemy, 'enemy');
 
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
@@ -1592,8 +1831,15 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.05);   // תקרה: מונע קפיצה אחרי לשונית ברקע
   const t = clock.elapsedTime;
 
-  updatePlayer(player, dt);
-  updateEnemy(enemy, player, dt);
+  if (gameOver) {
+    player.mv = 0; enemy.mv = 0;
+    player.blocking = false; enemy.blocking = false;
+  } else {
+    updatePlayer(player, dt);
+    updateEnemy(enemy, player, dt);
+    tickCombat(player, enemy, 'player', 'enemy');
+    tickCombat(enemy, player, 'enemy', 'player');
+  }
 
   [player, enemy].forEach((f) => {
     tickAction(f, dt);
@@ -1625,7 +1871,7 @@ animate();
 
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
-window.game = { player, enemy, startAction, KEYS, camera, scene };
+window.game = { player, enemy, startAction, KEYS, camera, scene, resetGame, endGame, get gameOver() { return gameOver; } };
 </script>
 </body>
 </html>
