@@ -225,10 +225,43 @@
     padding: 14px 16px;
     text-align: center;
   }
+  .itemThumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.28);
+    display: block;
+  }
+  .itemThumbPlaceholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    opacity: 0.55;
+    gap: 4px;
+  }
   .itemName { font-size: 1.05rem; font-weight: bold; margin-bottom: 8px; }
   .itemStat { font-size: 0.85rem; opacity: 0.85; margin: 2px 0; }
   .itemPrice { margin-top: 8px; font-size: 0.95rem; font-weight: bold; color: #ffcf4d; }
   #backLobbyBtn { margin-top: 30px; }
+
+  /* מוצג תמיד, בכל מסך (זירה/לובי/חנות) - לכן z-index גבוה מכל המסכים */
+  #moneyBadge {
+    position: fixed;
+    bottom: 14px;
+    left: 14px;
+    background: rgba(0,0,0,0.55);
+    border: 2px solid rgba(255,207,77,0.6);
+    border-radius: 12px;
+    padding: 8px 18px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #ffcf4d;
+    z-index: 50;
+  }
 </style>
 </head>
 <body>
@@ -251,6 +284,8 @@
 </div>
 
 <div id="hitFlash"></div>
+
+<div id="moneyBadge">💰 0₪</div>
 
 <div id="gameOverOverlay">
   <div id="gameOverTitle"></div>
@@ -1118,7 +1153,8 @@ function createFighter(cfg) {
   const irisMat  = M(cfg.eyeColor ?? 0x5a3a20, 0.28);
   const pupilMat = M(0x120e0a, 0.2);
   const glintMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const mouthMat = M(0x8a4a44, 0.6);
+  const mouthMat = M(cfg.lipColor ?? 0x8a4a44, 0.6);
+  const lashMat = M(0x1a1310, 0.7);
   const goldMat  = M(0xd9b23c, 0.2, 0.95);
 
   const legMat = pantsMat || skinMat;
@@ -1448,6 +1484,21 @@ function createFighter(cfg) {
        V(ex + s * R * 0.30, HC.y + R * 0.245, R * 0.780)],
       [pr(0, 0.04, 0.032), pr(0.5, 0.078, 0.055), pr(1, 0.04, 0.032)],
       { steps: 10, radial: 14, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
+
+    // ריסים — שלוש קווצות דקות שיוצאות מהקצה העליון-חיצוני של העין ונפתחות
+    // החוצה ומעלה. זה הסימן הכי ברור וקריא לפרצוף "של בת" בסגנון הזה,
+    // בלי לגעת במבנה הפנים המשותף לכל הדמויות.
+    if (cfg.eyelashes) {
+      const baseX = ex + s * R * 0.14, baseY = ey + R * 0.125, baseZ = ez + R * 0.02;
+      [[-0.4, 0.45], [0, 0.62], [0.4, 0.50]].forEach(([spread, up]) => {
+        const tipX = baseX + s * R * 0.16 + spread * s * R * 0.05;
+        const tipY = baseY + R * up * 0.30;
+        part(sweep(lashMat,
+          [V(baseX + spread * s * R * 0.02, baseY, baseZ), V(tipX, tipY, baseZ + R * 0.015)],
+          [pr(0, 0.017, 0.017), pr(1, 0.003, 0.003)],
+          { steps: 3, radial: 6, capStart: 'round', capEnd: 'round' }));
+      });
+    }
   });
 
   // אף = גשר שיוצא מבין הגבות ויורד אל קצה מעוגל, ואז חוזר לתוך הפנים.
@@ -1607,7 +1658,7 @@ function makeFighter(cfg, startX, facing, maxHp) {
     action: null, actionT: 0, side: facing > 0 ? 'R' : 'L', hitDone: false,
     blocking: false, blockAmt: 0,
     cool: 0, think: 0, mode: 'wait', blockTimer: 0,
-    hp: maxHp, maxHp, stoneMesh: null, forceWeaponVisible: false,
+    hp: maxHp, maxHp, stoneMesh: null, forceWeaponVisible: false, damageDealt: 0,
   };
 }
 
@@ -1638,7 +1689,7 @@ function addStoneProp(f) {
 // ---------- שני הלוחמים ----------
 
 // סווארק - גופייה לבנה, ג'ינס עם חגורה, מגפי עור, תלתלים חומים, תחבושות על האגרופים
-const player = makeFighter({
+const SVAROK_CFG = {
   skin: 0xf3c9a0,
   hair: 0x3a2718,
   hairStyle: 'curly',
@@ -1648,7 +1699,8 @@ const player = makeFighter({
   pants: 0x6f8dc4,    // ג'ינס
   boots: 0x7a4b2a,    // מגפי עור חומים
   handWraps: true,
-}, -1.7, 1, 100);
+};
+const player = makeFighter(SVAROK_CFG, -1.7, 1, 100);
 
 // בו - איש כחול, אוזניים חדות, שיער ירוק, עגיל באף וטבעת באצבע, רק בוקסר שחור
 const enemy = makeFighter({
@@ -1664,6 +1716,22 @@ const enemy = makeFighter({
   noseRing: true,
   fingerRing: true,
 }, 1.7, -1, 75);
+
+// ג'ני - חולצה סגולה, ז'קט אפור מפוספס, שיער שחור ארוך, מכנסיים סגולים.
+// לא בקרב (עדיין) - מוגדרת כאן כדי שאפשר יהיה להציג אותה בחנות.
+const JENNY_CFG = {
+  skin: 0xf0c8a0,
+  hair: 0x0a0a0a,
+  hairStyle: 'long',
+  eyeColor: 0x4a7a3a,
+  ears: 'round',
+  eyelashes: true,
+  lipColor: 0xc75a6e,
+  top: 0x8a4fd6,      // חולצה סגולה
+  jacket: 0x9aa0a8,   // ז'קט אפור מפוספס
+  pants: 0x7a3fc2,    // מכנסיים סגולים
+  boots: 0x2b2b2f,    // נעליים כהות
+};
 
 addStoneProp(player);
 addStoneProp(enemy);
@@ -1971,15 +2039,27 @@ function tickCombat(attacker, defender, who, otherWho) {
   if (defender.blocking) return;
 
   defender.hp = Math.max(0, defender.hp - cfg.dmg);
+  attacker.damageDealt += cfg.dmg;
   updateHealthUI(defender, otherWho);
   flashHit();
   if (defender.hp <= 0) endGame(who);
 }
 
+// כסף מתקבל רק על ניצחון, לפי כמות הנזק שהשחקן גרם - בדיוק כמו שכתוב
+// באפיון ("סכום הכסף תלוי... בכמות הנזק שהשחקן גרם"). מספר פשוט להבנה:
+// 1₪ לכל נקודת נזק. לא סופי - יכוון מחדש כשתהיה קנייה בפועל בחנות.
+let money = 0;
+const moneyBadgeEl = document.getElementById('moneyBadge');
+function updateMoneyUI() { moneyBadgeEl.textContent = '💰 ' + money + '₪'; }
+
 function endGame(winnerWho) {
   gameOver = true;
   gameOverTitleEl.textContent = winnerWho === 'player' ? '🏆 ניצחון!' : '❌ הפסד';
   gameOverEl.classList.add('show');
+  if (winnerWho === 'player') {
+    money += player.damageDealt;
+    updateMoneyUI();
+  }
 }
 
 function resetGame() {
@@ -1990,6 +2070,7 @@ function resetGame() {
     f.action = null; f.actionT = 0; f.hitDone = false;
     f.blocking = false; f.blockAmt = 0;
     f.mv = 0; f.cool = 0; f.think = 0; f.mode = 'wait'; f.blockTimer = 0;
+    f.damageDealt = 0;
     updateHealthUI(f, who);
   });
   gameOverEl.classList.remove('show');
@@ -2046,6 +2127,50 @@ function showScreen(name) {
 
 // נתוני החנות - הועתקו ישירות מ-game-spec.md, מקור האמת למספרים האלה.
 // אין עדיין מערכת כסף, ולכן זו תצוגה בלבד (ראה shopNote למעלה).
+// ---------- תמונות אמיתיות של דמויות בחנות ----------
+// לכל דמות שכבר נבנתה בפועל (יש לה קונפיג) יש "צילום" אמיתי: בונים אותה
+// זמנית באמצע הזירה, מקטינים את הקנבס לריבוע קטן לרגע אחד, מרנדרים,
+// ותופסים את זה כתמונה. אפשר לעשות את זה בלי שאף אחד יבחין, כי מסך
+// החנות תמיד אטום ומכסה את כל הקנבס כשזה קורה.
+const CHARACTER_CFGS = { 'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG };
+const characterThumbs = {};
+const THUMB_SIZE = 360;
+
+function captureCharacterThumb(cfg) {
+  const { group } = createFighter(cfg);
+  group.position.set(0, GROUND_Y, 0);
+  group.rotation.y = STANCE_YAW;
+  scene.add(group);
+  scene.updateMatrixWorld(true);
+
+  const prevSize = new THREE.Vector2();
+  renderer.getSize(prevSize);
+  const prevAspect = camera.aspect;
+  const prevPos = camera.position.clone();
+
+  renderer.setSize(THUMB_SIZE, THUMB_SIZE, false);   // false = לא נוגע בגודל התצוגה של הקנבס
+  camera.aspect = 1;
+  camera.updateProjectionMatrix();
+  camera.position.set(0.35, GROUND_Y + 1.33, 1.75);
+  camera.lookAt(0.05, GROUND_Y + 1.02, 0);
+
+  renderer.render(scene, camera);
+  const dataUrl = renderer.domElement.toDataURL('image/png');
+
+  renderer.setSize(prevSize.x, prevSize.y, false);
+  camera.aspect = prevAspect;
+  camera.updateProjectionMatrix();
+  camera.position.copy(prevPos);
+  scene.remove(group);
+  return dataUrl;
+}
+
+function getCharacterThumb(name) {
+  if (!CHARACTER_CFGS[name]) return null;
+  if (!characterThumbs[name]) characterThumbs[name] = captureCharacterThumb(CHARACTER_CFGS[name]);
+  return characterThumbs[name];
+}
+
 const SHOP_DATA = {
   characters: { label: '👤 דמויות', rows: [
     ['סווארק', 'כוח 5/10', 'מהירות 5/10', 'חינם'],
@@ -2130,7 +2255,14 @@ function renderShopCategory(key) {
     card.className = 'itemCard';
     const price = stats[stats.length - 1];
     const mid = stats.slice(0, -1);
-    card.innerHTML = `<div class="itemName">${name}</div>` +
+    let media = '';
+    if (key === 'characters') {
+      const thumb = getCharacterThumb(name);
+      media = thumb
+        ? `<img class="itemThumb" src="${thumb}">`
+        : `<div class="itemThumb itemThumbPlaceholder">🚧<br>בקרוב</div>`;
+    }
+    card.innerHTML = media + `<div class="itemName">${name}</div>` +
       mid.map((s) => `<div class="itemStat">${s}</div>`).join('') +
       `<div class="itemPrice">${price}</div>`;
     shopGridEl.appendChild(card);
@@ -2154,6 +2286,7 @@ document.getElementById('backLobbyBtn').addEventListener('click', () => showScre
 playAgainBtn.addEventListener('click', resetGame);
 updateHealthUI(player, 'player');
 updateHealthUI(enemy, 'enemy');
+updateMoneyUI();
 
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
@@ -2207,7 +2340,9 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   player, enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; },
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG,
+  get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
+  set money(v) { money = v; updateMoneyUI(); },
 };
 </script>
 </body>
