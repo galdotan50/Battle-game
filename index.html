@@ -142,8 +142,8 @@
   }
   #lobbyBtn:hover, #backLobbyBtn:hover { background: rgba(255,255,255,0.18); }
 
-  /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay {
+  /* ---------- לובי, חנות וציוד: מסכים מלאים מעל הזירה ---------- */
+  #lobbyOverlay, #shopOverlay, #loadoutOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -155,14 +155,14 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  /* בלובי הרקע שקוף חלקית - כדי שסווארק (מרונדר מאחורי המסך) יראה מבעד לתפריט */
+  #shopOverlay, #loadoutOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  /* בלובי הרקע שקוף חלקית - כדי שהדמות (מרונדרת מאחורי המסך) תיראה מבעד לתפריט */
   #lobbyOverlay {
     background: linear-gradient(200deg, rgba(22,33,58,0.55), rgba(12,18,32,0.72));
     justify-content: flex-end;
     padding-bottom: 60px;
   }
-  #lobbyOverlay.show, #shopOverlay.show { display: flex; }
+  #lobbyOverlay.show, #shopOverlay.show, #loadoutOverlay.show { display: flex; }
   #loadoutLabel {
     background: rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.25);
@@ -188,7 +188,7 @@
   #lobbyOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #lobbyOverlay .bigBtn.secondary:hover { background: rgba(255,255,255,0.2); }
 
-  #shopNote {
+  #shopNote, #loadoutNote {
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 12px;
@@ -198,7 +198,7 @@
     max-width: 640px;
     text-align: center;
   }
-  #shopTabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 28px; }
+  #shopTabs, #loadoutTabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 28px; }
   .shopTab {
     font-size: 1.05rem;
     padding: 10px 20px;
@@ -211,7 +211,7 @@
   }
   .shopTab:hover { background: rgba(255,255,255,0.16); }
   .shopTab.active { background: #ffcf4d; color: #1a1a1a; border-color: #ffcf4d; }
-  #shopGrid {
+  #shopGrid, #loadoutGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 14px;
@@ -271,7 +271,19 @@
     75% { transform: translateX(6px); }
   }
   .buyBtn.shake { animation: cantAffordShake 0.3s ease; background: #e05a5a; color: #fff; }
-  #backLobbyBtn { margin-top: 30px; }
+  .buyBtn.equipped {
+    background: rgba(90,160,230,0.25);
+    color: #8fc4ff;
+    border: 1px solid rgba(143,196,255,0.55);
+    cursor: default;
+  }
+  .buyBtn.locked {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.16);
+    cursor: default;
+  }
+  #backLobbyBtn, #backLoadoutBtn { margin-top: 30px; }
 
   /* מוצג תמיד, בכל מסך (זירה/לובי/חנות) - לכן z-index גבוה מכל המסכים */
   #moneyBadge {
@@ -290,14 +302,14 @@
 </style>
 </head>
 <body>
-<div id="label">🥊 סווארק מול בו - שלב חיים ונזק</div>
+<div id="label">🥊 קרב מול בו - שלב חיים ונזק</div>
 <div id="controls">
   <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> אבן חדה &nbsp;·&nbsp; <b>D</b> חסימה
 </div>
 
 <div id="hpRow">
   <div class="hpBar hpPlayer">
-    <div class="hpName">סווארק</div>
+    <div class="hpName" id="hpNamePlayer">סווארק</div>
     <div class="hpTrack"><div class="hpFill" id="hpFillPlayer"></div></div>
     <div class="hpNum" id="hpNumPlayer">100 / 100</div>
   </div>
@@ -324,6 +336,7 @@
   <div id="loadoutLabel">🥊 סווארק &nbsp;·&nbsp; 🪨 אבן חדה</div>
   <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
+  <button class="bigBtn secondary" id="openLoadoutBtn">🎒 ציוד</button>
 </div>
 
 <div id="shopOverlay">
@@ -332,6 +345,14 @@
   <div id="shopTabs"></div>
   <div id="shopGrid"></div>
   <button id="backLobbyBtn">⬅ חזרה ללובי</button>
+</div>
+
+<div id="loadoutOverlay">
+  <div class="screenTitle">🎒 ציוד</div>
+  <div id="loadoutNote">👉 כאן רואים רק דברים שכבר קנית. לוחצים על פריט כדי לצייד אותו לקרב הבא.</div>
+  <div id="loadoutTabs"></div>
+  <div id="loadoutGrid"></div>
+  <button id="backLoadoutBtn">⬅ חזרה ללובי</button>
 </div>
 
 <script type="importmap">
@@ -1804,6 +1825,7 @@ function makeFighter(cfg, startX, facing, maxHp) {
     blocking: false, blockAmt: 0,
     cool: 0, think: 0, mode: 'wait', blockTimer: 0,
     hp: maxHp, maxHp, stoneMesh: null, forceWeaponVisible: false, damageDealt: 0,
+    weaponDmg: null,   // null = נזק ברירת המחדל של המכה (ATTACKS[...].dmg); מוגדר רק עבור הנשק המצויד
   };
 }
 
@@ -1845,7 +1867,7 @@ const SVAROK_CFG = {
   boots: 0x7a4b2a,    // מגפי עור חומים
   handWraps: true,
 };
-const player = makeFighter(SVAROK_CFG, -1.7, 1, 100);
+let player = makeFighter(SVAROK_CFG, -1.7, 1, 100);
 
 // בו - איש כחול, אוזניים חדות, שיער ירוק, עגיל באף וטבעת באצבע, רק בוקסר שחור
 const enemy = makeFighter({
@@ -2205,8 +2227,11 @@ function tickCombat(attacker, defender, who, otherWho) {
   attacker.hitDone = true;
   if (defender.blocking) return;
 
-  defender.hp = Math.max(0, defender.hp - cfg.dmg);
-  attacker.damageDealt += cfg.dmg;
+  // אם ללוחם הזה יש נשק מצויד עם נזק אחר (רק לשחקן, רק במכת האבן) - הוא גובר
+  // על נזק ברירת המחדל של המכה, בלי לגעת בטבלת ATTACKS המשותפת לשני הלוחמים.
+  const dmg = (attacker.action === 'stone' && attacker.weaponDmg != null) ? attacker.weaponDmg : cfg.dmg;
+  defender.hp = Math.max(0, defender.hp - dmg);
+  attacker.damageDealt += dmg;
   updateHealthUI(defender, otherWho);
   flashHit();
   if (defender.hp <= 0) endGame(who);
@@ -2261,6 +2286,11 @@ const lobbyEl = document.getElementById('lobbyOverlay');
 const shopEl = document.getElementById('shopOverlay');
 const shopTabsEl = document.getElementById('shopTabs');
 const shopGridEl = document.getElementById('shopGrid');
+const loadoutEl = document.getElementById('loadoutOverlay');
+const loadoutTabsEl = document.getElementById('loadoutTabs');
+const loadoutGridEl = document.getElementById('loadoutGrid');
+const loadoutLabelEl = document.getElementById('loadoutLabel');
+const hpNamePlayerEl = document.getElementById('hpNamePlayer');
 const hpRowEl = document.getElementById('hpRow');
 const controlsEl = document.getElementById('controls');
 const labelEl = document.getElementById('label');
@@ -2272,6 +2302,7 @@ function showScreen(name) {
   uiScreen = name;
   lobbyEl.classList.toggle('show', name === 'lobby');
   shopEl.classList.toggle('show', name === 'shop');
+  loadoutEl.classList.toggle('show', name === 'loadout');
   const inBattle = name === 'battle';
   hpRowEl.style.display = inBattle ? '' : 'none';
   controlsEl.style.display = inBattle ? '' : 'none';
@@ -2318,6 +2349,13 @@ function captureCharacterThumb(cfg) {
   const prevAspect = camera.aspect;
   const prevPos = camera.position.clone();
 
+  // אם השחקן/בו כבר נמצאים קרוב לאמצע הזירה (למשל בו התקרב באמצע קרב) - הם
+  // עלולים "להיכנס בטעות" לתמונה של הדמות הזמנית. מסתירים אותם רק לרגע הצילום.
+  const prevPlayerVisible = player.group.visible;
+  const prevEnemyVisible = enemy.group.visible;
+  player.group.visible = false;
+  enemy.group.visible = false;
+
   renderer.setSize(THUMB_SIZE, THUMB_SIZE, false);   // false = לא נוגע בגודל התצוגה של הקנבס
   camera.aspect = 1;
   camera.updateProjectionMatrix();
@@ -2331,6 +2369,8 @@ function captureCharacterThumb(cfg) {
   camera.aspect = prevAspect;
   camera.updateProjectionMatrix();
   camera.position.copy(prevPos);
+  player.group.visible = prevPlayerVisible;
+  enemy.group.visible = prevEnemyVisible;
   scene.remove(group);
   return dataUrl;
 }
@@ -2433,6 +2473,7 @@ function buyItem(btn) {
   money -= price;
   inventory.add(id);
   updateMoneyUI();
+  equipItem(key, name);   // קנייה = לצייד מייד - זה מה שהמשתמש ציפה שיקרה
   renderShopCategory(key);
 }
 
@@ -2476,6 +2517,103 @@ function renderShopCategory(key) {
   });
 }
 
+// ---------- ציוד (הלוט) ----------
+// מה שממש "מצויד" עכשיו לקרב הבא. ברירת המחדל תואמת את מה שהיה קבוע
+// בקוד עד עכשיו - סווארק עם אבן חדה - כדי שלא ישתנה כלום למי שלא קנה שום דבר.
+const equipped = { character: 'סווארק', weapon: 'אבן חדה', shield: null, food: null, drink: null };
+const EQUIP_KEY = { characters: 'character', weapons: 'weapon', shields: 'shield', food: 'food', drinks: 'drink' };
+
+// מוצא את מספר הנזק של נשק לפי השם שלו בנתוני החנות (העמודה "נזק X").
+// אם לא נמצא (אף פעם לא אמור לקרות) - חוזרים לנזק המקורי של האבן החדה.
+function weaponDamageOf(name) {
+  const row = SHOP_DATA.weapons.rows.find(([n]) => n === name);
+  const match = row && row[1].match(/\d+/);
+  return match ? parseInt(match[0], 10) : ATTACKS.stone.dmg;
+}
+
+// מעדכן את הנזק שהמכה החדה (W) עושה, לפי הנשק המצויד - בלי לגעת במודל
+// התלת-מימדי (עדיין נראה כמו אבן חדה, בדיוק כמו שהוחלט).
+function applyEquipment() {
+  player.weaponDmg = weaponDamageOf(equipped.weapon);
+}
+
+// בונה מחדש את כל הדמות של השחקן לפי קונפיגורציה חדשה - מסירה מהסצנה את
+// המש הישן, בונה מש חדש עם השלד שלו, ומצמידה לו את אבן חדה מחדש (התלויה
+// על עצם ספציפית של הדמות הקודמת, ולכן לא "עוברת" אוטומטית לדמות החדשה).
+function setPlayerCharacter(name) {
+  const cfg = CHARACTER_CFGS[name];
+  if (!cfg) return;   // דמות שעדיין לא נבנתה בקוד - אי אפשר לצייד אותה
+  scene.remove(player.group);
+  player = makeFighter(cfg, -1.7, 1, 100);
+  addStoneProp(player);
+  scene.add(player.group);
+  applyEquipment();
+  hpNamePlayerEl.textContent = name;
+}
+
+// מציידת פריט שכבר קיים במלאי. לדמות - בונה אותה מחדש בפועל (אם היא כבר
+// לוחמת); לנשק - רק משנה את הנזק; למגן/אוכל/משקה - כרגע רק סימון, בלי
+// שום השפעה על הקרב עדיין.
+function equipItem(key, name) {
+  const prop = EQUIP_KEY[key];
+  if (!prop) return;
+  if (key === 'characters') {
+    if (!CHARACTER_CFGS[name] || equipped.character === name) return;
+    setPlayerCharacter(name);
+  }
+  equipped[prop] = name;
+  applyEquipment();
+  updateLoadoutLabel();
+  if (uiScreen === 'loadout') renderLoadoutCategory(key);
+}
+
+function updateLoadoutLabel() {
+  loadoutLabelEl.textContent = `🥊 ${equipped.character}  ·  🪨 ${equipped.weapon}`;
+}
+
+// כמו renderShopCategory, אבל מציגה רק פריטים שכבר במלאי (inventory), ובמקום
+// כפתור קנייה יש כפתור "לצייד" - או "עוד לא בנויה" לדמות בלי קונפיגורציה בפועל.
+function renderLoadoutCategory(key) {
+  [...loadoutTabsEl.children].forEach((btn) => btn.classList.toggle('active', btn.dataset.key === key));
+
+  const owned = SHOP_DATA[key].rows.filter(([name]) => inventory.has(key + ':' + name));
+  loadoutGridEl.innerHTML = '';
+  if (owned.length === 0) {
+    loadoutGridEl.innerHTML = '<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">🛒 עוד לא קנית כלום מכאן - לך לחנות!</div>';
+    return;
+  }
+  owned.forEach(([name, ...stats]) => {
+    const card = document.createElement('div');
+    card.className = 'itemCard';
+    const mid = stats.slice(0, -1);   // בלי המחיר - כבר קנינו
+
+    let media = '';
+    let fightable = true;
+    if (key === 'characters') {
+      fightable = !!CHARACTER_CFGS[name];
+      const thumb = getCharacterThumb(name);
+      media = thumb
+        ? `<img class="itemThumb" src="${thumb}">`
+        : `<div class="itemThumb itemThumbPlaceholder">🚧<br>בקרוב</div>`;
+    }
+    const isEquipped = equipped[EQUIP_KEY[key]] === name;
+    const pickHtml = !fightable
+      ? `<button class="buyBtn locked" disabled>🚧 עוד לא בנויה</button>`
+      : isEquipped
+        ? `<button class="buyBtn equipped" disabled>✅ מצויד</button>`
+        : `<button class="buyBtn" data-key="${key}" data-name="${name}">👉 לצייד</button>`;
+
+    card.innerHTML = media + `<div class="itemName">${name}</div>` +
+      mid.map((s) => `<div class="itemStat">${s}</div>`).join('') +
+      pickHtml;
+    loadoutGridEl.appendChild(card);
+  });
+
+  loadoutGridEl.querySelectorAll('.buyBtn:not(.equipped):not([disabled])').forEach((btn) => {
+    btn.addEventListener('click', () => equipItem(btn.dataset.key, btn.dataset.name));
+  });
+}
+
 Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
   const btn = document.createElement('button');
   btn.className = 'shopTab';
@@ -2485,15 +2623,28 @@ Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
   shopTabsEl.appendChild(btn);
 });
 
+Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
+  const btn = document.createElement('button');
+  btn.className = 'shopTab';
+  btn.dataset.key = key;
+  btn.textContent = label;
+  btn.addEventListener('click', () => renderLoadoutCategory(key));
+  loadoutTabsEl.appendChild(btn);
+});
+
 document.getElementById('lobbyBtn').addEventListener('click', () => { resetGame(); showScreen('lobby'); });
 document.getElementById('startFightBtn').addEventListener('click', () => { resetGame(); showScreen('battle'); });
 document.getElementById('openShopBtn').addEventListener('click', () => { showScreen('shop'); renderShopCategory('characters'); });
 document.getElementById('backLobbyBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('openLoadoutBtn').addEventListener('click', () => { showScreen('loadout'); renderLoadoutCategory('characters'); });
+document.getElementById('backLoadoutBtn').addEventListener('click', () => showScreen('lobby'));
 
 playAgainBtn.addEventListener('click', resetGame);
 updateHealthUI(player, 'player');
 updateHealthUI(enemy, 'enemy');
 updateMoneyUI();
+applyEquipment();
+updateLoadoutLabel();
 
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
@@ -2546,8 +2697,10 @@ animate();
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
-  player, enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, inventory,
+  enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
+  renderShopCategory, renderLoadoutCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG,
+  inventory, equipped, equipItem, buyItem,
+  get player() { return player; },
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
   set money(v) { money = v; updateMoneyUI(); },
 };
