@@ -246,6 +246,31 @@
   .itemName { font-size: 1.05rem; font-weight: bold; margin-bottom: 8px; }
   .itemStat { font-size: 0.85rem; opacity: 0.85; margin: 2px 0; }
   .itemPrice { margin-top: 8px; font-size: 0.95rem; font-weight: bold; color: #ffcf4d; }
+  .buyBtn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 9px 0;
+    border-radius: 10px;
+    border: none;
+    background: #ffcf4d;
+    color: #1a1a1a;
+    font-weight: bold;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .buyBtn:hover { background: #ffd968; }
+  .buyBtn.owned {
+    background: rgba(90,210,140,0.22);
+    color: #7be0a0;
+    border: 1px solid rgba(123,224,160,0.5);
+    cursor: default;
+  }
+  @keyframes cantAffordShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+  .buyBtn.shake { animation: cantAffordShake 0.3s ease; background: #e05a5a; color: #fff; }
   #backLobbyBtn { margin-top: 30px; }
 
   /* מוצג תמיד, בכל מסך (זירה/לובי/חנות) - לכן z-index גבוה מכל המסכים */
@@ -824,14 +849,45 @@ const leatherTex = (hex) => canvasTex(128, (ctx, n) => {
 // פסים צבעוניים אופקיים (כמו על ז'קט ורסיטי) - חוזרים לאורך האיבר, לא סביבו,
 // ולכן repeat.set(1, ry): בלי חזרה סביב ההיקף (אין תפר בצבע), הרבה חזרות
 // לאורך (טבעות צבע רצופות מהכתפיים ולמטה).
-const stripeTex = (baseHex, colors) => canvasTex(128, (ctx, n) => {
-  ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
-  const bandH = n / (colors.length + 1.4);
-  colors.forEach((c, i) => {
-    ctx.fillStyle = c;
-    ctx.fillRect(0, bandH * (i * 1.4 + 0.7), n, bandH * 0.62);
-  });
-}, 1, 4);
+// stripeTex ו-textBandTex (למטה) הן היחידות מבין טקסטורות הקנבס שנועדו
+// לשמש עם material.color לבן ניטרלי - כלומר הצבע שרואים הוא בדיוק הצבע
+// שצויר בקנבס, בלי הכפלה עם גוון נוסף. בלי colorSpace מפורש three.js
+// מפרש את הקנבס כ"לא-צבע" (linear), מה שמבהיר כל צבע כהה משמעותית -
+// בדיוק הבאג שגרם לחולצה שחורה (0x1a1a1a) לצאת אפורה בהירה. שאר טקסטורות
+// הקנבס בקובץ (ribbedKnit/denimTex/...) לא נגעו בהן, כי הן תמיד מוכפלות
+// בגוון של material.color, שכבר כויל לפי איך שהן נראות היום.
+const stripeTex = (baseHex, colors) => {
+  const t = canvasTex(128, (ctx, n) => {
+    ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+    const bandH = n / (colors.length + 1.4);
+    colors.forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(0, bandH * (i * 1.4 + 0.7), n, bandH * 0.62);
+    });
+  }, 1, 4);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
+
+// כתובת שעוטפת טבעת דקה פעם אחת בדיוק (בלי חזרה - repeat.set(1,1)), כמו
+// כיתוב על גומי בוקסר. קנבס רחב ונמוך (לא ריבוע כמו canvasTex) כי הטבעת
+// עצמה דקה מאוד וצריך שהטקסט לא ייצא מתוח אנכית.
+function textBandTex(baseHex, text, textColor) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = baseHex; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.fillStyle = textColor;
+  ctx.font = 'bold 60px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, c.width / 2, c.height / 2 + 4);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(1, 1);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
 
 function garment(mat, curve, bodyProfile, opts = {}) {
   const { u0 = 0, u1 = 1, pad = 0.008, bulge = null, ...rest } = opts;
@@ -1225,6 +1281,55 @@ function createFighter(cfg) {
     buckle.castShadow = true;
     BIND = { bone: 'root' };
     part(buckle);
+
+    // ---------- כיסים ----------
+    // מלבן תפר על חזית המכנסיים, ליד הירך - לא כיס תלת-ממדי אמיתי (עוד
+    // שכבת בד), רק ארבע צלעות שמסמנות אותו, באותה שיטה של התפר בג'ינס.
+    // (לא seamPath עצמה - היא מחלקת ב-n-1 ונשברת עבור נקודה בודדת.)
+    const torsoPointAt = (u, theta) => {
+      const p = torsoCurve.getPointAt(u);
+      const T = torsoCurve.getTangentAt(u).normalize();
+      const { N, B } = frameAt(T, V(1, 0, 0));
+      const { rx, rz } = profileAt(TORSO_PROFILE, u);
+      const c = Math.cos(theta), s = Math.sin(theta);
+      return p.clone().addScaledVector(N, (rx + 0.013) * c).addScaledVector(B, (rz + 0.013) * s);
+    };
+    if (cfg.pockets) {
+      [-1, 1].forEach((sgn) => {
+        // θ=3π/2 הוא החזית (כמו בהערה על הגופייה למעלה) - כיסים אמיתיים
+        // יושבים קצת לצדדים מהאמצע, לא בדיוק במרכז ולא ממש בצד.
+        const theta = 1.5 * Math.PI + sgn * 0.55;
+        const across = V(-Math.sin(theta), 0, Math.cos(theta));
+        const width = 0.075;
+        const top = torsoPointAt(0.325, theta);
+        const bot = torsoPointAt(0.205, theta);
+        const corners = [
+          top.clone().addScaledVector(across, -width / 2), top.clone().addScaledVector(across, width / 2),
+          bot.clone().addScaledVector(across, width / 2), bot.clone().addScaledVector(across, -width / 2),
+        ];
+        for (let i = 0; i < 4; i++) {
+          part(sweep(threadMat, [corners[i], corners[(i + 1) % 4]],
+            [pr(0, 0.022, 0.022), pr(1, 0.022, 0.022)],
+            { steps: 2, radial: 8, capStart: 'round', capEnd: 'round' }));
+        }
+      });
+    }
+  }
+
+  // ---------- הצצת בוקסר מעל המכנסיים ----------
+  // רק כשגם מכנסיים וגם בוקסר מוגדרים ובוטl הדגל המפורש cfg.boxerPeek -
+  // שכבה דקה שמתחילה בדיוק איפה שהמכנסיים נגמרים, עם pad קצת יותר גדול
+  // כדי שהיא תיראה בולטת מעל קו החגורה ולא שטוחה על אותו קו.
+  if (boxerMat && pantsMat && cfg.boxerPeek) {
+    const peekMat = cfg.boxerText
+      ? new THREE.MeshStandardMaterial({
+          color: 0xffffff, roughness: 0.85,
+          map: textBandTex('#' + new THREE.Color(cfg.boxers).getHexString(), cfg.boxerText, '#ffffff'),
+          side: THREE.DoubleSide,
+        })
+      : boxerMat;
+    BIND = { chain: 'torso' };
+    part(garment(peekMat, torsoCurve, TORSO_PROFILE, { u0: 0.398, u1: 0.448, pad: 0.017, steps: 12 }));
   }
 
   // ---------- כפות רגליים / מגפיים ----------
@@ -1291,6 +1396,30 @@ function createFighter(cfg) {
         [heel.clone().setY(y + 0.016), mid.clone().setY(y + 0.008), toe],
         [pr(0.00, 0.46, 0.32), pr(0.4, 0.42, 0.31), pr(0.75, 0.38, 0.27), pr(1.00, 0.28, 0.19)],
         { steps: 22, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round', domeScale: 0.8 }));
+
+      // ---------- כפכפים ----------
+      // סוליה דקה ושטוחה מתחת לכף הרגל היחפה, ורצועת V פשוטה: עמוד קטן
+      // בין הבהונות, ושתי רצועות שנפתחות ממנו לצדדים - כמו כפכף אמיתי.
+      if (cfg.flipflops) {
+        const flipMat = M(cfg.flipflopColor ?? 0x2b2b2f, 0.75);
+        BIND = footBone;
+        part(sweep(flipMat,
+          [heel.clone().setY(y - 0.018), mid.clone().setY(y - 0.020), toe.clone().setY(y - 0.017)],
+          [pr(0.00, 0.30, 0.44), pr(0.5, 0.32, 0.40), pr(1.00, 0.27, 0.33)],
+          { steps: 18, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round', domeScale: 0.7 }));
+
+        const side = V(Math.cos(yaw), 0, -Math.sin(yaw));
+        const post = mid.clone().setY(y + 0.020).addScaledVector(fwd, 0.095);
+        part(sweep(flipMat, [post.clone().setY(y - 0.006), post],
+          [pr(0, 0.018, 0.018), pr(1, 0.012, 0.012)],
+          { steps: 4, radial: 8, capStart: 'round', capEnd: 'round' }));
+        [-1, 1].forEach((sgn) => {
+          const edge = mid.clone().setY(y + 0.004).addScaledVector(side, sgn * 0.150);
+          part(sweep(flipMat, [post, mid.clone().setY(y + 0.012), edge],
+            [pr(0, 0.015, 0.015), pr(0.5, 0.012, 0.012), pr(1, 0.009, 0.009)],
+            { steps: 8, radial: 8, capStart: 'round', capEnd: 'round' }));
+        });
+      }
     }
   });
 
@@ -1384,7 +1513,7 @@ function createFighter(cfg) {
     };
     BIND = { chain: 'torso' };
     part(sweepShapedEdge(jacketMat, torsoCurve, jacketProfile,
-      { u0: 0.26, edgeU: jacketEdgeU, radial: 44, steps: 30, refDir: V(1, 0, 0) }));
+      { u0: cfg.jacketHem ?? 0.26, edgeU: jacketEdgeU, radial: 44, steps: 30, refDir: V(1, 0, 0) }));
 
     [[S.shoulderL, S.elbowL, S.wristL, 'armL'], [S.shoulderR, S.elbowR, S.wristR, 'armR']]
       .forEach(([sh, el, wr, chainKey]) => {
@@ -1587,6 +1716,22 @@ function createFighter(cfg) {
         ], [
           pr(0, thick, thick), pr(0.5, thick * 0.8, thick * 0.8), pr(1, thick * 0.32, thick * 0.32),
         ], { steps: 16, radial: 10, capStart: 'round', capEnd: 'round', domeScale: 0.8 }));
+      } else if (cfg.hairStyle === 'short') {
+        // שיער שמגיע עד לאוזניים: קצר מכדי לכסות את הפנים בכלל, אז אין
+        // צורך בסינון החצי-אחורי כמו בשיער הארוך - גדל מכל נקודת שורש
+        // (הסינון הכללי של אזור הפנים כבר חל למעלה, כמו אצל תלתול/קוץ).
+        const d = V(lx, ly, lz).normalize();
+        const out = R * (0.20 + rand() * 0.10);
+        const fall = R * (0.60 + rand() * 0.22);
+        const thick = 0.09 + rand() * 0.03;
+
+        part(sweep(hairMat, [
+          V(px, py, pz),
+          V(px + d.x * out, py - fall * 0.5, pz + d.z * out),
+          V(px + d.x * out * 0.6, py - fall, pz + d.z * out * 0.6),
+        ], [
+          pr(0, thick, thick), pr(0.5, thick * 0.85, thick * 0.85), pr(1, thick * 0.4, thick * 0.4),
+        ], { steps: 10, radial: 8, capStart: 'round', capEnd: 'round', domeScale: 0.8 }));
       } else {
         // תלתל = קשת קצרה שמתעגלת סביב הגולגולת, לא כדור.
         // אשכול כדורים אחידים נראה כמו פאה; קשתות בגדלים ובכיוונים משתנים
@@ -1731,6 +1876,28 @@ const JENNY_CFG = {
   jacket: 0x9aa0a8,   // ז'קט אפור מפוספס
   pants: 0x7a3fc2,    // מכנסיים סגולים
   boots: 0x2b2b2f,    // נעליים כהות
+};
+
+// ברייק - חולצה שחורה ארוכה (ז'קט חלק, בלי פסים), שיער ג'ינג'י עד לאוזניים,
+// מכנסיים לבנות עם כיסים, קצת בוקסר שחור מציץ מעל המכנסיים עם כיתוב
+// "I AM THE KING", וכפכפים. גם היא לא בקרב עדיין - להצגה בחנות בלבד.
+const BRAKE_CFG = {
+  skin: 0xefc19a,
+  hair: 0xc0632a,
+  hairStyle: 'short',   // מגיע עד לאוזניים
+  eyeColor: 0x3a6a8a,
+  ears: 'round',
+  top: null,
+  jacket: 0x1a1a1a,     // "חולצה ארוכה שחורה" - נבנית עם מנגנון הז'קט (כולל שרוולים)
+  jacketStripes: [],    // בלי פסים - צבע אחיד
+  jacketHem: 0.47,      // גבוה יותר מברירת המחדל, כדי שהבוקסר יציץ מתחתיו
+  pants: 0xf2f0ea,      // לבנות
+  pockets: true,
+  boxers: 0x141414,
+  boxerPeek: true,
+  boxerText: 'I AM THE KING',
+  flipflops: true,
+  flipflopColor: 0x3a3a3a,
 };
 
 addStoneProp(player);
@@ -2047,7 +2214,10 @@ function tickCombat(attacker, defender, who, otherWho) {
 
 // כסף מתקבל רק על ניצחון, לפי כמות הנזק שהשחקן גרם - בדיוק כמו שכתוב
 // באפיון ("סכום הכסף תלוי... בכמות הנזק שהשחקן גרם"). מספר פשוט להבנה:
-// 1₪ לכל נקודת נזק. לא סופי - יכוון מחדש כשתהיה קנייה בפועל בחנות.
+// 1₪ לכל נקודת נזק, אבל לא יותר מ-MAX_MONEY_PER_GAME בקרב אחד - בלי התקרה
+// קרב יחיד יכול לתת המון כסף (עד 75, כל החיים של בו), וזה מרוקן מתוכן
+// את הרעיון של "לנצח כמה פעמים כדי לחסוך".
+const MAX_MONEY_PER_GAME = 52;   // פחות מ-53, לפי בקשת המשתמש
 let money = 0;
 const moneyBadgeEl = document.getElementById('moneyBadge');
 function updateMoneyUI() { moneyBadgeEl.textContent = '💰 ' + money + '₪'; }
@@ -2057,7 +2227,7 @@ function endGame(winnerWho) {
   gameOverTitleEl.textContent = winnerWho === 'player' ? '🏆 ניצחון!' : '❌ הפסד';
   gameOverEl.classList.add('show');
   if (winnerWho === 'player') {
-    money += player.damageDealt;
+    money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
     updateMoneyUI();
   }
 }
@@ -2132,7 +2302,7 @@ function showScreen(name) {
 // זמנית באמצע הזירה, מקטינים את הקנבס לריבוע קטן לרגע אחד, מרנדרים,
 // ותופסים את זה כתמונה. אפשר לעשות את זה בלי שאף אחד יבחין, כי מסך
 // החנות תמיד אטום ומכסה את כל הקנבס כשזה קורה.
-const CHARACTER_CFGS = { 'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG };
+const CHARACTER_CFGS = { 'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG };
 const characterThumbs = {};
 const THUMB_SIZE = 360;
 
@@ -2241,6 +2411,31 @@ const SHOP_DATA = {
   upgrades: { label: '⭐ שדרוגים', rows: [] },
 };
 
+// ---------- מלאי וקנייה ----------
+// מפתח לכל פריט הוא "קטגוריה:שם". סווארק והאבן החדה כבר שייכים לשחקן
+// מההתחלה (בדיוק כמו שכתוב באפיון - "מתחיל עם דמות בסיסית אחת... ועם
+// נשק בסיסי אחד") - כל שאר הפריטים צריך לקנות, גם אם המחיר הוא "חינם".
+const inventory = new Set(['characters:סווארק', 'weapons:אבן חדה']);
+const priceOf = (str) => (str === 'חינם' ? 0 : parseInt(str, 10));
+
+function flashCantAfford(btn) {
+  btn.classList.remove('shake');
+  void btn.offsetWidth;         // מכריח את הדפדפן "לשכוח" את האנימציה הקודמת כדי שתתחיל שוב
+  btn.classList.add('shake');
+}
+
+function buyItem(btn) {
+  const { key, name } = btn.dataset;
+  const price = +btn.dataset.price;
+  const id = key + ':' + name;
+  if (inventory.has(id)) return;
+  if (money < price) { flashCantAfford(btn); return; }
+  money -= price;
+  inventory.add(id);
+  updateMoneyUI();
+  renderShopCategory(key);
+}
+
 function renderShopCategory(key) {
   [...shopTabsEl.children].forEach((btn) => btn.classList.toggle('active', btn.dataset.key === key));
 
@@ -2253,8 +2448,12 @@ function renderShopCategory(key) {
   rows.forEach(([name, ...stats]) => {
     const card = document.createElement('div');
     card.className = 'itemCard';
-    const price = stats[stats.length - 1];
+    const priceStr = stats[stats.length - 1];
     const mid = stats.slice(0, -1);
+    const price = priceOf(priceStr);
+    const id = key + ':' + name;
+    const owned = inventory.has(id);
+
     let media = '';
     if (key === 'characters') {
       const thumb = getCharacterThumb(name);
@@ -2262,10 +2461,18 @@ function renderShopCategory(key) {
         ? `<img class="itemThumb" src="${thumb}">`
         : `<div class="itemThumb itemThumbPlaceholder">🚧<br>בקרוב</div>`;
     }
+    const buyHtml = owned
+      ? `<button class="buyBtn owned" disabled>✅ שלך</button>`
+      : `<button class="buyBtn" data-key="${key}" data-name="${name}" data-price="${price}">💰 קנה ב-${priceStr}</button>`;
+
     card.innerHTML = media + `<div class="itemName">${name}</div>` +
       mid.map((s) => `<div class="itemStat">${s}</div>`).join('') +
-      `<div class="itemPrice">${price}</div>`;
+      buyHtml;
     shopGridEl.appendChild(card);
+  });
+
+  shopGridEl.querySelectorAll('.buyBtn:not(.owned)').forEach((btn) => {
+    btn.addEventListener('click', () => buyItem(btn));
   });
 }
 
@@ -2340,7 +2547,7 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   player, enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, inventory,
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
   set money(v) { money = v; updateMoneyUI(); },
 };
