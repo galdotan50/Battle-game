@@ -163,14 +163,27 @@
     padding-bottom: 60px;
   }
   #lobbyOverlay.show, #shopOverlay.show { display: flex; }
+  #loadoutRow { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
   #loadoutLabel {
     background: rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.25);
     border-radius: 12px;
     padding: 8px 22px;
     font-size: 1.05rem;
-    margin-bottom: 22px;
   }
+  .cycleBtn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  .cycleBtn:hover { background: rgba(255,255,255,0.22); }
+  .cycleBtn:disabled { opacity: 0.35; cursor: default; }
+  .cycleBtn:disabled:hover { background: rgba(255,255,255,0.1); }
   .screenTitle { font-size: 2.4rem; font-weight: 800; margin-bottom: 34px; text-shadow: 0 3px 12px rgba(0,0,0,0.5); }
   #lobbyOverlay .bigBtn {
     font-size: 1.3rem;
@@ -297,7 +310,7 @@
 
 <div id="hpRow">
   <div class="hpBar hpPlayer">
-    <div class="hpName">סווארק</div>
+    <div class="hpName" id="hpNamePlayer">סווארק</div>
     <div class="hpTrack"><div class="hpFill" id="hpFillPlayer"></div></div>
     <div class="hpNum" id="hpNumPlayer">100 / 100</div>
   </div>
@@ -321,7 +334,11 @@
 </div>
 
 <div id="lobbyOverlay">
-  <div id="loadoutLabel">🥊 סווארק &nbsp;·&nbsp; 🪨 אבן חדה</div>
+  <div id="loadoutRow">
+    <button id="charPrevBtn" class="cycleBtn">◀</button>
+    <div id="loadoutLabel">🥊 סווארק &nbsp;·&nbsp; 🪨 אבן חדה</div>
+    <button id="charNextBtn" class="cycleBtn">▶</button>
+  </div>
   <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
 </div>
@@ -1845,7 +1862,10 @@ const SVAROK_CFG = {
   boots: 0x7a4b2a,    // מגפי עור חומים
   handWraps: true,
 };
-const player = makeFighter(SVAROK_CFG, -1.7, 1, 100);
+// let, לא const - הדמות של השחקן צריכה להתחלף כשבוחרים דמות אחרת שנקנתה
+// (ראה switchPlayerCharacter למטה). כל שאר הקוד קורא את player בכל פריים
+// מחדש, ולכן ממשיך לעבוד נכון אחרי ההחלפה בלי שום שינוי נוסף.
+let player = makeFighter(SVAROK_CFG, -1.7, 1, 100);
 
 // בו - איש כחול, אוזניים חדות, שיער ירוק, עגיל באף וטבעת באצבע, רק בוקסר שחור
 const enemy = makeFighter({
@@ -2268,6 +2288,12 @@ const labelEl = document.getElementById('label');
 // מיקום המצלמה הרגיל בזירה - נשמר כאן כדי שאפשר לחזור אליו אחרי הלובי.
 const BATTLE_CAM = { pos: V(0, 3.9, 8.0), look: V(0, 1.45, 0) };
 
+function focusLobbyCamera() {
+  const p = player.group.position;
+  camera.position.set(p.x + 0.75, p.y + 1.30, 2.55);
+  camera.lookAt(p.x + 0.10, p.y + 0.85, 0);
+}
+
 function showScreen(name) {
   uiScreen = name;
   lobbyEl.classList.toggle('show', name === 'lobby');
@@ -2277,14 +2303,12 @@ function showScreen(name) {
   controlsEl.style.display = inBattle ? '' : 'none';
   labelEl.style.display = inBattle ? '' : 'none';
 
-  // בלובי: מתקרבים לסווארק, מסתירים את בו, ומשאירים את האבן החדה ביד -
-  // "רואים את הדמות ואת הנשק שאיתם משחקים", בלי לבנות שום דבר חדש.
+  // בלובי: מתקרבים לדמות הנבחרת, מסתירים את בו, ומשאירים את האבן החדה
+  // ביד - "רואים את הדמות ואת הנשק שאיתם משחקים", בלי לבנות שום דבר חדש.
   if (name === 'lobby') {
     enemy.group.visible = false;
     player.forceWeaponVisible = true;
-    const p = player.group.position;
-    camera.position.set(p.x + 0.75, p.y + 1.30, 2.55);
-    camera.lookAt(p.x + 0.10, p.y + 0.85, 0);
+    focusLobbyCamera();
   } else {
     enemy.group.visible = true;
     player.forceWeaponVisible = false;
@@ -2418,6 +2442,60 @@ const SHOP_DATA = {
 const inventory = new Set(['characters:סווארק', 'weapons:אבן חדה']);
 const priceOf = (str) => (str === 'חינם' ? 0 : parseInt(str, 10));
 
+// ---------- בחירת דמות בלובי ----------
+// כל דמות שהשחקן כבר קנה (ויש לה קונפיג בנוי) אפשר לבחור ולשחק איתה.
+// לפני זה קניית דמות לא עשתה כלום מעבר לתמונה בחנות - עכשיו זה משפיע בפועל.
+let selectedCharacterName = 'סווארק';
+const loadoutLabelEl = document.getElementById('loadoutLabel');
+const hpNamePlayerEl = document.getElementById('hpNamePlayer');
+const charPrevBtn = document.getElementById('charPrevBtn');
+const charNextBtn = document.getElementById('charNextBtn');
+
+const ownedCharacterNames = () =>
+  Object.keys(CHARACTER_CFGS).filter((n) => inventory.has('characters:' + n));
+
+function updateLoadoutUI() {
+  loadoutLabelEl.textContent = '🥊 ' + selectedCharacterName + ' · 🪨 אבן חדה';
+  hpNamePlayerEl.textContent = selectedCharacterName;
+  const noChoice = ownedCharacterNames().length <= 1;
+  charPrevBtn.disabled = noChoice;
+  charNextBtn.disabled = noChoice;
+}
+
+/**
+ * מפרקת את המודל הקיים של השחקן ובונה אחד חדש מהקונפיג של הדמות שנבחרה,
+ * באותו מיקום וכיוון בדיוק. player הוא let, לא const, בשביל בדיוק זה -
+ * כל שאר הקוד (תנועה, קרב, אנימציה) קורא אותו מחדש בכל פריים וממשיך
+ * לעבוד נכון בלי לדעת שהמודל הוחלף.
+ */
+function switchPlayerCharacter(name) {
+  if (name === selectedCharacterName || !CHARACTER_CFGS[name]) return;
+  selectedCharacterName = name;
+
+  const oldX = player.x, oldFacing = player.facing;
+  scene.remove(player.group);
+  player.group.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) o.material.dispose();
+  });
+
+  player = makeFighter(CHARACTER_CFGS[name], oldX, oldFacing, 100);
+  addStoneProp(player);
+  if (uiScreen === 'lobby') {
+    player.forceWeaponVisible = true;
+    focusLobbyCamera();
+  }
+  updateHealthUI(player, 'player');
+  updateLoadoutUI();
+}
+
+function cycleCharacter(dir) {
+  const names = ownedCharacterNames();
+  if (names.length <= 1) return;
+  const i = names.indexOf(selectedCharacterName);
+  switchPlayerCharacter(names[(i + dir + names.length) % names.length]);
+}
+
 function flashCantAfford(btn) {
   btn.classList.remove('shake');
   void btn.offsetWidth;         // מכריח את הדפדפן "לשכוח" את האנימציה הקודמת כדי שתתחיל שוב
@@ -2434,6 +2512,7 @@ function buyItem(btn) {
   inventory.add(id);
   updateMoneyUI();
   renderShopCategory(key);
+  if (key === 'characters') updateLoadoutUI();   // דמות שנייה שנקנתה מפעילה את חצי המעבר בלובי
 }
 
 function renderShopCategory(key) {
@@ -2489,11 +2568,14 @@ document.getElementById('lobbyBtn').addEventListener('click', () => { resetGame(
 document.getElementById('startFightBtn').addEventListener('click', () => { resetGame(); showScreen('battle'); });
 document.getElementById('openShopBtn').addEventListener('click', () => { showScreen('shop'); renderShopCategory('characters'); });
 document.getElementById('backLobbyBtn').addEventListener('click', () => showScreen('lobby'));
+charPrevBtn.addEventListener('click', () => cycleCharacter(-1));
+charNextBtn.addEventListener('click', () => cycleCharacter(1));
 
 playAgainBtn.addEventListener('click', resetGame);
 updateHealthUI(player, 'player');
 updateHealthUI(enemy, 'enemy');
 updateMoneyUI();
+updateLoadoutUI();
 
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
@@ -2546,8 +2628,10 @@ animate();
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
-  player, enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
+  enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
   renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, inventory,
+  switchPlayerCharacter, cycleCharacter,
+  get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
   set money(v) { money = v; updateMoneyUI(); },
 };
