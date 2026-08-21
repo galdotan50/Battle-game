@@ -307,7 +307,7 @@
 <body>
 <div id="label">🥊 סווארק מול בו - שלב חיים ונזק</div>
 <div id="controls">
-  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> אבן חדה &nbsp;·&nbsp; <b>D</b> חסימה
+  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> חסימה
 </div>
 
 <div id="hpRow">
@@ -960,6 +960,60 @@ const lakersLogoTex = () => badgeTex((ctx, n) => {
   ctx.fillText('LA', cx, cy + n * 0.01);
 });
 
+// עיגול-רקע עם אות אחת גדולה עליו - "האות הגדולה" על חולצת התעופה של
+// פלייטי. bg/letterColor הם צבעים מלאים (לא ברירת מחדל של קבוצה אמיתית).
+const bigLetterBadgeTex = (bg, letterColor, letter) => badgeTex((ctx, n) => {
+  const cx = n / 2, cy = n / 2, r = n * 0.48;
+  ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = letterColor;
+  ctx.font = `bold ${Math.round(n * 0.62)}px Arial, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(letter, cx, cy + n * 0.02);
+});
+
+// קעקוע - בניגוד לתגי הקבוצות (badgeTex, עיגול אטום) קעקוע צריך רקע
+// *שקוף* כדי שהעור ייראה מסביב לציור, לא עיגול צבעוני. tattooTex משאירה
+// את הקנבס שקוף (לא ממלאת רקע), והחומר שמשתמש בטקסטורה חייב transparent:true.
+function tattooTex(draw) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  draw(c.getContext('2d'), 128);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const INK = 'rgba(35,24,18,0.82)';
+const letterTattooTex = (letter) => tattooTex((ctx, n) => {
+  ctx.fillStyle = INK;
+  ctx.font = `bold ${Math.round(n * 0.6)}px Georgia, serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(letter, n / 2, n / 2 + n * 0.02);
+});
+// קעקוע מטוס + עננים, וענן אחד בצורת T (עשוי מכמה "תפוחים" עגולים כמו
+// שאר העננים, מסודרים בצורת T) - לא ציור מדויק, רק סימון קטן ומזוהה.
+const planeCloudsTattooTex = () => tattooTex((ctx, n) => {
+  ctx.fillStyle = INK;
+  ctx.save();
+  ctx.translate(n * 0.5, n * 0.32);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, n * 0.22, n * 0.045, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(-n * 0.02, 0); ctx.lineTo(-n * 0.10, n * 0.13); ctx.lineTo(n * 0.02, n * 0.02); ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(n * 0.18, 0); ctx.lineTo(n * 0.24, -n * 0.07); ctx.lineTo(n * 0.24, n * 0.01); ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+  const puff = (cx, cy, r) => { ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); };
+  [[n * 0.20, n * 0.62, n * 0.07], [n * 0.28, n * 0.58, n * 0.09], [n * 0.36, n * 0.63, n * 0.065]]
+    .forEach(([x, y, r]) => puff(x, y, r));
+  const tx = n * 0.68, ty = n * 0.62, r = n * 0.055;
+  [-1.4, 0, 1.4].forEach((k) => puff(tx + k * r, ty, r));
+  [1, 2].forEach((k) => puff(tx, ty + k * r * 1.2, r * 0.9));
+});
+
 function garment(mat, curve, bodyProfile, opts = {}) {
   const { u0 = 0, u1 = 1, pad = 0.008, bulge = null, ...rest } = opts;
   const profileFn = (u) => {
@@ -1333,6 +1387,7 @@ function createFighter(cfg) {
     // בלי שול מקופל, בלי תפר ג'ינס ובלי חגורה/אבזם - שום דבר מזה לא קיים
     // במכנסי ספורט. פרטי הג'ינס (CUFF_BULGE, תפר, חגורה) נשארים ברירת מחדל.
     const pantsLegU1 = cfg.pantsLength ?? 0.755;
+    const pantsPad = cfg.pantsPad ?? 0.011;   // "צמוד"/leggings = pad קטן יותר
     const CUFF_BULGE = [
       { t: 0.00, rx: 0, rz: 0 }, { t: 0.80, rx: 0, rz: 0 },
       { t: 0.90, rx: 0.011, rz: 0.011 }, { t: 1.00, rx: 0.009, rz: 0.009 },
@@ -1340,7 +1395,7 @@ function createFighter(cfg) {
     legCurves.forEach((c, li) => {
       BIND = { chain: LEG_KEYS[li] };
       part(garment(pantsMat, c, LEG_PROFILE, {
-        u0: 0.02, u1: pantsLegU1, pad: 0.011, bulge: cfg.shorts ? null : CUFF_BULGE, steps: 30,
+        u0: 0.02, u1: pantsLegU1, pad: pantsPad, bulge: cfg.shorts ? null : CUFF_BULGE, steps: 30,
       }));
 
       if (!cfg.shorts) {
@@ -1352,6 +1407,15 @@ function createFighter(cfg) {
         part(sweep(threadMat, seamPath(c, LEG_PROFILE, 0.012, outer, 0.10, 0.70, 10),
           [pr(0, 0.028, 0.028), pr(1, 0.028, 0.028)],
           { steps: 22, radial: 8, capStart: 'round', capEnd: 'round' }));
+      }
+
+      // פס צבע שני על הצד החיצוני (מכנס דו-גוני) - אותה שיטה כמו התפר
+      // למעלה, רק רחב יותר ובצבע נבדל, כדי לתת מראה של "תכלת ולבן".
+      if (cfg.pantsStripeColor) {
+        const outer = c === legCurves[0] ? Math.PI : 0;
+        part(sweep(M(cfg.pantsStripeColor, 0.7), seamPath(c, LEG_PROFILE, 0.015, outer, 0.04, 0.72, 14),
+          [pr(0, 0.055, 0.055), pr(1, 0.040, 0.040)],
+          { steps: 26, radial: 10, capStart: 'round', capEnd: 'round' }));
       }
     });
 
@@ -1537,6 +1601,30 @@ function createFighter(cfg) {
       // תחבושת צמודה לאמה — לא עבה ממנה, כמו ברפרנס
       if (cfg.handWraps) {
         part(garment(wrapMat, armCurve, ARM_PROFILE, { u0: 0.76, u1: 1.0, pad: 0.006, steps: 14 }));
+      }
+
+      // קעקוע על הכתף - עדיין BIND={chain} כאן (לפני שהאגרוף מחליף לעצם
+      // שורש כף יד) כדי שיתעוות טבעי עם הכתף בתנועה. עיגול שקוף (ראה
+      // tattooTex) כדי שהעור ייראה מסביב לציור, לא רק עיגול צבעוני.
+      const tattooTexFn = ai === 0 ? cfg.tattooL : cfg.tattooR;
+      if (tattooTexFn) {
+        const tu = 0.24;
+        const tp = armCurve.getPointAt(tu);
+        const tT = armCurve.getTangentAt(tu).normalize();
+        const { N: tN } = frameAt(tT, V(0, 1, 0));
+        const { rx: trx } = profileAt(ARM_PROFILE, tu);
+        const tattoo = new THREE.Mesh(new THREE.CircleGeometry(0.032, 20),
+          new THREE.MeshBasicMaterial({ map: tattooTexFn(), transparent: true, side: THREE.DoubleSide }));
+        tattoo.position.copy(tp.clone().addScaledVector(tN, trx + 0.004));
+        tattoo.quaternion.setFromUnitVectors(V(0, 0, 1), tN);
+        // קשיח על עצם הכתף, לא chain - עיגול קטן ודחוס כזה מבלבל את
+        // chainBinder (שנועד למשטחי עור רציפים, לא לאביזר נקודתי), ואצל
+        // Playty זה גרם לקעקוע להיעלם לגמרי אחרי ה-skinning. אותה שיטה
+        // בדיוק כמו תגי הקבוצה של לורד (chest/hipR) שכן עבדו נכון.
+        const savedBind = BIND;
+        BIND = { bone: ai === 0 ? 'shoulderL' : 'shoulderR' };
+        part(tattoo);
+        BIND = savedBind;
       }
 
       // ---------- אגרוף ----------
@@ -1877,6 +1965,25 @@ function createFighter(cfg) {
     }
   });
 
+  // ---------- קשת לשיער ----------
+  // שתי "לולאות" סרט (כדורים שטוחים, לא טורוס - פשוט לבנייה ומספיק כדי
+  // לקרוא כפיונית) שנפתחות מקשר קטן באמצע, יושבות על קודקוד הראש.
+  if (cfg.hairBow) {
+    const bowMat = M(cfg.hairBowColor ?? 0xe8659a, 0.55);
+    [-1, 1].forEach((s) => {
+      const loop = new THREE.Mesh(new THREE.SphereGeometry(0.044, 14, 10), bowMat);
+      loop.scale.set(1, 0.55, 0.65);
+      loop.position.set(HC.x + s * 0.040, HC.y + R * 1.00, R * 0.10);
+      loop.rotation.z = s * 0.55;
+      loop.castShadow = true;
+      part(loop);
+    });
+    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.020, 10, 8), bowMat);
+    knot.position.set(HC.x, HC.y + R * 0.99, R * 0.10);
+    knot.castShadow = true;
+    part(knot);
+  }
+
   return { group: g, parts };
 }
 
@@ -1926,28 +2033,218 @@ function makeFighter(cfg, startX, facing, maxHp) {
 }
 
 /**
- * אבן חדה — הנשק הבסיסי של סווארק מהאפיון. נבנית פעם אחת ותלויה קשיח על עצם
- * שורש כף היד הקרובה למצלמה, מוסתרת כברירת מחדל ומופיעה רק בזמן מכת האבן
+ * נשקים — כל נשק בחנות שבאמת אפשר לצייד (dmg + build) מוגדר ב-WEAPON_CFGS
+ * למטה. build() בונה קבוצה עם *האחיזה בראשית הצירים המקומית*, משתרעת
+ * לכיוון +Y (כלפי מעלה) - בדיוק כמו שהאבן החדה המקורית נבנתה. addWeaponProp
+ * מסובבת ומזיזה את הקבוצה כך ש-+Y יתיישר עם כיוון הזרוע (ממרפק לשורש כף
+ * יד בתנוחת המנוחה - לא ניחוש, נגזר מהשלד) ותולה אותה קשיח על עצם שורש
+ * כף היד הקרובה למצלמה, מוסתרת כברירת מחדל ומופיעה רק בזמן מכת הנשק
  * (`poseFighter` מדליק/מכבה `visible` לפי `f.action`).
  *
- * המיקום מחושב מהשלד: כיוון "מהמרפק לשורש כף היד" בתנוחת המנוחה, אותו כיוון
- * שבו האגרוף עצמו בנוי (ראה `createFighter`). לא ניחוש - נגזר מהקואורדינטות.
+ * כרגע כל הנשקים חולקים את אותה אנימציית מכה (מה שהיה "מכת האבן") ואת
+ * אותו טווח - רק הנזק (`f.weaponDmg`, נקרא ב-tickCombat) והמראה משתנים
+ * לפי הנשק המצויד. אין עדיין אנימציה ייחודית לכל נשק (רובה שיורה, למשל) -
+ * זה מעבר לאפיון הנוכחי.
  */
-function addStoneProp(f) {
+function weaponShaft(len, rad, color) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, len, 8),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.75 }));
+  m.position.y = len / 2;
+  m.castShadow = true;
+  return m;
+}
+// חוד חד - הבסיס בראשית הצירים המקומית (לא במרכז הקונוס!) כדי שאפשר יהיה
+// לסובב אותו סביב הבסיס (angleZ, לשיני קלשון/מכוש) בלי שהוא "יקפוץ" ממקומו.
+function weaponSpike(len, rad, color, angleZ = 0) {
+  const geo = new THREE.ConeGeometry(rad, len, 6);
+  geo.translate(0, len / 2, 0);
+  if (angleZ) geo.rotateZ(angleZ);
+  const m = new THREE.Mesh(geo,
+    new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.6, flatShading: true }));
+  m.castShadow = true;
+  return m;
+}
+// להב שטוח - בסיס ברוחב width ב-y=y0, מצטמצם ל-width*taper בקצה y0+len.
+function weaponBlade(y0, len, width, color, taper = 0.3, thick = 0.012) {
+  const shape = new THREE.Shape();
+  shape.moveTo(-width / 2, 0);
+  shape.lineTo(width / 2, 0);
+  shape.lineTo(width * taper / 2, len);
+  shape.lineTo(-width * taper / 2, len);
+  shape.closePath();
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: thick, bevelEnabled: false });
+  geo.translate(0, y0, -thick / 2);
+  const m = new THREE.Mesh(geo,
+    new THREE.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.65, flatShading: true }));
+  m.castShadow = true;
+  return m;
+}
+// ראש גרזן - טריז שבולט הצידה מהאחיזה (X) ומתעגל בחזרה, כמו להב גרזן אמיתי.
+function weaponWedge(y0, len, width, color) {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, y0);
+  shape.lineTo(width, y0 + len * 0.28);
+  shape.lineTo(width * 0.92, y0 + len * 0.72);
+  shape.lineTo(0, y0 + len);
+  shape.closePath();
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: len * 0.16, bevelEnabled: false });
+  geo.translate(0, 0, -len * 0.08);
+  const m = new THREE.Mesh(geo,
+    new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.6, flatShading: true }));
+  m.castShadow = true;
+  return m;
+}
+
+const WOOD = 0x6b4423, STEEL = 0x9aa0a8, BRIGHT_STEEL = 0xc7ccd1, GOLD = 0xd9b23c;
+
+const WEAPON_CFGS = {
+  'אבן חדה': {
+    dmg: 7, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      const stone = new THREE.Mesh(new THREE.ConeGeometry(0.058, 0.21, 6),
+        new THREE.MeshStandardMaterial({ color: 0xb3a892, roughness: 0.8, flatShading: true }));
+      stone.position.y = 0.105;
+      stone.castShadow = true;
+      g.add(stone);
+      return g;
+    },
+  },
+  'גרזן': {
+    dmg: 15, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.24, 0.013, WOOD));
+      g.add(weaponWedge(0.16, 0.11, 0.085, STEEL));
+      return g;
+    },
+  },
+  'פיקקס': {
+    dmg: 22, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.27, 0.013, WOOD));
+      const p1 = weaponSpike(0.11, 0.018, STEEL, Math.PI / 2);
+      const p2 = weaponSpike(0.11, 0.018, STEEL, -Math.PI / 2);
+      p1.position.y = p2.position.y = 0.25;
+      g.add(p1, p2);
+      return g;
+    },
+  },
+  'חניט': {
+    dmg: 35, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.34, 0.011, WOOD));
+      const tip = weaponSpike(0.12, 0.022, BRIGHT_STEEL);
+      tip.position.y = 0.34;
+      g.add(tip);
+      return g;
+    },
+  },
+  'כידון': {
+    dmg: 40, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.42, 0.010, 0x8a3f2a));
+      const tip = weaponSpike(0.14, 0.020, BRIGHT_STEEL);
+      tip.position.y = 0.42;
+      g.add(tip);
+      return g;
+    },
+  },
+  'כילשון': {
+    dmg: 55, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.30, 0.014, WOOD));
+      [-0.22, 0, 0.22].forEach((ang) => {
+        const spike = weaponSpike(0.10, 0.011, STEEL, ang);
+        spike.position.y = 0.28;
+        g.add(spike);
+      });
+      return g;
+    },
+  },
+  'סכין מחודד': {
+    dmg: 72, gripOffset: 0.04,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.06, 0.014, 0x2b2b2f));
+      g.add(weaponBlade(0.06, 0.14, 0.032, BRIGHT_STEEL, 0.15));
+      return g;
+    },
+  },
+  'חרב': {
+    dmg: 100, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.09, 0.013, 0x2b2b2f));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.014, 0.02),
+        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.7 }));
+      guard.position.y = 0.09;
+      guard.castShadow = true;
+      g.add(guard);
+      g.add(weaponBlade(0.09, 0.34, 0.045, BRIGHT_STEEL, 0.18));
+      return g;
+    },
+  },
+  'קטאנה': {
+    dmg: 150, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.11, 0.012, 0x3a1418));
+      const guard = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.010, 10),
+        new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4, metalness: 0.6 }));
+      guard.position.y = 0.11;
+      guard.castShadow = true;
+      g.add(guard);
+      // להב מעט מעוקל - שני קטעים ישרים בזווית קלה, במקום עקומה אמיתית
+      g.add(weaponBlade(0.11, 0.20, 0.030, BRIGHT_STEEL, 0.7));
+      const tip = weaponBlade(0, 0.14, 0.021, BRIGHT_STEEL, 0.12);
+      tip.position.y = 0.31;
+      tip.rotation.z = -0.10;
+      g.add(tip);
+      return g;
+    },
+  },
+  'רובה': {
+    dmg: 210, gripOffset: 0.06,
+    build: () => {
+      const g = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.18, 0.045),
+        new THREE.MeshStandardMaterial({ color: 0x33363b, roughness: 0.55, metalness: 0.3 }));
+      body.position.y = 0.09;
+      body.castShadow = true;
+      g.add(body);
+      const barrel = weaponShaft(0.20, 0.014, 0x1c1e21);
+      barrel.position.y = 0.18;
+      g.add(barrel);
+      const stock = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.09, 0.035),
+        new THREE.MeshStandardMaterial({ color: 0x4a3323, roughness: 0.75 }));
+      stock.position.y = -0.02;
+      stock.castShadow = true;
+      g.add(stock);
+      return g;
+    },
+  },
+};
+
+function addWeaponProp(f, name) {
   const wristKey = 'wrist' + f.near, elbowKey = 'elbow' + f.near;
   const dir = J[wristKey].clone().sub(J[elbowKey]).normalize();
-
-  const stone = new THREE.Mesh(
-    new THREE.ConeGeometry(0.058, 0.21, 6),
-    new THREE.MeshStandardMaterial({ color: 0xb3a892, roughness: 0.8, flatShading: true })
-  );
-  stone.quaternion.setFromUnitVectors(V(0, 1, 0), dir);
-  stone.position.copy(dir.clone().multiplyScalar(0.155));
-  stone.visible = false;
-  stone.castShadow = true;
-  f.byName[wristKey].add(stone);
-  f.stoneMesh = stone;
+  const wCfg = WEAPON_CFGS[name];
+  const group = wCfg.build();
+  group.quaternion.setFromUnitVectors(V(0, 1, 0), dir);
+  group.position.copy(dir.clone().multiplyScalar(wCfg.gripOffset ?? 0.05));
+  group.visible = false;
+  f.byName[wristKey].add(group);
+  f.stoneMesh = group;
+  f.weaponDmg = wCfg.dmg;
 }
+
+// בו (ה-AI) תמיד נלחם עם האבן החדה בלבד - לא מושפע מקניות בחנות של השחקן.
+function addStoneProp(f) { addWeaponProp(f, 'אבן חדה'); }
 
 // ---------- שני הלוחמים ----------
 
@@ -2043,6 +2340,40 @@ const LORD_CFG = {
   boots: 0x3d1f52,
   bracelet: true,
   fingerRing: true,
+};
+
+// פלייטי - חולצת תעופה עם אות T גדולה על החזה, קעקוע T על כתף אחת וקעקוע
+// מטוס+עננים (ענן אחד בצורת T) על הכתף השנייה, שיער פרוע חום-ערמוני עם
+// קשת ורודה, מכנסיים צמודים בתכלת עם פס לבן בצד. עור, צבע עיניים ונעליים
+// לא תוארו באפיון - נבחרו סבירים (עור בהיר, עיניים ירוקות-חומות, נעליים
+// לבנות שמשלימות את התכלת/לבן של המכנס).
+const PLAYTY_CFG = {
+  skin: 0xf1c6a0,
+  hair: 0x5c3320,
+  hairStyle: 'spiky',      // "קצת פרוע"
+  hairBow: true,
+  hairBowColor: 0xe8659a,
+  eyeColor: 0x5a7a4a,
+  ears: 'round',
+  top: null,
+  // "חולצת תעופה" - חום עור כהה. גוון בהיר/בינוני (כמו 0x8a5a2e שנוסה קודם)
+  // "נשטף" כמעט ללבן תחת התאורה החזקה של הזירה - אותה בעיה בדיוק כמו
+  // שקרתה לחולצה השחורה של ברייק (ראה הלקח הטכני ב-colorSpace), רק שכאן
+  // זה לא colorSpace אלא בהירות הבסיס עצמה. צריך גוון כהה משמעותית, כמו
+  // 0x1a1a1a של ברייק, כדי שישרוד את התאורה בלי להיראות כמעט לבן.
+  jacket: 0x452c17,
+
+  jacketStripes: [],
+  sleeveLen: 0.10,           // שרוול-כובע קצר מאוד - הקעקועים יושבים ב-u=0.13,
+                              // ממש למעלה על הכתף (ראה tattooL/tattooR), אז השרוול
+                              // חייב להיגמר *לפניהם* על הזרוע כדי שלא יכסה אותם
+  chestCrestTex: () => bigLetterBadgeTex('#1d3557', '#f2c14e', 'T'),
+  tattooL: () => letterTattooTex('T'),
+  tattooR: () => planeCloudsTattooTex(),
+  pants: 0x8ecae6,          // תכלת
+  pantsStripeColor: 0xffffff,
+  pantsPad: 0.007,          // "צמודים"
+  boots: 0xf0f0ec,
 };
 
 addStoneProp(player);
@@ -2350,8 +2681,12 @@ function tickCombat(attacker, defender, who, otherWho) {
   attacker.hitDone = true;
   if (defender.blocking) return;
 
-  defender.hp = Math.max(0, defender.hp - cfg.dmg);
-  attacker.damageDealt += cfg.dmg;
+  // מכת נשק (W) לוקחת את הנזק מהנשק המצויד בפועל (`f.weaponDmg`, נקבע
+  // ב-addWeaponProp) במקום מהמספר הקבוע ב-ATTACKS - כדי שנשק חזק יותר
+  // שנקנה בחנות באמת יעשה יותר נזק. אגרוף/בעיטה לא מושפעים.
+  const dmg = attacker.action === 'stone' && attacker.weaponDmg != null ? attacker.weaponDmg : cfg.dmg;
+  defender.hp = Math.max(0, defender.hp - dmg);
+  attacker.damageDealt += dmg;
   updateHealthUI(defender, otherWho);
   flashHit();
   if (defender.hp <= 0) endGame(who);
@@ -2451,7 +2786,9 @@ function showScreen(name) {
 // זמנית באמצע הזירה, מקטינים את הקנבס לריבוע קטן לרגע אחד, מרנדרים,
 // ותופסים את זה כתמונה. אפשר לעשות את זה בלי שאף אחד יבחין, כי מסך
 // החנות תמיד אטום ומכסה את כל הקנבס כשזה קורה.
-const CHARACTER_CFGS = { 'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG };
+const CHARACTER_CFGS = {
+  'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG, 'פלייטי': PLAYTY_CFG,
+};
 const characterThumbs = {};
 const THUMB_SIZE = 360;
 
@@ -2570,20 +2907,22 @@ const priceOf = (str) => (str === 'חינם' ? 0 : parseInt(str, 10));
 // ---------- בחירת דמות ונשק בלובי ----------
 // כל דמות/נשק שהשחקן כבר קנה (ויש לו קונפיג/בנייה אמיתית) אפשר לבחור.
 // לפני זה קנייה לא עשתה כלום מעבר לתמונה בחנות - עכשיו זה משפיע בפועל.
-//
-// WEAPON_BUILDERS ממפה שם נשק לפונקציה שבונה ומחברת אותו לדמות (כמו
-// CHARACTER_CFGS אבל לפעולה, לא לקונפיג - כי נשק זה אביזר על דמות קיימת,
-// לא דמות משלו). כרגע רק אבן חדה בנויה בתלת-מימד ומוטמעת בקרב בפועל -
-// שאר תשעת הנשקים בחנות הם עדיין רק מספרים על נייר, בלי מודל ובלי לוגיקת
-// קרב, ולכן לא מופיעים כאן. זו הסיבה שחצי הנשק מתחילים כבויים בדיוק כמו
-// שחצי הדמות היו כבויים לפני שג'ני נבנתה - יתעוררו כשייבנה נשק שני אמיתי.
-const WEAPON_BUILDERS = { 'אבן חדה': addStoneProp };
+// WEAPON_CFGS (מוגדר למעלה, ליד addWeaponProp) מגדיר את כל 10 הנשקים
+// שבאמת אפשר לצייד - כולם עכשיו בנויים בתלת-מימד ומשפיעים על הנזק בקרב.
+const WEAPON_ICON = {
+  'אבן חדה': '🪨', 'גרזן': '🪓', 'פיקקס': '⛏️', 'חניט': '🥢', 'כידון': '🎯',
+  'כילשון': '🔱', 'סכין מחודד': '🔪', 'חרב': '⚔️', 'קטאנה': '🗡️', 'רובה': '🔫',
+};
 
 function removeWeaponProp(f) {
   if (!f.stoneMesh) return;
   f.stoneMesh.parent?.remove(f.stoneMesh);
-  f.stoneMesh.geometry.dispose();
-  f.stoneMesh.material.dispose();
+  // עכשיו f.stoneMesh יכולה להיות קבוצה עם כמה חלקים (לא רק מש בודד כמו
+  // שהאבן החדה הייתה) - traverse מנקה גם את עצמה וגם את כל הילדים.
+  f.stoneMesh.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) o.material.dispose();
+  });
   f.stoneMesh = null;
 }
 
@@ -2596,15 +2935,17 @@ const charPrevBtn = document.getElementById('charPrevBtn');
 const charNextBtn = document.getElementById('charNextBtn');
 const weaponPrevBtn = document.getElementById('weaponPrevBtn');
 const weaponNextBtn = document.getElementById('weaponNextBtn');
+const weaponKeyLegendEl = document.getElementById('weaponKeyLegend');
 
 const ownedCharacterNames = () =>
   Object.keys(CHARACTER_CFGS).filter((n) => inventory.has('characters:' + n));
 const ownedWeaponNames = () =>
-  Object.keys(WEAPON_BUILDERS).filter((n) => inventory.has('weapons:' + n));
+  Object.keys(WEAPON_CFGS).filter((n) => inventory.has('weapons:' + n));
 
 function updateLoadoutUI() {
   loadoutLabelEl.textContent = '🥊 ' + selectedCharacterName;
-  weaponLabelEl.textContent = '🪨 ' + selectedWeaponName;
+  weaponLabelEl.textContent = (WEAPON_ICON[selectedWeaponName] ?? '🪨') + ' ' + selectedWeaponName;
+  weaponKeyLegendEl.textContent = selectedWeaponName;
   hpNamePlayerEl.textContent = selectedCharacterName;
   const noCharChoice = ownedCharacterNames().length <= 1;
   charPrevBtn.disabled = noCharChoice;
@@ -2632,7 +2973,7 @@ function switchPlayerCharacter(name) {
   });
 
   player = makeFighter(CHARACTER_CFGS[name], oldX, oldFacing, 100);
-  WEAPON_BUILDERS[selectedWeaponName](player);
+  addWeaponProp(player, selectedWeaponName);
   if (uiScreen === 'lobby') {
     player.forceWeaponVisible = true;
     focusLobbyCamera();
@@ -2650,10 +2991,10 @@ function cycleCharacter(dir) {
 
 // מחליפה רק את הנשק על הדמות הקיימת - בלי לפרק ולבנות מחדש את כל הדמות.
 function switchPlayerWeapon(name) {
-  if (name === selectedWeaponName || !WEAPON_BUILDERS[name]) return;
+  if (name === selectedWeaponName || !WEAPON_CFGS[name]) return;
   selectedWeaponName = name;
   removeWeaponProp(player);
-  WEAPON_BUILDERS[name](player);
+  addWeaponProp(player, name);
   if (uiScreen === 'lobby') player.forceWeaponVisible = true;
   updateLoadoutUI();
 }
@@ -2801,8 +3142,8 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, inventory,
-  switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, inventory,
+  switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon, WEAPON_CFGS,
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
   set money(v) { money = v; updateMoneyUI(); },
