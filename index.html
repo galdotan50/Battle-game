@@ -163,8 +163,10 @@
     padding-bottom: 60px;
   }
   #lobbyOverlay.show, #shopOverlay.show { display: flex; }
-  #loadoutRow { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
-  #loadoutLabel {
+  #loadoutRow, #weaponRow { display: flex; align-items: center; gap: 12px; }
+  #loadoutRow { margin-bottom: 10px; }
+  #weaponRow { margin-bottom: 22px; }
+  #loadoutLabel, #weaponLabel {
     background: rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.25);
     border-radius: 12px;
@@ -336,8 +338,13 @@
 <div id="lobbyOverlay">
   <div id="loadoutRow">
     <button id="charPrevBtn" class="cycleBtn">◀</button>
-    <div id="loadoutLabel">🥊 סווארק &nbsp;·&nbsp; 🪨 אבן חדה</div>
+    <div id="loadoutLabel">🥊 סווארק</div>
     <button id="charNextBtn" class="cycleBtn">▶</button>
+  </div>
+  <div id="weaponRow">
+    <button id="weaponPrevBtn" class="cycleBtn">◀</button>
+    <div id="weaponLabel">🪨 אבן חדה</div>
+    <button id="weaponNextBtn" class="cycleBtn">▶</button>
   </div>
   <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
@@ -906,6 +913,53 @@ function textBandTex(baseHex, text, textColor) {
   return t;
 }
 
+// עיגול קשיח וקטן על בגד (סמל קבוצה) — לא חוזר על עצמו (בניגוד לשאר
+// טקסטורות הקנבס), ולכן בלי RepeatWrapping. משמש עם MeshBasicMaterial
+// כדי שהצבעים ייראו בדיוק כמו שצוירו בלי תלות בתאורת הסצנה.
+function badgeTex(draw) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  draw(c.getContext('2d'), 128);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// סמל כדורגל מפושט בצבעי ריאל מדריד (לבן/סגול/זהב) - לא עותק מדויק של
+// הסמל האמיתי, רק עיגול בצבעי הקבוצה עם ראשי תיבות.
+const realMadridCrestTex = () => badgeTex((ctx, n) => {
+  const cx = n / 2, cy = n / 2, r = n * 0.46;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = '#4b1a63';
+  ctx.fillRect(0, cy - r * 0.34, n, r * 0.68);
+  ctx.restore();
+  ctx.lineWidth = n * 0.05;
+  ctx.strokeStyle = '#d9b23c';
+  ctx.beginPath(); ctx.arc(cx, cy, r - ctx.lineWidth / 2, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#d9b23c';
+  ctx.font = `bold ${Math.round(n * 0.34)}px Arial, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('RM', cx, cy + n * 0.01);
+});
+
+// סמל כדורסל מפושט בצבעי לייקרס (סגול/זהב) - אותו עיקרון: עיגול בצבעי
+// הקבוצה עם ראשי תיבות, לא עותק של הסמל האמיתי.
+const lakersLogoTex = () => badgeTex((ctx, n) => {
+  const cx = n / 2, cy = n / 2, r = n * 0.46;
+  ctx.fillStyle = '#552583';
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.lineWidth = n * 0.05;
+  ctx.strokeStyle = '#fdb927';
+  ctx.beginPath(); ctx.arc(cx, cy, r - ctx.lineWidth / 2, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#fdb927';
+  ctx.font = `bold ${Math.round(n * 0.36)}px Arial, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('LA', cx, cy + n * 0.01);
+});
+
 function garment(mat, curve, bodyProfile, opts = {}) {
   const { u0 = 0, u1 = 1, pad = 0.008, bulge = null, ...rest } = opts;
   const profileFn = (u) => {
@@ -1230,7 +1284,12 @@ function createFighter(cfg) {
   const lashMat = M(0x1a1310, 0.7);
   const goldMat  = M(0xd9b23c, 0.2, 0.95);
 
-  const legMat = pantsMat || skinMat;
+  // הרגל הבסיסית (מתחת לכל בגד) בצבע המכנס, כי במכנסיים ארוכים (ברירת
+  // המחדל) הם מכסים את כל הרגל ואין טעם לבנות עור מתחתיהם שלעולם לא ייראה.
+  // אבל במכנסי ספורט קצרים (cfg.shorts) המכנס עצמו הוא רק overlay קצר על
+  // חלק מהרגל (ראה למטה) - והבסיס *כן* צריך להיות עור, אחרת השוק "לובשת
+  // מכנסיים" גם מתחת לקו המכנס הקצר.
+  const legMat = (pantsMat && !cfg.shorts) ? pantsMat : skinMat;
 
   // ---------- פלג גוף עליון ----------
   // מסלול רציף מהאגן עד קו הכתפיים, עם כיפה רדודה שיוצרת את שיפוע הטרפז.
@@ -1270,6 +1329,10 @@ function createFighter(cfg) {
     BIND = { chain: 'torso' };
     part(garment(pantsMat, torsoCurve, TORSO_PROFILE, { u0: 0, u1: 0.40, pad: 0.012, steps: 20 }));
 
+    // מכנסי כדורסל קצרים (cfg.shorts) - אורך רגל מתכוונן (cfg.pantsLength),
+    // בלי שול מקופל, בלי תפר ג'ינס ובלי חגורה/אבזם - שום דבר מזה לא קיים
+    // במכנסי ספורט. פרטי הג'ינס (CUFF_BULGE, תפר, חגורה) נשארים ברירת מחדל.
+    const pantsLegU1 = cfg.pantsLength ?? 0.755;
     const CUFF_BULGE = [
       { t: 0.00, rx: 0, rz: 0 }, { t: 0.80, rx: 0, rz: 0 },
       { t: 0.90, rx: 0.011, rz: 0.011 }, { t: 1.00, rx: 0.009, rz: 0.009 },
@@ -1277,27 +1340,32 @@ function createFighter(cfg) {
     legCurves.forEach((c, li) => {
       BIND = { chain: LEG_KEYS[li] };
       part(garment(pantsMat, c, LEG_PROFILE, {
-        u0: 0.02, u1: 0.755, pad: 0.011, bulge: CUFF_BULGE, steps: 30,
+        u0: 0.02, u1: pantsLegU1, pad: 0.011, bulge: cfg.shorts ? null : CUFF_BULGE, steps: 30,
       }));
-      // שול ג'ינס מקופל (יש ברפרנס) — שכבה קצרה מעל אותו מסלול
-      part(garment(cuffMat, c, LEG_PROFILE, { u0: 0.665, u1: 0.775, pad: 0.021, steps: 12 }));
 
-      // תפר חיצוני — חוט בגוון חול, יושב על פני הבד ולא לידו
-      const outer = c === legCurves[0] ? Math.PI : 0;
-      part(sweep(threadMat, seamPath(c, LEG_PROFILE, 0.012, outer, 0.10, 0.70, 10),
-        [pr(0, 0.028, 0.028), pr(1, 0.028, 0.028)],
-        { steps: 22, radial: 8, capStart: 'round', capEnd: 'round' }));
+      if (!cfg.shorts) {
+        // שול ג'ינס מקופל (יש ברפרנס) — שכבה קצרה מעל אותו מסלול
+        part(garment(cuffMat, c, LEG_PROFILE, { u0: 0.665, u1: 0.775, pad: 0.021, steps: 12 }));
+
+        // תפר חיצוני — חוט בגוון חול, יושב על פני הבד ולא לידו
+        const outer = c === legCurves[0] ? Math.PI : 0;
+        part(sweep(threadMat, seamPath(c, LEG_PROFILE, 0.012, outer, 0.10, 0.70, 10),
+          [pr(0, 0.028, 0.028), pr(1, 0.028, 0.028)],
+          { steps: 22, radial: 8, capStart: 'round', capEnd: 'round' }));
+      }
     });
 
-    BIND = { chain: 'torso' };
-    part(garment(beltMat, torsoCurve, TORSO_PROFILE, { u0: 0.335, u1: 0.390, pad: 0.015, steps: 8 }));
-    const bp = torsoCurve.getPointAt(0.362);
-    const bprof = profileAt(TORSO_PROFILE, 0.362);
-    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.046, 0.02), buckleMat);
-    buckle.position.set(bp.x, bp.y, bp.z + bprof.rz + 0.014);
-    buckle.castShadow = true;
-    BIND = { bone: 'root' };
-    part(buckle);
+    if (!cfg.shorts) {
+      BIND = { chain: 'torso' };
+      part(garment(beltMat, torsoCurve, TORSO_PROFILE, { u0: 0.335, u1: 0.390, pad: 0.015, steps: 8 }));
+      const bp = torsoCurve.getPointAt(0.362);
+      const bprof = profileAt(TORSO_PROFILE, 0.362);
+      const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.046, 0.02), buckleMat);
+      buckle.position.set(bp.x, bp.y, bp.z + bprof.rz + 0.014);
+      buckle.castShadow = true;
+      BIND = { bone: 'root' };
+      part(buckle);
+    }
 
     // ---------- כיסים ----------
     // מלבן תפר על חזית המכנסיים, ליד הירך - לא כיס תלת-ממדי אמיתי (עוד
@@ -1330,6 +1398,17 @@ function createFighter(cfg) {
             { steps: 2, radial: 8, capStart: 'round', capEnd: 'round' }));
         }
       });
+    }
+
+    // סמל קבוצה על המכנס (למשל לוגו לייקרס) — עיגול שטוח קשיח על עצם הירך,
+    // כמו האבזם למעלה. לא נבנה על פני הבד עצמו כי זה דורש UV מדויק על משטח
+    // מעוקל; עיגול שמצמיד לחזית הירך נראה נכון ופשוט הרבה יותר לבנות.
+    if (cfg.pantsLogoTex) {
+      BIND = { bone: 'hipR' };
+      const logo = new THREE.Mesh(new THREE.CircleGeometry(0.032, 24),
+        new THREE.MeshBasicMaterial({ map: cfg.pantsLogoTex() }));
+      logo.position.set(S.hipR.x + 0.012, S.hipR.y - 0.045, S.hipR.z + 0.095);
+      part(logo);
     }
   }
 
@@ -1499,6 +1578,16 @@ function createFighter(cfg) {
         ring.castShadow = true;
         part(ring);
       }
+
+      // צמיד — כמו הטבעת אבל רחב יותר וקצת אחורה על שורש כף היד/האמה
+      // במקום קדימה על האגרוף, כדי שלא יתנגש איתה.
+      if (cfg.bracelet && side === 1) {
+        const bracelet = new THREE.Mesh(new THREE.TorusGeometry(0.050, 0.010, 8, 20), goldMat);
+        bracelet.position.copy(wr.clone().addScaledVector(dir, -0.085));
+        bracelet.quaternion.setFromUnitVectors(V(0, 0, 1), dir);
+        bracelet.castShadow = true;
+        part(bracelet);
+      }
     });
 
   // ---------- גופייה ----------
@@ -1537,8 +1626,20 @@ function createFighter(cfg) {
         const shIn = V(sh.x * 0.38, sh.y - 0.045, sh.z);
         const armCurve = makeCurve([shIn, sh, el, wr]);
         BIND = { chain: chainKey };
-        part(garment(jacketMat, armCurve, ARM_PROFILE, { u0: 0, u1: 0.86, pad: 0.014, steps: 26 }));
+        // u1 קובע עד לאן השרוול מגיע (ברירת מחדל 0.86 = כמעט עד שורש כף היד,
+        // "שרוול ארוך"). cfg.sleeveLen מקצר אותו לחולצת ספורט שרוול-קצר.
+        part(garment(jacketMat, armCurve, ARM_PROFILE, { u0: 0, u1: cfg.sleeveLen ?? 0.86, pad: 0.014, steps: 26 }));
       });
+
+    // סמל קבוצה על החזה (למשל סמל כדורגל) — עיגול שטוח קשיח על עצם החזה,
+    // בצד שמאל (החזה של הלובש, לא של הצופה) - כמו סמל אמיתי על חולצת כדורגל.
+    if (cfg.chestCrestTex) {
+      BIND = { bone: 'chest' };
+      const crest = new THREE.Mesh(new THREE.CircleGeometry(0.038, 24),
+        new THREE.MeshBasicMaterial({ map: cfg.chestCrestTex() }));
+      crest.position.set(-0.045, S.chest.y - 0.06, S.chest.z + 0.115);
+      part(crest);
+    }
   }
 
   // ---------- צוואר ----------
@@ -1918,6 +2019,30 @@ const BRAKE_CFG = {
   boxerText: 'I AM THE KING',
   flipflops: true,
   flipflopColor: 0x3a3a3a,
+};
+
+// לורד - חולצת כדורגל קטנה עם סמל ריאל מדריד, מכנסי כדורסל קצרים עם סמל
+// לייקרס, עור שזוף, צמיד וטבעת ביד. שיער, צבע עיניים ונעליים לא תוארו
+// באפיון - נבחרו סבירים בהתאם לסגנון (שיער כהה קצר, נעליים בגוון הסגול
+// של לייקרס). גם היא (עדיין) לא בקרב כברירת מחדל - נבחרת מהלובי אחרי קנייה.
+const LORD_CFG = {
+  skin: 0xc98a56,
+  hair: 0x241a12,
+  hairStyle: 'short',
+  eyeColor: 0x4a2e18,
+  ears: 'round',
+  top: null,
+  jacket: 0xffffff,        // "חולצה קטנה של כדורגל" - חולצה לבנה, שרוול קצר
+  jacketStripes: [],        // בלי פסים - צבע אחיד
+  sleeveLen: 0.38,           // שרוול קצר (ברירת המחדל 0.86 היא שרוול ארוך)
+  chestCrestTex: realMadridCrestTex,
+  pants: 0x552583,          // "מכנסי כדורסל קצרים" בסגול לייקרס
+  pantsLength: 0.34,         // קצרים במקום מכנסיים ארוכים
+  shorts: true,              // בלי חגורה/אבזם/שול מקופל - לא מכנסי ג'ינס
+  pantsLogoTex: lakersLogoTex,
+  boots: 0x3d1f52,
+  bracelet: true,
+  fingerRing: true,
 };
 
 addStoneProp(player);
@@ -2326,7 +2451,7 @@ function showScreen(name) {
 // זמנית באמצע הזירה, מקטינים את הקנבס לריבוע קטן לרגע אחד, מרנדרים,
 // ותופסים את זה כתמונה. אפשר לעשות את זה בלי שאף אחד יבחין, כי מסך
 // החנות תמיד אטום ומכסה את כל הקנבס כשזה קורה.
-const CHARACTER_CFGS = { 'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG };
+const CHARACTER_CFGS = { 'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG };
 const characterThumbs = {};
 const THUMB_SIZE = 360;
 
@@ -2442,24 +2567,51 @@ const SHOP_DATA = {
 const inventory = new Set(['characters:סווארק', 'weapons:אבן חדה']);
 const priceOf = (str) => (str === 'חינם' ? 0 : parseInt(str, 10));
 
-// ---------- בחירת דמות בלובי ----------
-// כל דמות שהשחקן כבר קנה (ויש לה קונפיג בנוי) אפשר לבחור ולשחק איתה.
-// לפני זה קניית דמות לא עשתה כלום מעבר לתמונה בחנות - עכשיו זה משפיע בפועל.
+// ---------- בחירת דמות ונשק בלובי ----------
+// כל דמות/נשק שהשחקן כבר קנה (ויש לו קונפיג/בנייה אמיתית) אפשר לבחור.
+// לפני זה קנייה לא עשתה כלום מעבר לתמונה בחנות - עכשיו זה משפיע בפועל.
+//
+// WEAPON_BUILDERS ממפה שם נשק לפונקציה שבונה ומחברת אותו לדמות (כמו
+// CHARACTER_CFGS אבל לפעולה, לא לקונפיג - כי נשק זה אביזר על דמות קיימת,
+// לא דמות משלו). כרגע רק אבן חדה בנויה בתלת-מימד ומוטמעת בקרב בפועל -
+// שאר תשעת הנשקים בחנות הם עדיין רק מספרים על נייר, בלי מודל ובלי לוגיקת
+// קרב, ולכן לא מופיעים כאן. זו הסיבה שחצי הנשק מתחילים כבויים בדיוק כמו
+// שחצי הדמות היו כבויים לפני שג'ני נבנתה - יתעוררו כשייבנה נשק שני אמיתי.
+const WEAPON_BUILDERS = { 'אבן חדה': addStoneProp };
+
+function removeWeaponProp(f) {
+  if (!f.stoneMesh) return;
+  f.stoneMesh.parent?.remove(f.stoneMesh);
+  f.stoneMesh.geometry.dispose();
+  f.stoneMesh.material.dispose();
+  f.stoneMesh = null;
+}
+
 let selectedCharacterName = 'סווארק';
+let selectedWeaponName = 'אבן חדה';
 const loadoutLabelEl = document.getElementById('loadoutLabel');
+const weaponLabelEl = document.getElementById('weaponLabel');
 const hpNamePlayerEl = document.getElementById('hpNamePlayer');
 const charPrevBtn = document.getElementById('charPrevBtn');
 const charNextBtn = document.getElementById('charNextBtn');
+const weaponPrevBtn = document.getElementById('weaponPrevBtn');
+const weaponNextBtn = document.getElementById('weaponNextBtn');
 
 const ownedCharacterNames = () =>
   Object.keys(CHARACTER_CFGS).filter((n) => inventory.has('characters:' + n));
+const ownedWeaponNames = () =>
+  Object.keys(WEAPON_BUILDERS).filter((n) => inventory.has('weapons:' + n));
 
 function updateLoadoutUI() {
-  loadoutLabelEl.textContent = '🥊 ' + selectedCharacterName + ' · 🪨 אבן חדה';
+  loadoutLabelEl.textContent = '🥊 ' + selectedCharacterName;
+  weaponLabelEl.textContent = '🪨 ' + selectedWeaponName;
   hpNamePlayerEl.textContent = selectedCharacterName;
-  const noChoice = ownedCharacterNames().length <= 1;
-  charPrevBtn.disabled = noChoice;
-  charNextBtn.disabled = noChoice;
+  const noCharChoice = ownedCharacterNames().length <= 1;
+  charPrevBtn.disabled = noCharChoice;
+  charNextBtn.disabled = noCharChoice;
+  const noWeaponChoice = ownedWeaponNames().length <= 1;
+  weaponPrevBtn.disabled = noWeaponChoice;
+  weaponNextBtn.disabled = noWeaponChoice;
 }
 
 /**
@@ -2480,7 +2632,7 @@ function switchPlayerCharacter(name) {
   });
 
   player = makeFighter(CHARACTER_CFGS[name], oldX, oldFacing, 100);
-  addStoneProp(player);
+  WEAPON_BUILDERS[selectedWeaponName](player);
   if (uiScreen === 'lobby') {
     player.forceWeaponVisible = true;
     focusLobbyCamera();
@@ -2494,6 +2646,23 @@ function cycleCharacter(dir) {
   if (names.length <= 1) return;
   const i = names.indexOf(selectedCharacterName);
   switchPlayerCharacter(names[(i + dir + names.length) % names.length]);
+}
+
+// מחליפה רק את הנשק על הדמות הקיימת - בלי לפרק ולבנות מחדש את כל הדמות.
+function switchPlayerWeapon(name) {
+  if (name === selectedWeaponName || !WEAPON_BUILDERS[name]) return;
+  selectedWeaponName = name;
+  removeWeaponProp(player);
+  WEAPON_BUILDERS[name](player);
+  if (uiScreen === 'lobby') player.forceWeaponVisible = true;
+  updateLoadoutUI();
+}
+
+function cycleWeapon(dir) {
+  const names = ownedWeaponNames();
+  if (names.length <= 1) return;
+  const i = names.indexOf(selectedWeaponName);
+  switchPlayerWeapon(names[(i + dir + names.length) % names.length]);
 }
 
 function flashCantAfford(btn) {
@@ -2512,7 +2681,8 @@ function buyItem(btn) {
   inventory.add(id);
   updateMoneyUI();
   renderShopCategory(key);
-  if (key === 'characters') updateLoadoutUI();   // דמות שנייה שנקנתה מפעילה את חצי המעבר בלובי
+  // דמות/נשק שני שנקנה מפעיל את חצי המעבר המתאימים בלובי
+  if (key === 'characters' || key === 'weapons') updateLoadoutUI();
 }
 
 function renderShopCategory(key) {
@@ -2570,6 +2740,8 @@ document.getElementById('openShopBtn').addEventListener('click', () => { showScr
 document.getElementById('backLobbyBtn').addEventListener('click', () => showScreen('lobby'));
 charPrevBtn.addEventListener('click', () => cycleCharacter(-1));
 charNextBtn.addEventListener('click', () => cycleCharacter(1));
+weaponPrevBtn.addEventListener('click', () => cycleWeapon(-1));
+weaponNextBtn.addEventListener('click', () => cycleWeapon(1));
 
 playAgainBtn.addEventListener('click', resetGame);
 updateHealthUI(player, 'player');
@@ -2629,8 +2801,8 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, inventory,
-  switchPlayerCharacter, cycleCharacter,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, inventory,
+  switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
   set money(v) { money = v; updateMoneyUI(); },
