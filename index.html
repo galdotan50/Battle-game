@@ -3143,7 +3143,8 @@ animate();
 window.game = {
   enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
   renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, inventory,
-  switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon, WEAPON_CFGS,
+  switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
+  CHARACTER_CFGS, WEAPON_CFGS,
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
   set money(v) { money = v; updateMoneyUI(); },
