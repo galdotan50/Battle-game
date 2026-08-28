@@ -1905,6 +1905,61 @@ function createFighter(cfg) {
             { steps: 8, radial: 8, capStart: 'round', capEnd: 'round' }));
         });
       }
+
+      // ---------- קרוקס ----------
+      // סנדל-נעל עבה: סוליה גבוהה, "קליפה" מעוגלת שמכסה את הבהונות ואת
+      // גב כף הרגל (אבל לא את העקב), ורצועה אחורית. החורים האופייניים
+      // מסומנים כשקעים קטנים כהים על גב הקליפה - לא חורים אמיתיים, שזה
+      // היה דורש לחתוך את המש.
+      if (cfg.crocs) {
+        const crocMat = M(cfg.crocColor ?? 0xe85f9c, 0.72);
+        BIND = footBone;
+        // סוליה עבה
+        part(sweep(crocMat,
+          [heel.clone().setY(y - 0.030), mid.clone().setY(y - 0.033), toe.clone().setY(y - 0.028)],
+          [pr(0.00, 0.36, 0.50), pr(0.5, 0.38, 0.47), pr(1.00, 0.32, 0.38)],
+          { steps: 18, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round', domeScale: 0.7 }));
+        // קליפה מעוגלת מעל הבהונות ועד אמצע כף הרגל
+        part(sweep(crocMat,
+          [mid.clone().setY(y + 0.006).addScaledVector(fwd, -0.030),
+           mid.clone().setY(y + 0.020).addScaledVector(fwd, 0.055),
+           toe.clone().setY(y + 0.004).addScaledVector(fwd, -0.012)],
+          [pr(0.00, 0.44, 0.40), pr(0.55, 0.42, 0.36), pr(1.00, 0.33, 0.26)],
+          { steps: 16, refDir: V(0, 1, 0), capStart: 'flat', capEnd: 'round', domeScale: 0.75 }));
+        // חורים - שקעים כהים קטנים על גב הקליפה
+        const holeMat = M(0x8f3a63, 0.8);
+        const side2 = V(Math.cos(yaw), 0, -Math.sin(yaw));
+        [[-1, 0.02], [0, 0.045], [1, 0.02]].forEach(([sgn, f2]) => {
+          const h = new THREE.Mesh(new THREE.SphereGeometry(0.016, 10, 8), holeMat);
+          h.position.copy(mid.clone().setY(y + 0.040)
+            .addScaledVector(fwd, f2).addScaledVector(side2, sgn * 0.030));
+          h.scale.set(1, 0.5, 1);
+          part(h);
+        });
+        // רצועה אחורית
+        part(sweep(crocMat,
+          [heel.clone().setY(y + 0.010).addScaledVector(side2, -0.032),
+           heel.clone().setY(y + 0.052).addScaledVector(fwd, -0.012),
+           heel.clone().setY(y + 0.010).addScaledVector(side2, 0.032)],
+          [pr(0, 0.10, 0.06), pr(0.5, 0.10, 0.05), pr(1, 0.10, 0.06)],
+          { steps: 10, radial: 10, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
+      }
+    }
+
+    // ---------- גרביים ארוכות ----------
+    // רצות על אותו מסלול של הרגל (כמו המכנסיים) מהקרסול כלפי מעלה עד
+    // איפה שהמכנס נגמר. `transparent`+`opacity` נותנים את ה"קצת שקוף".
+    // נבנות מחוץ ל-if של הנעליים, כי הן שייכות לרגל ולא לכף הרגל.
+    if (cfg.socks) {
+      const sk = cfg.socks;
+      const sockMat = new THREE.MeshStandardMaterial({
+        color: sk.color, roughness: 0.9,
+        map: ribbedKnit('#ffffff'),
+        transparent: true, opacity: sk.opacity ?? 0.62,
+      });
+      BIND = { chain: legKey };
+      part(garment(sockMat, legCurve, LEG_PROFILE,
+        { u0: sk.from ?? 0.40, u1: 1.0, pad: 0.010, steps: 22 }));
     }
   });
 
@@ -2249,6 +2304,40 @@ function createFighter(cfg) {
     else ring.position.set(0, HC.y - R * 0.31, R * 0.845);
     ring.castShadow = true;
     part(ring);
+  }
+
+  // ---------- משקפי ראייה ----------
+  // שתי עדשות (טבעת + זכוכית שקופה), גשר ביניהן, ושתי זרועות שרצות
+  // אחורה אל האוזניים. הכל קשיח על עצם הראש, כמו שאר חלקי הפנים.
+  if (cfg.glasses) {
+    const frameMat = M(cfg.glassColor ?? 0x2b2b33, 0.45);
+    const lensMat = new THREE.MeshStandardMaterial({
+      color: 0xdcecf5, roughness: 0.12, metalness: 0.1,
+      transparent: true, opacity: 0.30,
+    });
+    const ey = HC.y + R * 0.10;                 // אותו גובה של העיניים
+    const ez = R * 0.90;                        // מעט לפני פני הפנים
+    [-1, 1].forEach((s) => {
+      const ex = s * R * 0.40;
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(R * 0.26, R * 0.035, 10, 22), frameMat);
+      rim.position.set(ex, ey, ez);
+      rim.castShadow = true;
+      part(rim);
+      const lens = new THREE.Mesh(new THREE.CircleGeometry(R * 0.25, 20), lensMat);
+      lens.position.set(ex, ey, ez);
+      part(lens);
+      // זרוע אל האוזן
+      part(sweep(frameMat,
+        [V(ex + s * R * 0.24, ey + R * 0.04, ez - R * 0.02),
+         V(s * R * 0.74, ey + R * 0.02, -R * 0.10)],
+        [pr(0, 0.030, 0.030), pr(1, 0.026, 0.026)],
+        { steps: 6, radial: 8, capStart: 'round', capEnd: 'round' }));
+    });
+    // גשר בין שתי העדשות
+    part(sweep(frameMat,
+      [V(-R * 0.16, ey + R * 0.03, ez), V(0, ey + R * 0.06, ez + R * 0.01), V(R * 0.16, ey + R * 0.03, ez)],
+      [pr(0, 0.028, 0.028), pr(0.5, 0.030, 0.030), pr(1, 0.028, 0.028)],
+      { steps: 8, radial: 8, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
   }
 
   // עגיל באוזן - טבעת קטנה שתלויה מתחת לכל אוזן
@@ -2874,6 +2963,35 @@ const PLAYTY_CFG = {
   boots: 0xf0f0ec,
 };
 
+// ליזי - חולצה אפורה בסגנון בנים (מנגנון הז'קט עם שרוול קצר, כמו לורד),
+// מכנסי ספורט בסגנון בנים, משקפי ראייה, גרביים ורודות ארוכות וקצת שקופות
+// שמגיעות עד למכנסיים, ונעלי קרוקס. צבע השיער והעור לא תוארו באפיון -
+// נבחרו חום בהיר ועור בהיר. הגוון האפור נבחר כהה במכוון (לא 0x8d9298
+// בינוני) כי גוון בינוני "נשטף" כמעט ללבן תחת התאורה החזקה של הזירה -
+// אותו לקח בדיוק שנלמד עם החולצה של פלייטי.
+const LIZZY_CFG = {
+  skin: 0xf2cba6,
+  hair: 0x6b4a2f,
+  hairStyle: 'short',
+  eyeColor: 0x4a6a8a,
+  ears: 'round',
+  eyelashes: true,
+  glasses: true,
+  top: null,
+  jacket: 0x4a4f57,       // חולצה אפורה - גוון כהה כדי שישרוד את התאורה
+  jacketStripes: [],
+  jacketHem: 0.36,
+  sleeveLen: 0.34,        // שרוול קצר - "חולצה של בנים"
+  pants: 0x2c313c,        // מכנסי ספורט
+  pantsLength: 0.40,
+  shorts: true,
+  // "מגיעות עד למכנסיים": הגרב מתחילה בדיוק איפה שהמכנס נגמר (0.40)
+  socks: { color: 0xf07ab4, opacity: 0.62, from: 0.40 },
+  crocs: true,
+  crocColor: 0xe85f9c,
+  boots: null,            // הקרוקס מחליפים את הנעליים
+};
+
 addStoneProp(player);
 addStoneProp(enemy);
 
@@ -3359,7 +3477,8 @@ function showScreen(name) {
 // ותופסים את זה כתמונה. אפשר לעשות את זה בלי שאף אחד יבחין, כי מסך
 // החנות תמיד אטום ומכסה את כל הקנבס כשזה קורה.
 const CHARACTER_CFGS = {
-  'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG, 'פלייטי': PLAYTY_CFG,
+  'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG,
+  'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG,
 };
 const characterThumbs = {};
 const THUMB_SIZE = 360;
@@ -3916,7 +4035,7 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, inventory,
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
