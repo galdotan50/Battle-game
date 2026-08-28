@@ -1115,6 +1115,63 @@ const cubeShirtTex = (baseHex) => {
   return t;
 };
 
+// חולצה בצבע גוף עם קוביות בטן מצוירות עליה - "שרירים מזויפים".
+// בניגוד לשאר מרקמי הבד, הציור הזה חייב לשבת רק על *חזית* הגוף ולא לחזור
+// סביבו, ולכן repeat(1,1) והציור ממוקם בחלק מסוים של הקנבס:
+//   הציר האופקי בקנבס = הזווית סביב הגוף (ב-sweepShapedEdge), כשהחזית היא
+//   θ=3π/2 כלומר u=0.75.
+//   הציר האנכי: v=0 הוא שולי החולצה למטה ו-v=1 הכתפיים. three הופכת את
+//   הטקסטורה אנכית (flipY), ולכן ראש הקנבס = הכתפיים ותחתיתו = השוליים.
+const FRONT_U = 0.75;
+const absShirtTex = (baseHex) => {
+  const t = canvasTex(256, (ctx, n) => {
+    ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+    const cx = n * FRONT_U;
+    // דיו כהה ואטום למדי - בגרסה ראשונה הוא היה חיוור מדי והציור כמעט
+    // נעלם על הבד הבהיר, במיוחד ליד דקאל הבטן החשופה שהוא כהה וחד.
+    ctx.strokeStyle = 'rgba(86,50,28,0.82)';
+    ctx.lineCap = 'round';
+
+    // שני שרירי חזה למעלה
+    ctx.lineWidth = n * 0.016;
+    [-1, 1].forEach((s) => {
+      ctx.beginPath();
+      ctx.moveTo(cx + s * n * 0.006, n * 0.29);
+      ctx.quadraticCurveTo(cx + s * n * 0.105, n * 0.305, cx + s * n * 0.118, n * 0.40);
+      ctx.stroke();
+    });
+    ctx.beginPath();                       // הקו שמפריד בין שני שרירי החזה
+    ctx.moveTo(cx, n * 0.29); ctx.lineTo(cx, n * 0.43);
+    ctx.stroke();
+
+    // קו אמצע הבטן
+    ctx.lineWidth = n * 0.018;
+    ctx.beginPath();
+    ctx.moveTo(cx, n * 0.47); ctx.lineTo(cx, n * 0.88);
+    ctx.stroke();
+
+    // שלוש מדרגות אופקיות = שלושה זוגות קוביות
+    ctx.lineWidth = n * 0.016;
+    [0.57, 0.68, 0.79].forEach((y) => {
+      ctx.beginPath();
+      ctx.moveTo(cx - n * 0.098, n * y);
+      ctx.quadraticCurveTo(cx, n * (y + 0.022), cx + n * 0.098, n * y);
+      ctx.stroke();
+    });
+
+    // קווי המסגרת בצדי הבטן
+    ctx.lineWidth = n * 0.014;
+    [-1, 1].forEach((s) => {
+      ctx.beginPath();
+      ctx.moveTo(cx + s * n * 0.105, n * 0.47);
+      ctx.quadraticCurveTo(cx + s * n * 0.120, n * 0.68, cx + s * n * 0.072, n * 0.90);
+      ctx.stroke();
+    });
+  }, 1, 1);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
+
 function garment(mat, curve, bodyProfile, opts = {}) {
   const { u0 = 0, u1 = 1, pad = 0.008, bulge = null, ...rest } = opts;
   const profileFn = (u) => {
@@ -2568,13 +2625,13 @@ const BREDY_CFG = {
 // זיק (רמה 4) - יפני, חולצה עם ציור קוביות, קצת קוביות בטן, קימונו רק
 // על הרגליים, וכפכפי עץ.
 const ZIK_CFG = {
-  skin: 0xf0cfa8,
+  skin: 0xe9c93f,         // צהוב
   hair: 0x141118,
   hairStyle: 'short',
   eyeColor: 0x2e2016,
   ears: 'round',
-  top: 0x2f6f8f,
-  topTex: cubeShirtTex,   // ציור של קוביות על החולצה
+  top: 0xefc19a,          // צבע גוף
+  topTex: absShirtTex,    // קוביות בטן מצוירות על החולצה
   topHem: 0.34,           // גבוהה, כדי שהבטן והקימונו ייראו
   abs: true,
   skirt: { color: 0xb8352f, len: 0.46, r0: 0.155, r1: 0.275 },   // קימונו על הרגליים
