@@ -48,6 +48,65 @@
     margin: 0 3px;
     font-family: monospace;
   }
+  /* ---------- הלוט: הציוד שאפשר להשתמש בו תוך כדי הקרב ---------- */
+  /* עמודה אחת שמחזיקה גם את הפריטים וגם את שורת ההשפעות, כדי ששניהם
+     לא ייפלו זה על זה כששורת המקשים למטה נשברת לשתי שורות. */
+  #lootStack {
+    position: fixed;
+    bottom: 92px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    z-index: 11;
+    pointer-events: none;   /* רק הכפתורים עצמם לוכדים לחיצות */
+  }
+  #lootBar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 94vw;
+    direction: ltr;      /* אחרת סדר הפריטים מתהפך בדף RTL */
+    pointer-events: auto;
+  }
+  .lootItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 62px;
+    padding: 6px 9px;
+    border-radius: 11px;
+    border: 1px solid rgba(255,255,255,0.30);
+    background: rgba(12,18,32,0.80);
+    color: #fff;
+    font-size: 0.70rem;
+    font-family: inherit;
+    cursor: pointer;
+    line-height: 1.25;
+  }
+  .lootItem .lootIcon { font-size: 1.25rem; }
+  .lootItem .lootName { max-width: 82px; text-align: center; }
+  .lootItem .lootEffect { color: #8fe3a4; font-weight: 700; }
+  .lootItem:hover:not(:disabled) { background: rgba(40,60,100,0.92); }
+  .lootItem:disabled { opacity: 0.35; cursor: default; }
+  /* שורת ההשפעות הפעילות (משקה/מגן) - מתחת ללוט */
+  #buffRow {
+    display: flex;
+    gap: 10px;
+    direction: ltr;
+    color: #ffe08a;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+  #buffRow:not(:empty) {
+    background: rgba(0,0,0,0.55);
+    border-radius: 9px;
+    padding: 3px 12px;
+  }
   canvas { display: block; }
 
   #hpRow {
@@ -308,6 +367,11 @@
 <div id="label">🥊 סווארק מול בו - שלב חיים ונזק</div>
 <div id="controls">
   <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> חסימה
+</div>
+
+<div id="lootStack">
+  <div id="lootBar"></div>
+  <div id="buffRow"></div>
 </div>
 
 <div id="hpRow">
@@ -2970,7 +3034,10 @@ const MIN_GAP = 0.95;                 // כמה קרוב מותר להתקרב �
 const EDGE = RING_HALF - 0.75;
 
 function moveFighter(f, other, dt) {
-  const speed = f.blocking ? BLOCK_SPEED : WALK_SPEED;
+  // בונוס המהירות מהמשקה: 4 נקודות מהאפיון = 10% מהירות הליכה כל אחת,
+  // כדי שההשפעה תורגש בלי להפוך את הדמות לבלתי נשלטת.
+  const boost = 1 + (f.speedBonus || 0) * 0.10;
+  const speed = (f.blocking ? BLOCK_SPEED : WALK_SPEED) * boost;
   let nx = f.x + f.mv * speed * dt;
   nx = Math.max(-EDGE, Math.min(EDGE, nx));
   // חוסם מעבר דרך היריב: כל אחד נשאר בצד שלו
@@ -3073,11 +3140,15 @@ function tickCombat(attacker, defender, who, otherWho) {
 
   attacker.hitDone = true;
   if (defender.blocking) return;
+  // מגן מהלוט: חוסם לגמרי כל עוד הוא פעיל, בדיוק כמו חסימה ידנית (D)
+  if (defender.guardTimer > 0) return;
 
   // מכת נשק (W) לוקחת את הנזק מהנשק המצויד בפועל (`f.weaponDmg`, נקבע
   // ב-addWeaponProp) במקום מהמספר הקבוע ב-ATTACKS - כדי שנשק חזק יותר
   // שנקנה בחנות באמת יעשה יותר נזק. אגרוף/בעיטה לא מושפעים.
-  const dmg = attacker.action === 'stone' && attacker.weaponDmg != null ? attacker.weaponDmg : cfg.dmg;
+  // בונוס הכוח מהמשקה מתווסף לכל מכה (האפיון: "+3 כוח").
+  const base = attacker.action === 'stone' && attacker.weaponDmg != null ? attacker.weaponDmg : cfg.dmg;
+  const dmg = base + (attacker.powerBonus || 0);
   defender.hp = Math.max(0, defender.hp - dmg);
   attacker.damageDealt += dmg;
   updateHealthUI(defender, otherWho);
@@ -3160,8 +3231,14 @@ function resetGame() {
     f.blocking = false; f.blockAmt = 0;
     f.mv = 0; f.cool = 0; f.think = 0; f.mode = 'wait'; f.blockTimer = 0;
     f.damageDealt = 0;
+    // ההשפעות מהלוט הן לקרב אחד בלבד
+    f.powerBonus = 0; f.speedBonus = 0; f.guardTimer = 0;
     updateHealthUI(f, who);
   });
+  // כל פריטי הלוט חוזרים - הם ירדו מהלוט של הקרב הקודם, לא מהמלאי הקבוע
+  lootUsed.clear();
+  renderLootBar();
+  updateBuffRow();
   gameOverEl.classList.remove('show');
   gameOver = false;
 }
@@ -3201,6 +3278,10 @@ function showScreen(name) {
   hpRowEl.style.display = inBattle ? '' : 'none';
   controlsEl.style.display = inBattle ? '' : 'none';
   labelEl.style.display = inBattle ? '' : 'none';
+  // הלוט מוצג רק בקרב, ונבנה מחדש בכניסה אליו כדי לכלול פריטים שנקנו
+  // בחנות מאז הקרב הקודם
+  lootStackEl.style.display = inBattle ? '' : 'none';
+  if (inBattle) { renderLootBar(); updateBuffRow(); }
 
   // בלובי: מתקרבים לדמות הנבחרת, מסתירים את בו, ומשאירים את האבן החדה
   // ביד - "רואים את הדמות ואת הנשק שאיתם משחקים", בלי לבנות שום דבר חדש.
@@ -3343,6 +3424,109 @@ const SHOP_DATA = {
 const inventory = new Set(['characters:סווארק', 'weapons:אבן חדה']);
 const priceOf = (str) => (str === 'חינם' ? 0 : parseInt(str, 10));
 
+// ============================================================================
+//  הלוט — הציוד שאפשר להשתמש בו תוך כדי הקרב
+//
+//  לפי האפיון (סעיף 5): "הציוד שנבחר נכנס ללוט של השחקן, שמוצג בתחתית המסך
+//  במהלך הקרב. השחקן יכול להשתמש באוכל ובמשקה במהלך הקרב."
+//
+//  כאן הלוט מציג **כל** אוכל/משקה/מגן שהשחקן קנה, בלי מסך בחירה מקדים -
+//  זה מה שהמשתמש ביקש ("קונים מגן ורואים אותו למטה בקרב"). מסך בחירה
+//  ("בדיוק אוכל אחד, משקה אחד ומגן אחד") נשאר לשלב מאוחר יותר.
+//
+//  כל פריט משמש **פעם אחת בקרב**: הוא יורד מהלוט של הקרב הנוכחי אבל
+//  *נשאר במלאי הקבוע*, ולכן חוזר בקרב הבא - בדיוק כמו שכתוב באפיון
+//  בסעיפים 7 ו-8. `lootUsed` מתאפס ב-resetGame.
+// ============================================================================
+
+const lootUsed = new Set();
+const lootStackEl = document.getElementById('lootStack');
+const lootBarEl = document.getElementById('lootBar');
+const buffRowEl = document.getElementById('buffRow');
+
+// המספרים נלקחים מ-SHOP_DATA (מקור אמת אחד לכל המספרים מהאפיון) - הטקסט
+// שם הוא בפורמט קבוע ("מרפא 12"), ולכן אפשר לחלץ ממנו את המספר.
+const firstNum = (s) => { const m = String(s).match(/\d+/); return m ? +m[0] : 0; };
+
+// חוזק המגנים: האפיון מתאר אותם במילים ("הגנה בסיסית" ... "חזקה מאוד"),
+// ולכן ההמרה למספר שניות של הגנה מוגדרת כאן במפורש. המגנים המיוחדים
+// (ברק/דבק/שכפול) עדיין לא מממשים את היכולת המיוחדת שלהם - רק הגנה ארוכה.
+const SHIELD_SECONDS = {
+  'אבן קצת גדולה אבל שבירה': 2.5,
+  'מגן עץ': 3,
+  'מגן אבן': 4,
+  'מגן ברזל': 5,
+  'מגן טיטניום': 6,
+  'מגן פלדה': 6,
+  'כדור מגן ענק מחשמל': 7,
+  'מגן פלדה עם דבק': 8,
+  'מגן טיטניום משכפל': 9,
+  'מגן טיטניום בלתי נראה': 10,
+};
+
+// משקה: +3 כוח ו-+4 מהירות לפי האפיון. "משקה אנרגיה" מתואר כ"מיוחד וחזק
+// במיוחד", ולכן מקבל בונוס כפול.
+const drinkBonus = (name) => (name === 'משקה אנרגיה'
+  ? { power: 6, speed: 8 }
+  : { power: 3, speed: 4 });
+
+function lootItemsFor(key) {
+  return SHOP_DATA[key].rows
+    .map((r) => r[0])
+    .filter((name) => inventory.has(key + ':' + name));
+}
+
+function useLootItem(key, name) {
+  const id = key + ':' + name;
+  if (lootUsed.has(id) || gameOver || uiScreen !== 'battle') return;
+  lootUsed.add(id);
+
+  if (key === 'food') {
+    const heal = firstNum(SHOP_DATA.food.rows.find((r) => r[0] === name)[1]);
+    player.hp = Math.min(player.maxHp, player.hp + heal);
+    updateHealthUI(player, 'player');
+  } else if (key === 'drinks') {
+    const bonus = drinkBonus(name);
+    player.powerBonus = (player.powerBonus || 0) + bonus.power;
+    player.speedBonus = (player.speedBonus || 0) + bonus.speed;
+  } else if (key === 'shields') {
+    // מצטבר, כדי ששני מגנים ברצף לא "יבטלו" זה את זה
+    player.guardTimer = (player.guardTimer || 0) + (SHIELD_SECONDS[name] ?? 3);
+  }
+  renderLootBar();
+  updateBuffRow();
+}
+
+function renderLootBar() {
+  lootBarEl.innerHTML = '';
+  const groups = [
+    ['food', '🍎', (n) => '+' + firstNum(SHOP_DATA.food.rows.find((r) => r[0] === n)[1]) + ' חיים'],
+    ['drinks', '🥤', (n) => { const bo = drinkBonus(n); return '+' + bo.power + ' כוח'; }],
+    ['shields', '🛡️', (n) => (SHIELD_SECONDS[n] ?? 3) + ' שנ׳'],
+  ];
+  groups.forEach(([key, icon, effectText]) => {
+    lootItemsFor(key).forEach((name) => {
+      const used = lootUsed.has(key + ':' + name);
+      const btn = document.createElement('button');
+      btn.className = 'lootItem';
+      btn.disabled = used;
+      btn.innerHTML = `<span class="lootIcon">${icon}</span>` +
+        `<span class="lootName">${name}</span>` +
+        `<span class="lootEffect">${used ? 'נוצל' : effectText(name)}</span>`;
+      btn.addEventListener('click', () => useLootItem(key, name));
+      lootBarEl.appendChild(btn);
+    });
+  });
+}
+
+function updateBuffRow() {
+  const bits = [];
+  if (player.powerBonus) bits.push('💪 +' + player.powerBonus + ' כוח');
+  if (player.speedBonus) bits.push('⚡ +' + player.speedBonus + ' מהירות');
+  if (player.guardTimer > 0) bits.push('🛡️ מגן ' + player.guardTimer.toFixed(1) + ' שנ׳');
+  buffRowEl.textContent = bits.join('   ·   ');
+}
+
 // ---------- בחירת דמות ונשק בלובי ----------
 // כל דמות/נשק שהשחקן כבר קנה (ויש לו קונפיג/בנייה אמיתית) אפשר לבחור.
 // לפני זה קנייה לא עשתה כלום מעבר לתמונה בחנות - עכשיו זה משפיע בפועל.
@@ -3464,6 +3648,8 @@ function buyItem(btn) {
   renderShopCategory(key);
   // דמות/נשק שני שנקנה מפעיל את חצי המעבר המתאימים בלובי
   if (key === 'characters' || key === 'weapons') updateLoadoutUI();
+  // אוכל/משקה/מגן שנקנה מצטרף מיד ללוט (גם אם קונים באמצע רצף קרבות)
+  if (key === 'food' || key === 'drinks' || key === 'shields') renderLootBar();
 }
 
 function renderShopCategory(key) {
@@ -3529,6 +3715,8 @@ updateHealthUI(player, 'player');
 updateHealthUI(enemy, 'enemy');
 updateMoneyUI();
 updateLoadoutUI();
+renderLootBar();
+updateBuffRow();
 
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
@@ -3548,6 +3736,14 @@ function animate() {
     updateEnemy(enemy, player, dt);
     tickCombat(player, enemy, 'player', 'enemy');
     tickCombat(enemy, player, 'enemy', 'player');
+
+    // ספירה לאחור של המגן מהלוט. מתעדכן על המסך רק כשהערך המוצג משתנה,
+    // כדי לא לכתוב ל-DOM בכל פריים.
+    if (player.guardTimer > 0) {
+      const before = player.guardTimer.toFixed(1);
+      player.guardTimer = Math.max(0, player.guardTimer - dt);
+      if (player.guardTimer.toFixed(1) !== before) updateBuffRow();
+    }
   }
 
   [player, enemy].forEach((f) => {
@@ -3585,6 +3781,7 @@ window.game = {
   renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, inventory,
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
+  useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS,
   get enemy() { return enemy; },              // enemy הוא let ומתחלף בין רמות
   get enemyLevel() { return enemyLevel; },
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
