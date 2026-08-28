@@ -197,6 +197,8 @@ skinning מנוונים, שאחרי ה-skinning גורמים לחלק פשוט �
 
 ## גיט
 
-ענף העבודה: `claude/status-check-zrpi00`.
+ענף העבודה: `claude/status-game-link-iq7udq` (זהה ל-`claude/status-check-zrpi00`).
+⚠️ יש ענף עם עבודה שלא מוזגה: `claude/dev-progress-docs-fypzh6` מכיל **מסך ציוד
+(לוט)** שלא קיים בקוד הנוכחי — ראה יומן, 28/8.
 לריפו **אין ענף ראשי** (`main`) — העבודה חיה בענפי `claude/*`.
 לדחוף: `git push -u origin <branch>`. לא לפתוח PR אלא אם ביקשו במפורש.
