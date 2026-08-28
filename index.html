@@ -155,6 +155,45 @@
   @keyframes hitFlashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
   #hitFlash.show { animation: hitFlashAnim 0.35s ease-out; }
 
+  /* הבזק כשיכולת מיוחדת של מגן מופעלת - צהוב, כדי שיהיה ברור שזה משהו
+     אחר מהבזק הפגיעה האדום */
+  #shieldFlash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(255,215,60,0.55) 100%);
+    opacity: 0;
+  }
+  #shieldFlash.show { animation: hitFlashAnim 0.45s ease-out; }
+
+  /* הודעה שמסבירה איזו יכולת הופעלה ומה היא עשתה */
+  #shieldToast {
+    position: fixed;
+    top: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 21;
+    pointer-events: none;
+    background: rgba(10,14,26,0.86);
+    border: 2px solid #ffd23c;
+    color: #ffd23c;
+    font-size: 1.25rem;
+    font-weight: 800;
+    padding: 9px 22px;
+    border-radius: 13px;
+    white-space: nowrap;
+    opacity: 0;
+  }
+  @keyframes shieldToastAnim {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.85); }
+    18%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.06); }
+    30%  { transform: translateX(-50%) translateY(0) scale(1); }
+    78%  { opacity: 1; }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(1); }
+  }
+  #shieldToast.show { animation: shieldToastAnim 1.5s ease-out; }
+
   #gameOverOverlay {
     position: fixed;
     inset: 0;
@@ -388,6 +427,8 @@
 </div>
 
 <div id="hitFlash"></div>
+<div id="shieldFlash"></div>
+<div id="shieldToast"></div>
 
 <div id="moneyBadge">💰 0₪</div>
 
@@ -3107,6 +3148,8 @@ function tickAction(f, dt) {
 const hpFillEl = { player: document.getElementById('hpFillPlayer'), enemy: document.getElementById('hpFillEnemy') };
 const hpNumEl  = { player: document.getElementById('hpNumPlayer'), enemy: document.getElementById('hpNumEnemy') };
 const hitFlashEl = document.getElementById('hitFlash');
+const shieldFlashEl = document.getElementById('shieldFlash');
+const shieldToastEl = document.getElementById('shieldToast');
 const gameOverEl = document.getElementById('gameOverOverlay');
 const gameOverTitleEl = document.getElementById('gameOverTitle');
 const playAgainBtn = document.getElementById('playAgainBtn');
@@ -3140,8 +3183,6 @@ function tickCombat(attacker, defender, who, otherWho) {
 
   attacker.hitDone = true;
   if (defender.blocking) return;
-  // מגן מהלוט: חוסם לגמרי כל עוד הוא פעיל, בדיוק כמו חסימה ידנית (D)
-  if (defender.guardTimer > 0) return;
 
   // מכת נשק (W) לוקחת את הנזק מהנשק המצויד בפועל (`f.weaponDmg`, נקבע
   // ב-addWeaponProp) במקום מהמספר הקבוע ב-ATTACKS - כדי שנשק חזק יותר
@@ -3149,6 +3190,15 @@ function tickCombat(attacker, defender, who, otherWho) {
   // בונוס הכוח מהמשקה מתווסף לכל מכה (האפיון: "+3 כוח").
   const base = attacker.action === 'stone' && attacker.weaponDmg != null ? attacker.weaponDmg : cfg.dmg;
   const dmg = base + (attacker.powerBonus || 0);
+
+  // מגן מהלוט: חוסם לגמרי, ואם יש לו יכולת מיוחדת - היא מופעלת כאן
+  // אוטומטית, כי "נשק פגע במגן" זה בדיוק הרגע הזה (האפיון, סעיף 9).
+  // שים לב להיפוך: היכולת פוגעת ב*תוקף*, ולכן פס החיים שמתעדכן הוא של
+  // התוקף (`who`), ואם הוא נופל מזה - המנצח הוא בעל המגן (`otherWho`).
+  if (defender.guardTimer > 0) {
+    if (triggerShieldAbility(defender, attacker, dmg, who)) endGame(otherWho);
+    return;
+  }
   defender.hp = Math.max(0, defender.hp - dmg);
   attacker.damageDealt += dmg;
   updateHealthUI(defender, otherWho);
@@ -3233,6 +3283,8 @@ function resetGame() {
     f.damageDealt = 0;
     // ההשפעות מהלוט הן לקרב אחד בלבד
     f.powerBonus = 0; f.speedBonus = 0; f.guardTimer = 0;
+    f.activeShield = null;
+    applyInvisibility(f);          // מחזיר שקיפות למצב הרגיל
     updateHealthUI(f, who);
   });
   // כל פריטי הלוט חוזרים - הם ירדו מהלוט של הקרב הקודם, לא מהמלאי הקבוע
@@ -3464,6 +3516,20 @@ const SHIELD_SECONDS = {
   'מגן טיטניום בלתי נראה': 10,
 };
 
+// היכולות המיוחדות של המגנים היקרים (סעיף 9 באפיון). האפיון אומר במפורש
+// שהן מופעלות **אוטומטית כאשר התנאי המתאים מתרחש** - והתנאי הוא "כשנשק
+// פוגע במגן", כלומר בדיוק ברגע שמכה נחסמת על ידי מגן פעיל.
+// ששת המגנים הזולים הם "הגנה" בלבד ולכן אין להם רשומה כאן.
+const SHIELD_ABILITY = {
+  'כדור מגן ענק מחשמל': { kind: 'bolt',    bolt: 15 },
+  'מגן פלדה עם דבק':    { kind: 'glue',    pull: 0.55 },
+  'מגן טיטניום משכפל':  { kind: 'reflect', mult: 2 },
+  // "מחזיר, משכפל ומגיע עם אבן חדה" - ההחזרה והשכפול זהים למשכפל.
+  // ה"אבן חדה" כבר שייכת לשחקן מתחילת המשחק, ולכן אין מה להוסיף שם.
+  // ה"בלתי נראה" מיושם כשקיפות של הדמות כל עוד המגן פעיל.
+  'מגן טיטניום בלתי נראה': { kind: 'reflect', mult: 2, invisible: true },
+};
+
 // משקה: +3 כוח ו-+4 מהירות לפי האפיון. "משקה אנרגיה" מתואר כ"מיוחד וחזק
 // במיוחד", ולכן מקבל בונוס כפול.
 const drinkBonus = (name) => (name === 'משקה אנרגיה'
@@ -3492,6 +3558,8 @@ function useLootItem(key, name) {
   } else if (key === 'shields') {
     // מצטבר, כדי ששני מגנים ברצף לא "יבטלו" זה את זה
     player.guardTimer = (player.guardTimer || 0) + (SHIELD_SECONDS[name] ?? 3);
+    player.activeShield = name;          // קובע איזו יכולת מיוחדת תופעל
+    applyInvisibility(player);
   }
   renderLootBar();
   updateBuffRow();
@@ -3502,7 +3570,13 @@ function renderLootBar() {
   const groups = [
     ['food', '🍎', (n) => '+' + firstNum(SHOP_DATA.food.rows.find((r) => r[0] === n)[1]) + ' חיים'],
     ['drinks', '🥤', (n) => { const bo = drinkBonus(n); return '+' + bo.power + ' כוח'; }],
-    ['shields', '🛡️', (n) => (SHIELD_SECONDS[n] ?? 3) + ' שנ׳'],
+    // מגן עם יכולת מיוחדת מסומן באייקון שלה, כדי שיהיה ברור שהוא לא
+    // "עוד מגן" אלא עושה משהו נוסף כשחוסמים איתו
+    ['shields', '🛡️', (n) => {
+      const ab = SHIELD_ABILITY[n];
+      const icon = ab ? ({ bolt: '⚡', glue: '🧲', reflect: '🔁' })[ab.kind] + ' ' : '';
+      return icon + (SHIELD_SECONDS[n] ?? 3) + ' שנ׳';
+    }],
   ];
   groups.forEach(([key, icon, effectText]) => {
     lootItemsFor(key).forEach((name) => {
@@ -3517,6 +3591,69 @@ function renderLootBar() {
       lootBarEl.appendChild(btn);
     });
   });
+}
+
+// "מגן טיטניום בלתי נראה": הדמות נעשית שקופה למחצה כל עוד המגן פעיל.
+// עובר על כל החומרים של הדמות פעם אחת ומדליק/מכבה שקיפות.
+function applyInvisibility(f) {
+  const want = !!(f.guardTimer > 0 && SHIELD_ABILITY[f.activeShield]?.invisible);
+  if (f.isInvisible === want) return;
+  f.isInvisible = want;
+  f.group.traverse((o) => {
+    if (!o.material) return;
+    if (o.material.userData.baseOpacity === undefined) {
+      o.material.userData.baseOpacity = o.material.opacity;
+      o.material.userData.wasTransparent = o.material.transparent;
+    }
+    o.material.transparent = want || o.material.userData.wasTransparent === true;
+    o.material.opacity = want ? o.material.userData.baseOpacity * 0.35
+                              : o.material.userData.baseOpacity;
+    o.material.needsUpdate = true;
+  });
+}
+
+function showShieldToast(text) {
+  shieldToastEl.textContent = text;
+  shieldToastEl.classList.remove('show');
+  void shieldToastEl.offsetWidth;
+  shieldToastEl.classList.add('show');
+  shieldFlashEl.classList.remove('show');
+  void shieldFlashEl.offsetWidth;
+  shieldFlashEl.classList.add('show');
+}
+
+/**
+ * מופעלת אוטומטית ברגע שמכה נחסמה על ידי מגן פעיל (ראה tickCombat).
+ * `blocked` הוא הנזק שהמכה *הייתה* עושה - המגן המשכפל מחזיר אותו כפול.
+ * מחזירה true אם התוקף הובס מהיכולת עצמה.
+ */
+function triggerShieldAbility(defender, attacker, blocked, attackerWho) {
+  const ab = SHIELD_ABILITY[defender.activeShield];
+  if (!ab) return false;
+  let back = 0, msg = '';
+
+  if (ab.kind === 'bolt') {
+    back = ab.bolt;
+    msg = '⚡ ברק! -' + back;
+  } else if (ab.kind === 'glue') {
+    // הנשק נדבק והאויב נמשך אל המגן, ואז הנשק גורם לו נזק
+    const dir = defender.x > attacker.x ? 1 : -1;
+    attacker.x += dir * ab.pull;
+    attacker.group.position.x = attacker.x;
+    back = blocked;
+    msg = '🧲 נדבק ונמשך! -' + back;
+  } else if (ab.kind === 'reflect') {
+    back = blocked * ab.mult;
+    msg = '🔁 הוחזר כפול! -' + back;
+  }
+
+  if (back > 0) {
+    attacker.hp = Math.max(0, attacker.hp - back);
+    defender.damageDealt += back;         // נחשב לשחקן לצורך הכסף בסוף הקרב
+    updateHealthUI(attacker, attackerWho);
+  }
+  showShieldToast(msg);
+  return attacker.hp <= 0;
 }
 
 function updateBuffRow() {
@@ -3743,6 +3880,7 @@ function animate() {
       const before = player.guardTimer.toFixed(1);
       player.guardTimer = Math.max(0, player.guardTimer - dt);
       if (player.guardTimer.toFixed(1) !== before) updateBuffRow();
+      if (player.guardTimer === 0) applyInvisibility(player);   // חוזר להיראות
     }
   }
 
@@ -3781,7 +3919,7 @@ window.game = {
   renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, inventory,
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
-  useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS,
+  useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
   get enemy() { return enemy; },              // enemy הוא let ומתחלף בין רמות
   get enemyLevel() { return enemyLevel; },
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
