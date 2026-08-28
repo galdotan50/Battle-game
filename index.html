@@ -317,7 +317,7 @@
     <div class="hpNum" id="hpNumPlayer">100 / 100</div>
   </div>
   <div class="hpBar hpEnemy">
-    <div class="hpName">בו</div>
+    <div class="hpName" id="hpNameEnemy">בו</div>
     <div class="hpTrack"><div class="hpFill" id="hpFillEnemy"></div></div>
     <div class="hpNum" id="hpNumEnemy">75 / 75</div>
   </div>
@@ -765,13 +765,17 @@ const sweep = (mat, points, profile, opts = {}) =>
  */
 function sweepShapedEdge(mat, curve, profileFn, opts = {}) {
   const { radial = 40, steps = 26, refDir = V(1, 0, 0), u0 = 0, edgeU } = opts;
+  // u0 יכול להיות מספר (קצה ישר) *או פונקציה של θ* - קצה משונן, למשל שוליים
+  // קרועים של חולצה. אותו דבר בדיוק כמו edgeU, רק בקצה השני של המשטח.
+  const startU = typeof u0 === 'function' ? u0 : () => u0;
   const cols = radial + 1;
   const pos = [], uv = [];
 
   for (let i = 0; i <= steps; i++) {
     for (let j = 0; j < cols; j++) {
       const th = (j / radial) * Math.PI * 2;
-      const u = u0 + (edgeU(th) - u0) * (i / steps);
+      const uStart = startU(th);
+      const u = uStart + (edgeU(th) - uStart) * (i / steps);
       const p = curve.getPointAt(u);
       const T = curve.getTangentAt(u).normalize();
       const { N, B } = frameAt(T, refDir);
@@ -1013,6 +1017,103 @@ const planeCloudsTattooTex = () => tattooTex((ctx, n) => {
   [-1.4, 0, 1.4].forEach((k) => puff(tx + k * r, ty, r));
   [1, 2].forEach((k) => puff(tx, ty + k * r * 1.2, r * 0.9));
 });
+
+// ---------- דקאלים על הגוף (שקופים, קשיחים על עצם) ----------
+// אותה שיטה בדיוק כמו הקעקועים של פלייטי: עיגול עם טקסטורה שקופה, קשיח
+// על עצם (לא chain - ראה הלקח הטכני ב-CLAUDE.md). כאן זה משמש לסימני גוף:
+// קוביות בטן, וצלקת.
+
+// קוביות בטן - שני קווים אנכיים וכמה אופקיים, כמו שרטוט של "סיקס פק".
+const absDecalTex = () => tattooTex((ctx, n) => {
+  ctx.strokeStyle = 'rgba(30,20,14,0.5)';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = n * 0.035;
+  // הקו האנכי האמצעי (linea alba)
+  ctx.beginPath(); ctx.moveTo(n * 0.5, n * 0.12); ctx.lineTo(n * 0.5, n * 0.82); ctx.stroke();
+  // שלוש מדרגות אופקיות - שלושה זוגות קוביות
+  ctx.lineWidth = n * 0.030;
+  [0.30, 0.50, 0.68].forEach((y) => {
+    ctx.beginPath();
+    ctx.moveTo(n * 0.24, n * y);
+    ctx.quadraticCurveTo(n * 0.5, n * (y + 0.045), n * 0.76, n * y);
+    ctx.stroke();
+  });
+  // קווי הצד (הקו האלכסוני שמסגר את הבטן)
+  ctx.lineWidth = n * 0.026;
+  [[-1, 0.24], [1, 0.76]].forEach(([s, x]) => {
+    ctx.beginPath();
+    ctx.moveTo(n * x, n * 0.16);
+    ctx.quadraticCurveTo(n * (x + s * 0.05), n * 0.5, n * (x - s * 0.02), n * 0.84);
+    ctx.stroke();
+  });
+});
+
+// צלקת ממקדחה: חור עגול כהה במרכז, וכמה קרעים שיוצאים ממנו החוצה.
+const drillScarTex = () => tattooTex((ctx, n) => {
+  const cx = n * 0.5, cy = n * 0.5;
+  ctx.fillStyle = 'rgba(120,28,26,0.85)';
+  ctx.beginPath(); ctx.arc(cx, cy, n * 0.15, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(60,12,12,0.9)';
+  ctx.beginPath(); ctx.arc(cx, cy, n * 0.075, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(120,28,26,0.8)';
+  ctx.lineCap = 'round';
+  for (let k = 0; k < 7; k++) {
+    const a = (k / 7) * Math.PI * 2 + 0.3;
+    const len = n * (0.20 + (k % 3) * 0.06);
+    ctx.lineWidth = n * (0.030 - (k % 2) * 0.008);
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * n * 0.13, cy + Math.sin(a) * n * 0.13);
+    ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+    ctx.stroke();
+  }
+});
+
+// מגן עם האות S - סמל בסגנון גיבור-על על התחתונים (סימון מסוגנן, לא
+// העתק של סמל אמיתי - אותו עיקרון כמו סמלי הקבוצות של לורד).
+const heroShieldTex = () => tattooTex((ctx, n) => {
+  const cx = n * 0.5;
+  ctx.beginPath();
+  ctx.moveTo(cx, n * 0.14);
+  ctx.lineTo(n * 0.86, n * 0.36);
+  ctx.lineTo(cx, n * 0.88);
+  ctx.lineTo(n * 0.14, n * 0.36);
+  ctx.closePath();
+  ctx.fillStyle = '#f2c14e'; ctx.fill();
+  ctx.lineWidth = n * 0.05; ctx.strokeStyle = '#b8322a'; ctx.stroke();
+  ctx.fillStyle = '#b8322a';
+  ctx.font = `bold ${Math.round(n * 0.44)}px Arial, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('S', cx, n * 0.47);
+});
+
+// חולצה עם ציור של קוביות - קוביות איזומטריות פזורות על הבד.
+// כמו stripeTex/textBandTex, הצבע חי *בתוך* הטקסטורה, ולכן חובה colorSpace.
+const cubeShirtTex = (baseHex) => {
+  const t = canvasTex(128, (ctx, n) => {
+    ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+    // קוביה איזומטרית: שלוש פאות בגוונים שונים + קו מתאר כהה. בלי קו המתאר
+    // ובגודל קטן הן נקראו כ"נקודות לבנות" ולא כקוביות - לכן גדולות ומודגשות.
+    const cube = (cx, cy, s) => {
+      const faces = [
+        [[cx, cy - s], [cx + s, cy - s * 0.5], [cx, cy], [cx - s, cy - s * 0.5], '#ffffff'],
+        [[cx - s, cy - s * 0.5], [cx, cy], [cx, cy + s], [cx - s, cy + s * 0.5], '#9fb6c4'],
+        [[cx + s, cy - s * 0.5], [cx, cy], [cx, cy + s], [cx + s, cy + s * 0.5], '#d5e2ea'],
+      ];
+      faces.forEach((f) => {
+        ctx.beginPath();
+        ctx.moveTo(f[0][0], f[0][1]);
+        for (let k = 1; k < 4; k++) ctx.lineTo(f[k][0], f[k][1]);
+        ctx.closePath();
+        ctx.fillStyle = f[4]; ctx.fill();
+        ctx.lineWidth = 2.2; ctx.strokeStyle = 'rgba(20,30,40,0.55)'; ctx.stroke();
+      });
+    };
+    cube(34, 40, 26);
+    cube(94, 88, 26);
+  }, 2, 2);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
 
 function garment(mat, curve, bodyProfile, opts = {}) {
   const { u0 = 0, u1 = 1, pad = 0.008, bulge = null, ...rest } = opts;
@@ -1299,8 +1400,15 @@ function createFighter(cfg) {
 
   const skinMat  = M(cfg.skin, 0.62);
   const hairMat  = M(cfg.hair, 0.88);
+  // cfg.topTex מחליף את מרקם הסריג הרגיל בטקסטורה משלו (למשל הקוביות של
+  // זיק). טקסטורה כזו נושאת את הצבע בעצמה, ולכן צבע החומר נשאר לבן ניטרלי -
+  // בדיוק כמו stripeTex/textBandTex (ראה הלקח על colorSpace ב-CLAUDE.md).
   const topMat = cfg.top ? new THREE.MeshStandardMaterial({
-    color: cfg.top, roughness: 0.92, map: ribbedKnit('#ffffff'),
+    color: cfg.topTex ? 0xffffff : cfg.top,
+    roughness: 0.92,
+    map: cfg.topTex
+      ? cfg.topTex('#' + new THREE.Color(cfg.top).getHexString())
+      : ribbedKnit('#ffffff'),
     side: THREE.DoubleSide,          // לקצה המחשוף יש צד פנימי שנראה
   }) : null;
   // הצבע על החומר עצמו (לא רק על המרקם) ישכפל את הגוון על פני הפסים ויעמעם
@@ -1490,6 +1598,61 @@ function createFighter(cfg) {
       : boxerMat;
     BIND = { chain: 'torso' };
     part(garment(peekMat, torsoCurve, TORSO_PROFILE, { u0: 0.398, u1: 0.448, pad: 0.017, steps: 12 }));
+  }
+
+  // ---------- סימנים על הגוף (קוביות בטן, צלקת, סמל על התחתונים) ----------
+  // דקאל שקוף על חזית הגוף, קשיח על עצם - אותה שיטה בדיוק כמו הקעקועים
+  // של פלייטי (עיגול קטן ודחוס לא עובד עם chain/skinning - ראה CLAUDE.md).
+  // θ=3π/2 היא החזית, ולכן הנורמל בחזית הוא -B של מסגרת פלג הגוף.
+  // lift = כמה לרחף מעל פני הגוף. על עור חשוף מספיק 0.005, אבל דקאל שיושב
+  // *על בגד* חייב לעבור את עובי הבגד (ה-pad שלו), אחרת הוא נבלע בתוכו.
+  const bodyDecal = (texFn, u, size, boneName, lift = 0.005) => {
+    const p = torsoCurve.getPointAt(u);
+    const T = torsoCurve.getTangentAt(u).normalize();
+    const { B } = frameAt(T, V(1, 0, 0));
+    const { rz } = profileAt(TORSO_PROFILE, u);
+    const nrm = B.clone().negate();          // חזית
+    const d = new THREE.Mesh(new THREE.CircleGeometry(size, 22),
+      new THREE.MeshBasicMaterial({ map: texFn(), transparent: true, side: THREE.DoubleSide }));
+    d.position.copy(p.clone().addScaledVector(nrm, rz + lift));
+    d.quaternion.setFromUnitVectors(V(0, 0, 1), nrm);
+    const saved = BIND;
+    BIND = { bone: boneName };
+    part(d);
+    BIND = saved;
+  };
+
+  if (cfg.abs) bodyDecal(absDecalTex, 0.30, 0.105, 'spine');
+  // הצלקת יושבת על הבטן החשופה, מתחת לשולי החולצה הקרועה ומעל התחתונים
+  if (cfg.bellyScar) bodyDecal(drillScarTex, 0.43, 0.070, 'spine');
+  // הסמל יושב *על* התחתונים, ולכן lift גדול יותר מעובי הבגד (pad 0.011)
+  if (cfg.heroShield) bodyDecal(heroShieldTex, 0.145, 0.052, 'root', 0.020);
+
+  // ---------- חצאית / קימונו על הרגליים ----------
+  // לא נבנית על עקום פלג הגוף (הוא נגמר באגן) אלא על מסלול משלה שיורד
+  // מהמותניים כלפי מטה ומתרחב. `sweepShapedEdge` מאפשר קצה תחתון משונן,
+  // ולכן "חצאית קרועה" היא בדיוק אותה בנייה עם edgeU אחר.
+  if (cfg.skirt) {
+    const sk = cfg.skirt;
+    const top = S.pelvis.y + (sk.top ?? 0.10);
+    const len = sk.len ?? 0.42;
+    const skirtCurve = makeCurve([
+      V(0, top, 0), V(0, top - len * 0.5, 0.004), V(0, top - len, 0.008),
+    ]);
+    const r0 = sk.r0 ?? 0.145, r1 = sk.r1 ?? 0.215;
+    const skirtProfile = (u) => {
+      const k = r0 + (r1 - r0) * u;
+      return { rx: k, rz: k * 0.82 };
+    };
+    const skirtMat = new THREE.MeshStandardMaterial({
+      color: sk.color, roughness: 0.9, map: ribbedKnit('#ffffff'), side: THREE.DoubleSide,
+    });
+    const bottom = sk.torn
+      ? (th) => 0.72 + 0.28 * (0.5 + 0.5 * Math.sin(th * 6 + 0.7)) * (0.5 + 0.5 * Math.sin(th * 2.5))
+      : () => 1.0;
+    BIND = { bone: 'root' };
+    part(sweepShapedEdge(skirtMat, skirtCurve, skirtProfile,
+      { u0: 0, edgeU: bottom, radial: 40, steps: 22, refDir: V(1, 0, 0) }));
   }
 
   // ---------- כפות רגליים / מגפיים ----------
@@ -1690,9 +1853,16 @@ function createFighter(cfg) {
       const b = profileAt(TORSO_PROFILE, u);
       return { rx: b.rx + 0.008, rz: b.rz + 0.008 };
     };
+    // חולצה קרועה: השוליים התחתונים משוננים במקום ישרים. סכום של שני
+    // גלים בתדרים שאינם כפולות זה של זה נותן קרעים לא-סדירים (גל אחד לבדו
+    // יוצא דפוס גלי ומסודר מדי, שנראה כמו עיצוב ולא כמו קרע).
+    const hemBase = cfg.topHem ?? 0.28;
+    const hemU = cfg.tornHem
+      ? (th) => hemBase + 0.075 * (0.5 + 0.5 * Math.sin(th * 7)) * (0.55 + 0.45 * Math.sin(th * 3 + 1.2))
+      : hemBase;
     BIND = { chain: 'torso' };
     part(sweepShapedEdge(topMat, torsoCurve, shirtProfile,
-      { u0: 0.28, edgeU, radial: 44, steps: 30, refDir: V(1, 0, 0) }));
+      { u0: hemU, edgeU, radial: 44, steps: 30, refDir: V(1, 0, 0) }));
   }
 
   // ---------- ז'קט ----------
@@ -1838,27 +2008,106 @@ function createFighter(cfg) {
 
   // אף = גשר שיוצא מבין הגבות ויורד אל קצה מעוגל, ואז חוזר לתוך הפנים.
   // הגשר קבור בתוך הראש, ולכן אין תפר — רק הקצה בולט החוצה.
-  part(sweep(skinMat, [
-    V(0, HC.y + R * 0.20, R * 0.72),
-    V(0, HC.y + R * 0.00, R * 0.80),
-    V(0, HC.y - R * 0.15, R * 0.875),
-    V(0, HC.y - R * 0.27, R * 0.775),
-  ], [
-    pr(0.00, 0.040, 0.040), pr(0.42, 0.082, 0.078),
-    pr(0.76, 0.112, 0.106), pr(1.00, 0.078, 0.074),
-  ], { steps: 18, radial: 22, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.7 }));
+  // חלופות: אף-מקדחה (זומי) או חוטם תנין (בונדרילו) במקום האף הרגיל.
+  if (cfg.drillNose) {
+    // מקדחה: חרוט ארוך שמצביע קדימה, ועליו כמה טבעות שיוצרות את החריץ
+    // הספירלי. הבסיס קבור בפנים כדי שלא ייווצר תפר.
+    // tip ביחידות R (כמו כל שאר המספרים כאן) - לא מוכפל ב-R כאן, כי הוא
+    // מוכפל בהמשך בכל שימוש. הכפלה כפולה נתנה מקדחה באורך אפס, שנבלעה בפנים.
+    const tip = 2.30;
+    part(sweep(M(0x9aa0a8, 0.35, 0.7), [
+      V(0, HC.y - R * 0.14, R * 0.62),
+      V(0, HC.y - R * 0.17, R * (0.62 + tip * 0.45)),
+      V(0, HC.y - R * 0.20, R * (0.62 + tip)),
+    ], [
+      pr(0.00, 0.150, 0.150), pr(0.55, 0.085, 0.085), pr(1.00, 0.012, 0.012),
+    ], { steps: 20, radial: 18, refDir: V(1, 0, 0), capStart: 'round', capEnd: 'round', domeScale: 0.5 }));
+    // חריצי המקדחה - טבעות שהולכות וקטנות לאורך החרוט
+    for (let k = 0; k < 5; k++) {
+      const f = 0.16 + k * 0.17;
+      const rad = R * (0.150 - 0.130 * f) * 1.35;
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(rad, R * 0.026, 8, 16), M(0x6f757c, 0.4, 0.75));
+      ring.position.set(0, HC.y - R * (0.14 + 0.06 * f), R * (0.62 + tip * f));
+      ring.rotation.x = 0.42;   // הטיה קלה = תחושת ספירלה, לא טבעות מקבילות
+      ring.castShadow = true;
+      part(ring);
+    }
+  } else if (cfg.snout) {
+    // חוטם תנין: קופסה ארוכה ושטוחה שיוצאת מאזור האף, עם לסת תחתונה
+    // מעט קצרה יותר ושורת שיניים לבנות ביניהן.
+    const sy = HC.y - R * 0.26, sz = R * 0.55, len = R * 1.55;
+    part(sweep(skinMat, [
+      V(0, sy + R * 0.04, sz), V(0, sy, sz + len * 0.55), V(0, sy - R * 0.02, sz + len),
+    ], [
+      pr(0.00, 0.46, 0.34), pr(0.55, 0.42, 0.28), pr(1.00, 0.32, 0.20),
+    ], { steps: 16, radial: 18, refDir: V(1, 0, 0), capEnd: 'round', domeScale: 0.6 }));
+    part(sweep(M(0x3f5a34, 0.8), [
+      V(0, sy - R * 0.26, sz + R * 0.05), V(0, sy - R * 0.30, sz + len * 0.86),
+    ], [pr(0, 0.38, 0.20), pr(1, 0.28, 0.15)],
+      { steps: 10, radial: 14, refDir: V(1, 0, 0), capEnd: 'round', domeScale: 0.6 }));
+    // שיניים - חרוטים קטנים לאורך קו החיבור בין הלסתות
+    const toothMat = M(0xf6f4ec, 0.4);
+    for (let k = 0; k < 5; k++) {
+      [-1, 1].forEach((s) => {
+        const zz = sz + len * (0.22 + k * 0.16);
+        const t = new THREE.Mesh(new THREE.ConeGeometry(R * 0.045, R * 0.14, 5), toothMat);
+        t.position.set(s * R * 0.30, sy - R * 0.16, zz);
+        t.rotation.x = Math.PI;   // מצביעה כלפי מטה
+        part(t);
+      });
+    }
+  } else {
+    part(sweep(skinMat, [
+      V(0, HC.y + R * 0.20, R * 0.72),
+      V(0, HC.y + R * 0.00, R * 0.80),
+      V(0, HC.y - R * 0.15, R * 0.875),
+      V(0, HC.y - R * 0.27, R * 0.775),
+    ], [
+      pr(0.00, 0.040, 0.040), pr(0.42, 0.082, 0.078),
+      pr(0.76, 0.112, 0.106), pr(1.00, 0.078, 0.074),
+    ], { steps: 18, radial: 22, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.7 }));
+  }
 
-  const smile = new THREE.Mesh(
-    new THREE.TorusGeometry(R * 0.215, R * 0.034, 10, 26, Math.PI * 0.78), mouthMat);
-  smile.position.set(0, HC.y - R * 0.48, R * 0.775);
-  smile.rotation.z = Math.PI * 1.10;
-  part(smile);
+  // הפה מוסתר מאחורי החוטם של התנין, ולכן מדלגים עליו שם
+  if (!cfg.snout) {
+    const smile = new THREE.Mesh(
+      new THREE.TorusGeometry(R * 0.215, R * 0.034, 10, 26, Math.PI * 0.78), mouthMat);
+    smile.position.set(0, HC.y - R * 0.48, R * 0.775);
+    smile.rotation.z = Math.PI * 1.10;
+    part(smile);
+  }
 
   if (cfg.noseRing) {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(R * 0.15, R * 0.038, 10, 20), goldMat);
-    ring.position.set(0, HC.y - R * 0.31, R * 0.845);
+    // על חוטם ארוך: הטבעת עוברת דרך *גב* החוטם (שם היא נראית מכל זווית).
+    // גובה גב החוטם באזור הזה ≈ HC.y - 0.03R, ולכן טבעת שמרכזה שם בולטת
+    // מחציתה מעל הקו - קודם היא הייתה מתחת לחוטם ונבלעה בתוכו.
+    if (cfg.snout) ring.position.set(0, HC.y - R * 0.02, R * 1.70);
+    else ring.position.set(0, HC.y - R * 0.31, R * 0.845);
     ring.castShadow = true;
     part(ring);
+  }
+
+  // עגיל באוזן - טבעת קטנה שתלויה מתחת לכל אוזן
+  if (cfg.earRing) {
+    [-1, 1].forEach((s) => {
+      const e = new THREE.Mesh(new THREE.TorusGeometry(R * 0.10, R * 0.028, 8, 16), goldMat);
+      e.position.set(s * R * 0.74, HC.y - R * 0.34, -R * 0.06);
+      e.rotation.y = Math.PI / 2;
+      e.castShadow = true;
+      part(e);
+    });
+  }
+
+  // פירסינג בלשון - טבעת קטנה שמציצה מהפה (או מקצה החוטם אצל תנין)
+  if (cfg.tongueRing) {
+    const t = new THREE.Mesh(new THREE.TorusGeometry(R * 0.075, R * 0.022, 8, 16), goldMat);
+    // מעבר לקצה החוטם (שנגמר ב-2.10R), כדי שתיראה ולא תיבלע בגיאומטריה
+    if (cfg.snout) { t.position.set(0, HC.y - R * 0.34, R * 2.16); t.rotation.y = Math.PI / 2; }
+    else { t.position.set(0, HC.y - R * 0.52, R * 0.80); t.rotation.x = Math.PI / 2; }
+    t.castShadow = true;
+    part(t);
   }
 
   // ---------- שיער ----------
@@ -2266,7 +2515,7 @@ const SVAROK_CFG = {
 let player = makeFighter(SVAROK_CFG, -1.7, 1, 100);
 
 // בו - איש כחול, אוזניים חדות, שיער ירוק, עגיל באף וטבעת באצבע, רק בוקסר שחור
-const enemy = makeFighter({
+const BO_CFG = {
   skin: 0x4a93d4,
   hair: 0x33c04a,
   hairStyle: 'spiky',
@@ -2278,7 +2527,94 @@ const enemy = makeFighter({
   boots: null,        // יחף
   noseRing: true,
   fingerRing: true,
-}, 1.7, -1, 75);
+};
+
+// זומי (רמה 2) - אדום, אף ארוך כמו מקדחה, חתך ממקדחה על הבטן, חולצה לבנה
+// קרועה, ותחתונים של גיבור-על. השיער לא תואר באפיון - נבחר כהה וקוצני.
+const ZOOMI_CFG = {
+  skin: 0xcf4436,
+  hair: 0x2a1a16,
+  hairStyle: 'spiky',
+  eyeColor: 0xe8d24a,
+  ears: 'round',
+  drillNose: true,
+  bellyScar: true,
+  top: 0xf4f2ec,      // חולצה לבנה
+  tornHem: true,      // קרועה - שוליים תחתונים משוננים
+  topHem: 0.50,       // קצרה, כדי שהבטן (והחתך שעליה) ייראו מתחתיה
+  pants: null,
+  boxers: 0x2f5bbf,   // תחתונים כחולים
+  heroShield: true,   // מגן עם S עליהם
+  boots: null,
+};
+
+// ברדי (רמה 3) - אפרפר, חולצה שחורה ארוכה, מכנסי ג'ינס שחורים קצרים.
+const BREDY_CFG = {
+  skin: 0x9aa0a3,
+  hair: 0x1c1c1f,
+  hairStyle: 'short',
+  eyeColor: 0x4c5358,
+  ears: 'round',
+  top: null,
+  jacket: 0x131316,     // "חולצה שחורה וארוכה" - מנגנון הז'קט, כמו ברייק
+  jacketStripes: [],
+  jacketHem: 0.30,
+  pants: 0x191922,      // ג'ינס שחור
+  pantsLength: 0.42,    // קצרים
+  shorts: true,
+  boots: 0x24242a,
+};
+
+// זיק (רמה 4) - יפני, חולצה עם ציור קוביות, קצת קוביות בטן, קימונו רק
+// על הרגליים, וכפכפי עץ.
+const ZIK_CFG = {
+  skin: 0xf0cfa8,
+  hair: 0x141118,
+  hairStyle: 'short',
+  eyeColor: 0x2e2016,
+  ears: 'round',
+  top: 0x2f6f8f,
+  topTex: cubeShirtTex,   // ציור של קוביות על החולצה
+  topHem: 0.34,           // גבוהה, כדי שהבטן והקימונו ייראו
+  abs: true,
+  skirt: { color: 0xb8352f, len: 0.46, r0: 0.155, r1: 0.275 },   // קימונו על הרגליים
+  flipflops: true,
+  flipflopColor: 0x8a5a2e,   // עץ
+  boots: null,
+};
+
+// בונדרילו (רמה 5) - איש תנין ירוק-אפור, עגילים באף/אוזן/לשון/אצבע,
+// קוביות בטן, ורק חצאית לבנה קרועה.
+const BONDRILO_CFG = {
+  skin: 0x5f7d4a,       // ירוק
+  hair: 0x8e968a,       // אפור - "ירוק, אפור" מהתיאור; קורא כקשקשים, לא כשיער
+  hairStyle: 'short',
+  eyeColor: 0xd8c24a,
+  ears: 'pointed',
+  snout: true,
+  abs: true,
+  top: null,
+  pants: null,
+  boxers: null,
+  skirt: { color: 0xf0eee4, len: 0.38, r0: 0.155, r1: 0.255, torn: true },
+  noseRing: true,
+  earRing: true,
+  tongueRing: true,
+  fingerRing: true,
+  boots: null,
+};
+
+// רשימת האויבים לפי רמות. `enemy` הוא let (כמו player) כדי שאפשר יהיה
+// להחליף אותו בין קרבות - ראה switchEnemy למטה.
+const ENEMY_LEVELS = [
+  { name: 'בו',       cfg: BO_CFG,        hp: 75  },
+  { name: 'זומי',     cfg: ZOOMI_CFG,     hp: 95  },
+  { name: 'ברדי',     cfg: BREDY_CFG,     hp: 120 },
+  { name: 'זיק',      cfg: ZIK_CFG,       hp: 150 },
+  { name: 'בונדרילו', cfg: BONDRILO_CFG,  hp: 190 },
+];
+let enemyLevel = 0;
+let enemy = makeFighter(ENEMY_LEVELS[0].cfg, 1.7, -1, ENEMY_LEVELS[0].hp);
 
 // ג'ני - חולצה סגולה, ז'קט אפור מפוספס, שיער שחור ארוך, מכנסיים סגולים.
 // לא בקרב (עדיין) - מוגדרת כאן כדי שאפשר יהיה להציג אותה בחנות.
@@ -2702,17 +3038,63 @@ let money = 0;
 const moneyBadgeEl = document.getElementById('moneyBadge');
 function updateMoneyUI() { moneyBadgeEl.textContent = '💰 ' + money + '₪'; }
 
+// ---------- אויבים לפי רמות ----------
+// מנצחים אויב → עולים רמה והאויב הבא מחליף אותו. מפסידים → נשארים באותה
+// רמה ואפשר לנסות שוב. אותו דפוס בדיוק כמו switchPlayerCharacter: `enemy`
+// הוא let, מפרקים את המודל הישן ובונים חדש מהקונפיג של הרמה.
+const hpNameEnemyEl = document.getElementById('hpNameEnemy');
+
+function switchEnemy(levelIdx) {
+  enemyLevel = Math.max(0, Math.min(ENEMY_LEVELS.length - 1, levelIdx));
+  const lvl = ENEMY_LEVELS[enemyLevel];
+
+  const oldX = enemy.x, oldFacing = enemy.facing, wasVisible = enemy.group.visible;
+  scene.remove(enemy.group);
+  enemy.group.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) o.material.dispose();
+  });
+
+  enemy = makeFighter(lvl.cfg, oldX, oldFacing, lvl.hp);
+  addStoneProp(enemy);
+  enemy.group.visible = wasVisible;
+  hpNameEnemyEl.textContent = lvl.name;
+  updateHealthUI(enemy, 'enemy');
+  updateBattleLabel();
+}
+
+function updateBattleLabel() {
+  const lvl = ENEMY_LEVELS[enemyLevel];
+  labelEl.textContent = '🥊 ' + selectedCharacterName + ' מול ' + lvl.name +
+    ' - רמה ' + (enemyLevel + 1) + '/' + ENEMY_LEVELS.length;
+}
+
 function endGame(winnerWho) {
   gameOver = true;
-  gameOverTitleEl.textContent = winnerWho === 'player' ? '🏆 ניצחון!' : '❌ הפסד';
   gameOverEl.classList.add('show');
   if (winnerWho === 'player') {
     money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
     updateMoneyUI();
+    const isLast = enemyLevel >= ENEMY_LEVELS.length - 1;
+    gameOverTitleEl.textContent = isLast
+      ? '👑 ניצחת את כולם!'
+      : '🏆 ניצחון! הבא: ' + ENEMY_LEVELS[enemyLevel + 1].name;
+    // עולים רמה רק אם יש עוד אויב. ההחלפה עצמה קורית ב-resetGame, כדי
+    // שהאויב שהובס יישאר על המסך מאחורי מסך הניצחון עד הקרב הבא.
+    if (!isLast) pendingEnemyLevel = enemyLevel + 1;
+  } else {
+    gameOverTitleEl.textContent = '❌ הפסד';
   }
 }
 
+// רמה שממתינה להחלפה בקרב הבא (null = אין שינוי)
+let pendingEnemyLevel = null;
+
 function resetGame() {
+  if (pendingEnemyLevel !== null) {
+    switchEnemy(pendingEnemyLevel);
+    pendingEnemyLevel = null;
+  }
   [[player, 'player', -1.7, 1], [enemy, 'enemy', 1.7, -1]].forEach(([f, who, x0]) => {
     f.hp = f.maxHp;
     f.x = x0;
@@ -2953,6 +3335,7 @@ function updateLoadoutUI() {
   const noWeaponChoice = ownedWeaponNames().length <= 1;
   weaponPrevBtn.disabled = noWeaponChoice;
   weaponNextBtn.disabled = noWeaponChoice;
+  updateBattleLabel();   // הכותרת בקרב מציגה גם את שם הדמות וגם את האויב/הרמה
 }
 
 /**
@@ -3141,10 +3524,12 @@ animate();
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
-  enemy, startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
+  startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
   renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, inventory,
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
-  CHARACTER_CFGS, WEAPON_CFGS,
+  CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
+  get enemy() { return enemy; },              // enemy הוא let ומתחלף בין רמות
+  get enemyLevel() { return enemyLevel; },
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
   set money(v) { money = v; updateMoneyUI(); },
