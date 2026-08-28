@@ -2529,6 +2529,13 @@ function makeFighter(cfg, startX, facing, maxHp) {
     blocking: false, blockAmt: 0,
     cool: 0, think: 0, mode: 'wait', blockTimer: 0,
     hp: maxHp, maxHp, stoneMesh: null, forceWeaponVisible: false, damageDealt: 0,
+    // powerMult/speedMult: מכפיל הכוח/מהירות המולד של הדמות (מה-cfg) כפול
+    // בונוס השדרוגים שנקנו - ראה refreshPlayerCombatStats. אויבים נשארים על 1
+    // (ברירת המחדל) כי מערכת השדרוגים היא רק לדמויות שהשחקן קנה.
+    powerMult: 1, speedMult: 1,
+    // קפיצה: jumpY זה הגובה הנוכחי מעל הקרקע, jumpVel המהירות האנכית -
+    // פיזיקה פשוטה של כוח כלפי מעלה שדועך עם הזמן (ראה tickJump).
+    jumping: false, jumpY: 0, jumpVel: 0,
   };
 }
 
@@ -2750,6 +2757,7 @@ function addStoneProp(f) { addWeaponProp(f, 'אבן חדה'); }
 
 // סווארק - גופייה לבנה, ג'ינס עם חגורה, מגפי עור, תלתלים חומים, תחבושות על האגרופים
 const SVAROK_CFG = {
+  power: 5, speed: 5,    // כוח/מהירות מ-game-spec.md סעיף 3 - מתוך 10. סווארק הוא קו הבסיס (5/5)
   skin: 0xf3c9a0,
   hair: 0x3a2718,
   hairStyle: 'curly',
@@ -2870,6 +2878,7 @@ let enemy = makeFighter(ENEMY_LEVELS[0].cfg, 1.7, -1, ENEMY_LEVELS[0].hp);
 // ג'ני - חולצה סגולה, ז'קט אפור מפוספס, שיער שחור ארוך, מכנסיים סגולים.
 // לא בקרב (עדיין) - מוגדרת כאן כדי שאפשר יהיה להציג אותה בחנות.
 const JENNY_CFG = {
+  power: 6.5, speed: 8,
   skin: 0xf0c8a0,
   hair: 0x0a0a0a,
   hairStyle: 'long',
@@ -2887,6 +2896,7 @@ const JENNY_CFG = {
 // מכנסיים לבנות עם כיסים, קצת בוקסר שחור מציץ מעל המכנסיים עם כיתוב
 // "I AM THE KING", וכפכפים. גם היא לא בקרב עדיין - להצגה בחנות בלבד.
 const BRAKE_CFG = {
+  power: 7.8, speed: 10,
   skin: 0xefc19a,
   hair: 0xc0632a,
   hairStyle: 'short',   // מגיע עד לאוזניים
@@ -2910,6 +2920,7 @@ const BRAKE_CFG = {
 // באפיון - נבחרו סבירים בהתאם לסגנון (שיער כהה קצר, נעליים בגוון הסגול
 // של לייקרס). גם היא (עדיין) לא בקרב כברירת מחדל - נבחרת מהלובי אחרי קנייה.
 const LORD_CFG = {
+  power: 7.9, speed: 9,
   skin: 0xc98a56,
   hair: 0x241a12,
   hairStyle: 'short',
@@ -2935,6 +2946,7 @@ const LORD_CFG = {
 // לא תוארו באפיון - נבחרו סבירים (עור בהיר, עיניים ירוקות-חומות, נעליים
 // לבנות שמשלימות את התכלת/לבן של המכנס).
 const PLAYTY_CFG = {
+  power: 8.3, speed: 4,
   skin: 0xf1c6a0,
   hair: 0x5c3320,
   hairStyle: 'spiky',      // "קצת פרוע"
@@ -2970,6 +2982,7 @@ const PLAYTY_CFG = {
 // בינוני) כי גוון בינוני "נשטף" כמעט ללבן תחת התאורה החזקה של הזירה -
 // אותו לקח בדיוק שנלמד עם החולצה של פלייטי.
 const LIZZY_CFG = {
+  power: 8.3, speed: 7,
   skin: 0xf2cba6,
   hair: 0x6b4a2f,
   hairStyle: 'short',
@@ -3171,7 +3184,7 @@ function poseFighter(f, t, dt) {
     b.rotation.z += (tg[2] - b.rotation.z) * K;
   }
   f.bob += (bob - f.bob) * K;
-  f.byName.root.position.y = J.root.y + f.bob;
+  f.byName.root.position.y = J.root.y + f.bob + f.jumpY;
 }
 
 // ============================================================================
@@ -3180,7 +3193,11 @@ function poseFighter(f, t, dt) {
 
 const KEYS = {};
 const WATCHED = ['ArrowLeft', 'ArrowRight', 'KeyA', 'KeyS', 'KeyD', 'KeyW', 'Space'];
+// jumpRequested נדלק פעם אחת בלבד בלחיצה (לא כל עוד המקש לחוץ) - אחרת קפיצה
+// הייתה יוצאת מיד שוב כשנוגעים בקרקע ומחזיקים את המקש.
+let jumpRequested = false;
 addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !KEYS[e.code]) jumpRequested = true;
   KEYS[e.code] = true;
   if (WATCHED.includes(e.code)) e.preventDefault();
 });
@@ -3192,10 +3209,33 @@ const BLOCK_SPEED = 0.75;
 const MIN_GAP = 0.95;                 // כמה קרוב מותר להתקרב — בלי לעבור דרך היריב
 const EDGE = RING_HALF - 0.75;
 
+// ---------- קפיצה ----------
+// פיזיקה פשוטה: מהירות כלפי מעלה שדועכת עם הזמן (כובד המשיכה), בדיוק כמו
+// קפיצה אמיתית - קופצים, מאטים, ונופלים בחזרה. jumpY/jumpVel נמצאים על
+// הלוחם עצמו (ראה makeFighter) כדי שגם השחקן וגם האויב יוכלו לקפוץ בעתיד,
+// למרות שכרגע רק Space של השחקן קורא ל-startJump.
+const JUMP_VELOCITY = 3.4;
+const GRAVITY = 9.2;
+
+function startJump(f) {
+  if (f.jumping) return;
+  f.jumping = true;
+  f.jumpVel = JUMP_VELOCITY;
+}
+
+function tickJump(f, dt) {
+  if (!f.jumping) return;
+  f.jumpVel -= GRAVITY * dt;
+  f.jumpY += f.jumpVel * dt;
+  if (f.jumpY <= 0) { f.jumpY = 0; f.jumpVel = 0; f.jumping = false; }
+}
+
 function moveFighter(f, other, dt) {
   // בונוס המהירות מהמשקה: 4 נקודות מהאפיון = 10% מהירות הליכה כל אחת,
-  // כדי שההשפעה תורגש בלי להפוך את הדמות לבלתי נשלטת.
-  const boost = 1 + (f.speedBonus || 0) * 0.10;
+  // כדי שההשפעה תורגש בלי להפוך את הדמות לבלתי נשלטת. speedMult הוא
+  // הבונוס ה"מולד" של הדמות (מהירות הבסיס שלה + רמת שדרוג המהירות שנקנתה) -
+  // ראה refreshPlayerCombatStats. אויבים נשארים על speedMult=1 (ברירת מחדל).
+  const boost = (f.speedMult || 1) * (1 + (f.speedBonus || 0) * 0.10);
   const speed = (f.blocking ? BLOCK_SPEED : WALK_SPEED) * boost;
   let nx = f.x + f.mv * speed * dt;
   nx = Math.max(-EDGE, Math.min(EDGE, nx));
@@ -3217,6 +3257,7 @@ function updatePlayer(f, dt) {
     else if (KEYS.KeyW) startAction(f, 'stone');
   }
   f.mv = f.action ? 0 : ((KEYS.ArrowRight ? 1 : 0) - (KEYS.ArrowLeft ? 1 : 0));
+  if (jumpRequested) { jumpRequested = false; startJump(f); }
 }
 
 // ---------- בו: המחשב משחק ----------
@@ -3304,9 +3345,13 @@ function tickCombat(attacker, defender, who, otherWho) {
 
   // מכת נשק (W) לוקחת את הנזק מהנשק המצויד בפועל (`f.weaponDmg`, נקבע
   // ב-addWeaponProp) במקום מהמספר הקבוע ב-ATTACKS - כדי שנשק חזק יותר
-  // שנקנה בחנות באמת יעשה יותר נזק. אגרוף/בעיטה לא מושפעים.
-  // בונוס הכוח מהמשקה מתווסף לכל מכה (האפיון: "+3 כוח").
-  const base = attacker.action === 'stone' && attacker.weaponDmg != null ? attacker.weaponDmg : cfg.dmg;
+  // שנקנה בחנות באמת יעשה יותר נזק, ולא מושפע מרמת הכוח של הדמות (שדרוגים
+  // משפיעים רק על אגרוף ובעיטה). אגרוף ובעיטה כן מוכפלים ב-powerMult -
+  // שילוב של כוח הבסיס של הדמות (cfg.power, ראה game-spec.md סעיף 3)
+  // ורמת השדרוג שנקנתה (refreshPlayerCombatStats). בונוס הכוח מהמשקה
+  // מתווסף בסוף כמספר קבוע (האפיון: "+3 כוח"), לא מוכפל.
+  const isWeaponHit = attacker.action === 'stone' && attacker.weaponDmg != null;
+  const base = isWeaponHit ? attacker.weaponDmg : cfg.dmg * (attacker.powerMult || 1);
   const dmg = base + (attacker.powerBonus || 0);
 
   // מגן מהלוט: חוסם לגמרי, ואם יש לו יכולת מיוחדת - היא מופעלת כאן
@@ -3399,6 +3444,7 @@ function resetGame() {
     f.blocking = false; f.blockAmt = 0;
     f.mv = 0; f.cool = 0; f.think = 0; f.mode = 'wait'; f.blockTimer = 0;
     f.damageDealt = 0;
+    f.jumping = false; f.jumpY = 0; f.jumpVel = 0;
     // ההשפעות מהלוט הן לקרב אחד בלבד
     f.powerBonus = 0; f.speedBonus = 0; f.guardTimer = 0;
     f.activeShield = null;
@@ -3807,6 +3853,56 @@ function removeWeaponProp(f) {
 
 let selectedCharacterName = 'סווארק';
 let selectedWeaponName = 'אבן חדה';
+
+// ============================================================================
+//  שדרוגים — לכל דמות שקנית יש רמת כוח ורמת מהירות משלה, נפרדות זו מזו.
+//  הכוח/מהירות הבסיסיים (cfg.power/cfg.speed) מגיעים מהטבלה ב-game-spec.md
+//  סעיף 3 (0-10, סווארק=5/5 הוא קו הבסיס) - עד עכשיו המספרים האלה היו רק
+//  טקסט בחנות, בלי שום השפעה על הקרב. עכשיו יש: כוח = בעיטה ואגרוף חזקים
+//  יותר ("חוץ מהנשקים" - נזק נשק לא מושפע), מהירות = תזוזה מהירה יותר.
+//  שתי הרמות (כוח, מהירות) נפרדות לגמרי לכל דמות, כל אחת 1 עד
+//  MAX_UPGRADE_LEVEL, וכל אחת עולה כסף בנפרד וקונים אותה בנפרד בחנות.
+// ============================================================================
+const MAX_UPGRADE_LEVEL = 11;
+const characterLevels = {};   // name -> { power: 1..11, speed: 1..11 }
+
+function getLevels(name) {
+  if (!characterLevels[name]) characterLevels[name] = { power: 1, speed: 1 };
+  return characterLevels[name];
+}
+
+// עולה יותר ככל שמשדרגים יותר: 10₪ לרמה 1→2, 20₪ לרמה 2→3, ... 100₪ לרמה 10→11
+const upgradeCost = (level) => level * 10;
+
+// רמה 1 = בלי שום בונוס שדרוג (רק כוח/מהירות הבסיס של הדמות עצמה). כל
+// רמה מעל 1 מוסיפה עוד 5% - ברמה 11 (המקסימום) זה +50% מעל הבסיס.
+const LEVEL_BONUS_PER_STEP = 0.05;
+
+// מחשבת מחדש את powerMult/speedMult של player הנוכחי מתוך cfg.power/speed
+// והרמות שנקנו - נקראת אחרי בחירת דמות ואחרי כל שדרוג שנקנה.
+function refreshPlayerCombatStats() {
+  const cfg = CHARACTER_CFGS[selectedCharacterName];
+  const lv = getLevels(selectedCharacterName);
+  const basePower = (cfg?.power ?? 5) / 5;   // יחסית לסווארק (5/10) = 1
+  const baseSpeed = (cfg?.speed ?? 5) / 5;
+  player.powerMult = basePower * (1 + LEVEL_BONUS_PER_STEP * (lv.power - 1));
+  player.speedMult = baseSpeed * (1 + LEVEL_BONUS_PER_STEP * (lv.speed - 1));
+}
+
+// stat: 'power' או 'speed'. מחזירה false אם אין מספיק כסף (הכפתור ירעיד).
+function upgradeCharacter(name, stat) {
+  const lv = getLevels(name);
+  const level = lv[stat];
+  if (level >= MAX_UPGRADE_LEVEL) return false;
+  const cost = upgradeCost(level);
+  if (money < cost) return false;
+  money -= cost;
+  lv[stat] = level + 1;
+  updateMoneyUI();
+  if (name === selectedCharacterName) refreshPlayerCombatStats();
+  return true;
+}
+
 const loadoutLabelEl = document.getElementById('loadoutLabel');
 const weaponLabelEl = document.getElementById('weaponLabel');
 const hpNamePlayerEl = document.getElementById('hpNamePlayer');
@@ -3854,6 +3950,7 @@ function switchPlayerCharacter(name) {
 
   player = makeFighter(CHARACTER_CFGS[name], oldX, oldFacing, 100);
   addWeaponProp(player, selectedWeaponName);
+  refreshPlayerCombatStats();
   if (uiScreen === 'lobby') {
     player.forceWeaponVisible = true;
     focusLobbyCamera();
@@ -3908,11 +4005,52 @@ function buyItem(btn) {
   if (key === 'food' || key === 'drinks' || key === 'shields') renderLootBar();
 }
 
+// ---------- שדרוגים ----------
+// קטגוריה מיוחדת: במקום שורה קבועה של פריטים מ-SHOP_DATA (כמו כל שאר
+// הקטגוריות), כאן מציגים כרטיס לכל דמות *שכבר קנית* (ownedCharacterNames),
+// עם שתי רמות נפרדות (כוח/מהירות) וכפתור שדרוג לכל אחת. לכן יש לה
+// פונקציית רינדור וקליק נפרדות, במקום buyItem/rows הרגילים.
+function renderUpgradesCategory() {
+  const names = ownedCharacterNames();
+  if (names.length === 0) {
+    shopGridEl.innerHTML = '<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">קודם קונים דמות בקטגוריית "דמויות", ואז אפשר לשדרג אותה כאן!</div>';
+    return;
+  }
+  const statRow = (name, label, icon, stat) => {
+    const lv = getLevels(name);
+    const level = lv[stat];
+    const maxed = level >= MAX_UPGRADE_LEVEL;
+    const btn = maxed
+      ? `<button class="buyBtn owned" disabled>🏆 מקסימום</button>`
+      : `<button class="buyBtn upgradeBtn" data-name="${name}" data-stat="${stat}">${icon} שדרג ב-${upgradeCost(level)}₪</button>`;
+    return `<div class="itemStat">${icon} ${label} — רמה ${level}/${MAX_UPGRADE_LEVEL}</div>${btn}`;
+  };
+  names.forEach((name) => {
+    const thumb = getCharacterThumb(name);
+    const media = thumb ? `<img class="itemThumb" src="${thumb}">` : '';
+    const card = document.createElement('div');
+    card.className = 'itemCard';
+    card.innerHTML = media + `<div class="itemName">${name}</div>` +
+      statRow(name, 'כוח', '💪', 'power') + statRow(name, 'מהירות', '⚡', 'speed');
+    shopGridEl.appendChild(card);
+  });
+  shopGridEl.querySelectorAll('.upgradeBtn').forEach((btn) => {
+    btn.addEventListener('click', () => onUpgradeClick(btn));
+  });
+}
+
+function onUpgradeClick(btn) {
+  const { name, stat } = btn.dataset;
+  if (!upgradeCharacter(name, stat)) { flashCantAfford(btn); return; }
+  renderShopCategory('upgrades');   // מרעננת מיד - הרמה והמחיר הבא מתעדכנים
+}
+
 function renderShopCategory(key) {
   [...shopTabsEl.children].forEach((btn) => btn.classList.toggle('active', btn.dataset.key === key));
+  shopGridEl.innerHTML = '';
+  if (key === 'upgrades') { renderUpgradesCategory(); return; }
 
   const { rows } = SHOP_DATA[key];
-  shopGridEl.innerHTML = '';
   if (rows.length === 0) {
     shopGridEl.innerHTML = '<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">🚧 עוד לא הוחלט מה יהיה כאן - בקרוב!</div>';
     return;
@@ -4005,6 +4143,7 @@ function animate() {
 
   [player, enemy].forEach((f) => {
     tickAction(f, dt);
+    tickJump(f, dt);
     f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16));
   });
 
@@ -4039,6 +4178,8 @@ window.game = {
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
+  upgradeCharacter, getLevels, characterLevels, upgradeCost, MAX_UPGRADE_LEVEL,
+  refreshPlayerCombatStats, startJump,
   get enemy() { return enemy; },              // enemy הוא let ומתחלף בין רמות
   get enemyLevel() { return enemyLevel; },
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
