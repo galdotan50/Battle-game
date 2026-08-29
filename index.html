@@ -4416,7 +4416,7 @@ function computeGrade(win) {
 function updateGameOverStats(win) {
   gameOverGradeEl.textContent = '⭐ ציון: ' + computeGrade(win);
   statPlayerLineEl.textContent =
-    '🥊 ' + selectedCharacterName + ': התחיל עם ' + player.maxHp +
+    '🥊 אתה: התחיל עם ' + player.maxHp +
     ' חיים, סיים עם ' + Math.max(0, player.hp);
   statEnemyLineEl.textContent =
     '🥋 ' + ENEMY_LEVELS[enemyLevel].name + ': התחיל עם ' + enemy.maxHp +
