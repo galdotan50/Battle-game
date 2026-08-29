@@ -215,6 +215,19 @@
     text-shadow: 0 4px 18px rgba(0,0,0,0.7);
     font-weight: 800;
   }
+  #gameOverStats {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 16px;
+    padding: 16px 30px;
+    color: #fff;
+    font-size: 1.15rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  #gameOverGrade { font-size: 1.7rem; font-weight: 800; color: #ffcf4d; }
   #playAgainBtn {
     font-size: 1.2rem;
     padding: 12px 34px;
@@ -434,6 +447,11 @@
 
 <div id="gameOverOverlay">
   <div id="gameOverTitle"></div>
+  <div id="gameOverStats">
+    <div id="gameOverGrade"></div>
+    <div id="statPlayerLine"></div>
+    <div id="statEnemyLine"></div>
+  </div>
   <div id="btnRow">
     <button id="playAgainBtn">🔄 לשחק שוב</button>
     <button id="lobbyBtn">🏠 לובי</button>
@@ -4267,6 +4285,9 @@ const shieldFlashEl = document.getElementById('shieldFlash');
 const shieldToastEl = document.getElementById('shieldToast');
 const gameOverEl = document.getElementById('gameOverOverlay');
 const gameOverTitleEl = document.getElementById('gameOverTitle');
+const gameOverGradeEl = document.getElementById('gameOverGrade');
+const statPlayerLineEl = document.getElementById('statPlayerLine');
+const statEnemyLineEl = document.getElementById('statEnemyLine');
 const playAgainBtn = document.getElementById('playAgainBtn');
 
 function updateHealthUI(f, who) {
@@ -4368,10 +4389,46 @@ function updateBattleLabel() {
     ' - רמה ' + (enemyLevel + 1) + '/' + ENEMY_LEVELS.length;
 }
 
+// מערכת ציונים (game-spec.md סעיף 12: C/B/A/S/SS/SSS, מחושב לפי נזק
+// שנגרם, נזק שהתקבל, כמה חיים נשארו, וניצחון/הפסד - "ביצועים מיוחדים"
+// לא מומש, אין כרגע מנגנון למדוד את זה בנפרד). האפיון נותן את המרכיבים
+// אבל לא נוסחה מדויקת - זו נוסחה שעוצבה כאן. אחוזים מתוך ה-hp המקסימלי
+// (לא מספרי נזק גולמיים), כדי שקרב מול אויב עם הרבה יותר hp (כמו לוסטר,
+// 440) לא ייתן ציון מנופח אוטומטית לעומת קרב מול אויב חלש.
+function computeGrade(win) {
+  const dmgDealtPct = Math.min(100, (player.damageDealt / enemy.maxHp) * 100);
+  const dmgReceivedPct = Math.min(100, (enemy.damageDealt / player.maxHp) * 100);
+  const hpRemainPct = Math.max(0, player.hp / player.maxHp) * 100;
+  const points = dmgDealtPct - dmgReceivedPct * 0.5 + hpRemainPct * 0.5 + (win ? 60 : -20);
+  if (points >= 180) return 'SSS';
+  if (points >= 140) return 'SS';
+  if (points >= 100) return 'S';
+  if (points >= 60) return 'A';
+  if (points >= 20) return 'B';
+  return 'C';
+}
+
+// חיי ההתחלה = maxHp תמיד (resetGame ממלא חיים בתחילת כל קרב), וחיי
+// הסיום = f.hp *ברגע endGame*, לפני ש-resetGame מאפס אותם לקרב הבא.
+// ⚠️ ניסיון ראשון השתמש בחץ ("100 ⟵ 62") - עלול להתבלבל בטקסט עברי
+// (RTL) עם ספרות (LTR) בתוכו. תוקן לניסוח מילולי רגיל, כמו שהמשתמש
+// עצמו ניסח את הבקשה ("כמה חיים... התחיל... כמה... גמר").
+function updateGameOverStats(win) {
+  gameOverGradeEl.textContent = '⭐ ציון: ' + computeGrade(win);
+  statPlayerLineEl.textContent =
+    '🥊 ' + selectedCharacterName + ': התחיל עם ' + player.maxHp +
+    ' חיים, סיים עם ' + Math.max(0, player.hp);
+  statEnemyLineEl.textContent =
+    '🥋 ' + ENEMY_LEVELS[enemyLevel].name + ': התחיל עם ' + enemy.maxHp +
+    ' חיים, סיים עם ' + Math.max(0, enemy.hp);
+}
+
 function endGame(winnerWho) {
   gameOver = true;
   gameOverEl.classList.add('show');
-  if (winnerWho === 'player') {
+  const win = winnerWho === 'player';
+  updateGameOverStats(win);
+  if (win) {
     money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
     updateMoneyUI();
     const isLast = enemyLevel >= ENEMY_LEVELS.length - 1;
