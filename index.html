@@ -1076,6 +1076,24 @@ const mottledSkinTex = (baseHex, spotHex) => {
   return t;
 };
 
+// עור עם נקודות זוהרות (מוקרוט - "גוף אדום-סגול עם נקודות זוהרות") -
+// אותו רעיון מבני כמו mottledSkinTex, רק נקודות עגולות קטנות במקום
+// כתמים גדולים. לא זוהר אמיתי (החומר עדיין MeshStandardMaterial רגיל,
+// לא emissive) - רק נקודות בהירות שקוראות כ"זוהרות" בניגוד לבסיס הכהה.
+const glowDotsTex = (baseHex, dotHex) => {
+  const t = canvasTex(128, (ctx, n) => {
+    ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+    ctx.fillStyle = dotHex;
+    for (let i = 0; i < 40; i++) {
+      ctx.beginPath();
+      ctx.arc(Math.random() * n, Math.random() * n, n * (0.015 + Math.random() * 0.02), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, 4, 4);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
+
 // כתובת שעוטפת טבעת דקה פעם אחת בדיוק (בלי חזרה - repeat.set(1,1)), כמו
 // כיתוב על גומי בוקסר. קנבס רחב ונמוך (לא ריבוע כמו canvasTex) כי הטבעת
 // עצמה דקה מאוד וצריך שהטקסט לא ייצא מתוח אנכית.
@@ -1153,6 +1171,24 @@ const bigLetterBadgeTex = (bg, letterColor, letter) => badgeTex((ctx, n) => {
   ctx.font = `bold ${Math.round(n * 0.62)}px Arial, sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(letter, cx, cy + n * 0.02);
+});
+
+// עיגול-רקע עם ברק - נייטווינג ("סמל סגול בצורת ברק על החזה"). אותו
+// עיקרון כמו bigLetterBadgeTex, רק polygon של ברק במקום אות.
+const lightningBadgeTex = (bg, boltColor) => badgeTex((ctx, n) => {
+  const cx = n / 2, cy = n / 2, r = n * 0.48;
+  ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = boltColor;
+  ctx.beginPath();
+  ctx.moveTo(cx + n * 0.06, cy - n * 0.34);
+  ctx.lineTo(cx - n * 0.16, cy + n * 0.04);
+  ctx.lineTo(cx - n * 0.01, cy + n * 0.04);
+  ctx.lineTo(cx - n * 0.09, cy + n * 0.34);
+  ctx.lineTo(cx + n * 0.19, cy - n * 0.06);
+  ctx.lineTo(cx + n * 0.03, cy - n * 0.06);
+  ctx.closePath();
+  ctx.fill();
 });
 
 // קעקוע - בניגוד לתגי הקבוצות (badgeTex, עיגול אטום) קעקוע צריך רקע
@@ -1637,11 +1673,29 @@ function createFighter(cfg) {
   // עור מנומר (cfg.mottledSkin, סלייקי) מחליף את skinMat *הכללי* עצמו -
   // בניגוד ל-headMat למטה (שמיוחד רק לראש), כאן כל הגוף חשוף (בלי בגדים)
   // וצריך את אותו מרקם בכל מקום, אז הכי פשוט להחליף את skinMat עצמו.
+  // עור מקועקע (cfg.tattooedSkin, קולין - "כל הגוף שלו קעקועים כולל
+  // הראש") - אותו רעיון בדיוק כמו העור המנומר למעלה, רק במקום כתמים
+  // (mottledSkinTex) עושה שימוש חוזר ב-catStripeTex (קווים כהים
+  // מעוקלים) שכבר נבנה בשביל פסי החתול של ברטו - קווי דיו על עור קוראים
+  // דומה מאוד לקווי פס, אז אותה טקסטורה עובדת לשני השימושים בלי שינוי.
   const skinMat = cfg.mottledSkin ? new THREE.MeshStandardMaterial({
     color: 0xffffff, roughness: 0.62,
     map: mottledSkinTex(
       '#' + new THREE.Color(cfg.skin).getHexString(),
       '#' + new THREE.Color(cfg.mottledColor2 ?? 0xcc2222).getHexString()),
+  }) : cfg.tattooedSkin ? new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.62,
+    map: catStripeTex('#' + new THREE.Color(cfg.skin).getHexString()),
+  }) : cfg.glowDotsSkin ? new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.55,
+    map: glowDotsTex(
+      '#' + new THREE.Color(cfg.skin).getHexString(),
+      '#' + new THREE.Color(cfg.glowDotsColor ?? 0xffe28a).getHexString()),
+  }) : cfg.crystalSkin ? new THREE.MeshStandardMaterial({
+    // עור גביש (לוסטר) - לא טקסטורה, חומר מבריק וחלק (roughness נמוך,
+    // metalness בינוני) שנותן מראה של קריסטל מלוטש בלי צורך בשקיפות
+    // אמיתית (שקיפות אמיתית מסתבכת עם סדר רינדור וצללים במנוע הפשוט הזה).
+    color: cfg.skin, roughness: 0.15, metalness: 0.35,
   }) : M(cfg.skin, 0.62);
   // פסי חתול (cfg.catStripes) חיים רק על הראש (כולל הלסת) - הגוף נשאר
   // בגוון אחיד. אותו עיקרון בדיוק כמו jacketMat: הצבע חי בתוך המרקם
@@ -1694,8 +1748,15 @@ function createFighter(cfg) {
     color: 0xf2efe7, roughness: 0.96, map: bandageTex('#ffffff'),
   });
   const eyeWhiteMat = M(0xfcfcfc, 0.22);
-  const irisMat  = M(cfg.eyeColor ?? 0x5a3a20, 0.28);
-  const pupilMat = M(0x120e0a, 0.2);
+  // עיניים זוהרות (cfg.glowEyes, למשל נייטווינג/לוסטר) - MeshBasicMaterial
+  // לא מושפע מתאורה, ולכן נשאר בהיר וקבוע גם בפינות חשוכות של הזירה,
+  // בניגוד ל-M() הרגיל (MeshStandardMaterial) שכהה בצל. גם האישון זוהר
+  // באותו גוון (לא שחור) - עין "זוהרת" אמיתית היא כתם אור אחיד, לא גלגל
+  // עין רגיל עם אישון כהה.
+  const irisMat  = cfg.glowEyes
+    ? new THREE.MeshBasicMaterial({ color: cfg.eyeColor ?? 0x5a3a20 })
+    : M(cfg.eyeColor ?? 0x5a3a20, 0.28);
+  const pupilMat = cfg.glowEyes ? irisMat : M(0x120e0a, 0.2);
   const glintMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
   const mouthMat = M(cfg.lipColor ?? 0x8a4a44, 0.6);
   const lashMat = M(0x1a1310, 0.7);
@@ -2089,6 +2150,28 @@ function createFighter(cfg) {
     }
   });
 
+  // ---------- גבישים סביב הברכיים ----------
+  // לוסטר - "רגליים עבות וכבדות עם גבישים גדולים מסביב לברכיים". קשיח
+  // על עצם הברך (כמו הצמיד על שורש כף היד), לא chain - אשכול קטן של
+  // חרוטים מזוויות שונות סביב אותה נקודה, לא איבר שמתעוות.
+  if (cfg.kneeCrystals) {
+    const crystalMat = new THREE.MeshStandardMaterial({
+      color: cfg.crystalColor ?? 0x6fe8f0, roughness: 0.12, metalness: 0.25,
+    });
+    ['kneeL', 'kneeR'].forEach((knee) => {
+      BIND = { bone: knee };
+      const p = S[knee];
+      [0, 1.3, 2.6, 3.9, 5.2].forEach((a) => {
+        const shard = new THREE.Mesh(new THREE.ConeGeometry(0.020, 0.075, 6), crystalMat);
+        shard.position.set(
+          p.x + Math.cos(a) * 0.045, p.y + Math.sin(a) * 0.02, p.z + Math.sin(a) * 0.045);
+        shard.rotation.z = a + Math.PI / 2;
+        shard.castShadow = true;
+        part(shard);
+      });
+    });
+  }
+
   // ---------- זרועות ----------
   // המסלול מתחיל בתוך בית החזה, והדלתא היא פשוט הקטע העבה של הזרוע.
   // אין כדור כתף בכלל — זה מה שהעיף את "הידיים הנפוחות".
@@ -2175,14 +2258,81 @@ function createFighter(cfg) {
 
       // צמיד — כמו הטבעת אבל רחב יותר וקצת אחורה על שורש כף היד/האמה
       // במקום קדימה על האגרוף, כדי שלא יתנגש איתה.
-      if (cfg.bracelet && side === 1) {
-        const bracelet = new THREE.Mesh(new THREE.TorusGeometry(0.050, 0.010, 8, 20), goldMat);
-        bracelet.position.copy(wr.clone().addScaledVector(dir, -0.085));
-        bracelet.quaternion.setFromUnitVectors(V(0, 0, 1), dir);
-        bracelet.castShadow = true;
-        part(bracelet);
+      // צמידים - ברירת מחדל: אחד, רק יד ימין (כמו לורד/סלייקי). קולין
+      // ("מלא צמידי זהב") מבקש כמה, ועל שתי הידיים - cfg.braceletCount/
+      // cfg.braceletBothWrists מרחיבים בלי לגעת בברירת המחדל הקיימת.
+      if (cfg.bracelet && (side === 1 || cfg.braceletBothWrists)) {
+        const count = cfg.braceletCount ?? 1;
+        for (let i = 0; i < count; i++) {
+          const bracelet = new THREE.Mesh(new THREE.TorusGeometry(0.050, 0.010, 8, 20), goldMat);
+          bracelet.position.copy(wr.clone().addScaledVector(dir, -0.085 - i * 0.024));
+          bracelet.quaternion.setFromUnitVectors(V(0, 0, 1), dir);
+          bracelet.castShadow = true;
+          part(bracelet);
+        }
+      }
+
+      // טפרים - קירוב פשוט של "אצבעות עם טפרים": כמה חרוטים קטנים על
+      // חזית האגרוף (שהוא ממילא כדור מוכלל, לא אצבעות נפרדות), לא בניית
+      // יד עם אצבעות בפועל. נייטווינג ("טפרים קצרים וחדים").
+      if (cfg.claws) {
+        const clawMat = M(cfg.clawColor ?? 0x141414, 0.4);
+        [-1.5, -0.5, 0.5, 1.5].forEach((k) => {
+          const claw = new THREE.Mesh(new THREE.ConeGeometry(0.010, 0.045, 8), clawMat);
+          claw.position.copy(wr.clone()
+            .addScaledVector(dir, 0.086)
+            .addScaledVector(across, k * 0.0175)
+            .addScaledVector(up2, 0.014));
+          claw.quaternion.setFromUnitVectors(V(0, 1, 0), dir);
+          claw.castShadow = true;
+          part(claw);
+        });
       }
     });
+
+  // ---------- כנפיים ----------
+  // נייטווינג - "כנפיים ענקיות ושחורות עם קצוות מחודדות". לא משטח קרום
+  // רציף (מורכב מדי לבנייה כרגע) - כמה "אצבעות" שטוחות שיוצאות מאותה
+  // נקודת עוגן על הגב במניפה, בדיוק כמו אוזני החתול (כמה sweep-ים
+  // מאותו בסיס) רק גדולות, שטוחות (rz קטן מאוד) ולא ביחידות R כי הן
+  // גדולות בהרבה מהראש - ביחידות עולם מוחלטות, כמו מיקומי השלד עצמו.
+  if (cfg.wings) {
+    BIND = { bone: 'chest' };
+    const wingMat = M(cfg.wingColor ?? 0x0a0a0d, 0.75);
+    const FINGERS = [
+      { ang: 0.20, len: 0.40 },
+      { ang: 0.55, len: 0.56 },
+      { ang: 0.92, len: 0.52 },
+      { ang: 1.28, len: 0.36 },
+    ];
+    [-1, 1].forEach((s) => {
+      const base = V(s * 0.06, S.chest.y + 0.10, S.chest.z - 0.06);
+      FINGERS.forEach(({ ang, len }) => {
+        const dir2 = V(Math.sin(ang) * s, Math.cos(ang) * 0.55, -0.35 - ang * 0.15).normalize();
+        const mid = base.clone().addScaledVector(dir2, len * 0.55);
+        const tip = base.clone().addScaledVector(dir2, len);
+        part(sweep(wingMat, [base, mid, tip], [
+          { t: 0, rx: 0.050, rz: 0.014 },
+          { t: 0.5, rx: 0.075, rz: 0.010 },
+          { t: 1, rx: 0.004, rz: 0.004 },
+        ], { steps: 10, radial: 10, refDir: V(0, 1, 0), capStart: 'round', domeScale: 0.5 }));
+      });
+    });
+  }
+
+  // ---------- קריסטל ענק בחזה ----------
+  // לוסטר - "במרכז החזה קריסטל ענק וזוהר שמכיל את האנרגיה שלו". עצמאי
+  // מ-cfg.chestCrestTex (שדורש חולצה/ז'קט) כי ללוסטר אין בגד כלל -
+  // תלוי ישירות על עצם החזה. MeshBasicMaterial (כמו עיניים זוהרות)
+  // כדי שייראה זוהר גם באזורים מוצללים, לא חומר רגיל שמתכהה בצל.
+  if (cfg.chestGem) {
+    BIND = { bone: 'chest' };
+    const gemMat = new THREE.MeshBasicMaterial({ color: cfg.chestGemColor ?? 0x6fe8f0 });
+    const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.075, 0), gemMat);
+    gem.position.set(0, S.chest.y - 0.02, S.chest.z + 0.10);
+    gem.rotation.y = Math.PI / 4;
+    part(gem);
+  }
 
   // ---------- גופייה ----------
   // אותו מסלול של פלג הגוף + מרווח → צמודה, והשוליים עוקבים אחרי קו הגוף.
@@ -2261,10 +2411,25 @@ function createFighter(cfg) {
   // ראש "מעוך" (cfg.headSquish, סלייקי) - שטוח ורחב, במקום פרופורציית
   // הראש הרגילה. משפיע גם על השיער (cap+RINGS למטה, שמשתמשים באותו
   // headScale) כדי שהוא יישאר צמוד לצורת הגולגולת החדשה, לא לישנה.
-  const headScale = cfg.headSquish ? { x: 1.35, y: 0.60, z: 1.00 } : HEAD_SCALE;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(R, 44, 34), headMat);
+  // ראש ענק (cfg.bigHeadMult, מוקרוט) - הגדלה *אחידה* (לא מעוך) - קל
+  // יותר להתאים כי כל תו הפנים (עיניים/אף/פה/לסת) פשוט מתרחק פרופורציונלית
+  // ממרכז הראש לפי headMult, בלי לשנות יחס רוחב/גובה/עומק בין תו לתו.
+  const headMult = cfg.bigHeadMult ?? 1;
+  const headScale = cfg.headSquish
+    ? { x: 1.35, y: 0.60, z: 1.00 }
+    : { x: HEAD_SCALE.x * headMult, y: HEAD_SCALE.y * headMult, z: HEAD_SCALE.z * headMult };
+  // ראש משושה (cfg.hexHead, לוסטר - "עשוי כמעט כולו מגבישים... ראש
+  // משושה") - מנסרה שישתית (CylinderGeometry עם 6 מקטעים) במקום כדור.
+  // rotation.y=π/6 מסובב כך שפאה שטוחה (לא קודקוד) פונה קדימה - חשוב
+  // כדי שהחישוב הקיים של עומק הפנים (ez, ראה למטה) יישאר קרוב לנכון.
+  // אין לסת/סנטר לראש משושה - כדור רך לא הולם צורה גיאומטרית-קשיחה.
+  const head = cfg.hexHead
+    ? new THREE.Mesh(
+        new THREE.CylinderGeometry(R * 0.95 * headMult, R * 0.95 * headMult, R * 1.9 * headMult, 6), headMat)
+    : new THREE.Mesh(new THREE.SphereGeometry(R, 44, 34), headMat);
   head.position.copy(HC);
-  head.scale.set(headScale.x, headScale.y, headScale.z);
+  if (cfg.hexHead) head.rotation.y = Math.PI / 6;
+  else head.scale.set(headScale.x, headScale.y, headScale.z);
   head.castShadow = true;
   head.receiveShadow = true;
   part(head);
@@ -2272,11 +2437,13 @@ function createFighter(cfg) {
   // לסת וסנטר — מרככים את "הכדור המושלם" לצורת פנים
   // נשאר *בתוך* אליפסואיד הראש בכל הכיוונים חוץ מלמטה, ולכן הוא מוסיף סנטר
   // בלי ליצור טבעת תפר נראית סביב הפנים.
-  const jaw = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78, 34, 26), headMat);
-  jaw.position.set(0, HC.y - R * 0.55, R * 0.05);
-  jaw.scale.set(0.68, 0.88, 0.78);
-  jaw.castShadow = true;
-  part(jaw);
+  if (!cfg.hexHead) {
+    const jaw = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78 * headMult, 34, 26), headMat);
+    jaw.position.set(0, HC.y - R * 0.55 * headMult, R * 0.05 * headMult);
+    jaw.scale.set(0.68, 0.88, 0.78);
+    jaw.castShadow = true;
+    part(jaw);
+  }
 
   // ---------- אוזניים ----------
   [-1, 1].forEach((s) => {
@@ -2336,6 +2503,46 @@ function createFighter(cfg) {
     });
   }
 
+  // ---------- קרניים קטנות פונות לאחור ----------
+  // נייטווינג - שתי קרניים קטנות שמתחילות למעלה על הראש ומתעקלות
+  // לאחור (z שלילי) במקום לצדדים כמו אוזני חתול. cfg.hornColor ברירת
+  // מחדל לצבע העור עצמו (קרן כהה שממשיכה את גוון הגוף).
+  if (cfg.backHorns) {
+    const hornMat = M(cfg.hornColor ?? cfg.skin, 0.5);
+    [-1, 1].forEach((s) => {
+      part(sweep(hornMat, [
+        V(s * R * 0.26, HC.y + R * 0.88, R * 0.10),
+        V(s * R * 0.32, HC.y + R * 1.05, -R * 0.15),
+        V(s * R * 0.36, HC.y + R * 1.18, -R * 0.42),
+      ], [
+        pr(0, 0.10, 0.10), pr(0.6, 0.06, 0.06), pr(1, 0.008, 0.008),
+      ], { steps: 8, radial: 10, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.6 }));
+    });
+  }
+
+  // ---------- גבישי קריסטל מעל הראש ----------
+  // לוסטר - "גבישי קריסטלים גדולים מעל הראש כמו קרניים". חרוטים
+  // מרובעי-פאות (6 מקטעים, לא עגולים חלקים) כדי שייראו כמו גבישים
+  // מלוטשים ולא כמו קרניים אורגניות רכות.
+  if (cfg.headCrystals) {
+    const crystalMat = new THREE.MeshStandardMaterial({
+      color: cfg.crystalColor ?? 0x6fe8f0, roughness: 0.12, metalness: 0.25,
+    });
+    [
+      { x: -0.34, len: 0.80, tilt: -0.20 },
+      { x: 0, len: 1.05, tilt: 0 },
+      { x: 0.34, len: 0.80, tilt: 0.20 },
+    ].forEach(({ x, len, tilt }) => {
+      const shard = new THREE.Mesh(new THREE.ConeGeometry(R * 0.22 * headMult, R * len * headMult, 6), crystalMat);
+      // בסיס הגביש על פסגת הראש המשושה השטוחה (חצי-הגובה של הצילינדר,
+      // R*0.95, לא R*1.10 שהיה מתאים לפסגת כדור רגילה).
+      shard.position.set(x * R * headMult, HC.y + R * (0.95 + len * 0.5) * headMult, 0);
+      shard.rotation.z = tilt;
+      shard.castShadow = true;
+      part(shard);
+    });
+  }
+
   // ---------- פנים ----------
   // עיניים קטנות ומבטאות כמו ברפרנס — לא עיניים ענקיות בסגנון אנימה
   // עין אחת (cfg.oneEye, סלייקי) - איטרציה על [0] בלבד (עין אחת במרכז,
@@ -2344,15 +2551,21 @@ function createFighter(cfg) {
   // הגבה מדלגת ב-one-eye: הנוסחה שלה תלויה ב-s לכיוון הקשת (s=0 הופך
   // אותה לקו ישר מנוון), ומפלצת עם עין אחת ממילא לא צריכה גבה סימטרית.
   const eyeSlots = cfg.oneEye ? [0] : [-1, 1];
-  const eyeSizeMult = cfg.oneEye ? 1.9 : 1;
+  // cfg.eyeSizeMult (חדש) מאפשר עיניים גדולות בלי עין-אחת (מוקרוט,
+  // "שתי עיניים צהובות גדולות") - עצמאי מ-oneEye, לא רק ברירת המחדל שלו.
+  const eyeSizeMult = cfg.eyeSizeMult ?? (cfg.oneEye ? 1.9 : 1);
   eyeSlots.forEach((s) => {
-    const ex = s * R * 0.40, ey = HC.y + R * 0.10;
+    const ex = s * R * 0.40 * headMult, ey = HC.y + R * 0.10 * headMult;
     // ez=0.80R הונח על סמך הראש הרגיל (headScale.z=0.90). ראש שטוח ורחב
     // (headScale.z=1.00, y=0.60) מזיז את פני השטח האמיתיים באותו גובה-עין
     // קדימה (החישוב: z_surface = R*headScale.z*sqrt(1-(0.10/0.60)²)≈0.986R)
     // - ez הישן יצא *מאחורי* פני הראש, והעין נבלעה כליל בלי להיראות בכלל.
     // נמצא ברינדור (עין שלמה נעלמה), לא בחישוב מראש. תוקן עם מרווח קדימה.
-    const ez = cfg.headSquish ? R * 1.05 : R * 0.80;
+    // ראש ענק (headMult) מרחיק את פני השטח פרופורציונלית בכל הכיוונים
+    // (ראה ההערה על head.scale למעלה) - ez מוכפל גם הוא כדי להישאר צמוד.
+    // ראש משושה (hexHead) - הפאה השטוחה נמצאת באפותם המשושה
+    // (R*0.95*cos(30°)≈0.82R), לא על עקומת כדור - מספר קרוב אך שונה.
+    const ez = cfg.headSquish ? R * 1.05 : cfg.hexHead ? R * 0.85 * headMult : R * 0.80 * headMult;
     // (ez נבחר כך שחזית הלובן תעבור את פני הפנים בכ-0.001 בלבד)
 
     // פני הראש בגובה העין נמצאים ב-z=0.876R. כל שכבה כאן בולטת רק במעט מעל
@@ -2394,9 +2607,9 @@ function createFighter(cfg) {
     if (!cfg.oneEye) {
       // גבה עבה ומעוקלת (בולטת ברפרנס) — רצועה, לא קופסה
       part(sweep(hairMat,
-        [V(ex - s * R * 0.30, HC.y + R * 0.235, R * 0.780),
-         V(ex,                HC.y + R * 0.290, R * 0.856),
-         V(ex + s * R * 0.30, HC.y + R * 0.245, R * 0.780)],
+        [V(ex - s * R * 0.30 * headMult, HC.y + R * 0.235 * headMult, R * 0.780 * headMult),
+         V(ex,                          HC.y + R * 0.290 * headMult, R * 0.856 * headMult),
+         V(ex + s * R * 0.30 * headMult, HC.y + R * 0.245 * headMult, R * 0.780 * headMult)],
         [pr(0, 0.04, 0.032), pr(0.5, 0.078, 0.055), pr(1, 0.04, 0.032)],
         { steps: 10, radial: 14, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
     }
@@ -2469,7 +2682,9 @@ function createFighter(cfg) {
     ], [
       pr(0.00, 0.46, 0.34), pr(0.55, 0.42, 0.28), pr(1.00, 0.32, 0.20),
     ], { steps: 16, radial: 18, refDir: V(1, 0, 0), capEnd: 'round', domeScale: 0.6 }));
-    part(sweep(M(0x3f5a34, 0.8), [
+    // cfg.snoutJawColor (חדש, לונג) - ברירת המחדל היא הירוק המקורי של
+    // בונדרילו; לונג (דרקון צהוב) צריך שהלסת התחתונה תתאים לצבע גופו.
+    part(sweep(M(cfg.snoutJawColor ?? 0x3f5a34, 0.8), [
       V(0, sy - R * 0.26, sz + R * 0.05), V(0, sy - R * 0.30, sz + len * 0.86),
     ], [pr(0, 0.38, 0.20), pr(1, 0.28, 0.15)],
       { steps: 10, radial: 14, refDir: V(1, 0, 0), capEnd: 'round', domeScale: 0.6 }));
@@ -2484,12 +2699,23 @@ function createFighter(cfg) {
         part(t);
       });
     }
+    // ניבים ממש ארוכים (cfg.longFangs, לונג) - שני חרוטים גדולים בנוסף
+    // לשורת השיניים הקטנה, בקצה קדמי של הפה.
+    if (cfg.longFangs) {
+      [-1, 1].forEach((s) => {
+        const fang = new THREE.Mesh(new THREE.ConeGeometry(R * 0.08, R * 0.62, 6), toothMat);
+        fang.position.set(s * R * 0.32, sy - R * 0.30, sz + len * 0.22);
+        fang.rotation.x = Math.PI;
+        fang.castShadow = true;
+        part(fang);
+      });
+    }
   } else {
     part(sweep(skinMat, [
-      V(0, HC.y + R * 0.20, R * 0.72),
-      V(0, HC.y + R * 0.00, R * 0.80),
-      V(0, HC.y - R * 0.15, R * 0.875),
-      V(0, HC.y - R * 0.27, R * 0.775),
+      V(0, HC.y + R * 0.20 * headMult, R * 0.72 * headMult),
+      V(0, HC.y + R * 0.00 * headMult, R * 0.80 * headMult),
+      V(0, HC.y - R * 0.15 * headMult, R * 0.875 * headMult),
+      V(0, HC.y - R * 0.27 * headMult, R * 0.775 * headMult),
     ], [
       pr(0.00, 0.040, 0.040), pr(0.42, 0.082, 0.078),
       pr(0.76, 0.112, 0.106), pr(1.00, 0.078, 0.074),
@@ -2498,11 +2724,33 @@ function createFighter(cfg) {
 
   // הפה מוסתר מאחורי החוטם של התנין, ולכן מדלגים עליו שם
   if (!cfg.snout) {
+    // cfg.mouthScale (חדש, מוקרוט - "פה קטן") - גודל הפה עצמו נפרד
+    // מ-headMult: ראש ענק לא אמור להביא איתו פה גדול יותר באופן אוטומטי.
+    const mouthScale = cfg.mouthScale ?? 1;
     const smile = new THREE.Mesh(
-      new THREE.TorusGeometry(R * 0.215, R * 0.034, 10, 26, Math.PI * 0.78), mouthMat);
-    smile.position.set(0, HC.y - R * 0.48, R * 0.775);
+      new THREE.TorusGeometry(R * 0.215 * mouthScale, R * 0.034 * mouthScale, 10, 26, Math.PI * 0.78), mouthMat);
+    smile.position.set(0, HC.y - R * 0.48 * headMult, R * 0.775 * headMult);
     smile.rotation.z = Math.PI * 1.10;
     part(smile);
+
+    // שיניים חדות בפה הרגיל (cfg.mouthTeeth, נייטווינג/מוקרוט) - שורת
+    // חרוטים קטנים מתחת לקשת החיוך, לא לאורך חוטם תנין ישר, אז המיקום
+    // כאן קירוב פשוט (מרווח שווה על ציר X) ולא טריגונומטריה של הטבעת -
+    // בחירה סגנונית, לא משטח שצריך להיות מדויק. goldIndices מאפשר שיניים
+    // בודדות בזהב (מוקרוט: "כמה שיניים בצבע זהב").
+    if (cfg.mouthTeeth) {
+      const { count = 4, goldIndices = [] } = cfg.mouthTeeth;
+      const toothMat = M(0xf6f4ec, 0.4);
+      for (let i = 0; i < count; i++) {
+        const t0 = (i + 0.5) / count - 0.5;
+        const tooth = new THREE.Mesh(
+          new THREE.ConeGeometry(R * 0.028 * mouthScale, R * 0.09 * mouthScale, 6), goldIndices.includes(i) ? goldMat : toothMat);
+        tooth.position.set(t0 * R * 0.30 * mouthScale, HC.y - R * 0.40 * headMult, R * 0.79 * headMult);
+        tooth.rotation.x = Math.PI;
+        tooth.castShadow = true;
+        part(tooth);
+      }
+    }
   }
 
   if (cfg.noseRing) {
@@ -2609,7 +2857,7 @@ function createFighter(cfg) {
   // כולל העין היחידה של סלייקי - נראה ברינדור (לא ניתן לחישוב מראש בלי
   // לראות). הכיפה מדלגת שם - נשארים רק קוצי השיער הבודדים למטה, שנותנים
   // מראה של "כתר קוצים" במקום קסדה שלמה, ולא קוברים את הפנים.
-  if (!cfg.headSquish) {
+  if (!cfg.headSquish && !cfg.bald) {
     const cap = new THREE.Mesh(
       new THREE.SphereGeometry(R * 1.02, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.54), hairMat);
     cap.position.copy(HC);
@@ -2622,8 +2870,11 @@ function createFighter(cfg) {
     part(cap);
   }
 
+  // דמות קירחת (cfg.bald, קולין) - מדלגת על כל קווצות השיער (לא רק
+  // הכיפה למעלה). בלי הדגל הזה, אי-הגדרת hairStyle עדיין הייתה נופלת
+  // ל-branch ברירת המחדל (תלתול) למטה, לא משאירה ראש חלק.
   const hx = R * headScale.x * 1.24, hy = R * headScale.y * 1.06, hz = R * headScale.z * 1.14;
-  const RINGS = [
+  const RINGS = cfg.bald ? [] : [
     { phi: 0.18, count: 7 }, { phi: 0.42, count: 12 }, { phi: 0.66, count: 16 },
     { phi: 0.90, count: 19 }, { phi: 1.14, count: 21 }, { phi: 1.38, count: 21 },
     { phi: 1.60, count: 18 },
@@ -2728,6 +2979,74 @@ function createFighter(cfg) {
     knot.position.set(HC.x, HC.y + R * 0.99, R * 0.10);
     knot.castShadow = true;
     part(knot);
+  }
+
+  // ---------- כובע סיני חרוטי ----------
+  // לונג - "כובע סיני צהוב". חרוט רחב ושטוח (כמו דוֹלִי/כובע קש סיני)
+  // עם שוליים גליליים נמוכים בבסיסו, יושב על קודקוד הראש.
+  if (cfg.conicalHat) {
+    const hatMat = M(cfg.hatColor ?? 0xe8c93a, 0.6);
+    const hat = new THREE.Mesh(new THREE.ConeGeometry(R * 1.35, R * 0.85, 24), hatMat);
+    hat.position.set(0, HC.y + R * 1.25, R * 0.05);
+    hat.castShadow = true;
+    part(hat);
+    const brim = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.35, R * 1.35, R * 0.06, 24), hatMat);
+    brim.position.set(0, HC.y + R * 0.85, R * 0.05);
+    brim.castShadow = true;
+    part(brim);
+  }
+
+  // ---------- כובע פטרייה ----------
+  // מוקרוט - "פטרייה על הראש": כיפה רחבה ושטוחה (כמו כובע פטרייה) על
+  // "גבעול" גליל קצר, יושבת על קודקוד הראש. מוכפל ב-headMult כמו כל
+  // שאר תווי הראש, כדי שיישאר יחסי לראש הענק.
+  if (cfg.mushroomCap) {
+    const capMat = M(cfg.mushroomCapColor ?? 0xb8304a, 0.6);
+    const stemMat = M(cfg.mushroomStemColor ?? 0xf2ead6, 0.7);
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(R * 0.95 * headMult, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.5), capMat);
+    cap.position.set(0, HC.y + R * 1.15 * headMult, 0);
+    cap.scale.set(1.35, 0.75, 1.35);
+    cap.castShadow = true;
+    part(cap);
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(R * 0.28 * headMult, R * 0.34 * headMult, R * 0.35 * headMult, 16), stemMat);
+    stem.position.set(0, HC.y + R * 0.95 * headMult, 0);
+    stem.castShadow = true;
+    part(stem);
+    if (cfg.mushroomSpots) {
+      const spotMat = M(0xf5efe0, 0.5);
+      for (let i = 0; i < 6; i++) {
+        const ang = (i / 6) * Math.PI * 2;
+        const spot = new THREE.Mesh(new THREE.SphereGeometry(R * 0.10 * headMult, 10, 8), spotMat);
+        spot.position.set(
+          Math.cos(ang) * R * 0.65 * headMult, HC.y + R * 1.25 * headMult, Math.sin(ang) * R * 0.65 * headMult);
+        part(spot);
+      }
+    }
+  }
+
+  // ---------- שורשים ירוקים מהגב ----------
+  // מוקרוט - "מהגב שלו צומחים שורשים קטנים וירוקים שזזים כשהוא זז".
+  // כמה קווצות דקות ומעוקלות מנקודת עוגן אחת על עצם החזה (כמו הכנפיים
+  // של נייטווינג), פונות אחורה. התנועה בפועל ("שזזים") לא מומשה - אין
+  // כרגע מנגנון אנימציית-משנה (secondary motion) לחלקים כאלה במשחק.
+  if (cfg.backRoots) {
+    BIND = { bone: 'chest' };
+    const rootMat = M(cfg.rootColor ?? 0x3a7a3a, 0.7);
+    [
+      { ang: -0.30, len: 0.22 }, { ang: 0.10, len: 0.30 },
+      { ang: 0.50, len: 0.20 }, { ang: 0.85, len: 0.26 },
+    ].forEach(({ ang, len }, i) => {
+      const s = i % 2 === 0 ? -1 : 1;
+      const base = V(s * 0.05, S.chest.y - 0.05, S.chest.z - 0.06);
+      const dir = V(Math.sin(ang) * s * 0.6, -0.3 - ang * 0.1, -0.7).normalize();
+      const mid = base.clone().addScaledVector(dir, len * 0.6);
+      const tip = base.clone().addScaledVector(dir, len);
+      part(sweep(rootMat, [base, mid, tip], [
+        { t: 0, rx: 0.018, rz: 0.018 }, { t: 0.6, rx: 0.012, rz: 0.012 }, { t: 1, rx: 0.003, rz: 0.003 },
+      ], { steps: 10, radial: 8, refDir: V(0, 1, 0), capStart: 'round', domeScale: 0.6 }));
+    });
   }
 
   return { group: g, parts };
@@ -3109,14 +3428,174 @@ const BONDRILO_CFG = {
   boots: null,
 };
 
+// נייטווינג (רמה 6) - "מפלצת עטלף אפלה, גוף שחור ודק עם שרירים קטנים
+// ועיניים גדולות וזוהרות בצבע סגול וכנפיים ענקיות ושחורות עם קצוות
+// מחודדות ועל הראש שתי קרניים קטנות שפונות לאחור ושיניים חדות אבל לא
+// גדולות ועל החזה סמל סגול בצורת ברק, טפרים קצרים וחדים על האצבעות,
+// רגליים ארוכות וחזקות." חמש יכולות חדשות בבונה הדמויות: cfg.glowEyes
+// (עיניים לא-מושפעות מתאורה, ראה irisMat/pupilMat למעלה), cfg.wings
+// (כמה "אצבעות" שטוחות ממניפה אחת על הגב, לא קרום רציף), cfg.backHorns
+// (קרניים קטנות שמתעקלות לאחור, לא לצדדים כמו אוזני חתול), cfg.mouthTeeth
+// (שיניים על הפה הרגיל, לא רק על חוטם תנין), ו-cfg.claws (חרוטים קטנים
+// על חזית האגרוף - קירוב, אין בניית אצבעות אמיתית). "רגליים ארוכות" לא
+// מומש (אין מנגנון לשינוי אורך גפיים כרגע).
+const NIGHTWING_CFG = {
+  power: 8.0, speed: 8.5,
+  skin: 0x1c1a22,
+  hair: 0x0c0a10,
+  bald: true,
+  eyeColor: 0x9b30ff,
+  glowEyes: true,
+  ears: 'pointed',
+  backHorns: true,
+  hornColor: 0x0c0a10,
+  mouthTeeth: { count: 4 },
+  chestCrestTex: () => lightningBadgeTex('#151318', '#9b30ff'),
+  wings: true,
+  wingColor: 0x08070a,
+  claws: true,
+  clawColor: 0x0a0a0a,
+  top: null,
+  pants: null,
+  boxers: 0x0e0d12,
+  boots: null,
+};
+
+// לונג (רמה 7) - "רובוט סיני עם כובע סיני צהוב וגוף דרקון צהוב, ניבים
+// ממש ארוכים ושפם חתול ארוך." השלד המשותף לכל הדמויות הוא תמיד אנושי
+// (זרועות/רגליים/שלד קרב), אז "גוף דרקון" מתפרש כאן כסגנון (חוטם דרקון,
+// זנב, קשקשים בצבע) על גוף אנושי, לא דרקון מרובע-רגליים אמיתי - בניית
+// שלד לא-אנושי חדש חורגת מהיקף הכלים הקיימים. שתי יכולות חדשות:
+// cfg.conicalHat (כובע סיני חרוטי) ו-cfg.longFangs (ניבים גדולים בנוסף
+// לשיניים הרגילות של cfg.snout). cfg.snoutJawColor (חדש) מאפשר ללסת
+// התחתונה של החוטם להיות בצבע הדרקון (צהוב) במקום ירוק בונדרילו הקבוע.
+// שפם חתול = cfg.whiskers הקיים (מברטו). זנב = cfg.catTail הקיים,
+// בצבע צהוב תואם, בלי פסים.
+const LONG_CFG = {
+  power: 8.4, speed: 7.5,
+  skin: 0xd9b32a,
+  hair: 0x2a1f10,
+  bald: true,
+  eyeColor: 0x8a1f1f,
+  ears: 'round',
+  snout: true,
+  snoutJawColor: 0xb8912a,
+  longFangs: true,
+  whiskers: true,
+  conicalHat: true,
+  hatColor: 0xe8c93a,
+  catTail: true,
+  catFurColor: 0xd9b32a,
+  tailLength: 1.3,
+  top: null,
+  pants: null,
+  boxers: 0x2a2a2a,
+  boots: null,
+};
+
+// קולין (רמה 8) - "דמות אנימה שדומה ללופי, לנאמי ולזורו, כל הגוף שלו
+// קעקועים כולל הראש והוא קירח, מלא צמידי זהב, מכנסיים קרועים ולבנים,
+// קוביות בטן, בלי חולצה." לא עותק של דמויות אמיתיות - רק הרכב הפריטים
+// שהמשתמש פירט (קעקועים/קרחת/צמידים/בטן/בלי חולצה). יכולת חדשה:
+// cfg.tattooedSkin (ראה skinMat למעלה - שימוש חוזר ב-catStripeTex).
+// הרחבת bracelet הקיים ל-braceletCount+braceletBothWrists ("מלא צמידי
+// זהב", לא רק אחד). "מכנסיים קרועים" (התפר המשונן, כמו tornHem לחולצה)
+// לא מומש על מכנסיים - מנגנון ה-garment של הרגליים לא תומך בקצה תלוי-
+// זווית כרגע; המכנסיים הלבנים בכל זאת קיימים, רק חלקים ולא עם שוליים
+// משוננים בפועל.
+const COLIN_CFG = {
+  power: 8.9, speed: 9.0,
+  skin: 0xc98a56,
+  tattooedSkin: true,
+  bald: true,
+  eyeColor: 0x2e2016,
+  ears: 'round',
+  abs: true,
+  bracelet: true,
+  braceletCount: 4,
+  braceletBothWrists: true,
+  top: null,
+  pants: 0xf2f0ea,
+  boots: null,
+};
+
+// מוקרוט (רמה 9) - "ראש ענק עם פטרייה על הראש, גוף אדום-סגול עם נקודות
+// זוהרות, שתי עיניים צהובות גדולות, פה קטן עם כמה שיניים חדות וכמה
+// שיניים בצבע זהב, גוף קטן ועגלגל, שתי רגליים קצרות וחזקות, ידיים
+// ארוכות עם אצבעות דקיקות, ומהגב שלו צומחים שורשים קטנים וירוקים
+// שזזים כשהוא זז." ארבע יכולות חדשות: cfg.bigHeadMult (הגדלה אחידה של
+// הראש - ראה headMult למעלה, שמזיז פרופורציונלית גם עיניים/אף/פה/לסת),
+// cfg.eyeSizeMult (עיניים גדולות בלי עין-אחת), cfg.mushroomCap (כובע
+// פטרייה על הראש), cfg.glowDotsSkin (נקודות בהירות על העור - לא זוהר
+// אמיתי, ראה glowDotsTex), ו-cfg.backRoots (שורשים סטטיים מהגב -
+// "שזזים" לא מומש, אין מנגנון אנימציית-משנה). "גוף קטן ועגלגל, רגליים
+// קצרות, ידיים ארוכות עם אצבעות דקיקות" לא מומשו - אין מנגנון לשינוי
+// יחסי גוף/גפיים כרגע.
+const MUKROT_CFG = {
+  power: 9.4, speed: 8.0,
+  skin: 0x7a2f5e,
+  glowDotsSkin: true,
+  glowDotsColor: 0xffd8a0,
+  bald: true,
+  eyeColor: 0xf2d21a,
+  eyeSizeMult: 1.35,
+  bigHeadMult: 1.30,
+  mouthScale: 0.6,
+  ears: 'round',
+  mouthTeeth: { count: 5, goldIndices: [1, 3] },
+  mushroomCap: true,
+  mushroomCapColor: 0xb8304a,
+  mushroomSpots: true,
+  backRoots: true,
+  top: null,
+  pants: null,
+  boxers: 0x2a1a22,
+  boots: null,
+};
+
+// לוסטר (רמה 10, האחרון) - "עשוי כמעט כולו מגבישים. ראש משושה וגבישי
+// קריסטלים גדולים מעל הראש כמו קרניים. עיניים זוהרות בצבע תכלת. רגליים
+// עבות וכבדות עם גבישים גדולים מסביב לברכיים. במרכז החזה קריסטל ענק
+// וזוהר שמכיל את האנרגיה שלו." חמש יכולות חדשות: cfg.crystalSkin (חומר
+// מבריק במקום טקסטורה - ראה skinMat למעלה), cfg.hexHead (מנסרה שישתית
+// במקום כדור, כולל דילוג על הלסת), cfg.headCrystals (גבישים חדים מעל
+// הראש), cfg.kneeCrystals (אשכולות גביש על הברכיים), ו-cfg.chestGem
+// (קריסטל זוהר עצמאי בחזה, לא תלוי בבגד כמו chestCrestTex). עיניים
+// זוהרות תכלת = cfg.glowEyes הקיים (מנייטווינג) עם eyeColor מתאים.
+// "רגליים עבות וכבדות" לא מומש (אין מנגנון לעובי גפיים).
+const LUSTER_CFG = {
+  power: 10, speed: 7.0,
+  skin: 0x4fb8d8,
+  crystalSkin: true,
+  hexHead: true,
+  bald: true,
+  eyeColor: 0x2fe8f0,
+  glowEyes: true,
+  ears: 'round',
+  headCrystals: true,
+  crystalColor: 0x6fe8f0,
+  kneeCrystals: true,
+  chestGem: true,
+  chestGemColor: 0x6fe8f0,
+  top: null,
+  pants: null,
+  boxers: 0x1a3a42,
+  boots: null,
+};
+
 // רשימת האויבים לפי רמות. `enemy` הוא let (כמו player) כדי שאפשר יהיה
 // להחליף אותו בין קרבות - ראה switchEnemy למטה.
 const ENEMY_LEVELS = [
-  { name: 'בו',       cfg: BO_CFG,        hp: 75  },
-  { name: 'זומי',     cfg: ZOOMI_CFG,     hp: 95  },
-  { name: 'ברדי',     cfg: BREDY_CFG,     hp: 120 },
-  { name: 'זיק',      cfg: ZIK_CFG,       hp: 150 },
-  { name: 'בונדרילו', cfg: BONDRILO_CFG,  hp: 190 },
+  { name: 'בו',        cfg: BO_CFG,        hp: 75  },
+  { name: 'זומי',      cfg: ZOOMI_CFG,     hp: 95  },
+  { name: 'ברדי',      cfg: BREDY_CFG,     hp: 120 },
+  { name: 'זיק',       cfg: ZIK_CFG,       hp: 150 },
+  { name: 'בונדרילו',  cfg: BONDRILO_CFG,  hp: 190 },
+  { name: 'נייטווינג', cfg: NIGHTWING_CFG, hp: 230 },
+  { name: 'לונג',      cfg: LONG_CFG,      hp: 275 },
+  { name: 'קולין',     cfg: COLIN_CFG,     hp: 325 },
+  { name: 'מוקרוט',    cfg: MUKROT_CFG,    hp: 380 },
+  { name: 'לוסטר',     cfg: LUSTER_CFG,    hp: 440 },
 ];
 let enemyLevel = 0;
 let enemy = makeFighter(ENEMY_LEVELS[0].cfg, 1.7, -1, ENEMY_LEVELS[0].hp);
