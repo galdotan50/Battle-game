@@ -979,6 +979,28 @@ const leatherTex = (hex) => canvasTex(128, (ctx, n) => {
   }
 }, 3, 3);
 
+// קליפת אגוז (מסכת סטנבר) - מרקם חוזר (לא ממופה למקום מסוים, כי המסכה
+// היא גוף עצמאי קטן ולא חלק ממערכת ה-UV המוסכמת של הגוף) עם קמטים
+// כהים מעוקלים בכל הכיוונים, כמו הקמטים האמיתיים על קליפת אגוז.
+const walnutShellTex = (hex) => canvasTex(128, (ctx, n) => {
+  ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
+  ctx.strokeStyle = 'rgba(40,24,12,0.5)';
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * n, y = Math.random() * n;
+    const len = n * (0.10 + Math.random() * 0.16);
+    const ang = Math.random() * Math.PI * 2;
+    ctx.lineWidth = n * (0.012 + Math.random() * 0.01);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(
+      x + Math.cos(ang) * len * 0.5 + (Math.random() - 0.5) * n * 0.10,
+      y + Math.sin(ang) * len * 0.5 + (Math.random() - 0.5) * n * 0.10,
+      x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+    ctx.stroke();
+  }
+}, 2, 2);
+
 // פסים צבעוניים אופקיים (כמו על ז'קט ורסיטי) - חוזרים לאורך האיבר, לא סביבו,
 // ולכן repeat.set(1, ry): בלי חזרה סביב ההיקף (אין תפר בצבע), הרבה חזרות
 // לאורך (טבעות צבע רצופות מהכתפיים ולמטה).
@@ -1620,8 +1642,12 @@ function createFighter(cfg) {
       cfg.jacketStripes ?? ['#e4573d', '#f2b632', '#3fa7a0', '#e85fa0']),
     side: THREE.DoubleSide,
   }) : null;
+  // cfg.pantsLeather (חדש, לסטנבר - "מכנסיים מעור שור") מחליף את מרקם
+  // האריגה של הג'ינס במרקם עור מחוספס. שניהם משתמשים ב-'#ffffff' כבסיס
+  // ומכפילים בצבע החומר עצמו (cfg.pants), אז ההחלפה בטוחה.
   const pantsMat = cfg.pants ? new THREE.MeshStandardMaterial({
-    color: cfg.pants, roughness: 0.94, map: denimTex('#ffffff'),
+    color: cfg.pants, roughness: cfg.pantsLeather ? 0.55 : 0.94,
+    map: cfg.pantsLeather ? leatherTex('#ffffff') : denimTex('#ffffff'),
   }) : null;
   const boxerMat = cfg.boxers ? M(cfg.boxers, 0.85) : null;
   const bootMat = cfg.boots ? new THREE.MeshStandardMaterial({
@@ -2124,7 +2150,11 @@ function createFighter(cfg) {
     // המסגרת של פלג הגוף היא N=+X, ולכן: θ=0 ימין, θ=π/2 גב, θ=π שמאל, θ=3π/2 חזית.
     // הקצה גבוה בכתפיים (שם נוצרות הכתפיות) ונמוך בחזית ובגב (המחשוף).
     // הזרוע יוצאת מבית החזה מתחת לקצה הגבוה — וזה מייצר את פתח השרוול.
-    const edgeU = (th) => 0.880 + 0.112 * Math.pow(Math.abs(Math.cos(th)), 2.1);
+    // cfg.necklineLow/necklineRange (חדש, לסטנבר) מנמיכים את נקודת השפל
+    // בחזית/בגב - "חור גדול לצוואר כמו פונצ'ו" - בלי לגעת בברירת המחדל.
+    const necklineLow = cfg.necklineLow ?? 0.880;
+    const necklineRange = cfg.necklineRange ?? 0.112;
+    const edgeU = (th) => necklineLow + necklineRange * Math.pow(Math.abs(Math.cos(th)), 2.1);
     const shirtProfile = (u) => {
       const b = profileAt(TORSO_PROFILE, u);
       return { rx: b.rx + 0.008, rz: b.rz + 0.008 };
@@ -2463,6 +2493,36 @@ function createFighter(cfg) {
     else { t.position.set(0, HC.y - R * 0.52, R * 0.80); t.rotation.x = Math.PI / 2; }
     t.castShadow = true;
     part(t);
+  }
+
+  // ---------- מסכת אגוז (סטנבר) ----------
+  // מכסה את כל הפנים - אליפסואיד שטוח שיושב *לפני* פני הפנים. ניסיון
+  // ראשון (קצה ב-~0.104R) יצא כמעט בלתי-נראה - נבלע כמעט לגמרי מאחורי
+  // האף (שמגיע ל-0.875R!) ותווי הפנים, ורק פינה קטנה בלטה. נמצא ברינדור,
+  // לא בחישוב - בדיוק הלקח "לחשב לא לנחש" עומק, רק שהניחוש הראשון פספס.
+  // תוקן עם קצה שיוצא הרבה יותר קדימה (~0.13R) ומעטפת גדולה יותר.
+  // חורי העיניים והפה לא גיאומטריה אמיתית (לא "רואים דרכם") - רק עיגולים
+  // כהים קשיחים לפני המסכה, שנותנים את האשליה בלי לסבך את הגיאומטריה.
+  if (cfg.walnutMask) {
+    const maskMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff, roughness: 0.85,
+      map: walnutShellTex('#' + new THREE.Color(cfg.maskColor ?? 0x4a2e18).getHexString()),
+    });
+    const mask = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78, 30, 24), maskMat);
+    mask.position.set(0, HC.y - R * 0.10, R * 0.62);
+    mask.scale.set(0.92, 1.15, 0.62);
+    mask.castShadow = true;
+    part(mask);
+
+    const holeMat = new THREE.MeshBasicMaterial({ color: 0x0c0908 });
+    [-1, 1].forEach((s) => {
+      const hole = new THREE.Mesh(new THREE.CircleGeometry(R * 0.15, 20), holeMat);
+      hole.position.set(s * R * 0.40, HC.y + R * 0.10, R * 1.05);
+      part(hole);
+    });
+    const mouthHole = new THREE.Mesh(new THREE.CircleGeometry(R * 0.13, 20), holeMat);
+    mouthHole.position.set(0, HC.y - R * 0.46, R * 1.02);
+    part(mouthHole);
   }
 
   // ---------- שיער ----------
@@ -3142,6 +3202,37 @@ const BERTO_CFG = {
   boots: null,            // יחף
 };
 
+// סטנבר - "ילד אתיופי, עור בגוון חום. מכנסיים מעור שור. חולצה בלי
+// שרוולים עם חור גדול לצוואר (כמו פונצ'ו). שיער קצוץ קצר בצבע שחור.
+// נעליים מעץ. מסכה בצורת אגוז על הפנים." לפי game-spec.md.
+// יכולות חדשות: cfg.walnutMask (מסכה מלאה - המשתמש אישר שהיא מכסה את
+// כל הפנים, לא רק את העיניים), cfg.necklineLow/necklineRange (חור צוואר
+// גדול בחולצה - כללי, שימושי לכל דמות עתידית עם צווארון פתוח), ו-
+// cfg.pantsLeather (מרקם עור על המכנס במקום ג'ינס). "נעליים מעץ" קורבה
+// כצבע בלבד על מנגנון הנעליים הקיים - אין עדיין צורת קלוג ייעודית.
+// עיניים לא תוארו (ממילא כמעט לא נראות מתחת למסכה) - נבחר חום כהה.
+// ⚠️ אותו לקח *שוב* (אחרי ברטו): עור/בד בגוון בינוני "נשטף" בהיר משמעותית
+// תחת התאורה החזקה של הזירה. 0x6b4226/0xc9a15a הראשונים יצאו ברינדור
+// בהירים בהרבה ממה שתוכנן (חום כהה יצא כמעט כמו העור הבהיר של דמויות
+// אחרות). הוכהו משמעותית משם - שוב נמצא ברינדור, לא בבחירה מראש.
+const STANBER_CFG = {
+  power: 8.9, speed: 9.5,
+  skin: 0x40270f,
+  hair: 0x141212,
+  hairStyle: 'short',
+  eyeColor: 0x3a2415,
+  ears: 'round',
+  walnutMask: true,
+  // "פונצ'ו" - בכוונה *בהיר* מהעור (לא כהה כמוהו): מהניסיון עם המסכה,
+  // צבע שנשטף בהיר תחת התאורה נותן דווקא ניגוד טוב מול עור כהה יותר -
+  // נעשה שימוש מודע באפקט, לא רק תיקון שלו.
+  top: 0x8a6a35,
+  necklineLow: 0.74,       // חור צוואר גדול (ברירת מחדל 0.88)
+  pants: 0x5a3c20,
+  pantsLeather: true,      // "מעור שור"
+  boots: 0x6b451f,         // קירוב ל"נעליים מעץ"
+};
+
 addStoneProp(player);
 addStoneProp(enemy);
 
@@ -3663,7 +3754,7 @@ function showScreen(name) {
 // החנות תמיד אטום ומכסה את כל הקנבס כשזה קורה.
 const CHARACTER_CFGS = {
   'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG,
-  'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG, 'ברטו': BERTO_CFG,
+  'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG, 'ברטו': BERTO_CFG, 'סטנבר': STANBER_CFG,
 };
 const characterThumbs = {};
 const THUMB_SIZE = 360;
@@ -4313,7 +4404,7 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, inventory,
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
