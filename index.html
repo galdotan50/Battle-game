@@ -405,7 +405,7 @@
 <body>
 <div id="label">🥊 סווארק מול בו - שלב חיים ונזק</div>
 <div id="controls">
-  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> חסימה
+  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> חסימה &nbsp;·&nbsp; <b>רווח</b> קפיצה
 </div>
 
 <div id="lootStack">
@@ -3352,7 +3352,9 @@ function tickCombat(attacker, defender, who, otherWho) {
   // מתווסף בסוף כמספר קבוע (האפיון: "+3 כוח"), לא מוכפל.
   const isWeaponHit = attacker.action === 'stone' && attacker.weaponDmg != null;
   const base = isWeaponHit ? attacker.weaponDmg : cfg.dmg * (attacker.powerMult || 1);
-  const dmg = base + (attacker.powerBonus || 0);
+  // powerMult יכול לצאת עם שברים (בונוס 5% לרמת שדרוג) - מעגלים למספר שלם
+  // כדי שפס החיים תמיד יציג מספר עגול, לא עשרוני.
+  const dmg = Math.round(base + (attacker.powerBonus || 0));
 
   // מגן מהלוט: חוסם לגמרי, ואם יש לו יכולת מיוחדת - היא מופעלת כאן
   // אוטומטית, כי "נשק פגע במגן" זה בדיוק הרגע הזה (האפיון, סעיף 9).
