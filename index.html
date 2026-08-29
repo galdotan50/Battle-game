@@ -1002,6 +1002,37 @@ const stripeTex = (baseHex, colors) => {
   return t;
 };
 
+// פסי חתול על הראש (ברטו) - כמה קווים כהים מעוקלים על גבי צבע הבסיס,
+// פזורים על פני כל הקנבס בלי לחשב מראש איפה בדיוק "החזית" על ה-UV
+// הסטנדרטי של SphereGeometry (בניגוד לגוף, שנבנה עם UV מוסכם ומחושב -
+// כאן זו בחירה סגנונית, אז בודקים ברינדור ולא פותרים משוואה). אותו
+// עקרון colorSpace כמו stripeTex - הצבע האמיתי חי בתוך הקנבס.
+const catStripeTex = (baseHex) => {
+  const t = canvasTex(256, (ctx, n) => {
+    ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+    // ⚠️ ניסיון ראשון (רק 0.60 שקיפות) כמעט לא נראה תחת התאורה החזקה של
+    // הזירה - אותו לקח כמו על צבעים - כאן על הניגוד מול הבסיס, לא רק על
+    // הבהירות המוחלטת. הועלה לכמעט אטום וכהה משמעותית מהבסיס.
+    ctx.strokeStyle = 'rgba(12,11,13,0.92)';
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 34; i++) {
+      const x = Math.random() * n, y = Math.random() * n;
+      const len = n * (0.09 + Math.random() * 0.11);
+      const ang = Math.random() * Math.PI * 2;
+      ctx.lineWidth = n * (0.022 + Math.random() * 0.014);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(
+        x + Math.cos(ang) * len * 0.5 + (Math.random() - 0.5) * n * 0.04,
+        y + Math.sin(ang) * len * 0.5 + (Math.random() - 0.5) * n * 0.04,
+        x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+      ctx.stroke();
+    }
+  }, 1, 1);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
+
 // כתובת שעוטפת טבעת דקה פעם אחת בדיוק (בלי חזרה - repeat.set(1,1)), כמו
 // כיתוב על גומי בוקסר. קנבס רחב ונמוך (לא ריבוע כמו canvasTex) כי הטבעת
 // עצמה דקה מאוד וצריך שהטקסט לא ייצא מתוח אנכית.
@@ -1561,6 +1592,13 @@ function createFighter(cfg) {
     new THREE.MeshStandardMaterial({ color, roughness, metalness });
 
   const skinMat  = M(cfg.skin, 0.62);
+  // פסי חתול (cfg.catStripes) חיים רק על הראש (כולל הלסת) - הגוף נשאר
+  // בגוון אחיד. אותו עיקרון בדיוק כמו jacketMat: הצבע חי בתוך המרקם
+  // עצמו, ולכן צבע החומר לבן ניטרלי.
+  const headMat = cfg.catStripes ? new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.62,
+    map: catStripeTex('#' + new THREE.Color(cfg.skin).getHexString()),
+  }) : skinMat;
   const hairMat  = M(cfg.hair, 0.88);
   // cfg.topTex מחליף את מרקם הסריג הרגיל בטקסטורה משלו (למשל הקוביות של
   // זיק). טקסטורה כזו נושאת את הצבע בעצמה, ולכן צבע החומר נשאר לבן ניטרלי -
@@ -2149,7 +2187,7 @@ function createFighter(cfg) {
   // אלה חלקים שלא אמורים להתעוות מבפנים, רק לפנות יחד עם הראש.
   BIND = { bone: 'head' };
   const HC = S.headCenter;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(R, 44, 34), skinMat);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(R, 44, 34), headMat);
   head.position.copy(HC);
   head.scale.set(HEAD_SCALE.x, HEAD_SCALE.y, HEAD_SCALE.z);
   head.castShadow = true;
@@ -2159,7 +2197,7 @@ function createFighter(cfg) {
   // לסת וסנטר — מרככים את "הכדור המושלם" לצורת פנים
   // נשאר *בתוך* אליפסואיד הראש בכל הכיוונים חוץ מלמטה, ולכן הוא מוסיף סנטר
   // בלי ליצור טבעת תפר נראית סביב הפנים.
-  const jaw = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78, 34, 26), skinMat);
+  const jaw = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78, 34, 26), headMat);
   jaw.position.set(0, HC.y - R * 0.55, R * 0.05);
   jaw.scale.set(0.68, 0.88, 0.78);
   jaw.castShadow = true;
@@ -3071,22 +3109,30 @@ const LIZZY_CFG = {
   boots: null,            // הקרוקס מחליפים את הנעליים
 };
 
-// ברטו - "נראה כמו חתול": אוזני חתול, זנב וזנב ושפמים (יכולות חדשות,
-// ראה cfg.catEars/cfg.catTail/cfg.whiskers) מעל גוף אנושי רגיל. משקפיים,
-// חגורה (עם cfg.belt - חגורה גם על מכנס קצר, לא רק ג'ינס ארוך), מכנסיים
+// ברטו - "נראה כמו חתול": אוזני חתול, זנב ושפמים (יכולות חדשות, ראה
+// cfg.catEars/cfg.catTail/cfg.whiskers) מעל גוף אנושי רגיל. חגורה
+// (עם cfg.belt - חגורה גם על מכנס קצר, לא רק ג'ינס ארוך), מכנסיים
 // קצרצרים, בלי חולצה, ויחף - בדיוק לפי game-spec.md. צבעים לא תוארו
-// באפיון - נבחר ג'ינג'י לשיער והפרווה (הכי "חתולי"), עיניים ענבר-ירקרק,
-// ועור, מכנס וחגורה בגוונים סבירים.
+// באפיון - נבחר בהתחלה ג'ינג'י, ואז המשתמש ביקש מפורשות "אפור עם פסי
+// חתול על הראש" (cfg.catStripes - חדש, ראה catStripeTex) - הוסר גם
+// glasses לפי בקשה. עור/פרווה (ears+tail) אפורים תואמים, שיער אפור-פחם
+// כהה יותר לניגוד, עיניים ענבר נשארו (מתאימות גם לחתול אפור).
+// ⚠️ גוון אפור-בינוני (כמו 0x9aa3a6 שנוסה קודם) "נשטף" כמעט ללבן על עור -
+// לא רק על ז'קטים, כמו שתועד קודם (ראה CLAUDE.md, לקח על פלייטי/ברייק) -
+// אותה תופעה בדיוק חלה גם על צבע עור. נבדק ברינדור: אותו 0x9aa3a6 בדיוק
+// על סווארק (לניסוי) יצא לבן כמעט מלא בגוף. תוקן לגוון כהה יותר, כבר
+// מוכח שורד את התאורה (זהה לז'קט של ליזי).
 const BERTO_CFG = {
   power: 8.6, speed: 8.6,
-  skin: 0xe8b487,
-  hair: 0xd9781f,
+  skin: 0x4a4f57,
+  hair: 0x2b2e33,
   hairStyle: 'short',
   eyeColor: 0xc9932e,
   ears: 'round',
-  glasses: true,
   catEars: true,
   catTail: true,
+  catStripes: true,
+  catFurColor: 0x4a4f57,
   whiskers: true,
   top: null,
   pants: 0x33414f,
