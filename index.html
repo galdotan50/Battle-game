@@ -2855,17 +2855,24 @@ function createFighter(cfg) {
   // חורי העיניים והפה לא גיאומטריה אמיתית (לא "רואים דרכם") - רק עיגולים
   // כהים קשיחים לפני המסכה, שנותנים את האשליה בלי לסבך את הגיאומטריה.
   if (cfg.walnutMask) {
-    const maskMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff, roughness: 0.85,
-      map: walnutShellTex('#' + new THREE.Color(cfg.maskColor ?? 0x4a2e18).getHexString()),
-    });
+    // cfg.maskMetal (חדש, לוין - "מסכת ברזל") - אותה גיאומטריית מסכה
+    // בדיוק, רק חומר מתכתי חלק (roughness נמוך, metalness גבוה) במקום
+    // מרקם קליפת האגוז - שימוש חוזר במסכה השלמה שכבר נבנתה לסטנבר.
+    const maskMat = cfg.maskMetal
+      ? new THREE.MeshStandardMaterial({ color: cfg.maskColor ?? 0xc0c0c8, roughness: 0.2, metalness: 0.6 })
+      : new THREE.MeshStandardMaterial({
+          color: 0xffffff, roughness: 0.85,
+          map: walnutShellTex('#' + new THREE.Color(cfg.maskColor ?? 0x4a2e18).getHexString()),
+        });
     const mask = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78, 30, 24), maskMat);
     mask.position.set(0, HC.y - R * 0.10, R * 0.62);
     mask.scale.set(0.92, 1.15, 0.62);
     mask.castShadow = true;
     part(mask);
 
-    const holeMat = new THREE.MeshBasicMaterial({ color: 0x0c0908 });
+    // חורי העיניים - ברירת מחדל חור כהה, אבל cfg.maskEyeColor (חדש)
+    // מאפשר "עיניים" זוהרות אדומות למסכת גיבור, כמו לוין.
+    const holeMat = new THREE.MeshBasicMaterial({ color: cfg.maskEyeColor ?? 0x0c0908 });
     [-1, 1].forEach((s) => {
       const hole = new THREE.Mesh(new THREE.CircleGeometry(R * 0.15, 20), holeMat);
       hole.position.set(s * R * 0.40, HC.y + R * 0.10, R * 1.05);
@@ -2874,6 +2881,32 @@ function createFighter(cfg) {
     const mouthHole = new THREE.Mesh(new THREE.CircleGeometry(R * 0.13, 20), holeMat);
     mouthHole.position.set(0, HC.y - R * 0.46, R * 1.02);
     part(mouthHole);
+  }
+
+  // ---------- מגן זכוכית עגול ----------
+  // לוין - "על הראש מגן זכוכית עגול שמחובר לחליפה". כיפת זכוכית
+  // שקופה-למחצה מעל הראש (לא כדור שלם - חצי עליון בלבד, אחרת הצד
+  // האחורי היה נראה כמו בועה סגורה מוזרה מכל זווית), וטבעת מתכת צווארון
+  // בבסיס הצוואר שנותנת את הרושם של "מחובר לחליפה" מתחתיו.
+  if (cfg.glassDome) {
+    const domeMat = new THREE.MeshStandardMaterial({
+      color: cfg.domeColor ?? 0xaee6f5, roughness: 0.08, metalness: 0.1,
+      transparent: true, opacity: 0.35, side: THREE.DoubleSide,
+    });
+    const dome = new THREE.Mesh(
+      new THREE.SphereGeometry(R * 1.05, 24, 18, 0, Math.PI * 2, 0, Math.PI * 0.62), domeMat);
+    dome.position.set(0, HC.y + R * 0.20, 0);
+    dome.rotation.x = -0.12;
+    part(dome);
+
+    const collarMat = new THREE.MeshStandardMaterial({
+      color: cfg.maskColor ?? 0xc0c0c8, roughness: 0.25, metalness: 0.55,
+    });
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(R * 0.95, R * 0.12, 12, 24), collarMat);
+    collar.position.set(0, HC.y - R * 0.68, 0);
+    collar.rotation.x = Math.PI / 2;
+    collar.castShadow = true;
+    part(collar);
   }
 
   // ---------- שיער ----------
@@ -3894,6 +3927,40 @@ const KITTY_CFG = {
   boots: 0x5a2f6a,
 };
 
+// לוין - "חליפת ברזל כסופה עם נגיעות אדום בהיר, נוצצת וזוהרת. מסכת
+// ברזל על הפנים. על הראש מגן זכוכית עגול שמחובר לחליפה." לפי
+// game-spec.md - הדמות האחת-עשרה והאחרונה, הכי יקרה (750₪). "חליפת
+// ברזל" מתפרשת כגוף מתכתי אחיד (בלי בגד נפרד מעל) - cfg.crystalSkin
+// (מלוסטר) כבר נותן בדיוק את המראה המבריק/מתכתי הזה, ולכן משמש כאן
+// כ"עור" שהוא בעצם החליפה עצמה, בלי pants/top נפרדים.
+// שתי יכולות חדשות (הרחבה של cfg.walnutMask הקיים מסטנבר):
+// cfg.maskMetal (מסכה מתכתית חלקה במקום מרקם קליפת אגוז) ו-
+// cfg.maskEyeColor (חורי עיניים זוהרים אדומים במקום כהים - "נגיעות
+// אדום"). יכולת חדשה שלישית: cfg.glassDome - כיפת זכוכית שקופה-למחצה
+// מעל הראש עם טבעת צווארון מתכתית, שנותנת את הרושם של "מחובר לחליפה".
+// קריסטל החזה הזוהר (cfg.chestGem, מלוסטר) משמש כאן כליבת אנרגיה
+// אדומה - "נוצצת וזוהרת" מתאים לו במדויק.
+const LEWIN_CFG = {
+  power: 10, speed: 10,
+  skin: 0xbfc4c9,
+  crystalSkin: true,
+  bald: true,
+  eyeColor: 0x2a2a2a,
+  ears: 'round',
+  walnutMask: true,
+  maskMetal: true,
+  maskColor: 0xd8dce0,
+  maskEyeColor: 0xff3b30,
+  glassDome: true,
+  domeColor: 0xaee6f5,
+  chestGem: true,
+  chestGemColor: 0xff3b30,
+  top: null,
+  pants: null,
+  boxers: null,
+  boots: 0x9aa0a6,
+};
+
 addStoneProp(player);
 addStoneProp(enemy);
 
@@ -4416,7 +4483,7 @@ function showScreen(name) {
 const CHARACTER_CFGS = {
   'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG,
   'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG, 'ברטו': BERTO_CFG, 'סטנבר': STANBER_CFG,
-  'סלייקי': SLAIKY_CFG, 'קיטי': KITTY_CFG,
+  'סלייקי': SLAIKY_CFG, 'קיטי': KITTY_CFG, 'לוין': LEWIN_CFG,
 };
 const characterThumbs = {};
 const THUMB_SIZE = 360;
@@ -5066,7 +5133,7 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, inventory,
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
