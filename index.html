@@ -2248,7 +2248,10 @@ function createFighter(cfg) {
         [pr(0, 0.16, 0.16), pr(1, 0.13, 0.13)],
         { steps: 8, radial: 20, capEnd: 'round' }));
 
-      if (cfg.fingerRing && side === 1) {
+      // cfg.fingerRingBothWrists (חדש, קיטי) - טבעת גם על יד שמאל, לא
+      // רק ימין. אין בניית אצבעות נפרדות, אז "טבעות" (ברבים) על יד אחת
+      // אינו מיוצג - הריבוי מיוצג בעיקר דרך הצמידים המרובים.
+      if (cfg.fingerRing && (side === 1 || cfg.fingerRingBothWrists)) {
         const ring = new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.008, 8, 20), goldMat);
         ring.position.copy(wr.clone().addScaledVector(dir, 0.036));
         ring.quaternion.setFromUnitVectors(V(0, 0, 1), dir);
@@ -2299,23 +2302,36 @@ function createFighter(cfg) {
   if (cfg.wings) {
     BIND = { bone: 'chest' };
     const wingMat = M(cfg.wingColor ?? 0x0a0a0d, 0.75);
-    const FINGERS = [
-      { ang: 0.20, len: 0.40 },
-      { ang: 0.55, len: 0.56 },
-      { ang: 0.92, len: 0.52 },
-      { ang: 1.28, len: 0.36 },
-    ];
+    // cfg.wingStyle==='butterfly' (חדש, קיטי - "כנפי פרפר לא-אמיתיות
+    // (קישוט)") - שתי אונות עגולות ורחבות במקום ארבע אצבעות מחודדות:
+    // הקצה (t=1) נשאר רחב עם capEnd:'round' במקום להצטמצם לנקודה.
+    const butterfly = cfg.wingStyle === 'butterfly';
+    const FINGERS = butterfly
+      ? [{ ang: 0.30, len: 0.28 }, { ang: 0.85, len: 0.22 }]
+      : [
+          { ang: 0.20, len: 0.40 },
+          { ang: 0.55, len: 0.56 },
+          { ang: 0.92, len: 0.52 },
+          { ang: 1.28, len: 0.36 },
+        ];
     [-1, 1].forEach((s) => {
-      const base = V(s * 0.06, S.chest.y + 0.10, S.chest.z - 0.06);
+      // ⚠️ ניסיון ראשון של הפרפר (rz עד 0.045, base ב-z-0.06) יצא גוש
+      // עבה ותפוח קרוב לכתף, לא כנף שטוחה - נראה ברינדור. תוקן עם rz
+      // דק בהרבה (כמו כנף העטלף שכבר עבדה) ובסיס רחוק יותר לאחור.
+      const base = V(s * 0.06, S.chest.y + 0.10, S.chest.z - (butterfly ? 0.10 : 0.06));
       FINGERS.forEach(({ ang, len }) => {
         const dir2 = V(Math.sin(ang) * s, Math.cos(ang) * 0.55, -0.35 - ang * 0.15).normalize();
         const mid = base.clone().addScaledVector(dir2, len * 0.55);
         const tip = base.clone().addScaledVector(dir2, len);
-        part(sweep(wingMat, [base, mid, tip], [
+        part(sweep(wingMat, [base, mid, tip], butterfly ? [
+          { t: 0, rx: 0.040, rz: 0.010 },
+          { t: 0.5, rx: 0.075, rz: 0.014 },
+          { t: 1, rx: 0.055, rz: 0.010 },
+        ] : [
           { t: 0, rx: 0.050, rz: 0.014 },
           { t: 0.5, rx: 0.075, rz: 0.010 },
           { t: 1, rx: 0.004, rz: 0.004 },
-        ], { steps: 10, radial: 10, refDir: V(0, 1, 0), capStart: 'round', domeScale: 0.5 }));
+        ], { steps: 10, radial: 10, refDir: V(0, 1, 0), capStart: 'round', capEnd: butterfly ? 'round' : 'flat', domeScale: 0.5 }));
       });
     });
   }
@@ -2711,14 +2727,19 @@ function createFighter(cfg) {
       });
     }
   } else {
+    // cfg.noseLength/noseSharp (חדש, קיטי - "אף ארוך וקצת מחודד") -
+    // מאריכים רק את קצה האף (נקודת השיא, t=0.76) קדימה, ומצמצמים את
+    // הרוחב שם לחוד מחודד יותר. ברירת מחדל 1/1 = בדיוק האף הקיים.
+    const noseLen = cfg.noseLength ?? 1;
+    const noseSharp = cfg.noseSharp ?? 1;
     part(sweep(skinMat, [
       V(0, HC.y + R * 0.20 * headMult, R * 0.72 * headMult),
       V(0, HC.y + R * 0.00 * headMult, R * 0.80 * headMult),
-      V(0, HC.y - R * 0.15 * headMult, R * 0.875 * headMult),
+      V(0, HC.y - R * 0.15 * headMult, R * (0.775 + 0.10 * noseLen) * headMult),
       V(0, HC.y - R * 0.27 * headMult, R * 0.775 * headMult),
     ], [
       pr(0.00, 0.040, 0.040), pr(0.42, 0.082, 0.078),
-      pr(0.76, 0.112, 0.106), pr(1.00, 0.078, 0.074),
+      pr(0.76, 0.112 * noseSharp, 0.106 * noseSharp), pr(1.00, 0.078, 0.074),
     ], { steps: 18, radial: 22, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.7 }));
   }
 
@@ -2798,14 +2819,20 @@ function createFighter(cfg) {
       { steps: 8, radial: 8, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
   }
 
-  // עגיל באוזן - טבעת קטנה שתלויה מתחת לכל אוזן
+  // עגיל באוזן - טבעת קטנה שתלויה מתחת לכל אוזן. cfg.earRingCount (חדש,
+  // קיטי - "המון עגילי זהב באוזן") מוסיף עוד טבעות קטנות יותר בשורה
+  // עולה על תנוך האוזן, בנוסף לעגיל הראשון - ברירת מחדל 1 לא משנה כלום.
   if (cfg.earRing) {
+    const earRingCount = cfg.earRingCount ?? 1;
     [-1, 1].forEach((s) => {
-      const e = new THREE.Mesh(new THREE.TorusGeometry(R * 0.10, R * 0.028, 8, 16), goldMat);
-      e.position.set(s * R * 0.74, HC.y - R * 0.34, -R * 0.06);
-      e.rotation.y = Math.PI / 2;
-      e.castShadow = true;
-      part(e);
+      for (let i = 0; i < earRingCount; i++) {
+        const rad = R * (0.10 - i * 0.022);
+        const e = new THREE.Mesh(new THREE.TorusGeometry(Math.max(rad, R * 0.035), R * 0.022, 8, 16), goldMat);
+        e.position.set(s * R * 0.74, HC.y - R * 0.34 + i * R * 0.14, -R * 0.06 - i * R * 0.01);
+        e.rotation.y = Math.PI / 2;
+        e.castShadow = true;
+        part(e);
+      }
     });
   }
 
@@ -3828,6 +3855,45 @@ const SLAIKY_CFG = {
   boots: null,
 };
 
+// קיטי - "ילדה-אריה: רעמה סגולה, אף ארוך וקצת מחודד. גופיית בטן ורודה.
+// כנפי פרפר לא-אמיתיות (קישוט) על הגב. מכנסיים בגווני ורוד-סגול. גוף
+// שרירי. המון צמידים וטבעות על היד, והמון עגילי זהב באוזן." לפי
+// game-spec.md. בניגוד לברטו/סלייקי, "ילדה-אריה" כאן מתואר רק דרך שיער
+// ואף - לא אוזני חתול (לא הוזכרו במפורש בתיאור המדויק, אז לא נוספו).
+// שלוש יכולות חדשות: cfg.noseLength/noseSharp (אף ארוך ומחודד - מותח
+// רק את קצה האף הקיים קדימה ומצמצם אותו שם), cfg.wingStyle='butterfly'
+// (הרחבת cfg.wings הקיים מנייטווינג - שתי אונות עגולות במקום ארבע
+// אצבעות מחודדות, "לא-אמיתיות (קישוט)" ולכן ורודות ולא שחורות), ו-
+// cfg.earRingCount/fingerRingBothWrists (הרחבת עגיל/טבעת הקיימים ל"המון").
+// כנפי הקישוט קשיחות (כמו אצל נייטווינג) ולא באמת מעופפות - זה בסדר,
+// האפיון עצמו אומר "לא-אמיתיות".
+const KITTY_CFG = {
+  power: 9.5, speed: 9.9,
+  skin: 0xf0c8a0,
+  hair: 0x9b4fd8,
+  hairStyle: 'spiky',
+  eyeColor: 0xc9932e,
+  ears: 'round',
+  noseLength: 1.15,
+  noseSharp: 0.75,
+  top: 0xf07ab4,
+  topHem: 0.36,
+  abs: true,
+  pants: 0x8a3fa8,
+  pantsStripeColor: 0xf07ab4,
+  wings: true,
+  wingStyle: 'butterfly',
+  wingColor: 0xe86fc9,
+  bracelet: true,
+  braceletCount: 3,
+  braceletBothWrists: true,
+  fingerRing: true,
+  fingerRingBothWrists: true,
+  earRing: true,
+  earRingCount: 3,
+  boots: 0x5a2f6a,
+};
+
 addStoneProp(player);
 addStoneProp(enemy);
 
@@ -4350,7 +4416,7 @@ function showScreen(name) {
 const CHARACTER_CFGS = {
   'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG,
   'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG, 'ברטו': BERTO_CFG, 'סטנבר': STANBER_CFG,
-  'סלייקי': SLAIKY_CFG,
+  'סלייקי': SLAIKY_CFG, 'קיטי': KITTY_CFG,
 };
 const characterThumbs = {};
 const THUMB_SIZE = 360;
@@ -5000,7 +5066,7 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, inventory,
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
