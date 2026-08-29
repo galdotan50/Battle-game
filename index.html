@@ -1055,6 +1055,27 @@ const catStripeTex = (baseHex) => {
   return t;
 };
 
+// עור מנומר (סלייקי) - כתמים גדולים וחוזרים של צבע שני על גבי צבע בסיס,
+// לא ציור במקום מסוים (כמו catStripeTex) אלא מרקם חוזר, כי המרקם הזה
+// מיושם על *כל* הגוף (skinMat עצמו) ולא רק על הראש - ראש, גו, ורגליים
+// כולם משתמשים באותה טקסטורה חוזרת, בלי צורך במיקום מדויק.
+const mottledSkinTex = (baseHex, spotHex) => {
+  const t = canvasTex(128, (ctx, n) => {
+    ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+    ctx.fillStyle = spotHex;
+    for (let i = 0; i < 22; i++) {
+      ctx.beginPath();
+      ctx.ellipse(
+        Math.random() * n, Math.random() * n,
+        n * (0.10 + Math.random() * 0.12), n * (0.07 + Math.random() * 0.09),
+        Math.random() * Math.PI, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, 3, 3);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
+
 // כתובת שעוטפת טבעת דקה פעם אחת בדיוק (בלי חזרה - repeat.set(1,1)), כמו
 // כיתוב על גומי בוקסר. קנבס רחב ונמוך (לא ריבוע כמו canvasTex) כי הטבעת
 // עצמה דקה מאוד וצריך שהטקסט לא ייצא מתוח אנכית.
@@ -1613,7 +1634,15 @@ function createFighter(cfg) {
   const M = (color, roughness, metalness = 0) =>
     new THREE.MeshStandardMaterial({ color, roughness, metalness });
 
-  const skinMat  = M(cfg.skin, 0.62);
+  // עור מנומר (cfg.mottledSkin, סלייקי) מחליף את skinMat *הכללי* עצמו -
+  // בניגוד ל-headMat למטה (שמיוחד רק לראש), כאן כל הגוף חשוף (בלי בגדים)
+  // וצריך את אותו מרקם בכל מקום, אז הכי פשוט להחליף את skinMat עצמו.
+  const skinMat = cfg.mottledSkin ? new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.62,
+    map: mottledSkinTex(
+      '#' + new THREE.Color(cfg.skin).getHexString(),
+      '#' + new THREE.Color(cfg.mottledColor2 ?? 0xcc2222).getHexString()),
+  }) : M(cfg.skin, 0.62);
   // פסי חתול (cfg.catStripes) חיים רק על הראש (כולל הלסת) - הגוף נשאר
   // בגוון אחיד. אותו עיקרון בדיוק כמו jacketMat: הצבע חי בתוך המרקם
   // עצמו, ולכן צבע החומר לבן ניטרלי.
@@ -1821,11 +1850,23 @@ function createFighter(cfg) {
   // לעובי ברמת קרסול/פרק כף יד (0.30 בבסיס), נמצא ברינדור.
   if (cfg.catTail) {
     BIND = { bone: 'root' };
-    const furMat = M(cfg.catFurColor ?? cfg.hair, 0.75);
-    part(sweep(furMat, [
+    // cfg.tailLength (חדש, סלייקי - "זנב ארוך") מאריך את הזנב פרופורציונלית
+    // - האופסטים מ-pelvis.y (לא pelvis.y עצמו) מוכפלים, כך שהבסיס נשאר
+    // צמוד לגוף והקצה מתרחק. cfg.tailStripeColor (חדש) מחליף את הפרווה
+    // האחידה במרקם פסים (stripeTex הקיים, שכבר נותן טבעות צבע חוזרות
+    // לאורך צינור - בדיוק "פסים" על זנב).
+    const tailLen = cfg.tailLength ?? 1;
+    const tailMat = cfg.tailStripeColor
+      ? new THREE.MeshStandardMaterial({
+          color: 0xffffff, roughness: 0.75,
+          map: stripeTex('#' + new THREE.Color(cfg.catFurColor ?? cfg.hair).getHexString(),
+            ['#' + new THREE.Color(cfg.tailStripeColor).getHexString()]),
+        })
+      : M(cfg.catFurColor ?? cfg.hair, 0.75);
+    part(sweep(tailMat, [
       V(0, S.pelvis.y - 0.01, -0.085),
-      V(0, S.pelvis.y + 0.16, -0.26),
-      V(0.05, S.pelvis.y + 0.32, -0.30),
+      V(0, S.pelvis.y + 0.16 * tailLen, -0.26 * tailLen),
+      V(0.05, S.pelvis.y + 0.32 * tailLen, -0.30 * tailLen),
     ], [
       pr(0, 0.300, 0.300), pr(0.55, 0.200, 0.200), pr(1, 0.040, 0.040),
     ], { steps: 16, radial: 14, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.6 }));
@@ -2217,9 +2258,13 @@ function createFighter(cfg) {
   // אלה חלקים שלא אמורים להתעוות מבפנים, רק לפנות יחד עם הראש.
   BIND = { bone: 'head' };
   const HC = S.headCenter;
+  // ראש "מעוך" (cfg.headSquish, סלייקי) - שטוח ורחב, במקום פרופורציית
+  // הראש הרגילה. משפיע גם על השיער (cap+RINGS למטה, שמשתמשים באותו
+  // headScale) כדי שהוא יישאר צמוד לצורת הגולגולת החדשה, לא לישנה.
+  const headScale = cfg.headSquish ? { x: 1.35, y: 0.60, z: 1.00 } : HEAD_SCALE;
   const head = new THREE.Mesh(new THREE.SphereGeometry(R, 44, 34), headMat);
   head.position.copy(HC);
-  head.scale.set(HEAD_SCALE.x, HEAD_SCALE.y, HEAD_SCALE.z);
+  head.scale.set(headScale.x, headScale.y, headScale.z);
   head.castShadow = true;
   head.receiveShadow = true;
   part(head);
@@ -2235,7 +2280,18 @@ function createFighter(cfg) {
 
   // ---------- אוזניים ----------
   [-1, 1].forEach((s) => {
-    if (cfg.ears === 'pointed') {
+    if (cfg.ears === 'pointed' && cfg.headSquish) {
+      // ⚠️ הנוסחה הרגילה של אוזן חדה (למטה) הונחה על ראש רגיל וצר - על
+      // ראש שטוח ורחב היא יוצאת קבורה כמעט לגמרי בתוך הגולגולת הרחבה
+      // הרבה יותר (נראה ברינדור). כאן האוזן יוצאת בעיקר *הצידה*, לאורך
+      // הרוחב של הראש, ולא כלפי מעלה כמו בראש הרגיל.
+      part(sweep(skinMat,
+        [V(s * R * 1.00, HC.y + R * 0.05, -R * 0.10),
+         V(s * R * 1.30, HC.y + R * 0.10, -R * 0.18),
+         V(s * R * 1.62, HC.y + R * 0.16, -R * 0.28)],
+        [pr(0, 0.28, 0.16), pr(0.55, 0.20, 0.10), pr(1, 0.04, 0.025)],
+        { steps: 14, radial: 20, refDir: V(0, 0, 1), capEnd: 'round', domeScale: 0.6 }));
+    } else if (cfg.ears === 'pointed') {
       part(sweep(skinMat,
         [V(s * R * 0.70, HC.y + R * 0.02, -R * 0.04),
          V(s * R * 1.00, HC.y + R * 0.62, -R * 0.26),
@@ -2282,48 +2338,68 @@ function createFighter(cfg) {
 
   // ---------- פנים ----------
   // עיניים קטנות ומבטאות כמו ברפרנס — לא עיניים ענקיות בסגנון אנימה
-  [-1, 1].forEach((s) => {
-    const ex = s * R * 0.40, ey = HC.y + R * 0.10, ez = R * 0.80;
+  // עין אחת (cfg.oneEye, סלייקי) - איטרציה על [0] בלבד (עין אחת במרכז,
+  // s=0) במקום [-1,1], עם sizeMult שמגדיל את כל חלקי העין כדי שהיא
+  // תיראה כמו עין דומיננטית אחת ולא כמו עין קטנה שאיבדה את הזוג שלה.
+  // הגבה מדלגת ב-one-eye: הנוסחה שלה תלויה ב-s לכיוון הקשת (s=0 הופך
+  // אותה לקו ישר מנוון), ומפלצת עם עין אחת ממילא לא צריכה גבה סימטרית.
+  const eyeSlots = cfg.oneEye ? [0] : [-1, 1];
+  const eyeSizeMult = cfg.oneEye ? 1.9 : 1;
+  eyeSlots.forEach((s) => {
+    const ex = s * R * 0.40, ey = HC.y + R * 0.10;
+    // ez=0.80R הונח על סמך הראש הרגיל (headScale.z=0.90). ראש שטוח ורחב
+    // (headScale.z=1.00, y=0.60) מזיז את פני השטח האמיתיים באותו גובה-עין
+    // קדימה (החישוב: z_surface = R*headScale.z*sqrt(1-(0.10/0.60)²)≈0.986R)
+    // - ez הישן יצא *מאחורי* פני הראש, והעין נבלעה כליל בלי להיראות בכלל.
+    // נמצא ברינדור (עין שלמה נעלמה), לא בחישוב מראש. תוקן עם מרווח קדימה.
+    const ez = cfg.headSquish ? R * 1.05 : R * 0.80;
     // (ez נבחר כך שחזית הלובן תעבור את פני הפנים בכ-0.001 בלבד)
 
     // פני הראש בגובה העין נמצאים ב-z=0.876R. כל שכבה כאן בולטת רק במעט מעל
     // קודמתה, אחרת גלגל העין יוצא ככדור מודבק על הפנים במקום עין שקועה בארובה.
-    const white = new THREE.Mesh(new THREE.SphereGeometry(R * 0.21, 24, 22), eyeWhiteMat);
+    const white = new THREE.Mesh(new THREE.SphereGeometry(R * 0.21 * eyeSizeMult, 24, 22), eyeWhiteMat);
     white.position.set(ex, ey, ez);
     white.scale.set(1, 0.70, 0.42);
     part(white);
 
     // הקשתית תופסת ~45% מרוחב העין, ולכן הלובן נראה משני צדדיה.
-    const iris = new THREE.Mesh(new THREE.SphereGeometry(R * 0.095, 20, 18), irisMat);
-    iris.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.055);
+    // ⚠️ ההיסטים הקטנים בין השכבות (0.055/0.088/0.105) הם ברמת "עין
+    // רגילה" - עם eyeSizeMult גדול (עין אחת מוגדלת) הלובן המוגדל בלע
+    // את הקשתית/האישון/הברק, כי הם בלטו קדימה רק במעט קבוע בעוד שהלובן
+    // עצמו גדל. נמצא ברינדור (עין לבנה בלי אישון) - תוקן עם היסטים
+    // שגדלים יחד עם eyeSizeMult, לא קבועים.
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(R * 0.095 * eyeSizeMult, 20, 18), irisMat);
+    iris.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.055 * eyeSizeMult);
     iris.scale.set(1, 1, 0.45);
     part(iris);
 
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(R * 0.042, 16, 14), pupilMat);
-    pupil.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.088);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(R * 0.042 * eyeSizeMult, 16, 14), pupilMat);
+    pupil.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.088 * eyeSizeMult);
     pupil.scale.set(1, 1, 0.45);
     part(pupil);
 
-    const glint = new THREE.Mesh(new THREE.SphereGeometry(R * 0.028, 10, 10), glintMat);
-    glint.position.set(ex + s * R * 0.058, ey + R * 0.062, ez + R * 0.105);
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(R * 0.028 * eyeSizeMult, 10, 10), glintMat);
+    glint.position.set(ex + s * R * 0.058, ey + R * 0.062, ez + R * 0.105 * eyeSizeMult);
     part(glint);
 
     // עפעף עליון — כיפה בצבע עור שמכסה את החלק העליון של גלגל העין.
     // בלי זה העין נשארת עיגול שלם והמבט יוצא פעור וקפוא.
     const lid = new THREE.Mesh(
-      new THREE.SphereGeometry(R * 0.222, 24, 18, 0, Math.PI * 2, 0, 0.85), skinMat);
+      new THREE.SphereGeometry(R * 0.222 * eyeSizeMult, 24, 18, 0, Math.PI * 2, 0, 0.85), skinMat);
     lid.position.set(ex, ey + R * 0.012, ez);
     lid.scale.set(1, 0.70, 0.44);
     lid.castShadow = true;
     part(lid);
 
-    // גבה עבה ומעוקלת (בולטת ברפרנס) — רצועה, לא קופסה
-    part(sweep(hairMat,
-      [V(ex - s * R * 0.30, HC.y + R * 0.235, R * 0.780),
-       V(ex,                HC.y + R * 0.290, R * 0.856),
-       V(ex + s * R * 0.30, HC.y + R * 0.245, R * 0.780)],
-      [pr(0, 0.04, 0.032), pr(0.5, 0.078, 0.055), pr(1, 0.04, 0.032)],
-      { steps: 10, radial: 14, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
+    if (!cfg.oneEye) {
+      // גבה עבה ומעוקלת (בולטת ברפרנס) — רצועה, לא קופסה
+      part(sweep(hairMat,
+        [V(ex - s * R * 0.30, HC.y + R * 0.235, R * 0.780),
+         V(ex,                HC.y + R * 0.290, R * 0.856),
+         V(ex + s * R * 0.30, HC.y + R * 0.245, R * 0.780)],
+        [pr(0, 0.04, 0.032), pr(0.5, 0.078, 0.055), pr(1, 0.04, 0.032)],
+        { steps: 10, radial: 14, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
+    }
 
     // ריסים — שלוש קווצות דקות שיוצאות מהקצה העליון-חיצוני של העין ונפתחות
     // החוצה ומעלה. זה הסימן הכי ברור וקריא לפרצוף "של בת" בסגנון הזה,
@@ -2529,18 +2605,24 @@ function createFighter(cfg) {
   // ברפרנס נפח השיער גדול ומקיף — הוא מה שנותן את הצללית, לא ראש גדול.
   // הכיפה מוטה לאחור: קו השיער בחזית עולה מעל המצח, ובעורף הוא יורד נמוך.
   // בלי ההטיה נוצר "קסדה" עם פס כהה חוצה שמסתיר את העיניים.
-  const cap = new THREE.Mesh(
-    new THREE.SphereGeometry(R * 1.02, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.54), hairMat);
-  cap.position.copy(HC);
-  cap.position.y += R * 0.06;
-  cap.position.z -= R * 0.21;
-  cap.rotation.x = -0.44;
-  // מסת השיער רחבה מהגולגולת עצמה — ברפרנס היא מה שנותן לראש את הנוכחות.
-  cap.scale.set(HEAD_SCALE.x * 1.04, HEAD_SCALE.y * 1.02, HEAD_SCALE.z * 1.04);
-  cap.castShadow = true;
-  part(cap);
+  // ⚠️ ראש שטוח ורחב (cfg.headSquish) + הכיפה הזו יחד כיסו את כל הפנים,
+  // כולל העין היחידה של סלייקי - נראה ברינדור (לא ניתן לחישוב מראש בלי
+  // לראות). הכיפה מדלגת שם - נשארים רק קוצי השיער הבודדים למטה, שנותנים
+  // מראה של "כתר קוצים" במקום קסדה שלמה, ולא קוברים את הפנים.
+  if (!cfg.headSquish) {
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(R * 1.02, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.54), hairMat);
+    cap.position.copy(HC);
+    cap.position.y += R * 0.06;
+    cap.position.z -= R * 0.21;
+    cap.rotation.x = -0.44;
+    // מסת השיער רחבה מהגולגולת עצמה — ברפרנס היא מה שנותן לראש את הנוכחות.
+    cap.scale.set(headScale.x * 1.04, headScale.y * 1.02, headScale.z * 1.04);
+    cap.castShadow = true;
+    part(cap);
+  }
 
-  const hx = R * HEAD_SCALE.x * 1.24, hy = R * HEAD_SCALE.y * 1.06, hz = R * HEAD_SCALE.z * 1.14;
+  const hx = R * headScale.x * 1.24, hy = R * headScale.y * 1.06, hz = R * headScale.z * 1.14;
   const RINGS = [
     { phi: 0.18, count: 7 }, { phi: 0.42, count: 12 }, { phi: 0.66, count: 16 },
     { phi: 0.90, count: 19 }, { phi: 1.14, count: 21 }, { phi: 1.38, count: 21 },
@@ -3233,6 +3315,40 @@ const STANBER_CFG = {
   boots: 0x6b451f,         // קירוב ל"נעליים מעץ"
 };
 
+// סלייקי - "עור בגווני צהוב ואדום. ראש 'מעוך' עם עין אחת. שיער עשוי
+// קווים עבים מאוד שזזים, בצבע כחול. בלי בגדים (דמות מפלצת, לא אנושית).
+// זנב ארוך עם פסים אדומים. אוזניים חדות. גוף שרירי עם בטן קוביות." לפי
+// game-spec.md. לפני בנייה נשאלו שתי שאלות הבהרה - המשתמש בחר: ראש
+// מעוך = שטוח ורחב (לא צר וארוך), וצבעי העור = אדום משולב עם צהוב על
+// כל הגוף (לא רק כתמים/פסים מקומיים).
+// שלוש יכולות חדשות: cfg.mottledSkin (מרקם כתמים חוזר על skinMat עצמו -
+// כל הגוף, לא רק הראש כמו catStripes), cfg.headSquish (חלופת headScale
+// שטוחה ורחבה במקום HEAD_SCALE, כולל השיער שתלוי בה), ו-cfg.oneEye
+// (עין מרכזית אחת מוגדלת, מדלגת על הגבה שנשברת בלי שני צדדים). גם
+// cfg.tailLength/cfg.tailStripeColor חדשים על cfg.catTail הקיים (ראה שם).
+// "בלי בגדים" - אותה שיטה כמו בו: top/pants null, בוקסר בלבד ליחף.
+const SLAIKY_CFG = {
+  power: 9.2, speed: 10,
+  skin: 0xd4a91f,
+  mottledSkin: true,
+  mottledColor2: 0xb3241f,
+  hair: 0x2255c9,
+  hairStyle: 'spiky',
+  eyeColor: 0x3ec23e,
+  ears: 'pointed',
+  headSquish: true,
+  oneEye: true,
+  abs: true,
+  catTail: true,
+  catFurColor: 0xd4a91f,
+  tailStripeColor: 0xb3241f,
+  tailLength: 1.6,
+  top: null,
+  pants: null,
+  boxers: 0x1a1a1a,
+  boots: null,
+};
+
 addStoneProp(player);
 addStoneProp(enemy);
 
@@ -3755,6 +3871,7 @@ function showScreen(name) {
 const CHARACTER_CFGS = {
   'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG,
   'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG, 'ברטו': BERTO_CFG, 'סטנבר': STANBER_CFG,
+  'סלייקי': SLAIKY_CFG,
 };
 const characterThumbs = {};
 const THUMB_SIZE = 360;
@@ -4404,7 +4521,7 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, inventory,
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
