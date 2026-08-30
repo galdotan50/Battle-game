@@ -314,16 +314,6 @@
   #lobbyOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #lobbyOverlay .bigBtn.secondary:hover { background: rgba(255,255,255,0.2); }
 
-  #shopNote {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 12px;
-    padding: 10px 20px;
-    font-size: 0.95rem;
-    margin-bottom: 22px;
-    max-width: 640px;
-    text-align: center;
-  }
   #shopTabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 28px; }
   .shopTab {
     font-size: 1.05rem;
@@ -475,7 +465,6 @@
 
 <div id="shopOverlay">
   <div class="screenTitle">🛒 חנות</div>
-  <div id="shopNote">👀 אפשר לראות מה יש בחנות, אבל עדיין אי אפשר לקנות - זה יגיע כשיהיה כסף במשחק!</div>
   <div id="shopTabs"></div>
   <div id="shopGrid"></div>
   <button id="backLobbyBtn">⬅ חזרה ללובי</button>
@@ -4531,7 +4520,6 @@ function showScreen(name) {
 }
 
 // נתוני החנות - הועתקו ישירות מ-game-spec.md, מקור האמת למספרים האלה.
-// אין עדיין מערכת כסף, ולכן זו תצוגה בלבד (ראה shopNote למעלה).
 // ---------- תמונות אמיתיות של דמויות בחנות ----------
 // לכל דמות שכבר נבנתה בפועל (יש לה קונפיג) יש "צילום" אמיתי: בונים אותה
 // זמנית באמצע הזירה, מקטינים את הקנבס לריבוע קטן לרגע אחד, מרנדרים,
