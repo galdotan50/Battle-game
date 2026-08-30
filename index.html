@@ -4342,7 +4342,7 @@ function tickCombat(attacker, defender, who, otherWho) {
 // 1₪ לכל נקודת נזק, אבל לא יותר מ-MAX_MONEY_PER_GAME בקרב אחד - בלי התקרה
 // קרב יחיד יכול לתת המון כסף (עד 75, כל החיים של בו), וזה מרוקן מתוכן
 // את הרעיון של "לנצח כמה פעמים כדי לחסוך".
-const MAX_MONEY_PER_GAME = 52;   // פחות מ-53, לפי בקשת המשתמש
+const MAX_MONEY_PER_GAME = 65;   // לא יותר מ-65, לפי בקשת המשתמש
 let money = 0;
 const moneyBadgeEl = document.getElementById('moneyBadge');
 function updateMoneyUI() { moneyBadgeEl.textContent = '💰 ' + money + '₪'; }
