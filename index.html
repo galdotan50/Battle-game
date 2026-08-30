@@ -536,6 +536,7 @@
   <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
   <button class="bigBtn secondary eventOnly" id="openCreateBtn">🎨 בנייה עצמית</button>
+  <button class="bigBtn secondary eventOnly" id="bossFightBtn">👹 קרב בוס</button>
 </div>
 
 <div id="shopOverlay">
@@ -2478,14 +2479,17 @@ function createFighter(cfg) {
     // (קישוט)") - שתי אונות עגולות ורחבות במקום ארבע אצבעות מחודדות:
     // הקצה (t=1) נשאר רחב עם capEnd:'round' במקום להצטמצם לנקודה.
     const butterfly = cfg.wingStyle === 'butterfly';
-    const FINGERS = butterfly
+    // cfg.wingScale (חדש, קראגור - "כנפי עטלף קטנים") - מכפיל אורך בלבד,
+    // לא נוגע בזווית (ang) כדי שהצורה/הפריסה של הכנף תישאר זהה, רק קטנה יותר.
+    const wingScale = cfg.wingScale ?? 1;
+    const FINGERS = (butterfly
       ? [{ ang: 0.30, len: 0.28 }, { ang: 0.85, len: 0.22 }]
       : [
           { ang: 0.20, len: 0.40 },
           { ang: 0.55, len: 0.56 },
           { ang: 0.92, len: 0.52 },
           { ang: 1.28, len: 0.36 },
-        ];
+        ]).map(({ ang, len }) => ({ ang, len: len * wingScale }));
     [-1, 1].forEach((s) => {
       // ⚠️ ניסיון ראשון של הפרפר (rz עד 0.045, base ב-z-0.06) יצא גוש
       // עבה ותפוח קרוב לכתף, לא כנף שטוחה - נראה ברינדור. תוקן עם rz
@@ -2689,11 +2693,34 @@ function createFighter(cfg) {
   // הטכני על מסכת סטנבר.
   if (cfg.beard) {
     const beardMat = M(cfg.beardColor ?? cfg.hair, 0.85);
-    const beard = new THREE.Mesh(new THREE.SphereGeometry(R * 0.55 * headMult, 24, 18), beardMat);
-    beard.position.set(0, HC.y - R * 1.00 * headMult, R * 0.36 * headMult);
-    beard.scale.set(0.80, 0.46, 0.52);
-    beard.castShadow = true;
-    part(beard);
+    if (cfg.beardLength) {
+      // זקן ארוך מאוד (cfg.beardLength, קראגור) - צינור מחודד שיורד
+      // מהסנטר, לא הכדור-שטוח הקטן למטה (מתאים לזקן קצר בלבד).
+      // ⚠️ ניסיון ראשון המשיך את העקומה המקורית (שנועדה לזקן-עז קצר
+      // שמתעקל *פנימה* לכיוון הגוף) ופשוט הגדיל את המרחק למטה - באורך
+      // גדול זה דחף את הקצה *מאחורי* פלג הגוף (שרדיוסו האמיתי, ביחידות
+      // עולם מוחלטות, גדול בהרבה מ-R הקטן של הראש) ופשוט נבלע שם, בלי
+      // שגיאה ובלי שנראה שהאורך בכלל השתנה. נמצא ברינדור. תוקן עם קו
+      // ישר שיורד *וגם* מתרחק קדימה (לא חוזר פנימה) ביחס ל-len - כך
+      // שהזקן תמיד נשאר לפני הגוף לכל אורך שהוא, כמו זקן שתלוי בחופשיות
+      // באוויר ולא נצמד לבית החזה.
+      const len = cfg.beardLength;
+      const start = V(0, HC.y - R * 0.78 * headMult, R * 0.60 * headMult);
+      const dir = V(0, -1, 0.10).normalize();
+      part(sweep(beardMat, [
+        start,
+        start.clone().addScaledVector(dir, len * 0.5 * R),
+        start.clone().addScaledVector(dir, len * R),
+      ], [
+        pr(0, 0.16, 0.13), pr(0.6, 0.10, 0.08), pr(1, 0.015, 0.015),
+      ], { steps: 14, radial: 12, refDir: V(1, 0, 0), capStart: 'round', capEnd: 'round', domeScale: 0.6 }));
+    } else {
+      const beard = new THREE.Mesh(new THREE.SphereGeometry(R * 0.55 * headMult, 24, 18), beardMat);
+      beard.position.set(0, HC.y - R * 1.00 * headMult, R * 0.36 * headMult);
+      beard.scale.set(0.80, 0.46, 0.52);
+      beard.castShadow = true;
+      part(beard);
+    }
   }
 
   // ---------- אוזניים ----------
@@ -2760,13 +2787,19 @@ function createFighter(cfg) {
   // מחדל לצבע העור עצמו (קרן כהה שממשיכה את גוון הגוף).
   if (cfg.backHorns) {
     const hornMat = M(cfg.hornColor ?? cfg.skin, 0.5);
+    // cfg.hornScale (חדש, קראגור - "קרניים חדות וארוכות") מאריך את הקרן
+    // מנקודת הבסיס שלה על הראש (לא סתם מכפיל את כל הקואורדינטות, אחרת
+    // הבסיס עצמו היה זז ונשמט מהראש) - וקטור מהבסיס לכל נקודה מוכפל
+    // באורך, לא הנקודה המוחלטת.
+    const hornScale = cfg.hornScale ?? 1;
     [-1, 1].forEach((s) => {
-      part(sweep(hornMat, [
-        V(s * R * 0.26, HC.y + R * 0.88, R * 0.10),
-        V(s * R * 0.32, HC.y + R * 1.05, -R * 0.15),
-        V(s * R * 0.36, HC.y + R * 1.18, -R * 0.42),
-      ], [
-        pr(0, 0.10, 0.10), pr(0.6, 0.06, 0.06), pr(1, 0.008, 0.008),
+      const base = V(s * R * 0.26, HC.y + R * 0.88, R * 0.10);
+      const mid = V(s * R * 0.32, HC.y + R * 1.05, -R * 0.15);
+      const tip = V(s * R * 0.36, HC.y + R * 1.18, -R * 0.42);
+      const midS = base.clone().add(mid.clone().sub(base).multiplyScalar(hornScale));
+      const tipS = base.clone().add(tip.clone().sub(base).multiplyScalar(hornScale));
+      part(sweep(hornMat, [base, midS, tipS], [
+        pr(0, 0.10 * Math.min(hornScale, 1.6), 0.10 * Math.min(hornScale, 1.6)), pr(0.6, 0.06, 0.06), pr(1, 0.008, 0.008),
       ], { steps: 8, radial: 10, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.6 }));
     });
   }
@@ -4269,6 +4302,51 @@ const FRANK_CFG = {
   turtleShell: true, shellColor: 0x5a6b3f,
 };
 
+// קראגור - בוס איוונט ראשון (game-spec.md סעיף 17: "יכולים להופיע בוסים
+// מיוחדים... חזקים בהרבה מאויבים רגילים... קרבות מיוחדים ותגמולים
+// גדולים"). תיאור מהמשתמש: "שד ענק ואדום עם קרניים חדות וארוכות ועיניים
+// זוהרות וזקן ארוך מאוד וכנפי עטלף קטנים". "ענק" = armScale/legScale/
+// fistScale מתונים יותר מפראנק (זה שד-ענק, לא סלע-ענק). קרניים/זקן/כנפיים
+// כולם שימוש חוזר ביכולות קיימות עם המכפילים החדשים (hornScale/
+// beardLength/wingScale) שנוספו במיוחד בשביל התיאור הזה.
+const KRAGOR_CFG = {
+  power: 15, speed: 12,
+  skin: 0x8a1a1a,
+  hair: 0x1a1410, hairStyle: 'short',
+  glowEyes: true, eyeColor: 0xffb020,
+  ears: 'pointed',
+  backHorns: true, hornScale: 2.2, hornColor: 0x2a1a12,
+  beard: true, beardLength: 6.5, beardColor: 0x1a1410,
+  wings: true, wingScale: 0.45, wingColor: 0x141013,
+  top: null, pants: null, boxers: null, boots: null,
+  armScale: 1.3, fistScale: 1.4, legScale: 1.25,
+};
+
+// ---------- בוסי איוונט ----------
+// שונים מ-ENEMY_LEVELS (סולם קבוע, עולים רמה בניצחון): בוס לא קשור
+// לסולם בכלל - נכנסים אליו ישירות מכפתור בלובי (רק בזמן איוונט), אפשר
+// להילחם בו שוב ושוב, והתגמול קבוע וגדול במקום תלוי-נזק. isBossFight
+// מסמן ש-`enemy` הנוכחי הוא בוס, כדי ש-endGame ידע להתייחס אחרת.
+const BOSS_LEVELS = [
+  { name: 'קראגור', cfg: KRAGOR_CFG, hp: 260, reward: 150 },
+];
+let isBossFight = false;
+let activeBossIndex = 0;
+
+function startBossFight(idx) {
+  const boss = BOSS_LEVELS[idx];
+  activeBossIndex = idx;
+  isBossFight = true;
+  const oldX = enemy.x, oldFacing = enemy.facing;
+  scene.remove(enemy.group);
+  enemy.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  enemy = makeFighter(boss.cfg, oldX, oldFacing, boss.hp);
+  addStoneProp(enemy);
+  hpNameEnemyEl.textContent = '👹 ' + boss.name;
+  resetGame();
+  showScreen('battle');
+}
+
 addStoneProp(player);
 addStoneProp(enemy);
 
@@ -4725,7 +4803,14 @@ function endGame(winnerWho) {
   gameOverEl.classList.add('show');
   const win = winnerWho === 'player';
   updateGameOverStats(win);
-  if (win) {
+  if (win && isBossFight) {
+    // קרב בוס - "תגמולים גדולים" (game-spec.md סעיף 17): סכום קבוע וגדול,
+    // לא תלוי-נזק כמו קרב רגיל, ובלי עליית רמה - בוסים הם מחוץ לסולם
+    // האויבים הרגיל (ENEMY_LEVELS), אפשר להילחם בהם שוב ושוב.
+    money += BOSS_LEVELS[activeBossIndex].reward;
+    updateMoneyUI();
+    gameOverTitleEl.textContent = '👑 ניצחת את הבוס!';
+  } else if (win) {
     money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
     updateMoneyUI();
     const isLast = enemyLevel >= ENEMY_LEVELS.length - 1;
@@ -4736,7 +4821,7 @@ function endGame(winnerWho) {
     // שהאויב שהובס יישאר על המסך מאחורי מסך הניצחון עד הקרב הבא.
     if (!isLast) pendingEnemyLevel = enemyLevel + 1;
   } else {
-    gameOverTitleEl.textContent = '❌ הפסד';
+    gameOverTitleEl.textContent = isBossFight ? '❌ הפסד לבוס' : '❌ הפסד';
   }
 }
 
@@ -5709,9 +5794,15 @@ Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
   shopTabsEl.appendChild(btn);
 });
 
-document.getElementById('lobbyBtn').addEventListener('click', () => { resetGame(); showScreen('lobby'); });
+document.getElementById('lobbyBtn').addEventListener('click', () => {
+  // אם באים מקרב בוס - מחזירים את האויב הרגיל של הרמה הנוכחית לפני
+  // שחוזרים ללובי, כי `enemy` הוחלף זמנית לבוס ב-startBossFight.
+  if (isBossFight) { switchEnemy(enemyLevel); isBossFight = false; }
+  resetGame(); showScreen('lobby');
+});
 document.getElementById('startFightBtn').addEventListener('click', () => { resetGame(); showScreen('battle'); });
 document.getElementById('openShopBtn').addEventListener('click', () => { showScreen('shop'); renderShopCategory('characters'); });
+document.getElementById('bossFightBtn').addEventListener('click', () => startBossFight(0));
 document.getElementById('backLobbyBtn').addEventListener('click', () => showScreen('lobby'));
 charPrevBtn.addEventListener('click', () => cycleCharacter(-1));
 charNextBtn.addEventListener('click', () => cycleCharacter(1));
@@ -5789,7 +5880,8 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, SINZER_CFG, FRANK_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, SINZER_CFG, FRANK_CFG, KRAGOR_CFG, inventory,
+  BOSS_LEVELS, startBossFight, get isBossFight() { return isBossFight; },
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
