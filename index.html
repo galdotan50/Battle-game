@@ -2533,6 +2533,23 @@ function createFighter(cfg) {
     part(gem);
   }
 
+  // ---------- שריון זהב על החזה ----------
+  // צ'ארס - "שריון זהב על החזה". אותה טכניקה בדיוק כמו שריון הצב של
+  // פראנק (כיפה חלקית תלויה קשיח על עצם החזה) - רק קטנה יותר, זהובה,
+  // ועל *חזית* הגוף (z חיובי) במקום הגב (z שלילי): rotation.x=+π/2
+  // (לא -π/2 כמו הצב) ממפה את קוטב הכיפה מ-+Y ל-+Z, כלומר קדימה.
+  if (cfg.chestArmor) {
+    const armorMat = new THREE.MeshStandardMaterial({
+      color: cfg.chestArmorColor ?? 0xd9b23c, roughness: 0.25, metalness: 0.85,
+    });
+    const plate = new THREE.Mesh(
+      new THREE.SphereGeometry(0.11, 20, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), armorMat);
+    plate.position.set(0, S.chest.y + 0.01, S.chest.z + 0.08);
+    plate.rotation.x = Math.PI / 2;
+    plate.castShadow = true;
+    part(plate);
+  }
+
   // ---------- חרבות בגב ----------
   // סינזר - "יש לו גם חרבות בגב". קישוט קבוע (לא נשק מצויד בקרב), בנוי
   // מאותה גיאומטריה בדיוק כמו 'חרב' בחנות (weaponShaft+guard+weaponBlade,
@@ -2859,6 +2876,18 @@ function createFighter(cfg) {
       shard.castShadow = true;
       part(shard);
     });
+  }
+
+  // ---------- טבעת אור מעל הראש ----------
+  // צ'ארס - "ישות אור... טבעת אור מעל הראש". טבעת שטוחה זוהרת
+  // (MeshBasicMaterial כמו עיניים זוהרות - לא מושפעת מתאורה/צל) שצפה
+  // אופקית מעל הראש, לא נוגעת בו.
+  if (cfg.halo) {
+    const haloMat = new THREE.MeshBasicMaterial({ color: cfg.haloColor ?? 0xffe9a8 });
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(R * 0.75 * headMult, R * 0.055 * headMult, 12, 30), haloMat);
+    halo.position.set(0, HC.y + R * (headScale.y + 0.45) * headMult, 0);
+    halo.rotation.x = Math.PI / 2;
+    part(halo);
   }
 
   // ---------- פנים ----------
@@ -4396,6 +4425,28 @@ const PROKENT_CFG = {
   backScythe: true,
 };
 
+// צ'ארס - בוס איוונט שלישי והאחרון. האפיון עצמו רומז לכיוון פיראטי
+// (אמוג'י 🏴‍☠️ ליד השם, בניגוד ל-👹 של קראגור/פרוקנט) - אבל אחרי כמה
+// סבבי הצעות (פיראט רפאים, מפלצת-ים, קברניט-עץ) המשתמש ביקש כיוון
+// אחר לגמרי: "ישות אור/שמיים - עור לבן זוהר, כנפיים גדולות לבנות,
+// טבעת אור מעל הראש, עיניים לבנות טהורות, שריון זהב על החזה" - ניגוד
+// מכוון לכל שאר הבוסים הכהים/אדמתיים (אש/אבן/צל). cfg.halo ו-
+// cfg.chestArmor הן היכולות החדשות (ראה למעלה); wings עם wingScale
+// גדול (הפוך מ-0.45 הקטן של קראגור) ו-glowEyes הם שימוש חוזר.
+const CHARES_CFG = {
+  power: 16, speed: 13,
+  skin: 0xf2ede0,
+  hair: 0xf5f0e0,
+  bald: true,
+  glowEyes: true, eyeColor: 0xffffff,
+  ears: 'round',
+  wings: true, wingScale: 1.7, wingColor: 0xf5f0e0,
+  halo: true, haloColor: 0xffe9a8,
+  chestArmor: true, chestArmorColor: 0xd9b23c,
+  top: null, pants: null, boots: null,
+  boxers: 0xece4d0,
+};
+
 // ---------- בוסי איוונט ----------
 // שונים מ-ENEMY_LEVELS (סולם קבוע, עולים רמה בניצחון): בוס לא קשור
 // לסולם בכלל - נכנסים אליו ישירות מכפתור בלובי (רק בזמן איוונט), אפשר
@@ -4404,6 +4455,7 @@ const PROKENT_CFG = {
 const BOSS_LEVELS = [
   { name: 'קראגור', cfg: KRAGOR_CFG, hp: 260, reward: 150 },
   { name: 'פרוקנט', cfg: PROKENT_CFG, hp: 280, reward: 160 },
+  { name: "צ'ארס", cfg: CHARES_CFG, hp: 320, reward: 200 },
 ];
 let isBossFight = false;
 let activeBossIndex = 0;
@@ -5965,7 +6017,7 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, SINZER_CFG, FRANK_CFG, KRAGOR_CFG, PROKENT_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, SINZER_CFG, FRANK_CFG, KRAGOR_CFG, PROKENT_CFG, CHARES_CFG, inventory,
   BOSS_LEVELS, startBossFight, get isBossFight() { return isBossFight; },
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
