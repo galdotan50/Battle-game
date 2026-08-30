@@ -388,6 +388,23 @@
   }
   .buyBtn.shake { animation: cantAffordShake 0.3s ease; background: #e05a5a; color: #fff; }
   #backLobbyBtn { margin-top: 30px; }
+  .oldPrice { text-decoration: line-through; opacity: 0.65; margin-left: 4px; }
+
+  /* איוונט יום שישי - מוסתר כברירת מחדל, מוצג רק כשהאיוונט פעיל (isEventActive) */
+  .eventBanner {
+    display: none;
+    background: linear-gradient(90deg, #ff8a3d, #ffcf4d);
+    color: #1a1a1a;
+    font-weight: 800;
+    font-size: 1.05rem;
+    padding: 10px 22px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(255,140,50,0.45);
+    animation: eventPulse 1.6s ease-in-out infinite;
+  }
+  .eventBanner.show { display: block; }
+  @keyframes eventPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
 
   /* מוצג תמיד, בכל מסך (זירה/לובי/חנות) - לכן z-index גבוה מכל המסכים */
   #moneyBadge {
@@ -449,6 +466,7 @@
 </div>
 
 <div id="lobbyOverlay">
+  <div class="eventBanner">🎉 איוונט מיוחד! 30% הנחה בחנות!</div>
   <div id="loadoutRow">
     <button id="charPrevBtn" class="cycleBtn">◀</button>
     <div id="loadoutLabel">🥊 סווארק</div>
@@ -464,6 +482,7 @@
 </div>
 
 <div id="shopOverlay">
+  <div class="eventBanner">🎉 איוונט מיוחד! 30% הנחה!</div>
   <div class="screenTitle">🛒 חנות</div>
   <div id="shopTabs"></div>
   <div id="shopGrid"></div>
@@ -4645,6 +4664,42 @@ const SHOP_DATA = {
   upgrades: { label: '⭐ שדרוגים', rows: [] },
 };
 
+// ============================================================================
+//  איוונט — כל יום שישי, 22:00-22:45 (לפי השעון האמיתי של המחשב)
+//
+//  לפי האפיון (game-spec.md סעיף 14): "מבצעים - פריטים או דמויות במחירים
+//  מיוחדים". השלב הזה מטפל רק בחלק הזה (הנחה על מחירי החנות) - דמויות
+//  האיוונט המיוחדות (פראנק/סינזר), יצירת דמות/נשק עצמאית והבוסים המיוחדים
+//  הם שלבים נפרדים שעדיין לא נבנו.
+// ============================================================================
+const EVENT_WEEKDAY = 5;            // יום שישי - Date.getDay(): 0=ראשון...6=שבת
+const EVENT_START_MIN = 22 * 60;    // 22:00, בדקות מתחילת היום
+const EVENT_END_MIN = 22 * 60 + 45; // 22:45
+const EVENT_DISCOUNT = 0.3;         // 30% הנחה על פריטי חנות בזמן איוונט
+
+function isEventActive(d = new Date()) {
+  if (d.getDay() !== EVENT_WEEKDAY) return false;
+  const mins = d.getHours() * 60 + d.getMinutes();
+  return mins >= EVENT_START_MIN && mins < EVENT_END_MIN;
+}
+
+let eventActive = isEventActive();
+
+function updateEventUI() {
+  document.querySelectorAll('.eventBanner').forEach((el) => el.classList.toggle('show', eventActive));
+  // אם החנות פתוחה כרגע, מרעננים כדי שהמחירים המוזלים יופיעו/ייעלמו מיד
+  const activeTab = shopTabsEl.querySelector('.shopTab.active');
+  if (uiScreen === 'shop' && activeTab) renderShopCategory(activeTab.dataset.key);
+}
+
+// בדיקה כל שנייה מספיקה בהחלט (השעון עצמו לא זז מהר יותר), ולא תלויה
+// בלולאת האנימציה - כך שהבאנר וההנחות מתעדכנים גם אם המשחק פתוח בלובי/חנות
+// ולא בקרב בכלל.
+setInterval(() => {
+  const now = isEventActive();
+  if (now !== eventActive) { eventActive = now; updateEventUI(); }
+}, 1000);
+
 // ---------- מלאי וקנייה ----------
 // מפתח לכל פריט הוא "קטגוריה:שם". סווארק והאבן החדה כבר שייכים לשחקן
 // מההתחלה (בדיוק כמו שכתוב באפיון - "מתחיל עם דמות בסיסית אחת... ועם
@@ -5082,9 +5137,16 @@ function renderShopCategory(key) {
         ? `<img class="itemThumb" src="${thumb}">`
         : `<div class="itemThumb itemThumbPlaceholder">🚧<br>בקרוב</div>`;
     }
+    // בזמן איוונט - 30% הנחה על כל פריט שלא חינם. data-price הוא המחיר
+    // שבאמת יורד מהכסף (buyItem פשוט קורא אותו), כדי שההנחה תיאכף גם בקנייה.
+    const onSale = eventActive && price > 0;
+    const chargePrice = onSale ? Math.round(price * (1 - EVENT_DISCOUNT)) : price;
+    const priceHtml = onSale
+      ? `<span class="oldPrice">${price}₪</span> 🎉${chargePrice}₪`
+      : priceStr;
     const buyHtml = owned
       ? `<button class="buyBtn owned" disabled>✅ שלך</button>`
-      : `<button class="buyBtn" data-key="${key}" data-name="${name}" data-price="${price}">💰 קנה ב-${priceStr}</button>`;
+      : `<button class="buyBtn" data-key="${key}" data-name="${name}" data-price="${chargePrice}">💰 קנה ב-${priceHtml}</button>`;
 
     card.innerHTML = media + `<div class="itemName">${name}</div>` +
       mid.map((s) => `<div class="itemStat">${s}</div>`).join('') +
@@ -5122,6 +5184,7 @@ updateMoneyUI();
 updateLoadoutUI();
 renderLootBar();
 updateBuffRow();
+updateEventUI();
 
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
@@ -5196,6 +5259,9 @@ window.game = {
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
   set money(v) { money = v; updateMoneyUI(); },
+  isEventActive, updateEventUI,
+  get eventActive() { return eventActive; },
+  set eventActive(v) { eventActive = v; updateEventUI(); },   // לבדיקות בלבד - עוקף את השעון האמיתי
 };
 </script>
 </body>
