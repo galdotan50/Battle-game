@@ -5238,7 +5238,7 @@ const EVENT_DISCOUNT = 0.3;         // 30% הנחה על פריטי חנות ב�
 // אפשר לכפות אותו פעיל כאן זמנית - true מדליק את האיוונט תמיד, בלי קשר
 // לשעון האמיתי. FALSE הוא המצב הרגיל (תלוי בשעון, כמו שהאפיון דורש).
 // ⚠️ זה שינוי זמני לצורך הדגמה - יש להחזיר ל-false כשמסיימים להראות.
-const FORCE_EVENT_DEMO = true;
+const FORCE_EVENT_DEMO = false;
 
 function isEventActive(d = new Date()) {
   if (FORCE_EVENT_DEMO) return true;
