@@ -5234,7 +5234,14 @@ const EVENT_START_MIN = 22 * 60;    // 22:00, בדקות מתחילת היום
 const EVENT_END_MIN = 22 * 60 + 45; // 22:45
 const EVENT_DISCOUNT = 0.3;         // 30% הנחה על פריטי חנות בזמן איוונט
 
+// מצב הדגמה: כשרוצים להראות איך האיוונט נראה בלי לחכות ליום שישי 22:00,
+// אפשר לכפות אותו פעיל כאן זמנית - true מדליק את האיוונט תמיד, בלי קשר
+// לשעון האמיתי. FALSE הוא המצב הרגיל (תלוי בשעון, כמו שהאפיון דורש).
+// ⚠️ זה שינוי זמני לצורך הדגמה - יש להחזיר ל-false כשמסיימים להראות.
+const FORCE_EVENT_DEMO = true;
+
 function isEventActive(d = new Date()) {
+  if (FORCE_EVENT_DEMO) return true;
   if (d.getDay() !== EVENT_WEEKDAY) return false;
   const mins = d.getHours() * 60 + d.getMinutes();
   return mins >= EVENT_START_MIN && mins < EVENT_END_MIN;
