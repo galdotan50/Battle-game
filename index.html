@@ -413,7 +413,7 @@
 
   /* ---------- מסך בנייה עצמית (רק באיוונט) ---------- */
   /* שקוף חלקית כמו הלובי - כדי שדמות התצוגה המקדימה תיראה מבעד למסך */
-  #createOverlay {
+  #createOverlay, #weaponCreateOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -427,8 +427,8 @@
     box-sizing: border-box;
     background: linear-gradient(200deg, rgba(22,33,58,0.55), rgba(12,18,32,0.72));
   }
-  #createOverlay.show { display: flex; }
-  #createNameInput {
+  #createOverlay.show, #weaponCreateOverlay.show { display: flex; }
+  #createNameInput, #weaponCreateNameInput {
     font-size: 1.1rem;
     padding: 10px 18px;
     border-radius: 12px;
@@ -439,8 +439,8 @@
     margin-bottom: 18px;
     width: 240px;
   }
-  #createTabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 16px; max-width: 700px; }
-  #createOptions {
+  #createTabs, #weaponCreateTabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 16px; max-width: 700px; }
+  #createOptions, #weaponCreateOptions {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -458,11 +458,11 @@
     cursor: pointer;
   }
   .swatch.active { border-color: #ffcf4d; box-shadow: 0 0 0 2px #ffcf4d; }
-  #createOptions .fullBreak { flex-basis: 100%; height: 0; }
+  #createOptions .fullBreak, #weaponCreateOptions .fullBreak { flex-basis: 100%; height: 0; }
   #createStats { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; font-size: 1rem; }
   #createStats input[type="range"] { vertical-align: middle; margin-inline-start: 10px; width: 200px; }
-  #createBackBtn { margin-top: 12px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
-  #createNameInput.shake { animation: cantAffordShake 0.3s ease; border-color: #e05a5a; }
+  #createBackBtn, #weaponCreateBackBtn { margin-top: 12px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
+  #createNameInput.shake, #weaponCreateNameInput.shake { animation: cantAffordShake 0.3s ease; border-color: #e05a5a; }
 
   /* מוצג תמיד, בכל מסך (זירה/לובי/חנות) - לכן z-index גבוה מכל המסכים */
   #moneyBadge {
@@ -538,6 +538,7 @@
   <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
   <button class="bigBtn secondary eventOnly" id="openCreateBtn">🎨 בנייה עצמית</button>
+  <button class="bigBtn secondary eventOnly" id="openWeaponCreateBtn">🔨 בניית נשק</button>
   <div id="bossRow" class="eventOnly">
     <button id="bossPrevBtn" class="cycleBtn">◀</button>
     <div id="bossLabel">👹 קראגור</div>
@@ -569,6 +570,20 @@
   </div>
   <button class="bigBtn" id="createSaveBtn">✅ צור דמות</button>
   <button id="createBackBtn">⬅ ביטול</button>
+</div>
+
+<div id="weaponCreateOverlay">
+  <div class="screenTitle">🔨 בונים נשק</div>
+  <input id="weaponCreateNameInput" type="text" maxlength="12" placeholder="שם הנשק שלך">
+  <div id="weaponCreateTabs"></div>
+  <div id="weaponCreateOptions"></div>
+  <div id="createStats">
+    <label>💥 נזק: <span id="weaponDamageVal">30</span>/67
+      <input id="weaponDamageSlider" type="range" min="0" max="67" step="1" value="30">
+    </label>
+  </div>
+  <button class="bigBtn" id="weaponCreateSaveBtn">✅ צור נשק</button>
+  <button id="weaponCreateBackBtn">⬅ ביטול</button>
 </div>
 
 <script type="importmap">
@@ -5003,6 +5018,7 @@ let uiScreen = 'battle';
 const lobbyEl = document.getElementById('lobbyOverlay');
 const shopEl = document.getElementById('shopOverlay');
 const createEl = document.getElementById('createOverlay');
+const weaponCreateEl = document.getElementById('weaponCreateOverlay');
 const shopTabsEl = document.getElementById('shopTabs');
 const shopGridEl = document.getElementById('shopGrid');
 const hpRowEl = document.getElementById('hpRow');
@@ -5032,6 +5048,7 @@ function showScreen(name) {
   lobbyEl.classList.toggle('show', name === 'lobby');
   shopEl.classList.toggle('show', name === 'shop');
   createEl.classList.toggle('show', name === 'create');
+  weaponCreateEl.classList.toggle('show', name === 'weaponCreate');
   const inBattle = name === 'battle';
   hpRowEl.style.display = inBattle ? '' : 'none';
   controlsEl.style.display = inBattle ? '' : 'none';
@@ -5058,6 +5075,17 @@ function showScreen(name) {
     player.group.visible = false;
     if (!previewFighter) rebuildPreview();
     previewFighter.group.visible = true;
+    focusCreateCamera();
+  } else if (name === 'weaponCreate') {
+    // מסך "בניית נשק" - אותה דמות תצוגה מקדימה בדיוק כמו "בנייה עצמית",
+    // רק עם הנשק הנבנה מוצמד לידה במקום לשנות את המראה שלה. אם נכנסים
+    // ישר לכאן בלי לעבור קודם ב"בנייה עצמית" (previewFighter עדיין
+    // לא קיים), בונים אותה עם ברירת המחדל של createState.
+    enemy.group.visible = false;
+    player.group.visible = false;
+    if (!previewFighter) rebuildPreview();
+    previewFighter.group.visible = true;
+    rebuildWeaponPreview();
     focusCreateCamera();
   } else {
     enemy.group.visible = true;
@@ -5519,8 +5547,13 @@ CUSTOM_CHARACTER_NAMES.add('פראנק');
 const ownedCharacterNames = () =>
   Object.keys(CHARACTER_CFGS).filter((n) =>
     inventory.has('characters:' + n) && (!CUSTOM_CHARACTER_NAMES.has(n) || eventActive));
+// נשקים שנוצרו ב"בנייה עצמית" זמינים רק באיוונט - בדיוק אותו דגל
+// כמו CUSTOM_CHARACTER_NAMES (game-spec.md סעיף 16: "הנשק זמין למשחק
+// רק באיוונטים").
+const CUSTOM_WEAPON_NAMES = new Set();
 const ownedWeaponNames = () =>
-  Object.keys(WEAPON_CFGS).filter((n) => inventory.has('weapons:' + n));
+  Object.keys(WEAPON_CFGS).filter((n) =>
+    inventory.has('weapons:' + n) && (!CUSTOM_WEAPON_NAMES.has(n) || eventActive));
 
 function updateLoadoutUI() {
   loadoutLabelEl.textContent = '🥊 ' + selectedCharacterName;
@@ -5777,6 +5810,11 @@ function customCharCfg() {
 
 // בדיוק כמו switchPlayerCharacter/switchEnemy - מפרקת את התצוגה המקדימה
 // הישנה ובונה חדשה מהבחירות הנוכחיות. לא נוגעת ב-player האמיתי.
+// ⚠️ משתמשת ב-makeFighter (עם שלד אמיתי), לא רק createFighter כמו בהתחלה -
+// כדי שאפשר יהיה גם להצמיד נשק (addWeaponProp דורש f.byName/f.near, ששניהם
+// קיימים רק אחרי בניית שלד). מכיוון שהתצוגה המקדימה אף פעם לא מונפשת
+// (לא עוברת poseFighter), הצמדת השלד בתנוחת המנוחה לא משנה שום דבר
+// חזותית - זהה לגמרי לגרסה הישנה בלי שלד.
 function rebuildPreview() {
   if (previewFighter) {
     scene.remove(previewFighter.group);
@@ -5785,11 +5823,7 @@ function rebuildPreview() {
       if (o.material) o.material.dispose();
     });
   }
-  const { group } = createFighter(customCharCfg());
-  group.position.set(0, GROUND_Y, 0);
-  group.rotation.y = STANCE_YAW;
-  scene.add(group);
-  previewFighter = { group };
+  previewFighter = makeFighter(customCharCfg(), 0, 1, 100);
 }
 
 const createTabsEl = document.getElementById('createTabs');
@@ -5919,6 +5953,155 @@ document.getElementById('createSpeedSlider').addEventListener('input', (e) => {
   rebuildPreview();
 });
 
+// ============================================================================
+//  בניית נשק — יצירת נשק באיוונט (game-spec.md סעיף 16)
+//
+//  "השחקן יכול לבחור: שם, מראה, סוג, נזק. מגבלת נזק: מקסימום 67. גם הנשק
+//  זמין רק באיוונטים." אותו דפוס בדיוק כמו בניית הדמות למעלה - קטגוריות
+//  עם אפשרויות מוכנות, תצוגה מקדימה חיה, שמירה עם דגל "רק באיוונט".
+//  "מראה"/"סוג" כאן הוא שילוב של ראש נשק + חומר/צבע + אורך ידית - כל
+//  הגיאומטריות הבסיסיות (weaponShaft/weaponSpike/weaponBlade) כבר קיימות
+//  ונבנו בשביל 10 הנשקים בחנות, אז בונים נשק חדש זה בעיקר הרכבה, לא
+//  יכולות חדשות.
+// ============================================================================
+
+const WEAPON_HEAD_TYPES = [
+  { key: 'blade', label: '⚔️ להב ישר' },
+  { key: 'spike', label: '🗡️ חוד חד' },
+  { key: 'trident', label: '🔱 קלשון' },
+  { key: 'mace', label: '🔨 פטיש כבד' },
+];
+const WEAPON_COLORS = [
+  { key: 'steel', label: 'פלדה בהירה', hex: 0xc7ccd1 },
+  { key: 'gold', label: 'זהב', hex: 0xd9b23c },
+  { key: 'wood', label: 'ברונזה', hex: 0x6b4423 },
+  { key: 'iron', label: 'ברזל כהה', hex: 0x2b2b2f },
+];
+const WEAPON_HANDLE_LENGTHS = [
+  { key: 'short', label: 'קצרה', len: 0.06 },
+  { key: 'medium', label: 'בינונית', len: 0.11 },
+  { key: 'long', label: 'ארוכה', len: 0.20 },
+];
+
+const weaponCreateState = { head: 'blade', color: 'steel', handle: 'medium', damage: 30 };
+let weaponCreateActiveCat = 'head';
+const TEMP_WEAPON_NAME = ' tempCustomWeapon';   // מפתח פנימי לתצוגה מקדימה בלבד, לא מוצג למשתמש ולא נשמר
+
+function customWeaponCfg() {
+  const s = weaponCreateState;
+  const color = WEAPON_COLORS.find((c) => c.key === s.color).hex;
+  const handleLen = WEAPON_HANDLE_LENGTHS.find((h) => h.key === s.handle).len;
+  return {
+    dmg: s.damage,
+    gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(handleLen, 0.013, 0x2b2b2f));
+      if (s.head === 'blade') {
+        g.add(weaponBlade(handleLen, 0.30, 0.045, color, 0.18));
+      } else if (s.head === 'spike') {
+        const spike = weaponSpike(0.24, 0.028, color);
+        spike.position.y = handleLen;
+        g.add(spike);
+      } else if (s.head === 'trident') {
+        [-0.22, 0, 0.22].forEach((ang) => {
+          const spike = weaponSpike(0.16, 0.018, color, ang);
+          spike.position.y = handleLen;
+          g.add(spike);
+        });
+      } else if (s.head === 'mace') {
+        const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.06, 0),
+          new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.5 }));
+        head.position.y = handleLen + 0.04;
+        head.castShadow = true;
+        g.add(head);
+      }
+      return g;
+    },
+  };
+}
+
+// מרעננת רק את הנשק ביד דמות התצוגה המקדימה (previewFighter כבר קיימת -
+// אותה אחת בדיוק כמו במסך "בנייה עצמית") - בלי לפרק ולבנות מחדש את כל
+// הדמות, בדיוק כמו switchPlayerWeapon לשחקן האמיתי.
+function rebuildWeaponPreview() {
+  WEAPON_CFGS[TEMP_WEAPON_NAME] = customWeaponCfg();
+  removeWeaponProp(previewFighter);
+  addWeaponProp(previewFighter, TEMP_WEAPON_NAME);
+  previewFighter.forceWeaponVisible = true;
+  if (previewFighter.stoneMesh) previewFighter.stoneMesh.visible = true;
+}
+
+const weaponCreateTabsEl = document.getElementById('weaponCreateTabs');
+const weaponCreateOptionsEl = document.getElementById('weaponCreateOptions');
+const weaponCreateNameInputEl = document.getElementById('weaponCreateNameInput');
+
+function renderWeaponCreateTabs() {
+  weaponCreateTabsEl.innerHTML = '';
+  [{ key: 'head', icon: '🗡️', label: 'ראש' }, { key: 'color', icon: '🎨', label: 'צבע' }, { key: 'handle', icon: '📏', label: 'ידית' }]
+    .forEach((c) => {
+      const b = document.createElement('button');
+      b.className = 'shopTab' + (c.key === weaponCreateActiveCat ? ' active' : '');
+      b.textContent = c.icon + ' ' + c.label;
+      b.addEventListener('click', () => { weaponCreateActiveCat = c.key; renderWeaponCreateTabs(); renderWeaponCreateOptions(); });
+      weaponCreateTabsEl.appendChild(b);
+    });
+}
+
+function renderWeaponCreateOptions() {
+  const el = weaponCreateOptionsEl;
+  el.innerHTML = '';
+  const onChange = () => { renderWeaponCreateOptions(); rebuildWeaponPreview(); };
+  const addStyleRow = (options, currentKey, onPick) => {
+    options.forEach((o) => {
+      const b = document.createElement('button');
+      b.className = 'shopTab' + (o.key === currentKey ? ' active' : '');
+      b.textContent = o.label;
+      b.addEventListener('click', () => { onPick(o.key); onChange(); });
+      el.appendChild(b);
+    });
+  };
+  if (weaponCreateActiveCat === 'head') addStyleRow(WEAPON_HEAD_TYPES, weaponCreateState.head, (k) => { weaponCreateState.head = k; });
+  else if (weaponCreateActiveCat === 'color') addStyleRow(WEAPON_COLORS, weaponCreateState.color, (k) => { weaponCreateState.color = k; });
+  else if (weaponCreateActiveCat === 'handle') addStyleRow(WEAPON_HANDLE_LENGTHS, weaponCreateState.handle, (k) => { weaponCreateState.handle = k; });
+}
+
+function flashWeaponCreateName() {
+  weaponCreateNameInputEl.classList.add('shake');
+  setTimeout(() => weaponCreateNameInputEl.classList.remove('shake'), 300);
+}
+
+function openWeaponCreateScreen() {
+  weaponCreateState.head = 'blade'; weaponCreateState.color = 'steel'; weaponCreateState.handle = 'medium'; weaponCreateState.damage = 30;
+  weaponCreateActiveCat = 'head';
+  weaponCreateNameInputEl.value = '';
+  document.getElementById('weaponDamageSlider').value = 30;
+  document.getElementById('weaponDamageVal').textContent = '30';
+  renderWeaponCreateTabs();
+  renderWeaponCreateOptions();
+  showScreen('weaponCreate');
+  rebuildWeaponPreview();
+}
+
+function saveCustomWeapon() {
+  const name = weaponCreateNameInputEl.value.trim();
+  if (!name || WEAPON_CFGS[name]) { flashWeaponCreateName(); return; }
+  WEAPON_CFGS[name] = customWeaponCfg();
+  CUSTOM_WEAPON_NAMES.add(name);
+  inventory.add('weapons:' + name);
+  updateLoadoutUI();
+  showScreen('lobby');
+}
+
+document.getElementById('openWeaponCreateBtn').addEventListener('click', openWeaponCreateScreen);
+document.getElementById('weaponCreateBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('weaponCreateSaveBtn').addEventListener('click', saveCustomWeapon);
+document.getElementById('weaponDamageSlider').addEventListener('input', (e) => {
+  weaponCreateState.damage = +e.target.value;
+  document.getElementById('weaponDamageVal').textContent = weaponCreateState.damage;
+  rebuildWeaponPreview();
+});
+
 Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
   const btn = document.createElement('button');
   btn.className = 'shopTab';
@@ -6033,6 +6216,7 @@ window.game = {
   get eventActive() { return eventActive; },
   set eventActive(v) { eventActive = v; updateEventUI(); },   // לבדיקות בלבד - עוקף את השעון האמיתי
   openCreateScreen, saveCustomCharacter, customCharCfg, createState, CUSTOM_CHARACTER_NAMES,
+  openWeaponCreateScreen, saveCustomWeapon, customWeaponCfg, weaponCreateState, CUSTOM_WEAPON_NAMES,
   get previewFighter() { return previewFighter; },
 };
 </script>
