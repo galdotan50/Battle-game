@@ -405,6 +405,62 @@
   }
   .eventBanner.show { display: block; }
   @keyframes eventPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  /* כפתורים שרק מופיעים בזמן איוונט (למשל "בנייה עצמית" בלובי) */
+  .eventOnly { display: none; }
+  .eventOnly.show { display: inline-block; }
+
+  /* ---------- מסך בנייה עצמית (רק באיוונט) ---------- */
+  /* שקוף חלקית כמו הלובי - כדי שדמות התצוגה המקדימה תיראה מבעד למסך */
+  #createOverlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    z-index: 40;
+    color: #fff;
+    overflow-y: auto;
+    padding: 20px 20px 30px;
+    box-sizing: border-box;
+    background: linear-gradient(200deg, rgba(22,33,58,0.55), rgba(12,18,32,0.72));
+  }
+  #createOverlay.show { display: flex; }
+  #createNameInput {
+    font-size: 1.1rem;
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    text-align: center;
+    margin-bottom: 18px;
+    width: 240px;
+  }
+  #createTabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 16px; max-width: 700px; }
+  #createOptions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    min-height: 60px;
+    max-width: 700px;
+    margin-bottom: 20px;
+  }
+  .swatch {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.35);
+    cursor: pointer;
+  }
+  .swatch.active { border-color: #ffcf4d; box-shadow: 0 0 0 2px #ffcf4d; }
+  #createOptions .fullBreak { flex-basis: 100%; height: 0; }
+  #createStats { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; font-size: 1rem; }
+  #createStats input[type="range"] { vertical-align: middle; margin-inline-start: 10px; width: 200px; }
+  #createBackBtn { margin-top: 12px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
+  #createNameInput.shake { animation: cantAffordShake 0.3s ease; border-color: #e05a5a; }
 
   /* מוצג תמיד, בכל מסך (זירה/לובי/חנות) - לכן z-index גבוה מכל המסכים */
   #moneyBadge {
@@ -479,6 +535,7 @@
   </div>
   <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
+  <button class="bigBtn secondary eventOnly" id="openCreateBtn">🎨 בנייה עצמית</button>
 </div>
 
 <div id="shopOverlay">
@@ -487,6 +544,23 @@
   <div id="shopTabs"></div>
   <div id="shopGrid"></div>
   <button id="backLobbyBtn">⬅ חזרה ללובי</button>
+</div>
+
+<div id="createOverlay">
+  <div class="screenTitle">🎨 בונים דמות</div>
+  <input id="createNameInput" type="text" maxlength="12" placeholder="שם הדמות שלך">
+  <div id="createTabs"></div>
+  <div id="createOptions"></div>
+  <div id="createStats">
+    <label>💪 כוח: <span id="createPowerVal">5.0</span>/8.5
+      <input id="createPowerSlider" type="range" min="0" max="8.5" step="0.1" value="5">
+    </label>
+    <label>⚡ מהירות: <span id="createSpeedVal">5.0</span>/8.5
+      <input id="createSpeedSlider" type="range" min="0" max="8.5" step="0.1" value="5">
+    </label>
+  </div>
+  <button class="bigBtn" id="createSaveBtn">✅ צור דמות</button>
+  <button id="createBackBtn">⬅ ביטול</button>
 </div>
 
 <script type="importmap">
@@ -2485,6 +2559,24 @@ function createFighter(cfg) {
     jaw.scale.set(0.68, 0.88, 0.78);
     jaw.castShadow = true;
     part(jaw);
+  }
+
+  // ---------- זקן ----------
+  // חצי-אליפסואיד שמכסה את הלסת התחתונה והסנטר - קשיח על עצם הראש,
+  // בדיוק כמו הלסת עצמה (BIND כבר 'head' בקטע הזה). ברירת המחדל לצבע
+  // היא צבע השיער, כדי שזקן+שיער יתאימו בלי לבחור צבע נפרד.
+  // ⚠️ עומק (z): פני השטח האמיתיים של הלסת (jaw, מעל) מגיעים לכ-0.66R
+  // (מיקומה 0.05R + רדיוס אפקטיבי 0.78R*0.78≈0.61R) - זקן שממוקם קרוב
+  // מדי למרכז הראש (כמו ניסיון ראשון ב-0.20R) נבלע לגמרי בתוך הלסת
+  // ולא נראה בכלל. לכן המיקום כאן דוחף הרבה יותר קדימה, בדיוק כמו הלקח
+  // הטכני על מסכת סטנבר.
+  if (cfg.beard) {
+    const beardMat = M(cfg.beardColor ?? cfg.hair, 0.85);
+    const beard = new THREE.Mesh(new THREE.SphereGeometry(R * 0.55 * headMult, 24, 18), beardMat);
+    beard.position.set(0, HC.y - R * 1.00 * headMult, R * 0.36 * headMult);
+    beard.scale.set(0.80, 0.46, 0.52);
+    beard.castShadow = true;
+    part(beard);
   }
 
   // ---------- אוזניים ----------
@@ -4501,6 +4593,7 @@ let uiScreen = 'battle';
 
 const lobbyEl = document.getElementById('lobbyOverlay');
 const shopEl = document.getElementById('shopOverlay');
+const createEl = document.getElementById('createOverlay');
 const shopTabsEl = document.getElementById('shopTabs');
 const shopGridEl = document.getElementById('shopGrid');
 const hpRowEl = document.getElementById('hpRow');
@@ -4516,10 +4609,20 @@ function focusLobbyCamera() {
   camera.lookAt(p.x + 0.10, p.y + 0.85, 0);
 }
 
+// דמות התצוגה המקדימה של מסך "בנייה עצמית" - יושבת במקום קבוע (מרכז
+// הזירה, x=0), נבנית מחדש בכל שינוי בחירה (בדיוק כמו captureCharacterThumb
+// למטה), ולא נוגעת ב-player האמיתי עד שממש שומרים.
+let previewFighter = null;
+function focusCreateCamera() {
+  camera.position.set(0.75, GROUND_Y + 1.35, 2.35);
+  camera.lookAt(0.05, GROUND_Y + 0.90, 0);
+}
+
 function showScreen(name) {
   uiScreen = name;
   lobbyEl.classList.toggle('show', name === 'lobby');
   shopEl.classList.toggle('show', name === 'shop');
+  createEl.classList.toggle('show', name === 'create');
   const inBattle = name === 'battle';
   hpRowEl.style.display = inBattle ? '' : 'none';
   controlsEl.style.display = inBattle ? '' : 'none';
@@ -4533,11 +4636,25 @@ function showScreen(name) {
   // ביד - "רואים את הדמות ואת הנשק שאיתם משחקים", בלי לבנות שום דבר חדש.
   if (name === 'lobby') {
     enemy.group.visible = false;
+    player.group.visible = true;
     player.forceWeaponVisible = true;
+    if (previewFighter) previewFighter.group.visible = false;
     focusLobbyCamera();
+  } else if (name === 'create') {
+    // מסך "בנייה עצמית" - מסתירים את השחקן/האויב האמיתיים ומראים דמות
+    // תצוגה מקדימה נפרדת (previewFighter) שנבנית מחדש בכל שינוי בחירה,
+    // בדיוק כמו switchPlayerCharacter, רק על אובייקט נפרד כדי לא לגעת
+    // בדמות האמיתית של השחקן לפני שהוא באמת שומר.
+    enemy.group.visible = false;
+    player.group.visible = false;
+    if (!previewFighter) rebuildPreview();
+    previewFighter.group.visible = true;
+    focusCreateCamera();
   } else {
     enemy.group.visible = true;
+    player.group.visible = true;
     player.forceWeaponVisible = false;
+    if (previewFighter) previewFighter.group.visible = false;
     if (name === 'battle') {
       camera.position.copy(BATTLE_CAM.pos);
       camera.lookAt(BATTLE_CAM.look);
@@ -4687,6 +4804,8 @@ let eventActive = isEventActive();
 
 function updateEventUI() {
   document.querySelectorAll('.eventBanner').forEach((el) => el.classList.toggle('show', eventActive));
+  // כפתורים שקיימים רק באיוונט (כרגע: "בנייה עצמית" בלובי - סעיפים 15-16 באפיון)
+  document.querySelectorAll('.eventOnly').forEach((el) => el.classList.toggle('show', eventActive));
   // אם החנות פתוחה כרגע, מרעננים כדי שהמחירים המוזלים יופיעו/ייעלמו מיד
   const activeTab = shopTabsEl.querySelector('.shopTab.active');
   if (uiScreen === 'shop' && activeTab) renderShopCategory(activeTab.dataset.key);
@@ -4978,8 +5097,12 @@ const weaponPrevBtn = document.getElementById('weaponPrevBtn');
 const weaponNextBtn = document.getElementById('weaponNextBtn');
 const weaponKeyLegendEl = document.getElementById('weaponKeyLegend');
 
+// דמויות שנבנו במסך "בנייה עצמית" זמינות למשחק רק באיוונט (game-spec.md
+// סעיף 15: "הדמות זמינה למשחק רק באיוונטים") - גם אם כבר קנית/יצרת אותן.
+const CUSTOM_CHARACTER_NAMES = new Set();
 const ownedCharacterNames = () =>
-  Object.keys(CHARACTER_CFGS).filter((n) => inventory.has('characters:' + n));
+  Object.keys(CHARACTER_CFGS).filter((n) =>
+    inventory.has('characters:' + n) && (!CUSTOM_CHARACTER_NAMES.has(n) || eventActive));
 const ownedWeaponNames = () =>
   Object.keys(WEAPON_CFGS).filter((n) => inventory.has('weapons:' + n));
 
@@ -5159,6 +5282,224 @@ function renderShopCategory(key) {
   });
 }
 
+// ============================================================================
+//  בנייה עצמית — יצירת דמות באיוונט (game-spec.md סעיף 15)
+//
+//  "השחקן יכול לבחור: שם, מראה, עיצוב, כוח, מהירות. מגבלות: כוח מקסימלי
+//  8.5/10, מהירות מקסימלית 8.5/10. הדמות זמינה למשחק רק באיוונטים."
+//
+//  "מראה" נבחר מתוך 8 קטגוריות (בדיוק כמו שהמשתמש ביקש), כל אחת עם כמה
+//  אפשרויות מוכנות מראש (סווטצ'ים/סגנונות) - לא צביעה חופשית, כי הפרויקט
+//  כבר גילה שגוונים "בינוניים" נשטפים תחת התאורה של הזירה (לקח טכני קיים).
+//  כל האפשרויות כאן נבחרו מתוך גוונים שכבר הוכחו כבטוחים בדמויות קיימות.
+// ============================================================================
+
+const CREATE_CATEGORIES = [
+  { key: 'hair', icon: '💇', label: 'שיער' },
+  { key: 'skin', icon: '🎨', label: 'עור' },
+  { key: 'shirt', icon: '👕', label: 'חולצה' },
+  { key: 'pants', icon: '👖', label: 'מכנסיים' },
+  { key: 'shoes', icon: '👟', label: 'נעליים' },
+  { key: 'socks', icon: '🧦', label: 'גרביים' },
+  { key: 'glasses', icon: '👓', label: 'משקפיים' },
+  { key: 'beard', icon: '🧔', label: 'זקן' },
+];
+const HAIR_STYLES = [
+  { key: 'short', label: 'קצר' }, { key: 'long', label: 'ארוך' },
+  { key: 'spiky', label: 'פרוע' }, { key: 'curly', label: 'מתולתל' },
+  { key: 'bald', label: 'קירח' },
+];
+const SHOE_TYPES = [
+  { key: 'boots', label: '👢 מגפיים' }, { key: 'crocs', label: '🐊 קרוקס' },
+  { key: 'flipflops', label: '🩴 כפכפים' }, { key: 'barefoot', label: '🦶 יחף' },
+];
+const SKIN_SWATCHES = [0xf3c9a0, 0xe8b382, 0xc98a54, 0x8a5a34, 0x5a3820, 0xf0d5c0, 0xd4915c, 0x6b4423];
+const HAIR_SWATCHES = [0x1a1410, 0x3a2718, 0x6b3a1e, 0xb8860b, 0xd94f4f, 0x2b2b8a, 0x2f8f5c, 0xe0e0e0];
+const CLOTH_SWATCHES = [0xd94f4f, 0x2b3a67, 0x2f8f5c, 0xffcf4d, 0x6b2fa0, 0x1a1a1a, 0xf7f6f3, 0xe85f9c, 0x2b2b33, 0x8a5a2e];
+
+const createState = {
+  hairStyle: 'short', hair: 0x2a1a16,
+  skin: 0xf3c9a0,
+  top: 0xd94f4f,
+  pants: 0x2b3a67,
+  shoeType: 'boots', shoeColor: 0x4a2f1a,
+  socks: false, socksColor: 0xf7f6f3,
+  glasses: false, glassColor: 0x2b2b33,
+  beard: false, beardColor: 0x2a1a16,
+  power: 5, speed: 5,
+};
+let createActiveCat = 'hair';
+
+function customCharCfg() {
+  const s = createState;
+  const c = {
+    power: s.power, speed: s.speed,
+    skin: s.skin, hair: s.hair,
+    eyeColor: 0x3a2a1a, ears: 'round',
+    top: s.top, pants: s.pants,
+  };
+  // "קירח" הוא cfg.bald (מדלג על כיפת השיער וכל הקווצות) - לא ערך של
+  // hairStyle. hairStyle לא מוגדר כלל במקרה הזה, כדי שלא ייפול בטעות
+  // ל-branch ברירת המחדל (תלתול) של בניית קווצות השיער.
+  if (s.hairStyle === 'bald') c.bald = true;
+  else c.hairStyle = s.hairStyle;
+  if (s.shoeType === 'boots') {
+    c.boots = s.shoeColor;
+  } else {
+    c.boots = null;
+    if (s.shoeType === 'crocs') { c.crocs = true; c.crocColor = s.shoeColor; }
+    else if (s.shoeType === 'flipflops') { c.flipflops = true; c.flipflopColor = s.shoeColor; }
+  }
+  if (s.socks) c.socks = { color: s.socksColor, opacity: 0.55, from: 0.35 };
+  if (s.glasses) { c.glasses = true; c.glassColor = s.glassColor; }
+  if (s.beard) { c.beard = true; c.beardColor = s.beardColor; }
+  return c;
+}
+
+// בדיוק כמו switchPlayerCharacter/switchEnemy - מפרקת את התצוגה המקדימה
+// הישנה ובונה חדשה מהבחירות הנוכחיות. לא נוגעת ב-player האמיתי.
+function rebuildPreview() {
+  if (previewFighter) {
+    scene.remove(previewFighter.group);
+    previewFighter.group.traverse((o) => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) o.material.dispose();
+    });
+  }
+  const { group } = createFighter(customCharCfg());
+  group.position.set(0, GROUND_Y, 0);
+  group.rotation.y = STANCE_YAW;
+  scene.add(group);
+  previewFighter = { group };
+}
+
+const createTabsEl = document.getElementById('createTabs');
+const createOptionsEl = document.getElementById('createOptions');
+const createNameInputEl = document.getElementById('createNameInput');
+
+function renderCreateTabs() {
+  createTabsEl.innerHTML = '';
+  CREATE_CATEGORIES.forEach((c) => {
+    const b = document.createElement('button');
+    b.className = 'shopTab' + (c.key === createActiveCat ? ' active' : '');
+    b.textContent = c.icon + ' ' + c.label;
+    b.addEventListener('click', () => { createActiveCat = c.key; renderCreateTabs(); renderCreateOptions(); });
+    createTabsEl.appendChild(b);
+  });
+}
+
+function renderCreateOptions() {
+  const el = createOptionsEl;
+  el.innerHTML = '';
+  const cat = createActiveCat;
+  const onChange = () => { renderCreateOptions(); rebuildPreview(); };
+
+  const addBreak = () => { const b = document.createElement('div'); b.className = 'fullBreak'; el.appendChild(b); };
+  const addSwatchRow = (colors, current, onPick) => {
+    colors.forEach((c) => {
+      const b = document.createElement('button');
+      b.className = 'swatch' + (c === current ? ' active' : '');
+      b.style.background = '#' + c.toString(16).padStart(6, '0');
+      b.addEventListener('click', () => { onPick(c); onChange(); });
+      el.appendChild(b);
+    });
+  };
+  const addStyleRow = (options, currentKey, onPick) => {
+    options.forEach((o) => {
+      const b = document.createElement('button');
+      b.className = 'shopTab' + (o.key === currentKey ? ' active' : '');
+      b.textContent = o.label;
+      b.addEventListener('click', () => { onPick(o.key); onChange(); });
+      el.appendChild(b);
+    });
+  };
+  const addToggle = (label, checked, onToggle) => {
+    const b = document.createElement('button');
+    b.className = 'bigBtn secondary';
+    b.textContent = (checked ? '✅ ' : '⬜ ') + label;
+    b.addEventListener('click', () => { onToggle(!checked); onChange(); });
+    el.appendChild(b);
+  };
+
+  if (cat === 'hair') {
+    addStyleRow(HAIR_STYLES, createState.hairStyle, (k) => { createState.hairStyle = k; });
+    if (createState.hairStyle !== 'bald') {
+      addBreak();
+      addSwatchRow(HAIR_SWATCHES, createState.hair, (c) => { createState.hair = c; });
+    }
+  } else if (cat === 'skin') {
+    addSwatchRow(SKIN_SWATCHES, createState.skin, (c) => { createState.skin = c; });
+  } else if (cat === 'shirt') {
+    addSwatchRow(CLOTH_SWATCHES, createState.top, (c) => { createState.top = c; });
+  } else if (cat === 'pants') {
+    addSwatchRow(CLOTH_SWATCHES, createState.pants, (c) => { createState.pants = c; });
+  } else if (cat === 'shoes') {
+    addStyleRow(SHOE_TYPES, createState.shoeType, (k) => { createState.shoeType = k; });
+    if (createState.shoeType !== 'barefoot') {
+      addBreak();
+      addSwatchRow(CLOTH_SWATCHES, createState.shoeColor, (c) => { createState.shoeColor = c; });
+    }
+  } else if (cat === 'socks') {
+    addToggle('גרביים', createState.socks, (v) => { createState.socks = v; });
+    if (createState.socks) { addBreak(); addSwatchRow(CLOTH_SWATCHES, createState.socksColor, (c) => { createState.socksColor = c; }); }
+  } else if (cat === 'glasses') {
+    addToggle('משקפיים', createState.glasses, (v) => { createState.glasses = v; });
+    if (createState.glasses) { addBreak(); addSwatchRow(HAIR_SWATCHES, createState.glassColor, (c) => { createState.glassColor = c; }); }
+  } else if (cat === 'beard') {
+    addToggle('זקן', createState.beard, (v) => { createState.beard = v; });
+    if (createState.beard) { addBreak(); addSwatchRow(HAIR_SWATCHES, createState.beardColor, (c) => { createState.beardColor = c; }); }
+  }
+}
+
+function flashCreateName() {
+  createNameInputEl.style.borderColor = '#e05a5a';
+  createNameInputEl.classList.add('shake');
+  setTimeout(() => { createNameInputEl.style.borderColor = ''; createNameInputEl.classList.remove('shake'); }, 300);
+}
+
+function openCreateScreen() {
+  createState.hairStyle = 'short'; createState.hair = 0x2a1a16;
+  createState.skin = 0xf3c9a0; createState.top = 0xd94f4f; createState.pants = 0x2b3a67;
+  createState.shoeType = 'boots'; createState.shoeColor = 0x4a2f1a;
+  createState.socks = false; createState.glasses = false; createState.beard = false;
+  createState.power = 5; createState.speed = 5;
+  createActiveCat = 'hair';
+  createNameInputEl.value = '';
+  document.getElementById('createPowerSlider').value = 5;
+  document.getElementById('createSpeedSlider').value = 5;
+  document.getElementById('createPowerVal').textContent = '5.0';
+  document.getElementById('createSpeedVal').textContent = '5.0';
+  renderCreateTabs();
+  renderCreateOptions();
+  showScreen('create');
+  rebuildPreview();   // showScreen כבר קורא לזה אם previewFighter ריק, אבל כאן תמיד רוצים בנייה טרייה מהאיפוס למעלה
+}
+
+function saveCustomCharacter() {
+  const name = createNameInputEl.value.trim();
+  if (!name || CHARACTER_CFGS[name]) { flashCreateName(); return; }
+  const cfg = customCharCfg();
+  CHARACTER_CFGS[name] = cfg;
+  CUSTOM_CHARACTER_NAMES.add(name);
+  inventory.add('characters:' + name);
+  updateLoadoutUI();
+  showScreen('lobby');
+}
+
+document.getElementById('openCreateBtn').addEventListener('click', openCreateScreen);
+document.getElementById('createBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('createSaveBtn').addEventListener('click', saveCustomCharacter);
+document.getElementById('createPowerSlider').addEventListener('input', (e) => {
+  createState.power = +e.target.value;
+  document.getElementById('createPowerVal').textContent = createState.power.toFixed(1);
+  rebuildPreview();
+});
+document.getElementById('createSpeedSlider').addEventListener('input', (e) => {
+  createState.speed = +e.target.value;
+  document.getElementById('createSpeedVal').textContent = createState.speed.toFixed(1);
+  rebuildPreview();
+});
+
 Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
   const btn = document.createElement('button');
   btn.className = 'shopTab';
@@ -5262,6 +5603,8 @@ window.game = {
   isEventActive, updateEventUI,
   get eventActive() { return eventActive; },
   set eventActive(v) { eventActive = v; updateEventUI(); },   // לבדיקות בלבד - עוקף את השעון האמיתי
+  openCreateScreen, saveCustomCharacter, customCharCfg, createState, CUSTOM_CHARACTER_NAMES,
+  get previewFighter() { return previewFighter; },
 };
 </script>
 </body>
