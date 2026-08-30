@@ -4412,7 +4412,14 @@ function updateGameOverStats(win) {
     ' חיים, סיים עם ' + Math.max(0, enemy.hp);
 }
 
+// ⚠️ תיקון באג: אם שני הלוחמים נופלים לאפס חיים באותו פריים בדיוק (למשל
+// מכה שלך הורגת את האויב, ובאותו רגע גם המכה שלו כבר הייתה "באוויר" ופוגעת
+// בך) - שני הקריאות ל-tickCombat באותו פריים (קודם שלך, אחר כך שלו) יכולות
+// שתיהן לקרוא ל-endGame. בלי השמירה הבאה, הקריאה השנייה (שלו) הייתה
+// דורסת ומראה הפסד, למרות שאתה זה שהיכית קודם. `gameOver` נבדק בכניסה
+// ל-endGame עצמה (לא רק ב-animate) כדי שהתוצאה הראשונה תמיד תנצח.
 function endGame(winnerWho) {
+  if (gameOver) return;
   gameOver = true;
   gameOverEl.classList.add('show');
   const win = winnerWho === 'player';
