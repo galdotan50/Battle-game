@@ -275,9 +275,10 @@
   }
   #lobbyOverlay.show, #shopOverlay.show { display: flex; }
   #loadoutRow, #weaponRow { display: flex; align-items: center; gap: 12px; }
+  #bossRow { align-items: center; gap: 12px; margin-bottom: 14px; }
   #loadoutRow { margin-bottom: 10px; }
   #weaponRow { margin-bottom: 22px; }
-  #loadoutLabel, #weaponLabel {
+  #loadoutLabel, #weaponLabel, #bossLabel {
     background: rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.25);
     border-radius: 12px;
@@ -408,6 +409,7 @@
   /* כפתורים שרק מופיעים בזמן איוונט (למשל "בנייה עצמית" בלובי) */
   .eventOnly { display: none; }
   .eventOnly.show { display: inline-block; }
+  #bossRow.show { display: flex; }   /* שורת חצים - צריכה flex כמו loadoutRow/weaponRow, לא inline-block */
 
   /* ---------- מסך בנייה עצמית (רק באיוונט) ---------- */
   /* שקוף חלקית כמו הלובי - כדי שדמות התצוגה המקדימה תיראה מבעד למסך */
@@ -536,6 +538,11 @@
   <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
   <button class="bigBtn secondary eventOnly" id="openCreateBtn">🎨 בנייה עצמית</button>
+  <div id="bossRow" class="eventOnly">
+    <button id="bossPrevBtn" class="cycleBtn">◀</button>
+    <div id="bossLabel">👹 קראגור</div>
+    <button id="bossNextBtn" class="cycleBtn">▶</button>
+  </div>
   <button class="bigBtn secondary eventOnly" id="bossFightBtn">👹 קרב בוס</button>
 </div>
 
@@ -2549,6 +2556,31 @@ function createFighter(cfg) {
     });
   }
 
+  // ---------- חרמש ענק בגב ----------
+  // פרוקנט - "קוצר-נשמות... על הגב חרמש ענק אחד". קישוט קבוע, אותו
+  // עיקרון בדיוק כמו חרבות הגב של סינזר למעלה (BIND='chest', z שלילי
+  // ביחידות עולם מוחלטות) - רק להב מעוקל (TorusGeometry חלקי) במקום
+  // להב ישר, כדי שיהיה מזוהה כחרמש ולא כחרב שלישית.
+  if (cfg.backScythe) {
+    BIND = { bone: 'chest' };
+    const shaftMat = new THREE.MeshStandardMaterial({ color: 0x2b2b2f, roughness: 0.6 });
+    const bladeMat = new THREE.MeshStandardMaterial({ color: 0xb8bec5, roughness: 0.25, metalness: 0.65 });
+    const scythe = new THREE.Group();
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.62, 8), shaftMat);
+    shaft.position.y = 0.31;
+    shaft.castShadow = true;
+    scythe.add(shaft);
+    const blade = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.022, 8, 20, Math.PI * 1.15), bladeMat);
+    blade.position.y = 0.62;
+    blade.rotation.z = Math.PI * 0.15;
+    blade.castShadow = true;
+    scythe.add(blade);
+    scythe.position.set(0.04, S.chest.y + 0.02, S.chest.z - 0.10);
+    scythe.rotation.z = 0.30;
+    scythe.rotation.x = Math.PI * 0.06;
+    part(scythe);
+  }
+
   // ---------- שריון צב ענק בגב ----------
   // פראנק - "על הגב שלו יש שריון ענק של צב". חצי-כדור גדול (לא כדור שלם -
   // אחרת ייראה כמו בלון תקוע בגב), קשיח על עצם החזה כמו הכנפיים/החרבות
@@ -3223,6 +3255,27 @@ function createFighter(cfg) {
     cap.scale.set(headScale.x * 1.04, headScale.y * 1.02, headScale.z * 1.04);
     cap.castShadow = true;
     part(cap);
+  }
+
+  // ---------- ברדס ----------
+  // פרוקנט - "עטוף בגלימה שחורה קרועה עם ברדס, בלי לראות פנים בכלל,
+  // רק עיניים זוהרות בתוך החשכה". אותה טכניקה בדיוק כמו כיפת השיער
+  // למעלה (כיפה חלקית שמוטה קדימה על המצח) - רק גדולה יותר, כהה, ומוטה
+  // קדימה עוד יותר כדי לצנוח נמוך על המצח ולהצל את הפנים. הפנים עצמן
+  // (עור כהה כמעט-שחור + עיניים זוהרות) עדיין נבנות כרגיל מתחת - ה"אי
+  // אפשר לראות פנים" מושג בעיקר בזכות עור כהה שנבלע בצל הברדס, לא
+  // חור אמיתי בגיאומטריה.
+  if (cfg.hood) {
+    const hoodMat = M(cfg.hoodColor ?? 0x0d0d0f, 0.9);
+    const hood = new THREE.Mesh(
+      new THREE.SphereGeometry(R * 1.30, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.62), hoodMat);
+    hood.position.copy(HC);
+    hood.position.y += R * 0.02;
+    hood.position.z -= R * 0.16;
+    hood.rotation.x = -0.55;
+    hood.scale.set(headScale.x * 1.12, headScale.y * 1.08, headScale.z * 1.12);
+    hood.castShadow = true;
+    part(hood);
   }
 
   // דמות קירחת (cfg.bald, קולין) - מדלגת על כל קווצות השיער (לא רק
@@ -4322,6 +4375,27 @@ const KRAGOR_CFG = {
   armScale: 1.3, fistScale: 1.4, legScale: 1.25,
 };
 
+// פרוקנט - בוס איוונט שני. תיאור: "קוצר-נשמות אפל - גוף רזה וגבוה
+// עטוף בגלימה שחורה קרועה עם ברדס, בלי לראות פנים בכלל, רק שתי עיניים
+// סגולות זוהרות בתוך החשכה. ידיים ארוכות עם טפרים חדים, ועל הגב חרמש
+// ענק אחד" - רעיון שהוצע ואושר, מפחיד מקרח/אש שהבוסים האחרים כבר
+// מכסים. cfg.hood ו-cfg.backScythe הן היכולות החדשות (ראה למעלה);
+// claws/skirt.torn/glowEyes/jacketStripes:[] כולם שימוש חוזר קיים.
+const PROKENT_CFG = {
+  power: 15, speed: 14,
+  skin: 0x0a0a0a,
+  bald: true,
+  hood: true, hoodColor: 0x0d0d0f,
+  glowEyes: true, eyeColor: 0x9b30ff,
+  ears: 'round',
+  claws: true, clawColor: 0x1a1a1a,
+  jacket: 0x0d0d0f, jacketStripes: [],
+  skirt: { len: 0.85, r0: 0.16, r1: 0.30, color: 0x0d0d0f, torn: true },
+  top: null, pants: null, boxers: null, boots: null,
+  armScale: 0.92, legScale: 0.95,
+  backScythe: true,
+};
+
 // ---------- בוסי איוונט ----------
 // שונים מ-ENEMY_LEVELS (סולם קבוע, עולים רמה בניצחון): בוס לא קשור
 // לסולם בכלל - נכנסים אליו ישירות מכפתור בלובי (רק בזמן איוונט), אפשר
@@ -4329,9 +4403,17 @@ const KRAGOR_CFG = {
 // מסמן ש-`enemy` הנוכחי הוא בוס, כדי ש-endGame ידע להתייחס אחרת.
 const BOSS_LEVELS = [
   { name: 'קראגור', cfg: KRAGOR_CFG, hp: 260, reward: 150 },
+  { name: 'פרוקנט', cfg: PROKENT_CFG, hp: 280, reward: 160 },
 ];
 let isBossFight = false;
 let activeBossIndex = 0;
+// הבוס שנבחר בחצי הלובי - אותו דפוס בדיוק כמו בחירת דמות/נשק, רק
+// שהחצים האלה מוצגים רק בזמן איוונט (BOSS_LEVELS.length>1 מ-2026-08-30).
+let selectedBossIndex = 0;
+function cycleBossChoice(dir) {
+  selectedBossIndex = (selectedBossIndex + dir + BOSS_LEVELS.length) % BOSS_LEVELS.length;
+  document.getElementById('bossLabel').textContent = '👹 ' + BOSS_LEVELS[selectedBossIndex].name;
+}
 
 function startBossFight(idx) {
   const boss = BOSS_LEVELS[idx];
@@ -5802,7 +5884,9 @@ document.getElementById('lobbyBtn').addEventListener('click', () => {
 });
 document.getElementById('startFightBtn').addEventListener('click', () => { resetGame(); showScreen('battle'); });
 document.getElementById('openShopBtn').addEventListener('click', () => { showScreen('shop'); renderShopCategory('characters'); });
-document.getElementById('bossFightBtn').addEventListener('click', () => startBossFight(0));
+document.getElementById('bossFightBtn').addEventListener('click', () => startBossFight(selectedBossIndex));
+document.getElementById('bossPrevBtn').addEventListener('click', () => cycleBossChoice(-1));
+document.getElementById('bossNextBtn').addEventListener('click', () => cycleBossChoice(1));
 document.getElementById('backLobbyBtn').addEventListener('click', () => showScreen('lobby'));
 charPrevBtn.addEventListener('click', () => cycleCharacter(-1));
 charNextBtn.addEventListener('click', () => cycleCharacter(1));
@@ -5817,6 +5901,7 @@ updateLoadoutUI();
 renderLootBar();
 updateBuffRow();
 updateEventUI();
+document.getElementById('bossLabel').textContent = '👹 ' + BOSS_LEVELS[selectedBossIndex].name;
 
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
@@ -5880,7 +5965,7 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, SINZER_CFG, FRANK_CFG, KRAGOR_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, SINZER_CFG, FRANK_CFG, KRAGOR_CFG, PROKENT_CFG, inventory,
   BOSS_LEVELS, startBossFight, get isBossFight() { return isBossFight; },
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
