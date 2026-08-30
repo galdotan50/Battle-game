@@ -1383,6 +1383,54 @@ const drillScarTex = () => tattooTex((ctx, n) => {
   }
 });
 
+// צלקת פשוטה מתחת לעין (סינזר) - קו אלכסוני עיקרי ותפר קטן חוצה אותו,
+// אותה שיטה בדיוק כמו drillScarTex למעלה (רקע שקוף, קו בצבע עור כהה יותר).
+const eyeScarTex = () => tattooTex((ctx, n) => {
+  ctx.strokeStyle = 'rgba(90,55,42,0.85)';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = n * 0.05;
+  ctx.beginPath(); ctx.moveTo(n * 0.28, n * 0.18); ctx.lineTo(n * 0.66, n * 0.80); ctx.stroke();
+  ctx.lineWidth = n * 0.028;
+  ctx.beginPath(); ctx.moveTo(n * 0.34, n * 0.42); ctx.lineTo(n * 0.24, n * 0.48); ctx.stroke();
+});
+
+// עין בצורת ברק זוהר (סינזר, cfg.boltEyes) - במקום גלגל עין רגיל, פלאנה
+// שטוחה עם ברק מלא צבוע עליה (רקע שקוף, כמו כל שאר הדקאלים כאן).
+// MeshBasicMaterial (לא מושפע מתאורה) כדי שהברק "יזהר" גם באזורים מוצללים -
+// אותו עיקרון בדיוק כמו עיניים זוהרות רגילות (cfg.glowEyes).
+const boltEyeTex = (color) => tattooTex((ctx, n) => {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(n * 0.58, n * 0.06);
+  ctx.lineTo(n * 0.30, n * 0.52);
+  ctx.lineTo(n * 0.46, n * 0.52);
+  ctx.lineTo(n * 0.34, n * 0.94);
+  ctx.lineTo(n * 0.72, n * 0.40);
+  ctx.lineTo(n * 0.52, n * 0.40);
+  ctx.closePath();
+  ctx.fill();
+});
+
+// מרקם שריון צב - פראנק ("שריון ענק של צב על הגב"). עיגול-על-עיגול
+// שמדמה פלטת שריון מרכזית, וכמה קווים רדיאליים כלפי חוץ שמחלקים אותה
+// לפלחים - לא ציור מדויק של קונכיית צב אמיתית, רק סימון מסוגנן וקריא,
+// באותה רוח בדיוק כמו lightningBadgeTex/bigLetterBadgeTex למעלה.
+const turtleShellTex = (bg, lineHex) => badgeTex((ctx, n) => {
+  const cx = n / 2, cy = n / 2, r = n * 0.48;
+  ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = lineHex;
+  ctx.lineWidth = n * 0.025;
+  [0.20, 0.34].forEach((f) => { ctx.beginPath(); ctx.arc(cx, cy, r * f, 0, Math.PI * 2); ctx.stroke(); });
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * r * 0.34, cy + Math.sin(a) * r * 0.34);
+    ctx.lineTo(cx + Math.cos(a) * r * 0.97, cy + Math.sin(a) * r * 0.97);
+    ctx.stroke();
+  }
+});
+
 // מגן עם האות S - סמל בסגנון גיבור-על על התחתונים (סימון מסוגנן, לא
 // העתק של סמל אמיתי - אותו עיקרון כמו סמלי הקבוצות של לורד).
 const heroShieldTex = () => tattooTex((ctx, n) => {
@@ -1550,6 +1598,12 @@ const LEG_PROFILE = [
   pr(0.72, 0.51, 0.54),
   pr(1.00, 0.285, 0.31),
 ];
+
+// מכפיל עובי לפרופיל קיים (cfg.armScale/cfg.legScale, פראנק - "ידיים
+// ענקיות וכבדות... רגליים עבות מאוד") - רק rx/rz גדלים, t (המיקום לאורך
+// האיבר) נשאר זהה. לא נוגע ב-ARM_PROFILE/LEG_PROFILE המשותפים עצמם,
+// כדי שלא להשפיע על שאר הדמויות - כל דמות עם המכפיל מקבלת עותק משלה.
+const scaleProfile = (profile, mult) => profile.map(({ t, rx, rz }) => ({ t, rx: rx * mult, rz: rz * mult }));
 
 // פלג גוף: אגן → מותן צר → חזה → כתפיים משופעות
 const TORSO_PROFILE = [
@@ -1828,10 +1882,14 @@ function createFighter(cfg) {
   // cfg.pantsLeather (חדש, לסטנבר - "מכנסיים מעור שור") מחליף את מרקם
   // האריגה של הג'ינס במרקם עור מחוספס. שניהם משתמשים ב-'#ffffff' כבסיס
   // ומכפילים בצבע החומר עצמו (cfg.pants), אז ההחלפה בטוחה.
-  const pantsMat = cfg.pants ? new THREE.MeshStandardMaterial({
-    color: cfg.pants, roughness: cfg.pantsLeather ? 0.55 : 0.94,
-    map: cfg.pantsLeather ? leatherTex('#ffffff') : denimTex('#ffffff'),
-  }) : null;
+  // מכנס "מבריק" (cfg.pantsShiny, סינזר - "מכנסיים שחורות ומבריקות") -
+  // חומר חלק וקוטבי בלי מרקם בד בכלל, בניגוד לג'ינס/עור הרגילים.
+  const pantsMat = cfg.pants ? (cfg.pantsShiny
+    ? new THREE.MeshStandardMaterial({ color: cfg.pants, roughness: 0.12, metalness: 0.55 })
+    : new THREE.MeshStandardMaterial({
+        color: cfg.pants, roughness: cfg.pantsLeather ? 0.55 : 0.94,
+        map: cfg.pantsLeather ? leatherTex('#ffffff') : denimTex('#ffffff'),
+      })) : null;
   const boxerMat = cfg.boxers ? M(cfg.boxers, 0.85) : null;
   const bootMat = cfg.boots ? new THREE.MeshStandardMaterial({
     color: cfg.boots, roughness: 0.55, map: leatherTex('#ffffff'),
@@ -1858,6 +1916,10 @@ function createFighter(cfg) {
     : M(cfg.eyeColor ?? 0x5a3a20, 0.28);
   const pupilMat = cfg.glowEyes ? irisMat : M(0x120e0a, 0.2);
   const glintMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  // ברק זוהר במקום גלגל עין (cfg.boltEyes, סינזר) - ראה boltEyeTex למעלה.
+  const boltEyeMat = cfg.boltEyes
+    ? new THREE.MeshBasicMaterial({ map: boltEyeTex(cfg.boltEyeColor ?? '#fff35c'), transparent: true, side: THREE.DoubleSide })
+    : null;
   const mouthMat = M(cfg.lipColor ?? 0x8a4a44, 0.6);
   const lashMat = M(0x1a1310, 0.7);
   const goldMat  = M(0xd9b23c, 0.2, 0.95);
@@ -1880,6 +1942,10 @@ function createFighter(cfg) {
 
   // ---------- רגליים ----------
   // המסלול מתחיל *בתוך* האגן → החיבור קבור ואינו נראה מבחוץ.
+  // cfg.legScale (פראנק - "רגליים עבות מאוד") מעבה רק את צינור הרגל
+  // החשופה עצמה, לא כל שימוש אחר של LEG_PROFILE (מכנס/מגף/גרב) - זה בטוח
+  // כי פראנק (היחיד שמשתמש בזה) לא לובש אף אחד מהם.
+  const legProfile = cfg.legScale ? scaleProfile(LEG_PROFILE, cfg.legScale) : LEG_PROFILE;
   const legCurves = [];
   const LEG_KEYS = ['legL', 'legR'];
   [[S.hipL, S.kneeL, S.ankleL], [S.hipR, S.kneeR, S.ankleR]].forEach(([hip, knee, ankle], li) => {
@@ -1887,7 +1953,7 @@ function createFighter(cfg) {
     const c = makeCurve([hipIn, hip, knee, ankle]);
     legCurves.push(c);
     BIND = { chain: LEG_KEYS[li] };
-    part(sweepCurve(legMat, c, LEG_PROFILE, { refDir: V(1, 0, 0), steps: 34 }));
+    part(sweepCurve(legMat, c, legProfile, { refDir: V(1, 0, 0), steps: 34 }));
   });
 
   // ---------- תחתונים ----------
@@ -2275,6 +2341,9 @@ function createFighter(cfg) {
   // ---------- זרועות ----------
   // המסלול מתחיל בתוך בית החזה, והדלתא היא פשוט הקטע העבה של הזרוע.
   // אין כדור כתף בכלל — זה מה שהעיף את "הידיים הנפוחות".
+  // cfg.armScale (פראנק - "ידיים ענקיות וכבדות") מעבה רק את צינור הזרוע
+  // החשופה - בטוח מאותה סיבה כמו legScale למעלה (פראנק בלי תחבושות/קעקוע/ז'קט).
+  const armProfile = cfg.armScale ? scaleProfile(ARM_PROFILE, cfg.armScale) : ARM_PROFILE;
   const ARM_KEYS = ['armL', 'armR'];
   const WRIST_BONES = ['wristL', 'wristR'];
   [[S.shoulderL, S.elbowL, S.wristL, -1], [S.shoulderR, S.elbowR, S.wristR, 1]]
@@ -2282,7 +2351,7 @@ function createFighter(cfg) {
       const shIn = V(sh.x * 0.38, sh.y - 0.045, sh.z);
       const armCurve = makeCurve([shIn, sh, el, wr]);
       BIND = { chain: ARM_KEYS[ai] };
-      part(sweepCurve(skinMat, armCurve, ARM_PROFILE, { refDir: V(0, 1, 0), steps: 36 }));
+      part(sweepCurve(skinMat, armCurve, armProfile, { refDir: V(0, 1, 0), steps: 36 }));
 
       const dir = armCurve.getTangentAt(1).normalize();
       const across = new THREE.Vector3().crossVectors(dir, V(0, 1, 0)).normalize();
@@ -2319,23 +2388,26 @@ function createFighter(cfg) {
       // ---------- אגרוף ----------
       // לא כדור: רחב מעומקו, מתנפח בפרקי האצבעות ומתעגל בקצה.
       // האגרוף על כל פרטיו נוסע קשיח עם עצם שורש כף היד.
+      // cfg.fistScale (פראנק - "אגרופי סלע ענקים") - ברירת מחדל cfg.armScale,
+      // כי זרוע ענקית עם אגרוף רגיל הייתה נראית לא פרופורציונלית.
+      const fistScale = cfg.fistScale ?? cfg.armScale ?? 1;
       const fistMat = cfg.handWraps ? wrapMat : skinMat;
       BIND = { bone: WRIST_BONES[ai] };
       part(sweep(fistMat,
-        [wr.clone().addScaledVector(dir, -0.010),
-         wr.clone().addScaledVector(dir, 0.030),
-         wr.clone().addScaledVector(dir, 0.068)],
-        [pr(0.00, 0.30, 0.28), pr(0.5, 0.44, 0.40), pr(1.00, 0.41, 0.37)],
+        [wr.clone().addScaledVector(dir, -0.010 * fistScale),
+         wr.clone().addScaledVector(dir, 0.030 * fistScale),
+         wr.clone().addScaledVector(dir, 0.068 * fistScale)],
+        [pr(0.00, 0.30 * fistScale, 0.28 * fistScale), pr(0.5, 0.44 * fistScale, 0.40 * fistScale), pr(1.00, 0.41 * fistScale, 0.37 * fistScale)],
         { steps: 16, refDir: across, capEnd: 'round', domeScale: 0.8 }));
 
       // פרקי אצבעות — ארבע בליטות קטנות בחזית האגרוף
       const up2 = new THREE.Vector3().crossVectors(across, dir).normalize();
       [-1.5, -0.5, 0.5, 1.5].forEach((k) => {
-        const kn = new THREE.Mesh(new THREE.SphereGeometry(R * 0.075, 12, 10), fistMat);
+        const kn = new THREE.Mesh(new THREE.SphereGeometry(R * 0.075 * fistScale, 12, 10), fistMat);
         kn.position.copy(wr.clone()
-          .addScaledVector(dir, 0.052)
-          .addScaledVector(across, k * 0.0175)
-          .addScaledVector(up2, 0.014));
+          .addScaledVector(dir, 0.052 * fistScale)
+          .addScaledVector(across, k * 0.0175 * fistScale)
+          .addScaledVector(up2, 0.014 * fistScale));
         kn.scale.set(1, 0.85, 0.8);
         kn.castShadow = true;
         part(kn);
@@ -2343,9 +2415,9 @@ function createFighter(cfg) {
 
       // אגודל מקופל על צד האגרוף
       part(sweep(fistMat,
-        [wr.clone().addScaledVector(dir, 0.004).addScaledVector(across, side * 0.036),
-         wr.clone().addScaledVector(dir, 0.048).addScaledVector(across, side * 0.022)],
-        [pr(0, 0.16, 0.16), pr(1, 0.13, 0.13)],
+        [wr.clone().addScaledVector(dir, 0.004 * fistScale).addScaledVector(across, side * 0.036 * fistScale),
+         wr.clone().addScaledVector(dir, 0.048 * fistScale).addScaledVector(across, side * 0.022 * fistScale)],
+        [pr(0, 0.16 * fistScale, 0.16 * fistScale), pr(1, 0.13 * fistScale, 0.13 * fistScale)],
         { steps: 8, radial: 20, capEnd: 'round' }));
 
       // cfg.fingerRingBothWrists (חדש, קיטי) - טבעת גם על יד שמאל, לא
@@ -2448,6 +2520,51 @@ function createFighter(cfg) {
     gem.position.set(0, S.chest.y - 0.02, S.chest.z + 0.10);
     gem.rotation.y = Math.PI / 4;
     part(gem);
+  }
+
+  // ---------- חרבות בגב ----------
+  // סינזר - "יש לו גם חרבות בגב". קישוט קבוע (לא נשק מצויד בקרב), בנוי
+  // מאותה גיאומטריה בדיוק כמו 'חרב' בחנות (weaponShaft+guard+weaponBlade,
+  // ראה WEAPON_CFGS למטה) - קשיח על עצם החזה, בצד האחורי (z שלילי, כמו
+  // הכנפיים למעלה - "לא ביחידות R, ביחידות עולם מוחלטות כמו מיקומי השלד").
+  if (cfg.backSwords) {
+    BIND = { bone: 'chest' };
+    [-1, 1].forEach((s) => {
+      const sword = new THREE.Group();
+      sword.add(weaponShaft(0.11, 0.013, 0x2b2b2f));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, 0.02),
+        new THREE.MeshStandardMaterial({ color: 0xb9a06a, roughness: 0.3, metalness: 0.7 }));
+      guard.position.y = 0.11;
+      guard.castShadow = true;
+      sword.add(guard);
+      sword.add(weaponBlade(0.11, 0.42, 0.05, 0xd8dde3, 0.16));
+      sword.position.set(s * 0.07, S.chest.y - 0.08, S.chest.z - 0.09);
+      sword.rotation.z = s * 0.62;   // אלכסון - שתי החרבות יחד יוצרות X
+      sword.rotation.x = Math.PI * 0.08;
+      part(sword);
+    });
+  }
+
+  // ---------- שריון צב ענק בגב ----------
+  // פראנק - "על הגב שלו יש שריון ענק של צב". חצי-כדור גדול (לא כדור שלם -
+  // אחרת ייראה כמו בלון תקוע בגב), קשיח על עצם החזה כמו הכנפיים/החרבות
+  // למעלה, ביחידות עולם מוחלטות כי הוא גדול משמעותית מהראש.
+  if (cfg.turtleShell) {
+    const shellMat = new THREE.MeshStandardMaterial({
+      color: cfg.shellColor ?? 0x5a6b3f, roughness: 0.8,
+      map: turtleShellTex('#5a6b3f', '#33401f'),
+    });
+    const shell = new THREE.Mesh(
+      new THREE.SphereGeometry(0.16, 24, 18, 0, Math.PI * 2, 0, Math.PI * 0.55), shellMat);
+    shell.position.set(0, S.chest.y + 0.02, S.chest.z - 0.13);
+    // ⚠️ ברירת המחדל של הכיפה (thetaStart=0) פונה כלפי מעלה (+Y, כמו
+    // "כובע" על קוטב הכדור), לא אחורה - סיבוב ראשון (Math.PI) יצא הפוך
+    // (קערה פתוחה קדימה, כמו צלחת לוויין) כי זה רק הפך את הכיוון לאורך
+    // אותו ציר, לא סובב אותו לציר אחר. נמצא ברינדור. rotation.x=-π/2
+    // ממפה את קוטב הכיפה (+Y) לכיוון -Z (אחורה, הרחק מעמוד השדרה).
+    shell.rotation.x = -Math.PI / 2;
+    shell.castShadow = true;
+    part(shell);
   }
 
   // ---------- גופייה ----------
@@ -2662,15 +2779,17 @@ function createFighter(cfg) {
     const crystalMat = new THREE.MeshStandardMaterial({
       color: cfg.crystalColor ?? 0x6fe8f0, roughness: 0.12, metalness: 0.25,
     });
+    // פסגת הראש: על ראש משושה (לוסטר) זה חצי-הגובה של הצילינדר (0.95,
+    // קבוע - ראה בניית הראש למעלה); על ראש כדורי רגיל (פראנק) זה
+    // headScale.y - אחרת הגביש היה נבלע חלקית בתוך הכדור (0.95 < 1.10).
+    const crystalTopY = cfg.hexHead ? 0.95 : headScale.y;
     [
       { x: -0.34, len: 0.80, tilt: -0.20 },
       { x: 0, len: 1.05, tilt: 0 },
       { x: 0.34, len: 0.80, tilt: 0.20 },
     ].forEach(({ x, len, tilt }) => {
       const shard = new THREE.Mesh(new THREE.ConeGeometry(R * 0.22 * headMult, R * len * headMult, 6), crystalMat);
-      // בסיס הגביש על פסגת הראש המשושה השטוחה (חצי-הגובה של הצילינדר,
-      // R*0.95, לא R*1.10 שהיה מתאים לפסגת כדור רגילה).
-      shard.position.set(x * R * headMult, HC.y + R * (0.95 + len * 0.5) * headMult, 0);
+      shard.position.set(x * R * headMult, HC.y + R * (crystalTopY + len * 0.5) * headMult, 0);
       shard.rotation.z = tilt;
       shard.castShadow = true;
       part(shard);
@@ -2702,6 +2821,15 @@ function createFighter(cfg) {
     const ez = cfg.headSquish ? R * 1.05 : cfg.hexHead ? R * 0.85 * headMult : R * 0.80 * headMult;
     // (ez נבחר כך שחזית הלובן תעבור את פני הפנים בכ-0.001 בלבד)
 
+    // עיניים בצורת ברק זוהר (cfg.boltEyes, סינזר) - במקום גלגל עין שלם,
+    // רק פלאנה שטוחה עם ברק מלא צבוע עליה, זוהרת (MeshBasicMaterial) -
+    // "עיניים בצורת ברק" נלקח מילולית, לא "עין רגילה עם ברק בתוכה".
+    if (cfg.boltEyes) {
+      const bolt = new THREE.Mesh(
+        new THREE.PlaneGeometry(R * 0.34 * eyeSizeMult, R * 0.46 * eyeSizeMult), boltEyeMat);
+      bolt.position.set(ex, ey, ez + R * 0.02 * eyeSizeMult);
+      part(bolt);
+    } else {
     // פני הראש בגובה העין נמצאים ב-z=0.876R. כל שכבה כאן בולטת רק במעט מעל
     // קודמתה, אחרת גלגל העין יוצא ככדור מודבק על הפנים במקום עין שקועה בארובה.
     const white = new THREE.Mesh(new THREE.SphereGeometry(R * 0.21 * eyeSizeMult, 24, 22), eyeWhiteMat);
@@ -2737,6 +2865,7 @@ function createFighter(cfg) {
     lid.scale.set(1, 0.70, 0.44);
     lid.castShadow = true;
     part(lid);
+    }
 
     if (!cfg.oneEye) {
       // גבה עבה ומעוקלת (בולטת ברפרנס) — רצועה, לא קופסה
@@ -2763,6 +2892,17 @@ function createFighter(cfg) {
       });
     }
   });
+
+  // ---------- צלקת מתחת לעין ----------
+  // סינזר - "צלקת מתחת לעין". דקאל שקוף קטן, ישירות על עצם הראש (לא
+  // דרך bodyDecal - זו בנויה סביב torsoCurve ולא מתאימה לפנים). מתחת
+  // לעין הימנית (s=1) בלבד - "מתחת לעין" יחיד, לא שתיים.
+  if (cfg.eyeScar) {
+    const scarMat = new THREE.MeshBasicMaterial({ map: eyeScarTex(), transparent: true, side: THREE.DoubleSide });
+    const scar = new THREE.Mesh(new THREE.PlaneGeometry(R * 0.22, R * 0.22), scarMat);
+    scar.position.set(R * 0.42 * headMult, HC.y - R * 0.14 * headMult, R * 0.90 * headMult);
+    part(scar);
+  }
 
   // ---------- שפמים ----------
   // שלושה קווים דקים בכל לחי, מהאף כלפי חוץ - אותה שיטה כמו הריסים
@@ -2878,12 +3018,16 @@ function createFighter(cfg) {
     // בחירה סגנונית, לא משטח שצריך להיות מדויק. goldIndices מאפשר שיניים
     // בודדות בזהב (מוקרוט: "כמה שיניים בצבע זהב").
     if (cfg.mouthTeeth) {
-      const { count = 4, goldIndices = [] } = cfg.mouthTeeth;
+      // cfg.mouthTeeth.stubby (חדש, פראנק - "שיניים קצרות ועבות") - חרוט
+      // רחב וקצר במקום ניב חד וארוך, אותה גיאומטריה בדיוק רק ביחס אחר.
+      const { count = 4, goldIndices = [], stubby = false } = cfg.mouthTeeth;
       const toothMat = M(0xf6f4ec, 0.4);
+      const toothLen = (stubby ? 0.045 : 0.09) * mouthScale;
+      const toothRad = (stubby ? 0.050 : 0.028) * mouthScale;
       for (let i = 0; i < count; i++) {
         const t0 = (i + 0.5) / count - 0.5;
         const tooth = new THREE.Mesh(
-          new THREE.ConeGeometry(R * 0.028 * mouthScale, R * 0.09 * mouthScale, 6), goldIndices.includes(i) ? goldMat : toothMat);
+          new THREE.ConeGeometry(R * toothRad, R * toothLen, 6), goldIndices.includes(i) ? goldMat : toothMat);
         tooth.position.set(t0 * R * 0.30 * mouthScale, HC.y - R * 0.40 * headMult, R * 0.79 * headMult);
         tooth.rotation.x = Math.PI;
         tooth.castShadow = true;
@@ -4079,6 +4223,52 @@ const LEWIN_CFG = {
   boots: 0x9aa0a6,
 };
 
+// סינזר - דמות איוונט (game-spec.md סעיף 14, "כוח 15/10, מהירות 15/10,
+// הרבה חיים") שנוצרה לפי תיאור מהמשתמש (לא באפיון): "איש ברק בצבע זהוב
+// עם עיניים בצורת ברק זוהר וצלקת מתחת לעין ומכנסיים שחורות ומבריקות ויש
+// לו גם חרבות בגב וקוביות מטורפות בבטן והוא בלי חולצה". 15/10 חורג
+// בכוונה מהסולם הרגיל (0-10) של שאר הדמויות - בדיוק כמו שהאפיון מגדיר
+// לדמויות איוונט, "עוצמתיות בהרבה" מהרגילות.
+const SINZER_CFG = {
+  power: 15, speed: 15,
+  skin: 0xb8860b,             // זהוב - גוון שכבר הוכח כבטוח (לא נשטף) בדמויות קודמות
+  hair: 0x1a1410, hairStyle: 'spiky',
+  eyeColor: 0xfff35c,
+  boltEyes: true, boltEyeColor: '#fff35c',
+  eyeScar: true,
+  ears: 'round',
+  top: null,                  // בלי חולצה
+  abs: true,
+  pants: 0x0d0d10, pantsShiny: true,
+  boots: 0x1a1a1a,
+  backSwords: true,
+};
+
+// פראנק - דמות איוונט שנייה (game-spec.md סעיף 14, "כוח 15/10, מהירות
+// 15/10, הרבה חיים") לפי תיאור מהמשתמש: "איש ענק עשוי אבנים וסלעים ופה
+// גדול עם שיניים קצרות ועבות וידיים ענקיות וכבדות עם אגרופי סלע ענקים
+// ויש לו רגליים עבות מאוד ועל הגב שלו יש שריון ענק של צב ומהראש יוצאים
+// לו אבנים ממש חדות". כמעט כל היכולות כאן כבר קיימות משלבים קודמים -
+// "אבנים חדות מהראש" משתמש חוזר ב-cfg.headCrystals (לוסטר, גוון אבן
+// אפור במקום קריסטל זוהר), ו"עשוי מאבנים" ב-cfg.mottledSkin (סלייקי,
+// גווני אפור/חום במקום אדום-צהוב). armScale/legScale/fistScale ו-
+// turtleShell/mouthTeeth.stubby הן היכולות החדשות היחידות (ראה למעלה).
+const FRANK_CFG = {
+  power: 15, speed: 15,
+  skin: 0x6e6a63,
+  mottledSkin: true, mottledColor2: 0x47433c,
+  hair: 0x3a3a38,    // קירח (bald:true) אז לא נראה בשיער, אבל הגבות עדיין משתמשות בצבע הזה
+  bald: true,
+  eyeColor: 0x2a2a2a,
+  ears: 'round',
+  mouthScale: 1.4,
+  mouthTeeth: { count: 6, stubby: true },
+  top: null, pants: null, boxers: null, boots: null,
+  armScale: 1.6, fistScale: 2.0, legScale: 1.5,
+  headCrystals: true, crystalColor: 0x8a8579,
+  turtleShell: true, shellColor: 0x5a6b3f,
+};
+
 addStoneProp(player);
 addStoneProp(enemy);
 
@@ -4672,6 +4862,7 @@ const CHARACTER_CFGS = {
   'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG,
   'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG, 'ברטו': BERTO_CFG, 'סטנבר': STANBER_CFG,
   'סלייקי': SLAIKY_CFG, 'קיטי': KITTY_CFG, 'לוין': LEWIN_CFG,
+  'סינזר': SINZER_CFG, 'פראנק': FRANK_CFG,
 };
 const characterThumbs = {};
 const THUMB_SIZE = 360;
@@ -4724,6 +4915,8 @@ const SHOP_DATA = {
     ['סלייקי', 'כוח 9.2/10', 'מהירות 10/10', '300₪'],
     ['קיטי', 'כוח 9.5/10', 'מהירות 9.9/10', '370₪'],
     ['לוין', 'כוח 10/10', 'מהירות 10/10', '750₪'],
+    ['סינזר', 'כוח 15/10', 'מהירות 15/10', '200₪'],
+    ['פראנק', 'כוח 15/10', 'מהירות 15/10', '200₪'],
   ]},
   weapons: { label: '⚔️ נשקים', rows: [
     ['אבן חדה', 'נזק 7', 'חינם'],
@@ -5100,6 +5293,10 @@ const weaponKeyLegendEl = document.getElementById('weaponKeyLegend');
 // דמויות שנבנו במסך "בנייה עצמית" זמינות למשחק רק באיוונט (game-spec.md
 // סעיף 15: "הדמות זמינה למשחק רק באיוונטים") - גם אם כבר קנית/יצרת אותן.
 const CUSTOM_CHARACTER_NAMES = new Set();
+// דמויות איוונט מהאפיון (game-spec.md סעיף 14, כמו סינזר/פראנק) - נקנות
+// ונבחרות רק בזמן איוונט, בדיוק כמו דמויות "בנייה עצמית" - אותו דגל.
+CUSTOM_CHARACTER_NAMES.add('סינזר');
+CUSTOM_CHARACTER_NAMES.add('פראנק');
 const ownedCharacterNames = () =>
   Object.keys(CHARACTER_CFGS).filter((n) =>
     inventory.has('characters:' + n) && (!CUSTOM_CHARACTER_NAMES.has(n) || eventActive));
@@ -5239,7 +5436,10 @@ function renderShopCategory(key) {
   shopGridEl.innerHTML = '';
   if (key === 'upgrades') { renderUpgradesCategory(); return; }
 
-  const { rows } = SHOP_DATA[key];
+  // דמויות איוונט (game-spec.md סעיף 14, כמו סינזר) מוצגות בקטגוריית
+  // הדמויות רק בזמן איוונט - "זמינות רק באיוונטים" חל גם על הקנייה עצמה,
+  // לא רק על הבחירה בלובי.
+  const rows = SHOP_DATA[key].rows.filter(([name]) => !CUSTOM_CHARACTER_NAMES.has(name) || eventActive);
   if (rows.length === 0) {
     shopGridEl.innerHTML = '<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">🚧 עוד לא הוחלט מה יהיה כאן - בקרוב!</div>';
     return;
@@ -5589,7 +5789,7 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, SINZER_CFG, FRANK_CFG, inventory,
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
