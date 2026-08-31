@@ -903,7 +903,7 @@ scene.add(crowdBodies, crowdHeads);
 //  ב"אזור" הנכון - בדיוק כמו שתי במות רחוקות באותו עולם.
 // ============================================================================
 const CAVE_OFFSET = new THREE.Vector3(0, 0, -300);
-const CAVE_RADIUS = 20;
+const CAVE_RADIUS = 140;   // "ענקיות ממש - רואים את העולם באופק", לפי בקשת המשתמש (פי 7 מהגרסה הקודמת)
 const caveGroup = new THREE.Group();
 caveGroup.position.copy(CAVE_OFFSET);
 scene.add(caveGroup);
@@ -934,7 +934,7 @@ caveGroup.add(caveKeyLight);
 // שיטת חרוטים בדיוק כמו cfg.headCrystals (לוסטר), רק מפוזרת ברצפה
 // בגדלים/צבעים/כמויות משתנים לכל אשכול, במקום שלושה חרוטים קבועים על ראש.
 const CAVE_CRYSTAL_COLORS = [0x6fe8f0, 0x9b59ff, 0xff6ec7, 0x4fd1a5];
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 150; i++) {
   const ang = Math.random() * Math.PI * 2;
   const dist = 2.2 + Math.random() * (CAVE_RADIUS - 3.5);
   const color = CAVE_CRYSTAL_COLORS[i % CAVE_CRYSTAL_COLORS.length];
@@ -960,7 +960,7 @@ for (let i = 0; i < 50; i++) {
 // רחוק מנקודת ההתחלה (0,0,4) ופינתי במערה הגדולה - בלי קרן-אור-מנחה
 // (הוסרה לפי בקשת המשתמש - "תחביא את האוצר הרבה יותר טוב") צריך
 // באמת לחפש ולהתקרב כדי לראות אותה, לא רק ללכת לכיוון אור מרחוק.
-const TREASURE_POS = { x: 13, z: -12 };
+const TREASURE_POS = { x: 91, z: -84 };   // מיקום יחסי זהה, פי 7 - תואם את הגדלת המערה
 const TREASURE_REWARD = 300;
 {
   const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
@@ -1016,7 +1016,7 @@ const TREASURE_REWARD = 300;
 //  הראשון של מערת הקריסטל - מפלצות יתווספו בהמשך אחרי בדיקה.
 // ============================================================================
 const ISLAND_OFFSET = new THREE.Vector3(300, 0, 0);
-const ISLAND_RADIUS = 24;
+const ISLAND_RADIUS = 168;   // "ענקיות ממש - רואים את העולם באופק", פי 7 מהגרסה הקודמת
 const islandGroup = new THREE.Group();
 islandGroup.position.copy(ISLAND_OFFSET);
 scene.add(islandGroup);
@@ -1032,7 +1032,7 @@ islandGroup.add(islandSand);
 // (ראה animate) לפי שתי גלי-סינוס חופפות - "גלים חזקים" מהאפיון, לא רק
 // אדוות עדינות. oceanBasePositions שומר את המיקומים המקוריים כדי שהגובה
 // יוחלף כל פריים במקום להצטבר.
-const OCEAN_SIZE = 200, OCEAN_SEGMENTS = 60;
+const OCEAN_SIZE = 900, OCEAN_SEGMENTS = 60;   // ענק, כדי שהים ימשיך לכל האופק גם מהאי הענק החדש
 const oceanGeo = new THREE.PlaneGeometry(OCEAN_SIZE, OCEAN_SIZE, OCEAN_SEGMENTS, OCEAN_SEGMENTS);
 const oceanMesh = new THREE.Mesh(oceanGeo,
   new THREE.MeshStandardMaterial({ color: 0x2f6f8f, roughness: 0.55, metalness: 0.1 }));
@@ -1064,7 +1064,7 @@ islandGroup.add(islandSun);
     post.rotation.z = tilt;   // עמוד אחד שבור/נטוי
     pier.add(post);
   });
-  pier.position.set(10, 0, 8);
+  pier.position.set(70, 0, 56);
   islandGroup.add(pier);
 }
 
@@ -1082,7 +1082,7 @@ islandGroup.add(islandSun);
   mast.position.set(0.3, 1.6, 0);
   mast.rotation.z = 0.35;
   wreck.add(mast);
-  wreck.position.set(-14, 0, -10);
+  wreck.position.set(-98, 0, -70);
   wreck.rotation.y = 0.6;
   islandGroup.add(wreck);
 }
@@ -1104,14 +1104,14 @@ islandGroup.add(islandSun);
   const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 1.2, 0.08), woodMat2);
   wall.position.set(0, 0.7, -1);
   hut.add(wall);
-  hut.position.set(6, 0, -14);
+  hut.position.set(42, 0, -98);
   islandGroup.add(hut);
 }
 
 // ---------- אוצר מוסתר ----------
 // בלי קרן-אור-מנחה (הוסרה לפי בקשת המשתמש) ופינתי באי הגדול - צריך
 // באמת לחפש בין המקומות הנטושים כדי למצוא אותה.
-const ISLAND_TREASURE_POS = { x: -9, z: -19 };
+const ISLAND_TREASURE_POS = { x: -63, z: -133 };
 const ISLAND_TREASURE_REWARD = 350;
 {
   const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
@@ -1161,8 +1161,8 @@ const ISLAND_TREASURE_REWARD = 350;
 //  שמתאימות למקום, בדיוק כמו שני העולמות הקודמים.
 // ============================================================================
 const LAVA_OFFSET = new THREE.Vector3(0, 0, 300);
-const LAVA_RADIUS = 22;
-const LAVA_LAKE_RADIUS = 5.5;
+const LAVA_RADIUS = 154;   // "ענקיות ממש - רואים את העולם באופק", פי 7 מהגרסה הקודמת
+const LAVA_LAKE_RADIUS = 38;   // אגם מרכזי גדול יותר, באותה פרופורציה למכתש
 const lavaGroup = new THREE.Group();
 lavaGroup.position.copy(LAVA_OFFSET);
 scene.add(lavaGroup);
@@ -1191,26 +1191,28 @@ lavaGlow.position.set(0, 8, 0);
 lavaGroup.add(lavaGlow);
 
 // ---------- הרי געש עם ראש זוהר ונהרות לבה ----------
-const LAVA_VOLCANOES = [{ x: 14, z: 10 }, { x: -15, z: 6 }, { x: 2, z: -17 }];
+// מיקומים פי 7 (תואם את הגדלת המכתש), גודל ההר עצמו פי ~2.3 - כדי
+// שישמש כציון-דרך גדול ובולט שרואים ממרחק בעולם הענק, לא ייבלע בו.
+const LAVA_VOLCANOES = [{ x: 98, z: 70 }, { x: -105, z: 42 }, { x: 14, z: -119 }];
 const rockMat = new THREE.MeshStandardMaterial({ color: 0x362d27, roughness: 0.95 });
 const riverMat = new THREE.MeshStandardMaterial({
   color: 0xff5a1f, roughness: 0.5, emissive: 0xff5a1f, emissiveIntensity: 0.9,
 });
 LAVA_VOLCANOES.forEach(({ x, z }) => {
   const volcano = new THREE.Group();
-  const cone = new THREE.Mesh(new THREE.ConeGeometry(3.4, 5.5, 20), rockMat);
-  cone.position.y = 2.75;
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(8, 16, 20), rockMat);
+  cone.position.y = 8;
   volcano.add(cone);
-  const crater = new THREE.Mesh(new THREE.CircleGeometry(0.9, 16), riverMat);
+  const crater = new THREE.Mesh(new THREE.CircleGeometry(2, 16), riverMat);
   crater.rotation.x = -Math.PI / 2;
-  crater.position.y = 5.35;
+  crater.position.y = 15.5;
   volcano.add(crater);
   // נהר לבה - כמה מקטעים שיורדים לכיוון אגם המרכז, כדי לא לבנות עקום מדויק
   const dirX = -x, dirZ = -z, dist = Math.hypot(dirX, dirZ);
   const nx = dirX / dist, nz = dirZ / dist;
-  for (let i = 0; i < 5; i++) {
-    const seg = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.05, 2.2), riverMat);
-    const segDist = 3.5 + i * 2.1;
+  for (let i = 0; i < 6; i++) {
+    const seg = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.05, 5), riverMat);
+    const segDist = 8.5 + i * 5;
     seg.position.set(nx * segDist, 0.03, nz * segDist);
     seg.rotation.y = Math.atan2(nx, nz);
     volcano.add(seg);
@@ -1220,7 +1222,7 @@ LAVA_VOLCANOES.forEach(({ x, z }) => {
 });
 
 // ---------- אוצר מוסתר ----------
-const LAVA_TREASURE_POS = { x: -9, z: -14 };
+const LAVA_TREASURE_POS = { x: -63, z: -98 };
 const LAVA_TREASURE_REWARD = 400;
 {
   const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
@@ -5634,7 +5636,7 @@ function showScreen(name) {
 let explorerYaw = 0;
 let explorerTreasureFound = false;
 let savedFog = null, savedBackground = null;
-const EXPLORE_SPEED = 2.4;
+const EXPLORE_SPEED = 8;   // הוגדל פי ~3.3 יחד עם הגדלת העולמות פי ~7, כדי שהחצייה לא תיקח נצח
 const EXPLORE_TURN_SPEED = 2.6;
 // אופסט בין זווית ההליכה (explorerYaw) לבין rotation.y שגורם לדמות
 // באמת *להסתכל* לכיוון הזה - נמדד ברינדור (ראה יומן הפיתוח), כי "חזית"
@@ -5691,8 +5693,8 @@ const CRYSTAL_GUARDIAN2_CFG = {
 // ביקור חדש); הפסד משאיר אותה במקום לניסיון נוסף.
 const CAVE_MONSTER_DEFS = {
   crystalCave: [
-    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN_CFG, hp: 130, pos: { x: -7, z: -2 }, reward: 80 },
-    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN2_CFG, hp: 130, pos: { x: 2, z: 9 }, reward: 80 },
+    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN_CFG, hp: 130, pos: { x: -49, z: -14 }, reward: 80 },
+    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN2_CFG, hp: 130, pos: { x: 14, z: 63 }, reward: 80 },
   ],
 };
 let caveMonsters = [];   // מפלצות המערה הפעילה: {name, pos, hp, cfg, alive, fighter}
@@ -5850,7 +5852,7 @@ function enterCave() {
     caveReturnState = null;
     avoidLiveMonsters();
   } else {
-    player.group.position.set(0, 0, 4);
+    player.group.position.set(0, 0, 28);
     explorerYaw = Math.PI;   // פונה פנימה למערה (Z שלילי) מנקודת הכניסה
     explorerTreasureFound = false;
     spawnCaveMonsters(CAVE_MONSTER_DEFS.crystalCave);
@@ -5865,7 +5867,9 @@ function enterCave() {
   player.mv = 0;
   savedFog = scene.fog;
   savedBackground = scene.background;
-  scene.fog = new THREE.Fog(0x120f1c, 10, 42);
+  // ערפל רחוק בהרבה - במערה ענקית צריך *לראות* את הכיפה/אופק מרחוק,
+  // לא רק את הסביבה הקרובה (לפי בקשת המשתמש: "רואים את העולם באופק").
+  scene.fog = new THREE.Fog(0x120f1c, 20, 145);
   scene.background = new THREE.Color(0x0a0814);
   updateExplorerCamera();
 }
@@ -5931,8 +5935,8 @@ const ISLAND_GUARDIAN2_CFG = {
   top: null, pants: null, boxers: 0x14201a, boots: null,
 };
 const ISLAND_MONSTER_DEFS = [
-  { name: 'שומר האי', cfg: ISLAND_GUARDIAN_CFG, hp: 130, pos: { x: -16, z: -6 }, reward: 90 },
-  { name: 'שומר האי', cfg: ISLAND_GUARDIAN2_CFG, hp: 130, pos: { x: 9, z: -16 }, reward: 90 },
+  { name: 'שומר האי', cfg: ISLAND_GUARDIAN_CFG, hp: 130, pos: { x: -112, z: -42 }, reward: 90 },
+  { name: 'שומר האי', cfg: ISLAND_GUARDIAN2_CFG, hp: 130, pos: { x: 63, z: -112 }, reward: 90 },
 ];
 let islandMonsters = [];
 let isIslandFight = false;
@@ -6055,7 +6059,7 @@ function enterIsland() {
     islandReturnState = null;
     avoidLiveIslandMonsters();
   } else {
-    player.group.position.set(0, 0, 19);
+    player.group.position.set(0, 0, 133);
     islandExplorerYaw = Math.PI;   // פונה פנימה לאי (Z שלילי) מנקודת הכניסה
     islandTreasureFound = false;
     spawnIslandMonsters(ISLAND_MONSTER_DEFS);
@@ -6068,7 +6072,9 @@ function enterIsland() {
   player.mv = 0;
   savedIslandFog = scene.fog;
   savedIslandBackground = scene.background;
-  scene.fog = new THREE.Fog(0x9db3bb, 30, 100);
+  // ערפל רחוק בהרבה - אי ענק, צריך לראות את קו האופק של הים ממרחק
+  // (לפי בקשת המשתמש: "רואים את העולם באופק").
+  scene.fog = new THREE.Fog(0x9db3bb, 40, 340);
   scene.background = new THREE.Color(0x9db3bb);
   updateIslandExplorerCamera();
 }
@@ -6176,8 +6182,8 @@ const LAVA_GUARDIAN2_CFG = {
   top: null, pants: null, boxers: 0x120d0a, boots: null,
 };
 const LAVA_MONSTER_DEFS = [
-  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN_CFG, hp: 130, pos: { x: 10, z: -6 }, reward: 100 },
-  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN2_CFG, hp: 130, pos: { x: -11, z: 12 }, reward: 100 },
+  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN_CFG, hp: 130, pos: { x: 70, z: -42 }, reward: 100 },
+  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN2_CFG, hp: 130, pos: { x: -77, z: 84 }, reward: 100 },
 ];
 let lavaMonsters = [];
 let isLavaFight = false;
@@ -6313,7 +6319,9 @@ function enterLava() {
   player.mv = 0;
   savedLavaFog = scene.fog;
   savedLavaBackground = scene.background;
-  scene.fog = new THREE.Fog(0x2a140f, 20, 85);
+  // ערפל רחוק בהרבה - מכתש ענק, צריך לראות הרי געש רחוקים באופק (לפי
+  // בקשת המשתמש: "רואים את העולם באופק").
+  scene.fog = new THREE.Fog(0x2a140f, 30, 160);
   scene.background = new THREE.Color(0x1a0d0a);
   updateLavaExplorerCamera();
 }
@@ -7589,13 +7597,17 @@ function animate() {
   }
 
   // גלים חזקים באי האבוד - מעוותים את גובה הים לפי שתי גלי-סינוס חופפות.
-  // מחושב רק כשבאמת רואים את האי (חוסך עבודה על ~2500 קודקודים בכל
-  // פריים כשלא צריך).
+  // מחושב רק כשבאמת רואים את האי (חוסך עבודה על ~3600 קודקודים בכל
+  // פריים כשלא צריך). תדירות הגל הוקטנה (חלוקה ב-~4.5) יחד עם הגדלת
+  // הים (OCEAN_SIZE 200→900) בלי להוסיף קודקודים - אחרת כל משבצת ברשת
+  // הייתה גדולה יותר מאורך-גל שלם, והגלים היו יוצאים משוננים/מקוטעים
+  // במקום חלקים. המשרעת הוגדלה פי 2 - גלים "חזקים" יותר, מתאים לעולם
+  // ענק יותר.
   if (uiScreen === 'lostIsland') {
     const posAttr = oceanGeo.attributes.position;
     for (let i = 0; i < posAttr.count; i++) {
       const ox = oceanBasePositions[i * 3], oy = oceanBasePositions[i * 3 + 1];
-      posAttr.array[i * 3 + 2] = 0.35 * Math.sin(ox * 0.35 + t * 1.6) + 0.18 * Math.sin(oy * 0.5 + t * 2.3);
+      posAttr.array[i * 3 + 2] = 0.7 * Math.sin(ox * 0.078 + t * 1.6) + 0.36 * Math.sin(oy * 0.11 + t * 2.3);
     }
     posAttr.needsUpdate = true;
   }
