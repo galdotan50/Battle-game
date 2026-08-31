@@ -603,7 +603,7 @@
   <div style="max-width:500px; text-align:center; margin-bottom:26px; opacity:0.85; font-size:1.05rem;">
     בכל עולם מוסתר אוצר עם הרבה כסף - תחפש אותו!
   </div>
-  <button class="bigBtn secondary" id="worldIslandBtn" disabled>🏝️ האי האבוד<br><span style="font-size:0.8rem; opacity:0.7;">בקרוב</span></button>
+  <button class="bigBtn" id="worldIslandBtn">🏝️ האי האבוד</button>
   <button class="bigBtn" id="worldCaveBtn">💎 מערת הקריסטל</button>
   <button class="bigBtn secondary" id="worldLavaBtn" disabled>🌋 מכתש הלבה<br><span style="font-size:0.8rem; opacity:0.7;">בקרוב</span></button>
   <button id="adventureBackBtn">⬅ חזרה ללובי</button>
@@ -994,6 +994,145 @@ const TREASURE_REWARD = 300;
   treasureChest.add(beamInner);
   treasureChest.position.set(TREASURE_POS.x, 0, TREASURE_POS.z);
   caveGroup.add(treasureChest);
+}
+
+// ============================================================================
+//  הרפתקה — האי האבוד
+//
+//  עולם שני מתוך שלושה. נבנה באותה שיטה בדיוק כמו מערת הקריסטל (offset
+//  רחוק בעולם - כאן על ציר X, לא Z, כדי לא להתנגש עם המערה שנמצאת על Z
+//  שלילי - כך שאין סיכוי ששני העולמות ייראו זה מתוך זה) - לא נוגעים
+//  בקוד הזירה או המערה שכבר עובדים. "אי עם גלים חזקים וכל מיני מקומות
+//  נטושים" - ים סוער סביב אי חול, מזח שבור, ספינה טרופה ובקתה הרוסה,
+//  ואוצר מוחבא. בשלב הזה: סביבה + הליכה חופשית + אוצר, בדיוק כמו השלב
+//  הראשון של מערת הקריסטל - מפלצות יתווספו בהמשך אחרי בדיקה.
+// ============================================================================
+const ISLAND_OFFSET = new THREE.Vector3(300, 0, 0);
+const ISLAND_RADIUS = 15;
+const islandGroup = new THREE.Group();
+islandGroup.position.copy(ISLAND_OFFSET);
+scene.add(islandGroup);
+
+const islandSand = new THREE.Mesh(
+  new THREE.CircleGeometry(ISLAND_RADIUS, 48),
+  new THREE.MeshStandardMaterial({ color: 0xd8c07a, roughness: 1 }));
+islandSand.rotation.x = -Math.PI / 2;
+islandSand.receiveShadow = true;
+islandGroup.add(islandSand);
+
+// ים עם גלים חזקים - מישור גדול שמקיף את האי, עם גובה שמתעוות כל פריים
+// (ראה animate) לפי שתי גלי-סינוס חופפות - "גלים חזקים" מהאפיון, לא רק
+// אדוות עדינות. oceanBasePositions שומר את המיקומים המקוריים כדי שהגובה
+// יוחלף כל פריים במקום להצטבר.
+const OCEAN_SIZE = 130, OCEAN_SEGMENTS = 48;
+const oceanGeo = new THREE.PlaneGeometry(OCEAN_SIZE, OCEAN_SIZE, OCEAN_SEGMENTS, OCEAN_SEGMENTS);
+const oceanMesh = new THREE.Mesh(oceanGeo,
+  new THREE.MeshStandardMaterial({ color: 0x2f6f8f, roughness: 0.55, metalness: 0.1 }));
+oceanMesh.rotation.x = -Math.PI / 2;
+oceanMesh.position.y = -0.65;   // מספיק נמוך כדי שאף גל (עד גובה ~0.53) לא יבצבץ מעל החול
+islandGroup.add(oceanMesh);
+const oceanBasePositions = oceanGeo.attributes.position.array.slice();
+
+// שמיים אפורים-סוערים וערפל - האי מרגיש נטוש/סוער, לא כמו חוף טרופי שמח.
+islandGroup.add(new THREE.AmbientLight(0x9fb0bb, 0.8));
+const islandSun = new THREE.DirectionalLight(0xdfe8ea, 0.9);
+islandSun.position.set(20, 30, 10);
+islandGroup.add(islandSun);
+
+// ---------- מזח שבור ----------
+{
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x5a4632, roughness: 0.9 });
+  const pier = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const plank = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.08, 1.1), woodMat);
+    plank.position.set(0, 0.35, 2.2 - i * 1.1);
+    plank.rotation.z = (Math.random() - 0.5) * 0.25;
+    plank.rotation.x = (Math.random() - 0.5) * 0.15;
+    pier.add(plank);
+  }
+  [[-0.5, 2.2, 0], [0.5, 2.2, 0], [-0.5, -0.6, 0.6], [0.5, -0.6, 0]].forEach(([x, z, tilt]) => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 8), woodMat);
+    post.position.set(x, 0.3, z);
+    post.rotation.z = tilt;   // עמוד אחד שבור/נטוי
+    pier.add(post);
+  });
+  pier.position.set(6, 0, 5);
+  islandGroup.add(pier);
+}
+
+// ---------- ספינה טרופה ----------
+{
+  const hullMat = new THREE.MeshStandardMaterial({ color: 0x4a3a2a, roughness: 0.9 });
+  const wreck = new THREE.Group();
+  const hull = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.6, 1.6, 4.2, 16, 1, true, 0, Math.PI), hullMat);
+  hull.rotation.z = Math.PI / 2;
+  hull.rotation.y = 0.3;
+  hull.position.y = 0.4;
+  wreck.add(hull);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 3.2, 8), hullMat);
+  mast.position.set(0.3, 1.6, 0);
+  mast.rotation.z = 0.35;
+  wreck.add(mast);
+  wreck.position.set(-9, 0, -6);
+  wreck.rotation.y = 0.6;
+  islandGroup.add(wreck);
+}
+
+// ---------- בקתה הרוסה ----------
+{
+  const woodMat2 = new THREE.MeshStandardMaterial({ color: 0x6b5a3f, roughness: 0.9 });
+  const hut = new THREE.Group();
+  [[-1, -1, 1.7], [1, -1, 0.9], [1, 1, 1.7], [-1, 1, 1.7]].forEach(([x, z, h]) => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, h, 8), woodMat2);
+    post.position.set(x, h / 2, z);
+    hut.add(post);
+  });
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 2.4), woodMat2);
+  roof.position.set(0.1, 1.55, 0);
+  roof.rotation.z = 0.18;
+  roof.rotation.x = -0.1;
+  hut.add(roof);
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 1.2, 0.08), woodMat2);
+  wall.position.set(0, 0.7, -1);
+  hut.add(wall);
+  hut.position.set(4, 0, -9);
+  islandGroup.add(hut);
+}
+
+// ---------- אוצר מוסתר ----------
+const ISLAND_TREASURE_POS = { x: -4, z: -12 };
+const ISLAND_TREASURE_REWARD = 350;
+{
+  const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
+  const chestGoldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.3, metalness: 0.7 });
+  const treasureChest = new THREE.Group();
+  const chestBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.35), chestWoodMat);
+  chestBase.position.y = 0.15;
+  treasureChest.add(chestBase);
+  const chestLid = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 0.5, 12, 1, false, 0, Math.PI), chestWoodMat);
+  chestLid.rotation.z = Math.PI / 2;
+  chestLid.position.set(0, 0.3, 0);
+  treasureChest.add(chestLid);
+  const chestBand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.37), chestGoldMat);
+  chestBand.position.y = 0.15;
+  treasureChest.add(chestBand);
+  const chestGlow = new THREE.PointLight(0xffe9a8, 2.5, 11);
+  chestGlow.position.y = 0.4;
+  treasureChest.add(chestGlow);
+  const beamOuter = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.5, 7, 16, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.30, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beamOuter.position.y = 3.9;
+  treasureChest.add(beamOuter);
+  const beamInner = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.02, 0.13, 7, 12, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xfff6d8, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beamInner.position.y = 3.9;
+  treasureChest.add(beamInner);
+  treasureChest.position.set(ISLAND_TREASURE_POS.x, 0, ISLAND_TREASURE_POS.z);
+  islandGroup.add(treasureChest);
 }
 
 // ============================================================================
@@ -5229,6 +5368,7 @@ const createEl = document.getElementById('createOverlay');
 const weaponCreateEl = document.getElementById('weaponCreateOverlay');
 const adventureEl = document.getElementById('adventureOverlay');
 const caveHudEl = document.getElementById('caveHud');
+const caveInstructionsEl = document.getElementById('caveInstructions');
 const shopTabsEl = document.getElementById('shopTabs');
 const shopGridEl = document.getElementById('shopGrid');
 const hpRowEl = document.getElementById('hpRow');
@@ -5255,14 +5395,16 @@ function focusCreateCamera() {
 
 function showScreen(name) {
   const wasInCave = uiScreen === 'crystalCave';
+  const wasInIsland = uiScreen === 'lostIsland';
   uiScreen = name;
   lobbyEl.classList.toggle('show', name === 'lobby');
   shopEl.classList.toggle('show', name === 'shop');
   createEl.classList.toggle('show', name === 'create');
   weaponCreateEl.classList.toggle('show', name === 'weaponCreate');
   adventureEl.classList.toggle('show', name === 'adventure');
-  caveHudEl.classList.toggle('show', name === 'crystalCave');
+  caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland');
   if (wasInCave && name !== 'crystalCave') exitCave();
+  if (wasInIsland && name !== 'lostIsland') exitIsland();
   const inBattle = name === 'battle';
   hpRowEl.style.display = inBattle ? '' : 'none';
   controlsEl.style.display = inBattle ? '' : 'none';
@@ -5308,6 +5450,11 @@ function showScreen(name) {
     enemy.group.visible = false;
     if (previewFighter) previewFighter.group.visible = false;
     if (!wasInCave) enterCave();
+  } else if (name === 'lostIsland') {
+    // הרפתקה - האי האבוד. אותו עיקרון בדיוק כמו מערת הקריסטל.
+    enemy.group.visible = false;
+    if (previewFighter) previewFighter.group.visible = false;
+    if (!wasInIsland) enterIsland();
   } else {
     enemy.group.visible = true;
     player.group.visible = true;
@@ -5527,6 +5674,7 @@ function returnToCave() {
 }
 
 function enterCave() {
+  caveInstructionsEl.textContent = '↑ להליכה · ← → לפנייה · עקוב אחרי הקרן הזהובה - שם האוצר!';
   scene.remove(player.group);
   caveGroup.add(player.group);
   if (caveReturnState) {
@@ -5563,6 +5711,85 @@ function exitCave() {
   if (savedFog) scene.fog = savedFog;
   if (savedBackground) scene.background = savedBackground;
   document.getElementById('treasureFoundOverlay').classList.remove('show');
+}
+
+// ============================================================================
+//  הרפתקה — האי האבוד: הליכה חופשית
+//
+//  אותו מנגנון בדיוק כמו מערת הקריסטל (משתני yaw/מיקום/מצלמה נפרדים
+//  לגמרי, לא חולקים כלום עם explorerYaw של המערה) - שוכפל במקום לשתף
+//  קוד, בדיוק מאותה סיבה שהמערה עצמה נבנתה רחוק מהזירה: לא לגעת בקוד
+//  שכבר עובד ואומת. שלב ראשון בלבד - בלי מפלצות עדיין (יתווספו בהמשך).
+// ============================================================================
+let islandExplorerYaw = 0;
+let islandTreasureFound = false;
+let savedIslandFog = null, savedIslandBackground = null;
+
+function enterIsland() {
+  caveInstructionsEl.textContent = '↑ להליכה · ← → לפנייה · תחפש את האוצר בין המקומות הנטושים!';
+  scene.remove(player.group);
+  islandGroup.add(player.group);
+  player.group.position.set(0, 0, 12);
+  islandExplorerYaw = Math.PI;   // פונה פנימה לאי (Z שלילי) מנקודת הכניסה
+  player.group.rotation.y = islandExplorerYaw + EXPLORE_FRONT_OFFSET;
+  islandTreasureFound = false;
+  player.group.visible = true;
+  player.action = null;
+  player.blocking = false;
+  player.blockAmt = 0;
+  player.mv = 0;
+  savedIslandFog = scene.fog;
+  savedIslandBackground = scene.background;
+  scene.fog = new THREE.Fog(0x9db3bb, 25, 85);
+  scene.background = new THREE.Color(0x9db3bb);
+  updateIslandExplorerCamera();
+}
+
+function exitIsland() {
+  islandGroup.remove(player.group);
+  scene.add(player.group);
+  player.group.position.set(player.x, GROUND_Y, 0);
+  player.group.rotation.y = player.facing * STANCE_YAW;
+  if (savedIslandFog) scene.fog = savedIslandFog;
+  if (savedIslandBackground) scene.background = savedIslandBackground;
+  document.getElementById('treasureFoundOverlay').classList.remove('show');
+}
+
+function updateIslandExplorerCamera() {
+  const p = player.group.position;
+  const wx = p.x + ISLAND_OFFSET.x, wy = p.y + ISLAND_OFFSET.y, wz = p.z + ISLAND_OFFSET.z;
+  const camDist = 3.0, camHeight = 2.0;
+  camera.position.set(
+    wx - Math.sin(islandExplorerYaw) * camDist,
+    wy + camHeight,
+    wz - Math.cos(islandExplorerYaw) * camDist);
+  camera.lookAt(wx, wy + 1.0, wz);
+}
+
+function updateIslandExplorer(dt, t) {
+  if (KEYS.ArrowLeft) islandExplorerYaw += EXPLORE_TURN_SPEED * dt;
+  if (KEYS.ArrowRight) islandExplorerYaw -= EXPLORE_TURN_SPEED * dt;
+  const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
+  const p = player.group.position;
+  if (moveDir !== 0) {
+    const nx = p.x + Math.sin(islandExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    const nz = p.z + Math.cos(islandExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    if (Math.hypot(nx, nz) < ISLAND_RADIUS - 0.6) { p.x = nx; p.z = nz; }
+  }
+  player.group.rotation.y = islandExplorerYaw + EXPLORE_FRONT_OFFSET;
+  updateIslandExplorerCamera();
+
+  player.mv = moveDir;
+  if (moveDir !== 0) player.phase += dt * 8.5 * moveDir;
+  poseFighter(player, t, dt);
+
+  if (!islandTreasureFound) {
+    const dx = p.x - ISLAND_TREASURE_POS.x, dz = p.z - ISLAND_TREASURE_POS.z;
+    if (Math.hypot(dx, dz) < 0.9) {
+      islandTreasureFound = true;
+      onTreasureFound(ISLAND_TREASURE_REWARD);
+    }
+  }
 }
 
 function updateExplorerCamera() {
@@ -5602,7 +5829,7 @@ function updateExplorer(dt, t) {
     const dx = p.x - TREASURE_POS.x, dz = p.z - TREASURE_POS.z;
     if (Math.hypot(dx, dz) < 0.9) {
       explorerTreasureFound = true;
-      onTreasureFound();
+      onTreasureFound(TREASURE_REWARD);
     }
   }
 
@@ -5620,16 +5847,19 @@ function updateExplorer(dt, t) {
   }
 }
 
-function onTreasureFound() {
-  money += TREASURE_REWARD;
+// reward כפרמטר (לא TREASURE_REWARD קבוע) - כדי שכל עולם הרפתקה יוכל
+// להשתמש באותה פונקציה עם התגמול שלו.
+function onTreasureFound(reward) {
+  money += reward;
   updateMoneyUI();
-  document.getElementById('treasureFoundAmount').textContent = '💰 +' + TREASURE_REWARD + '₪';
+  document.getElementById('treasureFoundAmount').textContent = '💰 +' + reward + '₪';
   document.getElementById('treasureFoundOverlay').classList.add('show');
 }
 
 document.getElementById('openAdventureBtn').addEventListener('click', () => showScreen('adventure'));
 document.getElementById('adventureBackBtn').addEventListener('click', () => showScreen('lobby'));
 document.getElementById('worldCaveBtn').addEventListener('click', () => showScreen('crystalCave'));
+document.getElementById('worldIslandBtn').addEventListener('click', () => showScreen('lostIsland'));
 document.getElementById('caveExitBtn').addEventListener('click', () => showScreen('adventure'));
 document.getElementById('treasureContinueBtn').addEventListener('click', () => {
   document.getElementById('treasureFoundOverlay').classList.remove('show');
@@ -6729,6 +6959,8 @@ function animate() {
   // מפלצת בתוך המערה) מריצים את מנגנון הקרב הרגיל ללא שינוי.
   if (uiScreen === 'crystalCave' && !isCaveFight) {
     updateExplorer(dt, t);
+  } else if (uiScreen === 'lostIsland') {
+    updateIslandExplorer(dt, t);
   } else if (inBattleMode) {
     [player, enemy].forEach((f) => {
       tickAction(f, dt);
@@ -6741,6 +6973,18 @@ function animate() {
 
     poseFighter(player, t, dt);
     poseFighter(enemy, t, dt);
+  }
+
+  // גלים חזקים באי האבוד - מעוותים את גובה הים לפי שתי גלי-סינוס חופפות.
+  // מחושב רק כשבאמת רואים את האי (חוסך עבודה על ~2500 קודקודים בכל
+  // פריים כשלא צריך).
+  if (uiScreen === 'lostIsland') {
+    const posAttr = oceanGeo.attributes.position;
+    for (let i = 0; i < posAttr.count; i++) {
+      const ox = oceanBasePositions[i * 3], oy = oceanBasePositions[i * 3 + 1];
+      posAttr.array[i * 3 + 2] = 0.35 * Math.sin(ox * 0.35 + t * 1.6) + 0.18 * Math.sin(oy * 0.5 + t * 2.3);
+    }
+    posAttr.needsUpdate = true;
   }
 
   // תנועת קהל עדינה - נותנת חיים לאולם
@@ -6790,6 +7034,10 @@ window.game = {
   get isCaveFight() { return isCaveFight; },
   startCaveMonsterFight, returnToCave, CAVE_MONSTER_DEFS, MONSTER_ENCOUNTER_DIST,
   get battleAnchorX() { return battleAnchorX; }, get battleAnchorZ() { return battleAnchorZ; },
+  ISLAND_TREASURE_POS, ISLAND_TREASURE_REWARD, ISLAND_OFFSET,
+  get islandTreasureFound() { return islandTreasureFound; },
+  get islandExplorerYaw() { return islandExplorerYaw; },
+  set islandExplorerYaw(v) { islandExplorerYaw = v; },
 };
 </script>
 </body>
