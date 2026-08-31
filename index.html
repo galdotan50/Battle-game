@@ -6100,9 +6100,13 @@ function updateIslandExplorer(dt, t) {
   const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
   const p = player.group.position;
   if (moveDir !== 0) {
-    const nx = p.x + Math.sin(islandExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
-    const nz = p.z + Math.cos(islandExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
-    if (Math.hypot(nx, nz) < ISLAND_RADIUS - 0.6) { p.x = nx; p.z = nz; }
+    let nx = p.x + Math.sin(islandExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    let nz = p.z + Math.cos(islandExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    const dist = Math.hypot(nx, nz), outerLimit = ISLAND_RADIUS - 0.6;
+    // מהדקים לגבול במקום לבטל את הצעד לגמרי - ראה ההערה המלאה ב-
+    // updateLavaExplorer (שם התגלה הבאג: "נתקע במקום" ליד קיר עגול).
+    if (dist > outerLimit) { const s = outerLimit / dist; nx *= s; nz *= s; }
+    p.x = nx; p.z = nz;
   }
   player.group.rotation.y = islandExplorerYaw + EXPLORE_FRONT_OFFSET;
   updateIslandExplorerCamera();
@@ -6341,12 +6345,26 @@ function updateLavaExplorer(dt, t) {
   const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
   const p = player.group.position;
   if (moveDir !== 0) {
-    const nx = p.x + Math.sin(lavaExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
-    const nz = p.z + Math.cos(lavaExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    let nx = p.x + Math.sin(lavaExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    let nz = p.z + Math.cos(lavaExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
     const dist = Math.hypot(nx, nz);
     // טבעת הליכה: מותר מחוץ לאגם הלבה המרכזי ובתוך גבול המכתש - "מכתש
     // הלבה" אמיתי, לא רק אזור פתוח עם אגם דקורטיבי.
-    if (dist < LAVA_RADIUS - 0.6 && dist > LAVA_LAKE_RADIUS + 0.4) { p.x = nx; p.z = nz; }
+    // ⚠️ באג אמיתי שהמשתמש דיווח: הגרסה הקודמת דחתה את כל הצעד (לא
+    // מזיזה בכלל) ברגע שהיעד חצה אחד מהגבולות - כולל כשההליכה הייתה
+    // בעיקר *לאורך* גבול האגם (למשל מקיפים אותו), לא לתוכו ממש. זה
+    // הרגיש כמו "נתקע במקום" ליד שפת האגם. תוקן: מהדקים את המיקום
+    // לגבול הקרוב במקום לבטל את הצעד לגמרי - "מחליקים" לאורך הקיר
+    // הבלתי-נראה, בדיוק כמו שקירות עובדים במשחקים אחרים.
+    const outerLimit = LAVA_RADIUS - 0.6, innerLimit = LAVA_LAKE_RADIUS + 0.4;
+    if (dist > outerLimit) {
+      const s = outerLimit / dist;
+      nx *= s; nz *= s;
+    } else if (dist < innerLimit && dist > 0.0001) {
+      const s = innerLimit / dist;
+      nx *= s; nz *= s;
+    }
+    p.x = nx; p.z = nz;
   }
   player.group.rotation.y = lavaExplorerYaw + EXPLORE_FRONT_OFFSET;
   updateLavaExplorerCamera();
@@ -6393,9 +6411,13 @@ function updateExplorer(dt, t) {
   const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
   const p = player.group.position;
   if (moveDir !== 0) {
-    const nx = p.x + Math.sin(explorerYaw) * EXPLORE_SPEED * dt * moveDir;
-    const nz = p.z + Math.cos(explorerYaw) * EXPLORE_SPEED * dt * moveDir;
-    if (Math.hypot(nx, nz) < CAVE_RADIUS - 0.6) { p.x = nx; p.z = nz; }
+    let nx = p.x + Math.sin(explorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    let nz = p.z + Math.cos(explorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    const dist = Math.hypot(nx, nz), outerLimit = CAVE_RADIUS - 0.6;
+    // מהדקים לגבול במקום לבטל את הצעד לגמרי - ראה ההערה המלאה ב-
+    // updateLavaExplorer (שם התגלה הבאג: "נתקע במקום" ליד קיר עגול).
+    if (dist > outerLimit) { const s = outerLimit / dist; nx *= s; nz *= s; }
+    p.x = nx; p.z = nz;
   }
   player.group.rotation.y = explorerYaw + EXPLORE_FRONT_OFFSET;
   updateExplorerCamera();
