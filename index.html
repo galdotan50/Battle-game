@@ -6683,6 +6683,11 @@ updateBuffRow();
 updateEventUI();
 document.getElementById('bossLabel').textContent = '👹 ' + BOSS_LEVELS[selectedBossIndex].name;
 
+// המסך הראשון שרואים כשפותחים את המשחק הוא הלובי, לא קרב באמצע -
+// uiScreen מתחיל כ-'battle' (כברירת מחדל פנימית של הזירה) אבל בלי
+// הקריאה הזו שום דבר לא מציג בפועל את מסך הלובי בטעינה הראשונה.
+showScreen('lobby');
+
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
 
