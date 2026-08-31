@@ -5609,6 +5609,17 @@ function startCaveMonsterFight(m) {
   battleAnchorX = m.pos.x;
   battleAnchorZ = m.pos.z;
   resetGame();
+  // ⚠️ באג אמיתי: resetGame לא נוגע ב-rotation.y בכלל (רק ב-position),
+  // ו-moveFighter/poseFighter לא נוגעים בו במהלך קרב (רק ב-position.x
+  // וזוויות עצמות) - כי בזירה הרגילה exitCave/exitIsland כבר קובעים
+  // אותו נכון *לפני* שהקרב מתחיל. כאן, בקרב-במקום, אף פעם לא יוצאים
+  // מהמערה - אז player.group.rotation.y נשאר תקוע על הכיוון האחרון
+  // מהחקירה החופשית (לאן שהשחקן במקרה הביט כשההיתקלות קרתה), לא מיושר
+  // לציר הקרב. הפגיעה עצמה כבר עבדה נכון (מבוססת על x, לא על כיוון
+  // חזותי) - זה מה שבלבל: "הפניתי גב וזה עדיין פגע", כי חזותית זה לא
+  // היה מיושר לקרב מלכתחילה, ובלי תיקון גם לא היה דרך "לתקן" את זה
+  // (Left/Right בקרב מזיזים במקום לפי mv, לא מסובבים).
+  player.group.rotation.y = player.facing * STANCE_YAW;
   updateCaveBattleCamera();
 
   // מציגים ממשק קרב (פסי חיים/מקשים/לוט) בלי לעבור מסך - נשארים
@@ -5821,6 +5832,7 @@ function startIslandMonsterFight(m) {
   battleAnchorX = m.pos.x;
   battleAnchorZ = m.pos.z;
   resetGame();
+  player.group.rotation.y = player.facing * STANCE_YAW;   // ראה ההערה המלאה ב-startCaveMonsterFight
   updateIslandBattleCamera();
 
   caveHudEl.classList.remove('show');
