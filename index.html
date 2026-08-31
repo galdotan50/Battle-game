@@ -610,7 +610,7 @@
 </div>
 
 <div id="caveHud">
-  <div id="caveInstructions">↑ להליכה &nbsp;·&nbsp; ← → לפנייה &nbsp;·&nbsp; תמצא את האוצר!</div>
+  <div id="caveInstructions">↑ להליכה &nbsp;·&nbsp; ← → לפנייה &nbsp;·&nbsp; עקוב אחרי הקרן הזהובה - שם האוצר!</div>
   <button id="caveExitBtn">⬅ יציאה למפה</button>
 </div>
 
@@ -976,9 +976,22 @@ const TREASURE_REWARD = 300;
   const chestBand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.37), chestGoldMat);
   chestBand.position.y = 0.15;
   treasureChest.add(chestBand);
-  const chestGlow = new THREE.PointLight(0xffe9a8, 1.0, 3);
+  const chestGlow = new THREE.PointLight(0xffe9a8, 2.5, 11);
   chestGlow.position.y = 0.4;
   treasureChest.add(chestGlow);
+  // קרן אור זהובה שעולה גבוה מעל התיבה - בלי זה התיבה קטנה מדי וכהה מדי
+  // כדי לראות אותה ממרחק, והמערה גדולה מדי בשביל למצוא אותה בניחוש.
+  // הקרן היא ציון-דרך שרואים מרחוק ומתקדמים אליו, אבל עדיין צריך לחפש.
+  const beamOuter = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.5, 7, 16, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.30, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beamOuter.position.y = 3.9;
+  treasureChest.add(beamOuter);
+  const beamInner = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.02, 0.13, 7, 12, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xfff6d8, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beamInner.position.y = 3.9;
+  treasureChest.add(beamInner);
   treasureChest.position.set(TREASURE_POS.x, 0, TREASURE_POS.z);
   caveGroup.add(treasureChest);
 }
@@ -4970,6 +4983,7 @@ const gameOverGradeEl = document.getElementById('gameOverGrade');
 const statPlayerLineEl = document.getElementById('statPlayerLine');
 const statEnemyLineEl = document.getElementById('statEnemyLine');
 const playAgainBtn = document.getElementById('playAgainBtn');
+const lobbyBtnEl = document.getElementById('lobbyBtn');
 
 function updateHealthUI(f, who) {
   const pct = Math.max(0, f.hp / f.maxHp) * 100;
@@ -5116,6 +5130,9 @@ function endGame(winnerWho) {
   gameOverEl.classList.add('show');
   const win = winnerWho === 'player';
   updateGameOverStats(win);
+  playAgainBtn.style.display = '';
+  playAgainBtn.textContent = '🔄 לשחק שוב';
+  lobbyBtnEl.textContent = '🏠 לובי';
   if (win && isBossFight) {
     // קרב בוס - "תגמולים גדולים" (game-spec.md סעיף 17): סכום קבוע וגדול,
     // לא תלוי-נזק כמו קרב רגיל, ובלי עליית רמה - בוסים הם מחוץ לסולם
@@ -5123,6 +5140,16 @@ function endGame(winnerWho) {
     money += BOSS_LEVELS[activeBossIndex].reward;
     updateMoneyUI();
     gameOverTitleEl.textContent = '👑 ניצחת את הבוס!';
+  } else if (win && isCaveFight) {
+    // מפלצת הרפתקה - כמו קרב רגיל (כסף לפי נזק), אבל בלי סולם אויבים:
+    // מנצחים → המפלצת מוסרת לצמיתות מהמערה (ראה returnToCave), וחוזרים
+    // לחקור, לא ללובי.
+    money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
+    updateMoneyUI();
+    gameOverTitleEl.textContent = '🏆 ניצחת את המפלצת!';
+    caveFightWasWin = true;
+    playAgainBtn.style.display = 'none';   // המפלצת הובסה - אין מה "לשחק שוב"
+    lobbyBtnEl.textContent = '🗺️ חזרה למערה';
   } else if (win) {
     money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
     updateMoneyUI();
@@ -5133,6 +5160,11 @@ function endGame(winnerWho) {
     // עולים רמה רק אם יש עוד אויב. ההחלפה עצמה קורית ב-resetGame, כדי
     // שהאויב שהובס יישאר על המסך מאחורי מסך הניצחון עד הקרב הבא.
     if (!isLast) pendingEnemyLevel = enemyLevel + 1;
+  } else if (isCaveFight) {
+    caveFightWasWin = false;
+    gameOverTitleEl.textContent = '❌ הפסד למפלצת';
+    playAgainBtn.textContent = '⚔️ קרב שוב';
+    lobbyBtnEl.textContent = '🗺️ חזרה למערה';
   } else {
     gameOverTitleEl.textContent = isBossFight ? '❌ הפסד לבוס' : '❌ הפסד';
   }
@@ -5294,17 +5326,150 @@ const EXPLORE_TURN_SPEED = 2.6;
 // המודל המצויר לא בהכרח מיושרת עם ציר Z העולמי בזווית אפס.
 const EXPLORE_FRONT_OFFSET = 0;   // אומת ברינדור: ב-rotation.y=0 הדמות כבר פונה ל-Z+, תואם לנוסחת התנועה
 
+// ---------- מפלצות בהרפתקה ----------
+// "מפלצות שמתאימות למפה, שהן אויבים" - שימוש חוזר מדויק בשילוב היכולות
+// שכבר בנו את לוסטר (חומר גביש, ראש משושה, קריסטלים על הראש/הברכיים,
+// קריסטל בחזה, עיניים זוהרות) - כבר אומת ברינדור בעבר, רק בגוונים שמתאימים
+// לתאורה הסגולה של המערה, כדי ש"שומרי הגביש" ייראו כמו חלק מהמקום.
+const CRYSTAL_GUARDIAN_CFG = {
+  power: 6, speed: 5,
+  skin: 0x9b6fe8,
+  crystalSkin: true,
+  hexHead: true,
+  bald: true,
+  eyeColor: 0xffffff,
+  glowEyes: true,
+  ears: 'round',
+  headCrystals: true,
+  crystalColor: 0xd8b3ff,
+  kneeCrystals: true,
+  chestGem: true,
+  chestGemColor: 0xd8b3ff,
+  top: null, pants: null, boxers: 0x2a1b3d, boots: null,
+};
+const CRYSTAL_GUARDIAN2_CFG = {
+  power: 6, speed: 5,
+  skin: 0x4fb8d8,
+  crystalSkin: true,
+  hexHead: true,
+  bald: true,
+  eyeColor: 0xffffff,
+  glowEyes: true,
+  ears: 'round',
+  headCrystals: true,
+  crystalColor: 0x6fe8f0,
+  kneeCrystals: true,
+  chestGem: true,
+  chestGemColor: 0x6fe8f0,
+  top: null, pants: null, boxers: 0x1a3a42, boots: null,
+};
+
+// לכל עולם הרפתקה יש רשימת מפלצות משלו (רק מערת הקריסטל בנויה כרגע -
+// האי האבוד ומכתש הלבה עדיין "בקרוב", בלי תוכן). ההיתקלות עצמה (הליכה
+// קרוב למפלצת) עוברת לקרב אגרוף רגיל - בדיוק כמו קרב בוס: מחליפים את
+// `enemy`, resetGame + showScreen('battle'). ניצחון מסיר את המפלצת
+// מהמערה לצמיתות (עד ביקור חדש); הפסד משאיר אותה במקום לניסיון נוסף.
+const CAVE_MONSTER_DEFS = {
+  crystalCave: [
+    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN_CFG, hp: 130, pos: { x: -7, z: -2 } },
+    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN2_CFG, hp: 130, pos: { x: 2, z: 9 } },
+  ],
+};
+let caveMonsters = [];   // מפלצות המערה הפעילה: {name, pos, hp, cfg, alive, fighter}
+let isCaveFight = false;
+let activeCaveMonsterIndex = -1;
+let caveFightWasWin = false;
+let caveReturnState = null;   // מיקום/זווית לחזרה למערה אחרי קרב (null = כניסה טרייה)
+const MONSTER_ENCOUNTER_DIST = 1.1;
+
+function spawnCaveMonsters(defs) {
+  caveMonsters.forEach((m) => {
+    caveGroup.remove(m.fighter.group);
+    m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  });
+  caveMonsters = defs.map((d) => {
+    const f = makeFighter(d.cfg, 0, 1, d.hp);   // makeFighter מוסיפה ל-scene כברירת מחדל
+    scene.remove(f.group);
+    caveGroup.add(f.group);
+    f.group.position.set(d.pos.x, 0, d.pos.z);
+    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, alive: true, fighter: f };
+  });
+}
+
+function startCaveMonsterFight(m) {
+  isCaveFight = true;
+  activeCaveMonsterIndex = caveMonsters.indexOf(m);
+  caveReturnState = { x: player.group.position.x, z: player.group.position.z, yaw: explorerYaw };
+  const oldX = enemy.x, oldFacing = enemy.facing;
+  scene.remove(enemy.group);
+  enemy.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  enemy = makeFighter(m.cfg, oldX, oldFacing, m.hp);
+  addStoneProp(enemy);
+  hpNameEnemyEl.textContent = '👹 ' + m.name;
+  labelEl.textContent = '🥊 ' + selectedCharacterName + ' מול ' + m.name;
+  resetGame();
+  showScreen('battle');
+}
+
+// אחרי קרב מפלצת (ניצחון או הפסד) - חוזרים למערה, לא ללובי. אם ניצחנו,
+// המפלצת מוסרת לצמיתות; אם הפסדנו, היא נשארת ואפשר לפגוש אותה שוב.
+// חייבים להחזיר את `enemy` לאויב הסולם הרגיל (switchEnemy) לפני שממשיכים -
+// בדיוק כמו שקרב בוס עושה בכפתור "לובי" - אחרת `enemy` נשאר תקוע כמפלצת.
+function returnToCave() {
+  if (caveFightWasWin && activeCaveMonsterIndex >= 0) {
+    const m = caveMonsters[activeCaveMonsterIndex];
+    if (m) {
+      m.alive = false;
+      caveGroup.remove(m.fighter.group);
+      m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    }
+  }
+  switchEnemy(enemyLevel);
+  isCaveFight = false;
+  activeCaveMonsterIndex = -1;
+  resetGame();
+  showScreen('crystalCave');
+}
+
 function enterCave() {
   scene.remove(player.group);
   caveGroup.add(player.group);
-  player.group.position.set(0, 0, 4);
-  explorerYaw = Math.PI;   // פונה פנימה למערה (Z שלילי) מנקודת הכניסה
+  if (caveReturnState) {
+    player.group.position.set(caveReturnState.x, 0, caveReturnState.z);
+    explorerYaw = caveReturnState.yaw;
+    caveReturnState = null;
+    // ⚠️ אחרי הפסד למפלצת שנשארה בחיים, המיקום השמור הוא בדיוק המקום שבו
+    // ההיתקלות קרתה - בלי הרחקה, updateExplorer היה מזהה "קרוב מדי" שוב
+    // בפריים הראשון ומתחיל קרב חדש מייד, כאילו כפתור "חזרה למערה" לא עשה
+    // כלום (זה מה שבאמת קרה כשזה נבדק - נתפס ב-console.log, לא ברינדור).
+    for (const m of caveMonsters) {
+      if (!m.alive) continue;
+      const dx = player.group.position.x - m.pos.x, dz = player.group.position.z - m.pos.z;
+      const dist = Math.hypot(dx, dz);
+      const safe = MONSTER_ENCOUNTER_DIST + 0.6;
+      if (dist < safe) {
+        const nx = dist > 0.001 ? dx / dist : 0, nz = dist > 0.001 ? dz / dist : 1;
+        player.group.position.x += nx * (safe - dist);
+        player.group.position.z += nz * (safe - dist);
+      }
+    }
+  } else {
+    player.group.position.set(0, 0, 4);
+    explorerYaw = Math.PI;   // פונה פנימה למערה (Z שלילי) מנקודת הכניסה
+    explorerTreasureFound = false;
+    spawnCaveMonsters(CAVE_MONSTER_DEFS.crystalCave);
+  }
   player.group.rotation.y = explorerYaw + EXPLORE_FRONT_OFFSET;
-  explorerTreasureFound = false;
   player.group.visible = true;
+  // מנקים שאריות ממצב קרב קודם - בלי זה תנוחת הליכה חדשה עלולה "להתחרות"
+  // בתנוחת מכה/חסימה תקועה מהזירה.
+  player.action = null;
+  player.blocking = false;
+  player.blockAmt = 0;
+  player.mv = 0;
   savedFog = scene.fog;
   savedBackground = scene.background;
-  scene.fog = new THREE.Fog(0x120f1c, 8, 22);
+  scene.fog = new THREE.Fog(0x120f1c, 10, 34);
   scene.background = new THREE.Color(0x0a0814);
   updateExplorerCamera();
 }
@@ -5332,7 +5497,7 @@ function updateExplorerCamera() {
   camera.lookAt(wx, wy + 1.0, wz);
 }
 
-function updateExplorer(dt) {
+function updateExplorer(dt, t) {
   if (KEYS.ArrowLeft) explorerYaw += EXPLORE_TURN_SPEED * dt;
   if (KEYS.ArrowRight) explorerYaw -= EXPLORE_TURN_SPEED * dt;
   const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
@@ -5345,11 +5510,31 @@ function updateExplorer(dt) {
   player.group.rotation.y = explorerYaw + EXPLORE_FRONT_OFFSET;
   updateExplorerCamera();
 
+  // אנימציית הליכה אמיתית - שימוש חוזר בדיוק באותה מנגנון של הזירה
+  // (poseFighter קורא ל-mv/phase כדי להזיז ירכיים/ברכיים/כתפיים). בזירה
+  // moveFighter מטפל בזה; כאן, בלי moveFighter, מעדכנים את שניהם ידנית.
+  player.mv = moveDir;
+  if (moveDir !== 0) player.phase += dt * 8.5 * moveDir;
+  poseFighter(player, t, dt);
+
   if (!explorerTreasureFound) {
     const dx = p.x - TREASURE_POS.x, dz = p.z - TREASURE_POS.z;
     if (Math.hypot(dx, dz) < 0.9) {
       explorerTreasureFound = true;
       onTreasureFound();
+    }
+  }
+
+  // מפלצות: נשימה קלה כדי שלא ייראו קפואות, ובדיקת מרחק להיתקלות. אם
+  // הגענו קרוב מדי למפלצת חיה - קרב מתחיל מייד, ואין טעם להמשיך לעדכן
+  // תנועה/מצלמה באותו פריים (המסך עומד להתחלף).
+  for (const m of caveMonsters) {
+    if (!m.alive) continue;
+    poseFighter(m.fighter, t, dt);
+    const dx = p.x - m.pos.x, dz = p.z - m.pos.z;
+    if (Math.hypot(dx, dz) < MONSTER_ENCOUNTER_DIST) {
+      startCaveMonsterFight(m);
+      return;
     }
   }
 }
@@ -6388,7 +6573,9 @@ Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
   shopTabsEl.appendChild(btn);
 });
 
-document.getElementById('lobbyBtn').addEventListener('click', () => {
+lobbyBtnEl.addEventListener('click', () => {
+  // אחרי קרב מפלצת הרפתקה חוזרים למערה, לא ללובי - ראה returnToCave.
+  if (isCaveFight) { returnToCave(); return; }
   // אם באים מקרב בוס - מחזירים את האויב הרגיל של הרמה הנוכחית לפני
   // שחוזרים ללובי, כי `enemy` הוחלף זמנית לבוס ב-startBossFight.
   if (isBossFight) { switchEnemy(enemyLevel); isBossFight = false; }
@@ -6449,7 +6636,7 @@ function animate() {
   // הזירה, ויקפצו את המיקום בחזרה לזירה כל פריים אם ירוצו כאן. לכן מדלגים
   // עליהם לגמרי בזמן חקירה, ומריצים updateExplorer במקומם.
   if (uiScreen === 'crystalCave') {
-    updateExplorer(dt);
+    updateExplorer(dt, t);
   } else {
     [player, enemy].forEach((f) => {
       tickAction(f, dt);
@@ -6505,7 +6692,11 @@ window.game = {
   get previewFighter() { return previewFighter; },
   enterCave, exitCave, updateExplorer, TREASURE_POS, TREASURE_REWARD,
   get explorerYaw() { return explorerYaw; },
+  set explorerYaw(v) { explorerYaw = v; },   // לבדיקות בלבד
   get explorerTreasureFound() { return explorerTreasureFound; },
+  get caveMonsters() { return caveMonsters; },
+  get isCaveFight() { return isCaveFight; },
+  startCaveMonsterFight, returnToCave, CAVE_MONSTER_DEFS, MONSTER_ENCOUNTER_DIST,
 };
 </script>
 </body>
