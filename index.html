@@ -977,11 +977,31 @@ const TREASURE_REWARD = 300;
   const chestBand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.37), chestGoldMat);
   chestBand.position.y = 0.15;
   treasureChest.add(chestBand);
-  const chestGlow = new THREE.PointLight(0xffe9a8, 1.1, 4);
+  const chestGlow = new THREE.PointLight(0xffe9a8, 0.7, 2.5);
   chestGlow.position.y = 0.4;
   treasureChest.add(chestGlow);
   treasureChest.position.set(TREASURE_POS.x, 0, TREASURE_POS.z);
   caveGroup.add(treasureChest);
+
+  // הסתרה אמיתית, לא רק עמעום: טבעת קריסטלים גדולים סביב התיבה חוסמת
+  // קו-ראייה מכל כיוון חוץ מפתח אחד צר - "רואים אותה עומדת באמצע
+  // העולם" לא יקרה יותר, כי פיזית יש קיר בין השחקן לתיבה עד שמגיעים
+  // ממש לפתח. גובה 2.6 גבוה מהמצלמה (2.0) ומהדמות - חוסם אמיתי.
+  const hideMat = new THREE.MeshStandardMaterial({
+    color: 0x9b59ff, roughness: 0.15, metalness: 0.2, emissive: 0x9b59ff, emissiveIntensity: 0.3,
+  });
+  const RING_COUNT = 8, GAP_INDEX = 4;
+  for (let i = 0; i < RING_COUNT; i++) {
+    if (i === GAP_INDEX) continue;
+    const ang = (i / RING_COUNT) * Math.PI * 2;
+    const shard = new THREE.Mesh(new THREE.ConeGeometry(0.55, 2.6, 7), hideMat);
+    shard.position.set(
+      TREASURE_POS.x + Math.cos(ang) * 1.7, 1.3,
+      TREASURE_POS.z + Math.sin(ang) * 1.7);
+    shard.rotation.x = (Math.random() - 0.5) * 0.15;
+    shard.rotation.z = (Math.random() - 0.5) * 0.15;
+    caveGroup.add(shard);
+  }
 }
 
 // ============================================================================
@@ -1108,11 +1128,26 @@ const ISLAND_TREASURE_REWARD = 350;
   const chestBand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.37), chestGoldMat);
   chestBand.position.y = 0.15;
   treasureChest.add(chestBand);
-  const chestGlow = new THREE.PointLight(0xffe9a8, 1.1, 4);
+  const chestGlow = new THREE.PointLight(0xffe9a8, 0.7, 2.5);
   chestGlow.position.y = 0.4;
   treasureChest.add(chestGlow);
   treasureChest.position.set(ISLAND_TREASURE_POS.x, 0, ISLAND_TREASURE_POS.z);
   islandGroup.add(treasureChest);
+
+  // הסתרה אמיתית - טבעת דיונות חול סביב התיבה חוסמת קו-ראייה מכל כיוון
+  // חוץ מפתח אחד צר (ראה אותה טכניקה במערה, hideMat/RING_COUNT/GAP_INDEX).
+  const duneMat = new THREE.MeshStandardMaterial({ color: 0xc7a862, roughness: 1 });
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) continue;
+    const ang = (i / 8) * Math.PI * 2;
+    const dune = new THREE.Mesh(new THREE.ConeGeometry(1.3, 2.2, 10), duneMat);
+    dune.position.set(
+      ISLAND_TREASURE_POS.x + Math.cos(ang) * 1.9, 1.1,
+      ISLAND_TREASURE_POS.z + Math.sin(ang) * 1.9);
+    dune.rotation.x = (Math.random() - 0.5) * 0.2;
+    dune.rotation.z = (Math.random() - 0.5) * 0.2;
+    islandGroup.add(dune);
+  }
 }
 
 // ============================================================================
@@ -1202,11 +1237,24 @@ const LAVA_TREASURE_REWARD = 400;
   const chestBand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.37), chestGoldMat);
   chestBand.position.y = 0.15;
   treasureChest.add(chestBand);
-  const chestGlow = new THREE.PointLight(0xffe9a8, 1.1, 4);
+  const chestGlow = new THREE.PointLight(0xffe9a8, 0.7, 2.5);
   chestGlow.position.y = 0.4;
   treasureChest.add(chestGlow);
   treasureChest.position.set(LAVA_TREASURE_POS.x, 0, LAVA_TREASURE_POS.z);
   lavaGroup.add(treasureChest);
+
+  // הסתרה אמיתית - טבעת סלעי געש סביב התיבה חוסמת קו-ראייה מכל כיוון
+  // חוץ מפתח אחד צר (אותה טכניקה בדיוק כמו במערה/באי).
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) continue;
+    const ang = (i / 8) * Math.PI * 2;
+    const boulder = new THREE.Mesh(new THREE.DodecahedronGeometry(1.15, 0), rockMat);
+    boulder.position.set(
+      LAVA_TREASURE_POS.x + Math.cos(ang) * 1.8, 1.0,
+      LAVA_TREASURE_POS.z + Math.sin(ang) * 1.8);
+    boulder.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+    lavaGroup.add(boulder);
+  }
 }
 
 // ============================================================================
@@ -5365,10 +5413,11 @@ function endGame(winnerWho) {
     updateMoneyUI();
     gameOverTitleEl.textContent = '👑 ניצחת את הבוס!';
   } else if (win && isCaveFight) {
-    // מפלצת הרפתקה - כמו קרב רגיל (כסף לפי נזק), אבל בלי סולם אויבים:
-    // מנצחים → המפלצת מוסרת לצמיתות מהמערה (ראה returnToCave), וחוזרים
-    // לחקור, לא ללובי.
-    money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
+    // מפלצת הרפתקה - תגמול קבוע (כמו בוס, לא לפי נזק) - המפלצות האלה
+    // קשות (130 חיים) וחד-פעמיות, מגיע תגמול גדול וברור בלי תלות בכמה
+    // דיוק פגעת. מנצחים → המפלצת מוסרת לצמיתות מהמערה (ראה returnToCave),
+    // וחוזרים לחקור, לא ללובי.
+    money += caveMonsters[activeCaveMonsterIndex].reward;
     updateMoneyUI();
     gameOverTitleEl.textContent = '🏆 ניצחת את המפלצת!';
     caveFightWasWin = true;
@@ -5376,7 +5425,7 @@ function endGame(winnerWho) {
     lobbyBtnEl.textContent = '🗺️ חזרה למערה';
   } else if (win && isIslandFight) {
     // אותו עיקרון בדיוק כמו מפלצת מערה, רק על האי.
-    money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
+    money += islandMonsters[activeIslandMonsterIndex].reward;
     updateMoneyUI();
     gameOverTitleEl.textContent = '🏆 ניצחת את המפלצת!';
     islandFightWasWin = true;
@@ -5384,7 +5433,7 @@ function endGame(winnerWho) {
     lobbyBtnEl.textContent = '🗺️ חזרה לאי';
   } else if (win && isLavaFight) {
     // אותו עיקרון בדיוק כמו מפלצת מערה/אי, רק על מכתש הלבה.
-    money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
+    money += lavaMonsters[activeLavaMonsterIndex].reward;
     updateMoneyUI();
     gameOverTitleEl.textContent = '🏆 ניצחת את המפלצת!';
     lavaFightWasWin = true;
@@ -5642,8 +5691,8 @@ const CRYSTAL_GUARDIAN2_CFG = {
 // ביקור חדש); הפסד משאיר אותה במקום לניסיון נוסף.
 const CAVE_MONSTER_DEFS = {
   crystalCave: [
-    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN_CFG, hp: 130, pos: { x: -7, z: -2 } },
-    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN2_CFG, hp: 130, pos: { x: 2, z: 9 } },
+    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN_CFG, hp: 130, pos: { x: -7, z: -2 }, reward: 80 },
+    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN2_CFG, hp: 130, pos: { x: 2, z: 9 }, reward: 80 },
   ],
 };
 let caveMonsters = [];   // מפלצות המערה הפעילה: {name, pos, hp, cfg, alive, fighter}
@@ -5663,7 +5712,7 @@ function spawnCaveMonsters(defs) {
     scene.remove(f.group);
     caveGroup.add(f.group);
     f.group.position.set(d.pos.x, 0, d.pos.z);
-    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, alive: true, fighter: f };
+    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
   });
 }
 
@@ -5882,8 +5931,8 @@ const ISLAND_GUARDIAN2_CFG = {
   top: null, pants: null, boxers: 0x14201a, boots: null,
 };
 const ISLAND_MONSTER_DEFS = [
-  { name: 'שומר האי', cfg: ISLAND_GUARDIAN_CFG, hp: 130, pos: { x: -16, z: -6 } },
-  { name: 'שומר האי', cfg: ISLAND_GUARDIAN2_CFG, hp: 130, pos: { x: 9, z: -16 } },
+  { name: 'שומר האי', cfg: ISLAND_GUARDIAN_CFG, hp: 130, pos: { x: -16, z: -6 }, reward: 90 },
+  { name: 'שומר האי', cfg: ISLAND_GUARDIAN2_CFG, hp: 130, pos: { x: 9, z: -16 }, reward: 90 },
 ];
 let islandMonsters = [];
 let isIslandFight = false;
@@ -5900,7 +5949,7 @@ function spawnIslandMonsters(defs) {
     scene.remove(f.group);
     islandGroup.add(f.group);
     f.group.position.set(d.pos.x, 0, d.pos.z);
-    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, alive: true, fighter: f };
+    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
   });
 }
 
@@ -6123,8 +6172,8 @@ const LAVA_GUARDIAN2_CFG = {
   top: null, pants: null, boxers: 0x120d0a, boots: null,
 };
 const LAVA_MONSTER_DEFS = [
-  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN_CFG, hp: 130, pos: { x: 10, z: -6 } },
-  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN2_CFG, hp: 130, pos: { x: -11, z: 12 } },
+  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN_CFG, hp: 130, pos: { x: 10, z: -6 }, reward: 100 },
+  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN2_CFG, hp: 130, pos: { x: -11, z: 12 }, reward: 100 },
 ];
 let lavaMonsters = [];
 let isLavaFight = false;
@@ -6141,7 +6190,7 @@ function spawnLavaMonsters(defs) {
     scene.remove(f.group);
     lavaGroup.add(f.group);
     f.group.position.set(d.pos.x, 0, d.pos.z);
-    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, alive: true, fighter: f };
+    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
   });
 }
 
