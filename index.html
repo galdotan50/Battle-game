@@ -5703,6 +5703,39 @@ let activeCaveMonsterIndex = -1;
 let caveFightWasWin = false;
 let caveReturnState = null;   // מיקום/זווית לחזרה למערה אחרי קרב (null = כניסה טרייה)
 const MONSTER_ENCOUNTER_DIST = 1.1;
+const MONSTER_SIGHT_RANGE = 20;   // מרחק שבו מפלצת "רואה" את השחקן ובאה לתקוף
+const MONSTER_CHASE_SPEED = 6;    // קצת יותר לאט מהשחקן (8) - אפשר לברוח, לא קל
+
+// מפלצת שרואה את השחקן (בטווח MONSTER_SIGHT_RANGE) רודפת אחריו במקום
+// לחכות שייגע בה - משותף לשלושת עולמות ההרפתקה (המנגנון זהה, רק
+// מערך המפלצות ופונקציית-התחלת-הקרב שונים לכל עולם). מחזיר true אם
+// קרב התחיל, כדי שהקורא ידע להפסיק לעדכן תנועה/מפלצות באותו פריים.
+function updateMonsterChase(monsters, px, pz, dt, t, startFight) {
+  for (const m of monsters) {
+    if (!m.alive) continue;
+    const dx = px - m.pos.x, dz = pz - m.pos.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist < MONSTER_ENCOUNTER_DIST) {
+      startFight(m);
+      return true;
+    }
+    if (dist < MONSTER_SIGHT_RANGE) {
+      // צועדת ישר לכיוון השחקן, בלי לעבור ממש דרכו (עוצרת בסף המגע)
+      const step = Math.min(MONSTER_CHASE_SPEED * dt, dist - MONSTER_ENCOUNTER_DIST + 0.01);
+      m.pos.x += (dx / dist) * step;
+      m.pos.z += (dz / dist) * step;
+      m.fighter.group.position.x = m.pos.x;
+      m.fighter.group.position.z = m.pos.z;
+      m.fighter.group.rotation.y = Math.atan2(dx, dz) + EXPLORE_FRONT_OFFSET;
+      m.fighter.mv = 1;
+      m.fighter.phase += dt * 8.5;
+    } else {
+      m.fighter.mv = 0;
+    }
+    poseFighter(m.fighter, t, dt);
+  }
+  return false;
+}
 
 function spawnCaveMonsters(defs) {
   caveMonsters.forEach((m) => {
@@ -5714,7 +5747,7 @@ function spawnCaveMonsters(defs) {
     scene.remove(f.group);
     caveGroup.add(f.group);
     f.group.position.set(d.pos.x, 0, d.pos.z);
-    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
+    return { name: d.name, pos: { x: d.pos.x, z: d.pos.z }, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
   });
 }
 
@@ -5727,7 +5760,10 @@ function avoidLiveMonsters() {
     if (!m.alive) continue;
     const dx = player.group.position.x - m.pos.x, dz = player.group.position.z - m.pos.z;
     const dist = Math.hypot(dx, dz);
-    const safe = MONSTER_ENCOUNTER_DIST + 0.6;
+    // עכשיו שמפלצות רודפות אחרי מי שהן רואות (MONSTER_SIGHT_RANGE),
+    // "מרחק בטוח" חייב להיות מעבר לטווח הראייה - אחרת חוזרים מהפסד
+    // ומיד נרדפים שוב בלי הזדמנות אמיתית להחליט מה לעשות.
+    const safe = MONSTER_SIGHT_RANGE + 3;
     if (dist < safe) {
       const nx = dist > 0.001 ? dx / dist : 0, nz = dist > 0.001 ? dz / dist : 1;
       player.group.position.x += nx * (safe - dist);
@@ -5953,7 +5989,7 @@ function spawnIslandMonsters(defs) {
     scene.remove(f.group);
     islandGroup.add(f.group);
     f.group.position.set(d.pos.x, 0, d.pos.z);
-    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
+    return { name: d.name, pos: { x: d.pos.x, z: d.pos.z }, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
   });
 }
 
@@ -5962,7 +5998,8 @@ function avoidLiveIslandMonsters() {
     if (!m.alive) continue;
     const dx = player.group.position.x - m.pos.x, dz = player.group.position.z - m.pos.z;
     const dist = Math.hypot(dx, dz);
-    const safe = MONSTER_ENCOUNTER_DIST + 0.6;
+    // ראה ההערה המלאה ב-avoidLiveMonsters
+    const safe = MONSTER_SIGHT_RANGE + 3;
     if (dist < safe) {
       const nx = dist > 0.001 ? dx / dist : 0, nz = dist > 0.001 ? dz / dist : 1;
       player.group.position.x += nx * (safe - dist);
@@ -6131,15 +6168,7 @@ function updateIslandExplorer(dt, t) {
 
   // מפלצות: נשימה קלה כדי שלא ייראו קפואות, ובדיקת מרחק להיתקלות - אותו
   // עיקרון בדיוק כמו מפלצות המערה (ראה updateExplorer).
-  for (const m of islandMonsters) {
-    if (!m.alive) continue;
-    poseFighter(m.fighter, t, dt);
-    const dx = p.x - m.pos.x, dz = p.z - m.pos.z;
-    if (Math.hypot(dx, dz) < MONSTER_ENCOUNTER_DIST) {
-      startIslandMonsterFight(m);
-      return;
-    }
-  }
+  if (updateMonsterChase(islandMonsters, p.x, p.z, dt, t, startIslandMonsterFight)) return;
 }
 
 // ============================================================================
@@ -6200,7 +6229,7 @@ function spawnLavaMonsters(defs) {
     scene.remove(f.group);
     lavaGroup.add(f.group);
     f.group.position.set(d.pos.x, 0, d.pos.z);
-    return { name: d.name, pos: d.pos, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
+    return { name: d.name, pos: { x: d.pos.x, z: d.pos.z }, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
   });
 }
 
@@ -6209,7 +6238,8 @@ function avoidLiveLavaMonsters() {
     if (!m.alive) continue;
     const dx = player.group.position.x - m.pos.x, dz = player.group.position.z - m.pos.z;
     const dist = Math.hypot(dx, dz);
-    const safe = MONSTER_ENCOUNTER_DIST + 0.6;
+    // ראה ההערה המלאה ב-avoidLiveMonsters
+    const safe = MONSTER_SIGHT_RANGE + 3;
     if (dist < safe) {
       const nx = dist > 0.001 ? dx / dist : 0, nz = dist > 0.001 ? dz / dist : 1;
       player.group.position.x += nx * (safe - dist);
@@ -6389,15 +6419,7 @@ function updateLavaExplorer(dt, t) {
     }
   }
 
-  for (const m of lavaMonsters) {
-    if (!m.alive) continue;
-    poseFighter(m.fighter, t, dt);
-    const dx = p.x - m.pos.x, dz = p.z - m.pos.z;
-    if (Math.hypot(dx, dz) < MONSTER_ENCOUNTER_DIST) {
-      startLavaMonsterFight(m);
-      return;
-    }
-  }
+  if (updateMonsterChase(lavaMonsters, p.x, p.z, dt, t, startLavaMonsterFight)) return;
 }
 
 function updateExplorerCamera() {
@@ -6448,15 +6470,7 @@ function updateExplorer(dt, t) {
   // מפלצות: נשימה קלה כדי שלא ייראו קפואות, ובדיקת מרחק להיתקלות. אם
   // הגענו קרוב מדי למפלצת חיה - קרב מתחיל מייד, ואין טעם להמשיך לעדכן
   // תנועה/מצלמה באותו פריים (המסך עומד להתחלף).
-  for (const m of caveMonsters) {
-    if (!m.alive) continue;
-    poseFighter(m.fighter, t, dt);
-    const dx = p.x - m.pos.x, dz = p.z - m.pos.z;
-    if (Math.hypot(dx, dz) < MONSTER_ENCOUNTER_DIST) {
-      startCaveMonsterFight(m);
-      return;
-    }
-  }
+  if (updateMonsterChase(caveMonsters, p.x, p.z, dt, t, startCaveMonsterFight)) return;
 }
 
 // reward כפרמטר (לא TREASURE_REWARD קבוע) - כדי שכל עולם הרפתקה יוכל
@@ -7666,6 +7680,7 @@ window.game = {
   get caveMonsters() { return caveMonsters; },
   get isCaveFight() { return isCaveFight; },
   startCaveMonsterFight, returnToCave, CAVE_MONSTER_DEFS, MONSTER_ENCOUNTER_DIST,
+  MONSTER_SIGHT_RANGE, MONSTER_CHASE_SPEED,
   get battleAnchorX() { return battleAnchorX; }, get battleAnchorZ() { return battleAnchorZ; },
   ISLAND_TREASURE_POS, ISLAND_TREASURE_REWARD, ISLAND_OFFSET,
   get islandTreasureFound() { return islandTreasureFound; },
