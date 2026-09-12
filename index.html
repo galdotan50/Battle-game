@@ -1611,6 +1611,50 @@ const stoneTex = (hex) => canvasTex(128, (ctx, n) => {
   }
 }, 1, 1);
 
+// עץ אמיתי: פסי סיבים אנכיים גליים (לא ישרים - עץ אמיתי אף פעם לא ישר
+// לגמרי) לאורך הידית, פלוס קשרים כהים בודדים ("בוהן עץ"). מוכפל בצבע
+// האמיתי בדיוק כמו שאר מרקמי הנשק - עצה/גרזן/כידון וכו' (weaponShaft).
+const woodGrainTex = (hex) => canvasTex(128, (ctx, n) => {
+  ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
+  ctx.lineCap = 'round';
+  for (let x = 4; x < n; x += 7 + Math.random() * 3) {
+    const dark = Math.random() < 0.5;
+    ctx.strokeStyle = dark ? 'rgba(40,24,10,0.16)' : 'rgba(255,235,200,0.12)';
+    ctx.lineWidth = 1 + Math.random();
+    ctx.beginPath();
+    let px = x;
+    for (let y = 0; y <= n; y += 16) {
+      px += (Math.random() - 0.5) * 5;
+      y === 0 ? ctx.moveTo(px, y) : ctx.lineTo(px, y);
+    }
+    ctx.stroke();
+  }
+  for (let i = 0; i < 3; i++) {
+    ctx.fillStyle = 'rgba(35,20,8,0.25)';
+    ctx.beginPath();
+    ctx.ellipse(Math.random() * n, Math.random() * n, 4 + Math.random() * 3, 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}, 1, 4);
+
+// מתכת מוברשת: פסים דקים בכיוון אחד (כמו שיוף אמיתי של להב/קנה) פלוס
+// כמה שריטות בולטות יותר - במקום צבע מתכתי אחיד ושטוח. מוכפל בצבע
+// האמיתי (STEEL/BRIGHT_STEEL/GOLD/וכו'), בדיוק כמו skinTex/stoneTex.
+const metalScratchTex = (hex) => canvasTex(128, (ctx, n) => {
+  ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
+  for (let y = 0; y < n; y += 2) {
+    ctx.strokeStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.09)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(n, y); ctx.stroke();
+  }
+  for (let i = 0; i < 10; i++) {
+    ctx.strokeStyle = `rgba(255,255,255,${0.10 + Math.random() * 0.10})`;
+    ctx.lineWidth = 0.6 + Math.random() * 0.8;
+    const y = Math.random() * n;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(n, y + (Math.random() - 0.5) * 6); ctx.stroke();
+  }
+}, 2, 4);
+
 // קליפת אגוז (מסכת סטנבר) - מרקם חוזר (לא ממופה למקום מסוים, כי המסכה
 // היא גוף עצמאי קטן ולא חלק ממערכת ה-UV המוסכמת של הגוף) עם קמטים
 // כהים מעוקלים בכל הכיוונים, כמו הקמטים האמיתיים על קליפת אגוז.
@@ -3091,9 +3135,9 @@ function createFighter(cfg) {
     BIND = { bone: 'chest' };
     [-1, 1].forEach((s) => {
       const sword = new THREE.Group();
-      sword.add(weaponShaft(0.11, 0.013, 0x2b2b2f));
+      sword.add(weaponShaft(0.11, 0.013, 0x2b2b2f, leatherTex));
       const guard = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, 0.02),
-        new THREE.MeshStandardMaterial({ color: 0xb9a06a, roughness: 0.3, metalness: 0.7 }));
+        new THREE.MeshStandardMaterial({ color: 0xb9a06a, roughness: 0.3, metalness: 0.7, map: metalScratchTex('#ffffff') }));
       guard.position.y = 0.11;
       guard.castShadow = true;
       sword.add(guard);
@@ -4087,26 +4131,34 @@ function makeFighter(cfg, startX, facing, maxHp) {
  * לפי הנשק המצויד. אין עדיין אנימציה ייחודית לכל נשק (רובה שיורה, למשל) -
  * זה מעבר לאפיון הנוכחי.
  */
-function weaponShaft(len, rad, color) {
+// tex - מחולל טקסטורה אופציונלי (woodGrainTex לעץ, leatherTex לאחיזה עורית,
+// metalScratchTex למתכת) - מוכפל בצבע האמיתי, בדיוק כמו skinTex/stoneTex.
+// בלי tex (ברירת מחדל) הידית נשארת צבע אחיד, למקרים שעוד לא עודכנו.
+function weaponShaft(len, rad, color, tex = null) {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, len, 8),
-    new THREE.MeshStandardMaterial({ color, roughness: 0.75 }));
+    new THREE.MeshStandardMaterial({ color, roughness: 0.75, map: tex ? tex('#ffffff') : null }));
   m.position.y = len / 2;
   m.castShadow = true;
   return m;
 }
 // חוד חד - הבסיס בראשית הצירים המקומית (לא במרכז הקונוס!) כדי שאפשר יהיה
 // לסובב אותו סביב הבסיס (angleZ, לשיני קלשון/מכוש) בלי שהוא "יקפוץ" ממקומו.
-function weaponSpike(len, rad, color, angleZ = 0) {
+// כל חודי הנשקים הם מתכת, ולכן metalScratchTex היא ברירת המחדל (לא צריך
+// להעביר אותה בכל קריאה).
+function weaponSpike(len, rad, color, angleZ = 0, tex = metalScratchTex) {
   const geo = new THREE.ConeGeometry(rad, len, 6);
   geo.translate(0, len / 2, 0);
   if (angleZ) geo.rotateZ(angleZ);
   const m = new THREE.Mesh(geo,
-    new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.6, flatShading: true }));
+    new THREE.MeshStandardMaterial({
+      color, roughness: 0.4, metalness: 0.6, flatShading: true, map: tex ? tex('#ffffff') : null,
+    }));
   m.castShadow = true;
   return m;
 }
 // להב שטוח - בסיס ברוחב width ב-y=y0, מצטמצם ל-width*taper בקצה y0+len.
-function weaponBlade(y0, len, width, color, taper = 0.3, thick = 0.012) {
+// כל הלהבים הם מתכת, ולכן metalScratchTex היא ברירת המחדל.
+function weaponBlade(y0, len, width, color, taper = 0.3, thick = 0.012, tex = metalScratchTex) {
   const shape = new THREE.Shape();
   shape.moveTo(-width / 2, 0);
   shape.lineTo(width / 2, 0);
@@ -4116,12 +4168,15 @@ function weaponBlade(y0, len, width, color, taper = 0.3, thick = 0.012) {
   const geo = new THREE.ExtrudeGeometry(shape, { depth: thick, bevelEnabled: false });
   geo.translate(0, y0, -thick / 2);
   const m = new THREE.Mesh(geo,
-    new THREE.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.65, flatShading: true }));
+    new THREE.MeshStandardMaterial({
+      color, roughness: 0.3, metalness: 0.65, flatShading: true, map: tex ? tex('#ffffff') : null,
+    }));
   m.castShadow = true;
   return m;
 }
 // ראש גרזן - טריז שבולט הצידה מהאחיזה (X) ומתעגל בחזרה, כמו להב גרזן אמיתי.
-function weaponWedge(y0, len, width, color) {
+// מתכת, ולכן metalScratchTex היא ברירת המחדל.
+function weaponWedge(y0, len, width, color, tex = metalScratchTex) {
   const shape = new THREE.Shape();
   shape.moveTo(0, y0);
   shape.lineTo(width, y0 + len * 0.28);
@@ -4131,7 +4186,9 @@ function weaponWedge(y0, len, width, color) {
   const geo = new THREE.ExtrudeGeometry(shape, { depth: len * 0.16, bevelEnabled: false });
   geo.translate(0, 0, -len * 0.08);
   const m = new THREE.Mesh(geo,
-    new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.6, flatShading: true }));
+    new THREE.MeshStandardMaterial({
+      color, roughness: 0.35, metalness: 0.6, flatShading: true, map: tex ? tex('#ffffff') : null,
+    }));
   m.castShadow = true;
   return m;
 }
@@ -4170,7 +4227,7 @@ const WEAPON_CFGS = {
     dmg: 15, gripOffset: 0.05,
     build: () => {
       const g = new THREE.Group();
-      g.add(weaponShaft(0.24, 0.013, WOOD));
+      g.add(weaponShaft(0.24, 0.013, WOOD, woodGrainTex));
       g.add(weaponWedge(0.16, 0.11, 0.085, STEEL));
       return g;
     },
@@ -4179,7 +4236,7 @@ const WEAPON_CFGS = {
     dmg: 22, gripOffset: 0.05,
     build: () => {
       const g = new THREE.Group();
-      g.add(weaponShaft(0.27, 0.013, WOOD));
+      g.add(weaponShaft(0.27, 0.013, WOOD, woodGrainTex));
       const p1 = weaponSpike(0.11, 0.018, STEEL, Math.PI / 2);
       const p2 = weaponSpike(0.11, 0.018, STEEL, -Math.PI / 2);
       p1.position.y = p2.position.y = 0.25;
@@ -4191,7 +4248,7 @@ const WEAPON_CFGS = {
     dmg: 35, gripOffset: 0.05,
     build: () => {
       const g = new THREE.Group();
-      g.add(weaponShaft(0.34, 0.011, WOOD));
+      g.add(weaponShaft(0.34, 0.011, WOOD, woodGrainTex));
       const tip = weaponSpike(0.12, 0.022, BRIGHT_STEEL);
       tip.position.y = 0.34;
       g.add(tip);
@@ -4202,7 +4259,7 @@ const WEAPON_CFGS = {
     dmg: 40, gripOffset: 0.05,
     build: () => {
       const g = new THREE.Group();
-      g.add(weaponShaft(0.42, 0.010, 0x8a3f2a));
+      g.add(weaponShaft(0.42, 0.010, 0x8a3f2a, woodGrainTex));
       const tip = weaponSpike(0.14, 0.020, BRIGHT_STEEL);
       tip.position.y = 0.42;
       g.add(tip);
@@ -4213,7 +4270,7 @@ const WEAPON_CFGS = {
     dmg: 55, gripOffset: 0.05,
     build: () => {
       const g = new THREE.Group();
-      g.add(weaponShaft(0.30, 0.014, WOOD));
+      g.add(weaponShaft(0.30, 0.014, WOOD, woodGrainTex));
       [-0.22, 0, 0.22].forEach((ang) => {
         const spike = weaponSpike(0.10, 0.011, STEEL, ang);
         spike.position.y = 0.28;
@@ -4226,7 +4283,7 @@ const WEAPON_CFGS = {
     dmg: 72, gripOffset: 0.04,
     build: () => {
       const g = new THREE.Group();
-      g.add(weaponShaft(0.06, 0.014, 0x2b2b2f));
+      g.add(weaponShaft(0.06, 0.014, 0x2b2b2f, leatherTex));
       g.add(weaponBlade(0.06, 0.14, 0.032, BRIGHT_STEEL, 0.15));
       return g;
     },
@@ -4235,9 +4292,9 @@ const WEAPON_CFGS = {
     dmg: 100, gripOffset: 0.05,
     build: () => {
       const g = new THREE.Group();
-      g.add(weaponShaft(0.09, 0.013, 0x2b2b2f));
+      g.add(weaponShaft(0.09, 0.013, 0x2b2b2f, leatherTex));
       const guard = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.014, 0.02),
-        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.7 }));
+        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.7, map: metalScratchTex('#ffffff') }));
       guard.position.y = 0.09;
       guard.castShadow = true;
       g.add(guard);
@@ -4249,9 +4306,9 @@ const WEAPON_CFGS = {
     dmg: 150, gripOffset: 0.05,
     build: () => {
       const g = new THREE.Group();
-      g.add(weaponShaft(0.11, 0.012, 0x3a1418));
+      g.add(weaponShaft(0.11, 0.012, 0x3a1418, leatherTex));
       const guard = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.010, 10),
-        new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4, metalness: 0.6 }));
+        new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4, metalness: 0.6, map: metalScratchTex('#ffffff') }));
       guard.position.y = 0.11;
       guard.castShadow = true;
       g.add(guard);
@@ -4269,15 +4326,15 @@ const WEAPON_CFGS = {
     build: () => {
       const g = new THREE.Group();
       const body = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.18, 0.045),
-        new THREE.MeshStandardMaterial({ color: 0x33363b, roughness: 0.55, metalness: 0.3 }));
+        new THREE.MeshStandardMaterial({ color: 0x33363b, roughness: 0.55, metalness: 0.3, map: metalScratchTex('#ffffff') }));
       body.position.y = 0.09;
       body.castShadow = true;
       g.add(body);
-      const barrel = weaponShaft(0.20, 0.014, 0x1c1e21);
+      const barrel = weaponShaft(0.20, 0.014, 0x1c1e21, metalScratchTex);
       barrel.position.y = 0.18;
       g.add(barrel);
       const stock = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.09, 0.035),
-        new THREE.MeshStandardMaterial({ color: 0x4a3323, roughness: 0.75 }));
+        new THREE.MeshStandardMaterial({ color: 0x4a3323, roughness: 0.75, map: woodGrainTex('#ffffff') }));
       stock.position.y = -0.02;
       stock.castShadow = true;
       g.add(stock);
@@ -4326,8 +4383,8 @@ let player = makeFighter(SVAROK_CFG, -1.7, 1, 100);
 
 // בו - איש כחול, אוזניים חדות, שיער ירוק, עגיל באף וטבעת באצבע, רק בוקסר שחור
 const BO_CFG = {
-  skin: 0x4a93d4,
-  hair: 0x33c04a,
+  skin: 0x4a93d4,  skinTex: true,
+  hair: 0x33c04a,  hairTex: true,
   hairStyle: 'spiky',
   eyeColor: 0xc8a02a,
   ears: 'pointed',
@@ -4342,8 +4399,8 @@ const BO_CFG = {
 // זומי (רמה 2) - אדום, אף ארוך כמו מקדחה, חתך ממקדחה על הבטן, חולצה לבנה
 // קרועה, ותחתונים של גיבור-על. השיער לא תואר באפיון - נבחר כהה וקוצני.
 const ZOOMI_CFG = {
-  skin: 0xcf4436,
-  hair: 0x2a1a16,
+  skin: 0xcf4436,  skinTex: true,
+  hair: 0x2a1a16,  hairTex: true,
   hairStyle: 'spiky',
   eyeColor: 0xe8d24a,
   ears: 'round',
@@ -4360,8 +4417,8 @@ const ZOOMI_CFG = {
 
 // ברדי (רמה 3) - אפרפר, חולצה שחורה ארוכה, מכנסי ג'ינס שחורים קצרים.
 const BREDY_CFG = {
-  skin: 0x9aa0a3,
-  hair: 0x1c1c1f,
+  skin: 0x9aa0a3,  skinTex: true,
+  hair: 0x1c1c1f,  hairTex: true,
   hairStyle: 'short',
   eyeColor: 0x4c5358,
   ears: 'round',
@@ -4378,8 +4435,8 @@ const BREDY_CFG = {
 // זיק (רמה 4) - יפני, חולצה עם ציור קוביות, קצת קוביות בטן, קימונו רק
 // על הרגליים, וכפכפי עץ.
 const ZIK_CFG = {
-  skin: 0xe9c93f,         // צהוב
-  hair: 0x141118,
+  skin: 0xe9c93f,  skinTex: true,         // צהוב
+  hair: 0x141118,  hairTex: true,
   hairStyle: 'short',
   eyeColor: 0x2e2016,
   ears: 'round',
@@ -4396,8 +4453,8 @@ const ZIK_CFG = {
 // בונדרילו (רמה 5) - איש תנין ירוק-אפור, עגילים באף/אוזן/לשון/אצבע,
 // קוביות בטן, ורק חצאית לבנה קרועה.
 const BONDRILO_CFG = {
-  skin: 0x5f7d4a,       // ירוק
-  hair: 0x8e968a,       // אפור - "ירוק, אפור" מהתיאור; קורא כקשקשים, לא כשיער
+  skin: 0x5f7d4a,  skinTex: true,       // ירוק
+  hair: 0x8e968a,  hairTex: true,       // אפור - "ירוק, אפור" מהתיאור; קורא כקשקשים, לא כשיער
   hairStyle: 'short',
   eyeColor: 0xd8c24a,
   ears: 'pointed',
@@ -4427,8 +4484,8 @@ const BONDRILO_CFG = {
 // מומש (אין מנגנון לשינוי אורך גפיים כרגע).
 const NIGHTWING_CFG = {
   power: 8.0, speed: 8.5,
-  skin: 0x1c1a22,
-  hair: 0x0c0a10,
+  skin: 0x1c1a22,  skinTex: true,
+  hair: 0x0c0a10,  hairTex: true,
   bald: true,
   eyeColor: 0x9b30ff,
   glowEyes: true,
@@ -4459,8 +4516,8 @@ const NIGHTWING_CFG = {
 // בצבע צהוב תואם, בלי פסים.
 const LONG_CFG = {
   power: 8.4, speed: 7.5,
-  skin: 0xd9b32a,
-  hair: 0x2a1f10,
+  skin: 0xd9b32a,  skinTex: true,
+  hair: 0x2a1f10,  hairTex: true,
   bald: true,
   eyeColor: 0x8a1f1f,
   ears: 'round',
@@ -4590,8 +4647,8 @@ let enemy = makeFighter(ENEMY_LEVELS[0].cfg, 1.7, -1, ENEMY_LEVELS[0].hp);
 // לא בקרב (עדיין) - מוגדרת כאן כדי שאפשר יהיה להציג אותה בחנות.
 const JENNY_CFG = {
   power: 6.5, speed: 8,
-  skin: 0xf0c8a0,
-  hair: 0x0a0a0a,
+  skin: 0xf0c8a0,  skinTex: true,
+  hair: 0x0a0a0a,  hairTex: true,
   hairStyle: 'long',
   eyeColor: 0x4a7a3a,
   ears: 'round',
@@ -4608,8 +4665,8 @@ const JENNY_CFG = {
 // "I AM THE KING", וכפכפים. גם היא לא בקרב עדיין - להצגה בחנות בלבד.
 const BRAKE_CFG = {
   power: 7.8, speed: 10,
-  skin: 0xefc19a,
-  hair: 0xc0632a,
+  skin: 0xefc19a,  skinTex: true,
+  hair: 0xc0632a,  hairTex: true,
   hairStyle: 'short',   // מגיע עד לאוזניים
   eyeColor: 0x3a6a8a,
   ears: 'round',
@@ -4632,8 +4689,8 @@ const BRAKE_CFG = {
 // של לייקרס). גם היא (עדיין) לא בקרב כברירת מחדל - נבחרת מהלובי אחרי קנייה.
 const LORD_CFG = {
   power: 7.9, speed: 9,
-  skin: 0xc98a56,
-  hair: 0x241a12,
+  skin: 0xc98a56,  skinTex: true,
+  hair: 0x241a12,  hairTex: true,
   hairStyle: 'short',
   eyeColor: 0x4a2e18,
   ears: 'round',
@@ -4658,8 +4715,8 @@ const LORD_CFG = {
 // לבנות שמשלימות את התכלת/לבן של המכנס).
 const PLAYTY_CFG = {
   power: 8.3, speed: 4,
-  skin: 0xf1c6a0,
-  hair: 0x5c3320,
+  skin: 0xf1c6a0,  skinTex: true,
+  hair: 0x5c3320,  hairTex: true,
   hairStyle: 'spiky',      // "קצת פרוע"
   hairBow: true,
   hairBowColor: 0xe8659a,
@@ -4694,8 +4751,8 @@ const PLAYTY_CFG = {
 // אותו לקח בדיוק שנלמד עם החולצה של פלייטי.
 const LIZZY_CFG = {
   power: 8.3, speed: 7,
-  skin: 0xf2cba6,
-  hair: 0x6b4a2f,
+  skin: 0xf2cba6,  skinTex: true,
+  hair: 0x6b4a2f,  hairTex: true,
   hairStyle: 'short',
   eyeColor: 0x4a6a8a,
   ears: 'round',
@@ -4731,8 +4788,8 @@ const LIZZY_CFG = {
 // מוכח שורד את התאורה (זהה לז'קט של ליזי).
 const BERTO_CFG = {
   power: 8.6, speed: 8.6,
-  skin: 0x4a4f57,
-  hair: 0x2b2e33,
+  skin: 0x4a4f57,  skinTex: true,
+  hair: 0x2b2e33,  hairTex: true,
   hairStyle: 'short',
   eyeColor: 0xc9932e,
   ears: 'round',
@@ -4764,8 +4821,8 @@ const BERTO_CFG = {
 // אחרות). הוכהו משמעותית משם - שוב נמצא ברינדור, לא בבחירה מראש.
 const STANBER_CFG = {
   power: 8.9, speed: 9.5,
-  skin: 0x40270f,
-  hair: 0x141212,
+  skin: 0x40270f,  skinTex: true,
+  hair: 0x141212,  hairTex: true,
   hairStyle: 'short',
   eyeColor: 0x3a2415,
   ears: 'round',
@@ -4797,7 +4854,7 @@ const SLAIKY_CFG = {
   skin: 0xd4a91f,
   mottledSkin: true,
   mottledColor2: 0xb3241f,
-  hair: 0x2255c9,
+  hair: 0x2255c9,  hairTex: true,
   hairStyle: 'spiky',
   eyeColor: 0x3ec23e,
   ears: 'pointed',
@@ -4828,8 +4885,8 @@ const SLAIKY_CFG = {
 // האפיון עצמו אומר "לא-אמיתיות".
 const KITTY_CFG = {
   power: 9.5, speed: 9.9,
-  skin: 0xf0c8a0,
-  hair: 0x9b4fd8,
+  skin: 0xf0c8a0,  skinTex: true,
+  hair: 0x9b4fd8,  hairTex: true,
   hairStyle: 'spiky',
   eyeColor: 0xc9932e,
   ears: 'round',
@@ -4895,8 +4952,8 @@ const LEWIN_CFG = {
 // לדמויות איוונט, "עוצמתיות בהרבה" מהרגילות.
 const SINZER_CFG = {
   power: 15, speed: 15,
-  skin: 0xb8860b,             // זהוב - גוון שכבר הוכח כבטוח (לא נשטף) בדמויות קודמות
-  hair: 0x1a1410, hairStyle: 'spiky',
+  skin: 0xb8860b,  skinTex: true,             // זהוב - גוון שכבר הוכח כבטוח (לא נשטף) בדמויות קודמות
+  hair: 0x1a1410,  hairTex: true, hairStyle: 'spiky',
   eyeColor: 0xfff35c,
   boltEyes: true, boltEyeColor: '#fff35c',
   eyeScar: true,
@@ -4921,7 +4978,7 @@ const FRANK_CFG = {
   power: 15, speed: 15,
   skin: 0x6e6a63,
   mottledSkin: true, mottledColor2: 0x47433c,
-  hair: 0x3a3a38,    // קירח (bald:true) אז לא נראה בשיער, אבל הגבות עדיין משתמשות בצבע הזה
+  hair: 0x3a3a38,  hairTex: true,    // קירח (bald:true) אז לא נראה בשיער, אבל הגבות עדיין משתמשות בצבע הזה
   bald: true,
   eyeColor: 0x2a2a2a,
   ears: 'round',
@@ -4942,8 +4999,8 @@ const FRANK_CFG = {
 // beardLength/wingScale) שנוספו במיוחד בשביל התיאור הזה.
 const KRAGOR_CFG = {
   power: 15, speed: 12,
-  skin: 0x8a1a1a,
-  hair: 0x1a1410, hairStyle: 'short',
+  skin: 0x8a1a1a,  skinTex: true,
+  hair: 0x1a1410,  hairTex: true, hairStyle: 'short',
   glowEyes: true, eyeColor: 0xffb020,
   ears: 'pointed',
   backHorns: true, hornScale: 2.2, hornColor: 0x2a1a12,
@@ -4961,7 +5018,7 @@ const KRAGOR_CFG = {
 // claws/skirt.torn/glowEyes/jacketStripes:[] כולם שימוש חוזר קיים.
 const PROKENT_CFG = {
   power: 15, speed: 14,
-  skin: 0x0a0a0a,
+  skin: 0x0a0a0a,  skinTex: true,
   bald: true,
   hood: true, hoodColor: 0x0d0d0f,
   glowEyes: true, eyeColor: 0x9b30ff,
@@ -4984,8 +5041,8 @@ const PROKENT_CFG = {
 // גדול (הפוך מ-0.45 הקטן של קראגור) ו-glowEyes הם שימוש חוזר.
 const CHARES_CFG = {
   power: 16, speed: 13,
-  skin: 0xf2ede0,
-  hair: 0xf5f0e0,
+  skin: 0xf2ede0,  skinTex: true,
+  hair: 0xf5f0e0,  hairTex: true,
   bald: true,
   glowEyes: true, eyeColor: 0xffffff,
   ears: 'round',
@@ -5756,7 +5813,7 @@ const EXPLORE_FRONT_OFFSET = 0;   // אומת ברינדור: ב-rotation.y=0 ה
 // נשארו כי הם מה שהופך "גולם אבן" ל"שומר גביש" - אבל על גוף אחר לגמרי.
 const CRYSTAL_GUARDIAN_CFG = {
   power: 6, speed: 4,
-  skin: 0x6b6a72,
+  skin: 0x6b6a72,  skinTex: true,
   hexHead: false,
   bald: true,
   eyeColor: 0xbfe8ff,
@@ -5772,7 +5829,7 @@ const CRYSTAL_GUARDIAN_CFG = {
 };
 const CRYSTAL_GUARDIAN2_CFG = {
   power: 6, speed: 4,
-  skin: 0x5a5560,
+  skin: 0x5a5560,  skinTex: true,
   hexHead: false,
   bald: true,
   eyeColor: 0x9be8ff,
@@ -6043,8 +6100,8 @@ let islandReturnState = null;   // מיקום/זווית לחזרה לאי אח�
 // (ראה יומן צ'ארס).
 const ISLAND_GUARDIAN_CFG = {
   power: 6, speed: 5,
-  skin: 0x4a6b5a,
-  hair: 0x3a4a40,
+  skin: 0x4a6b5a,  skinTex: true,
+  hair: 0x3a4a40,  hairTex: true,
   hairStyle: 'short',
   eyeColor: 0xffe066,
   glowEyes: true,
@@ -6058,8 +6115,8 @@ const ISLAND_GUARDIAN_CFG = {
 };
 const ISLAND_GUARDIAN2_CFG = {
   power: 6, speed: 5,
-  skin: 0x5a7a68,
-  hair: 0x2a3a30,
+  skin: 0x5a7a68,  skinTex: true,
+  hair: 0x2a3a30,  hairTex: true,
   hairStyle: 'short',
   eyeColor: 0x8be6ff,
   glowEyes: true,
@@ -7497,7 +7554,7 @@ function customWeaponCfg() {
     gripOffset: 0.05,
     build: () => {
       const g = new THREE.Group();
-      g.add(weaponShaft(handleLen, 0.013, 0x2b2b2f));
+      g.add(weaponShaft(handleLen, 0.013, 0x2b2b2f, leatherTex));
       if (s.head === 'blade') {
         g.add(weaponBlade(handleLen, 0.30, 0.045, color, 0.18));
       } else if (s.head === 'spike') {
@@ -7512,7 +7569,7 @@ function customWeaponCfg() {
         });
       } else if (s.head === 'mace') {
         const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.06, 0),
-          new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.5 }));
+          new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.5, map: metalScratchTex('#ffffff') }));
         head.position.y = handleLen + 0.04;
         head.castShadow = true;
         g.add(head);
@@ -7697,16 +7754,25 @@ function animate() {
     updateIslandExplorer(dt, t);
   } else if (uiScreen === 'lavaCrater' && !isLavaFight) {
     updateLavaExplorer(dt, t);
-  } else if (inBattleMode) {
-    [player, enemy].forEach((f) => {
-      tickAction(f, dt);
-      tickJump(f, dt);
-      f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16));
-    });
-
-    moveFighter(player, enemy, dt);
-    moveFighter(enemy, player, dt);
-
+  } else {
+    // poseFighter חייבת לרוץ בכל מסך (לובי, חנות, מסך ניצחון/הפסד) ולא רק
+    // בקרב - היא זו שמדליקה את הנשק ביד (f.forceWeaponVisible) ומריצה את
+    // נשימת המנוחה (f.bob). מיזוג ענף ההרפתקה (2026-09-12) עטף אותה בטעות
+    // בתוך if (inBattleMode) יחד עם moveFighter/tickAction - מה שגרם לנשק
+    // להיעלם בלובי (נבדק: forceWeaponVisible=true אבל stoneMesh.visible
+    // נשאר false כי poseFighter, היחידה שקוראת ל-visible=..., לא רצה בכלל).
+    // מצבי חקירה חופשית (crystalCave/lostIsland/lavaCrater) כבר קוראים
+    // ל-poseFighter(player,...) בעצמם למעלה (updateExplorer וכו') - לכן הם
+    // מטופלים בענפים הנפרדים מעל ולא מגיעים לכאן, כדי לא לקרוא לה פעמיים.
+    if (inBattleMode) {
+      [player, enemy].forEach((f) => {
+        tickAction(f, dt);
+        tickJump(f, dt);
+        f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16));
+      });
+      moveFighter(player, enemy, dt);
+      moveFighter(enemy, player, dt);
+    }
     poseFighter(player, t, dt);
     poseFighter(enemy, t, dt);
   }
