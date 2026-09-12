@@ -979,6 +979,57 @@ const leatherTex = (hex) => canvasTex(128, (ctx, n) => {
   }
 }, 3, 3);
 
+// עור אמיתי: כתמי גוון רכים (כמו על עור אמיתי, לא צבע פלסטיק אחיד) פלוס
+// נקבוביות עדינות מאוד. אותו עיקרון כמו leatherTex - נצבע עם '#ffffff'
+// ומוכפל בצבע האמיתי דרך material.color, כדי שהצבע הבסיסי לא ישתנה.
+// אופציונלי (cfg.skinTex) כדי לא לשנות דמויות קיימות שכבר אושרו.
+const skinTex = (hex) => canvasTex(256, (ctx, n) => {
+  ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 55; i++) {
+    const r = 14 + Math.random() * 30;
+    const dark = Math.random() < 0.55;
+    ctx.fillStyle = dark
+      ? `rgba(110,65,38,${0.07 + Math.random() * 0.10})`
+      : `rgba(255,255,255,${0.09 + Math.random() * 0.11})`;
+    ctx.beginPath(); ctx.arc(Math.random() * n, Math.random() * n, r, 0, Math.PI * 2); ctx.fill();
+  }
+  for (let i = 0; i < 1800; i++) {
+    const g = Math.random() < 0.5 ? 0 : 255;
+    ctx.fillStyle = `rgba(${g},${g},${g},${0.02 + Math.random() * 0.05})`;
+    ctx.fillRect(Math.random() * n, Math.random() * n, 1, 1);
+  }
+}, 2, 2);
+
+// קווצות שיער: פסים דקים לאורך כל תלתול/קוץ (לא סביבו) שיוצרים גוון בהיר
+// וכהה לסירוגין, במקום כתם צבע אחיד. אותו עיקרון הכפלה כמו skinTex.
+// אופציונלי (cfg.hairTex).
+const hairTex = (hex) => canvasTex(64, (ctx, n) => {
+  ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
+  for (let y = 0; y < n; y += 4) {
+    ctx.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.14)' : 'rgba(255,255,255,0.11)';
+    ctx.fillRect(0, y, n, 2);
+  }
+}, 2, 10);
+
+// אבן טבעית: כתמי אפור/חום לא-אחידים כמו סלע אמיתי, פלוס נקבוביות גס
+// יותר מעור (חצץ). מוכפל בצבע האבן האמיתי בדיוק כמו skinTex/leatherTex.
+const stoneTex = (hex) => canvasTex(128, (ctx, n) => {
+  ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
+  for (let i = 0; i < 40; i++) {
+    const r = 10 + Math.random() * 26;
+    const dark = Math.random() < 0.5;
+    ctx.fillStyle = dark
+      ? `rgba(60,50,42,${0.05 + Math.random() * 0.10})`
+      : `rgba(220,212,198,${0.05 + Math.random() * 0.10})`;
+    ctx.beginPath(); ctx.arc(Math.random() * n, Math.random() * n, r, 0, Math.PI * 2); ctx.fill();
+  }
+  for (let i = 0; i < 900; i++) {
+    const g = Math.random() < 0.5 ? 0 : 255;
+    ctx.fillStyle = `rgba(${g},${g},${g},${0.02 + Math.random() * 0.05})`;
+    ctx.fillRect(Math.random() * n, Math.random() * n, 2, 2);
+  }
+}, 1, 1);
+
 // פסים צבעוניים אופקיים (כמו על ז'קט ורסיטי) - חוזרים לאורך האיבר, לא סביבו,
 // ולכן repeat.set(1, ry): בלי חזרה סביב ההיקף (אין תפר בצבע), הרבה חזרות
 // לאורך (טבעות צבע רצופות מהכתפיים ולמטה).
@@ -1560,8 +1611,16 @@ function createFighter(cfg) {
   const M = (color, roughness, metalness = 0) =>
     new THREE.MeshStandardMaterial({ color, roughness, metalness });
 
-  const skinMat  = M(cfg.skin, 0.62);
-  const hairMat  = M(cfg.hair, 0.88);
+  // cfg.skinTex/cfg.hairTex הן דגלים אופציונליים (כמו cfg.topTex) - בלי
+  // אותם הדמות ממשיכה לקבל צבע אחיד בדיוק כמו קודם, כדי לא להשפיע על
+  // דמויות שכבר אושרו. עם הדגל, מרקם עדין (עור/קווצות שיער) מוכפל בצבע
+  // האמיתי במקום צבע פלסטיק שטוח.
+  const skinMat = cfg.skinTex
+    ? new THREE.MeshStandardMaterial({ color: cfg.skin, roughness: 0.62, map: skinTex('#ffffff') })
+    : M(cfg.skin, 0.62);
+  const hairMat = cfg.hairTex
+    ? new THREE.MeshStandardMaterial({ color: cfg.hair, roughness: 0.88, map: hairTex('#ffffff') })
+    : M(cfg.hair, 0.88);
   // cfg.topTex מחליף את מרקם הסריג הרגיל בטקסטורה משלו (למשל הקוביות של
   // זיק). טקסטורה כזו נושאת את הצבע בעצמה, ולכן צבע החומר נשאר לבן ניטרלי -
   // בדיוק כמו stripeTex/textBandTex (ראה הלקח על colorSpace ב-CLAUDE.md).
@@ -2609,8 +2668,23 @@ const WEAPON_CFGS = {
     dmg: 7, gripOffset: 0.05,
     build: () => {
       const g = new THREE.Group();
-      const stone = new THREE.Mesh(new THREE.ConeGeometry(0.058, 0.21, 6),
-        new THREE.MeshStandardMaterial({ color: 0xb3a892, roughness: 0.8, flatShading: true }));
+      // אבן משוננת ולא-סימטרית (לא חרוט גיאומטרי מושלם) - כמו אבן אמיתית
+      // שנשברה וחודדה, פלוס מרקם מינרלים אמיתי במקום צבע בז' אחיד.
+      // מעוותים רק את טבעת הבסיס והטבעת האמצעית; קודקוד החוד עצמו (כל
+      // הקודקודים החופפים ב-y≈0.105) לא נוגעים בו, אחרת האבן הייתה קהה.
+      const geo = new THREE.ConeGeometry(0.058, 0.21, 7, 2);
+      const rand = rng(918273);
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        if (y > 0.095) continue;
+        const jitter = 0.72 + rand() * 0.56;
+        pos.setXYZ(i, x * jitter, y + (rand() - 0.5) * 0.02, z * jitter);
+      }
+      geo.computeVertexNormals();
+      const stone = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+        color: 0xb3a892, roughness: 0.88, flatShading: true, map: stoneTex('#ffffff'),
+      }));
       stone.position.y = 0.105;
       stone.castShadow = true;
       g.add(stone);
@@ -2759,7 +2833,9 @@ function addStoneProp(f) { addWeaponProp(f, 'אבן חדה'); }
 const SVAROK_CFG = {
   power: 5, speed: 5,    // כוח/מהירות מ-game-spec.md סעיף 3 - מתוך 10. סווארק הוא קו הבסיס (5/5)
   skin: 0xf3c9a0,
+  skinTex: true,   // מרקם עור עדין במקום צבע אחיד - רק סווארק, לבקשת המשתמש
   hair: 0x3a2718,
+  hairTex: true,   // מרקם קווצות שיער - רק סווארק
   hairStyle: 'curly',
   eyeColor: 0x6b4423,
   ears: 'round',
