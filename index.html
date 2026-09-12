@@ -215,6 +215,19 @@
     text-shadow: 0 4px 18px rgba(0,0,0,0.7);
     font-weight: 800;
   }
+  #gameOverStats {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 16px;
+    padding: 16px 30px;
+    color: #fff;
+    font-size: 1.15rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  #gameOverGrade { font-size: 1.7rem; font-weight: 800; color: #ffcf4d; }
   #playAgainBtn {
     font-size: 1.2rem;
     padding: 12px 34px;
@@ -255,7 +268,7 @@
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -267,7 +280,57 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #shopOverlay, #adventureOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show { display: flex; }
+  #adventureOverlay .bigBtn { font-size: 1.2rem; padding: 18px 46px; margin: 10px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
+  #adventureOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
+  #adventureOverlay .bigBtn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+  #adventureBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
+
+  /* ---------- מערת הקריסטל: HUD בזמן חקירה חופשית ---------- */
+  #caveHud {
+    display: none;
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 45;
+    text-align: center;
+  }
+  #caveHud.show { display: block; }
+  #caveInstructions {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 8px 20px;
+    color: #fff;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+  #caveExitBtn {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+  }
+
+  #treasureFoundOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10,8,20,0.75);
+    color: #fff;
+  }
+  #treasureFoundOverlay.show { display: flex; }
+  #treasureFoundTitle { font-size: 2.4rem; font-weight: 800; margin-bottom: 14px; text-shadow: 0 3px 12px rgba(0,0,0,0.6); }
+  #treasureFoundAmount { font-size: 1.6rem; color: #ffcf4d; font-weight: bold; margin-bottom: 26px; }
+  #treasureContinueBtn { font-size: 1.1rem; padding: 14px 40px; border-radius: 14px; border: none; background: #ffcf4d; color: #1a1a1a; font-weight: bold; cursor: pointer; }
   /* בלובי הרקע שקוף חלקית - כדי שסווארק (מרונדר מאחורי המסך) יראה מבעד לתפריט */
   #lobbyOverlay {
     background: linear-gradient(200deg, rgba(22,33,58,0.55), rgba(12,18,32,0.72));
@@ -276,9 +339,10 @@
   }
   #lobbyOverlay.show, #shopOverlay.show { display: flex; }
   #loadoutRow, #weaponRow { display: flex; align-items: center; gap: 12px; }
+  #bossRow { align-items: center; gap: 12px; margin-bottom: 14px; }
   #loadoutRow { margin-bottom: 10px; }
   #weaponRow { margin-bottom: 22px; }
-  #loadoutLabel, #weaponLabel {
+  #loadoutLabel, #weaponLabel, #bossLabel {
     background: rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.25);
     border-radius: 12px;
@@ -315,16 +379,6 @@
   #lobbyOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #lobbyOverlay .bigBtn.secondary:hover { background: rgba(255,255,255,0.2); }
 
-  #shopNote {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 12px;
-    padding: 10px 20px;
-    font-size: 0.95rem;
-    margin-bottom: 22px;
-    max-width: 640px;
-    text-align: center;
-  }
   #shopTabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 28px; }
   .shopTab {
     font-size: 1.05rem;
@@ -399,6 +453,80 @@
   }
   .buyBtn.shake { animation: cantAffordShake 0.3s ease; background: #e05a5a; color: #fff; }
   #backLobbyBtn { margin-top: 30px; }
+  .oldPrice { text-decoration: line-through; opacity: 0.65; margin-left: 4px; }
+
+  /* איוונט יום שישי - מוסתר כברירת מחדל, מוצג רק כשהאיוונט פעיל (isEventActive) */
+  .eventBanner {
+    display: none;
+    background: linear-gradient(90deg, #ff8a3d, #ffcf4d);
+    color: #1a1a1a;
+    font-weight: 800;
+    font-size: 1.05rem;
+    padding: 10px 22px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(255,140,50,0.45);
+    animation: eventPulse 1.6s ease-in-out infinite;
+  }
+  .eventBanner.show { display: block; }
+  @keyframes eventPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  /* כפתורים שרק מופיעים בזמן איוונט (למשל "בנייה עצמית" בלובי) */
+  .eventOnly { display: none; }
+  .eventOnly.show { display: inline-block; }
+  #bossRow.show { display: flex; }   /* שורת חצים - צריכה flex כמו loadoutRow/weaponRow, לא inline-block */
+
+  /* ---------- מסך בנייה עצמית (רק באיוונט) ---------- */
+  /* שקוף חלקית כמו הלובי - כדי שדמות התצוגה המקדימה תיראה מבעד למסך */
+  #createOverlay, #weaponCreateOverlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    z-index: 40;
+    color: #fff;
+    overflow-y: auto;
+    padding: 20px 20px 30px;
+    box-sizing: border-box;
+    background: linear-gradient(200deg, rgba(22,33,58,0.55), rgba(12,18,32,0.72));
+  }
+  #createOverlay.show, #weaponCreateOverlay.show { display: flex; }
+  #createNameInput, #weaponCreateNameInput {
+    font-size: 1.1rem;
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    text-align: center;
+    margin-bottom: 18px;
+    width: 240px;
+  }
+  #createTabs, #weaponCreateTabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 16px; max-width: 700px; }
+  #createOptions, #weaponCreateOptions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    min-height: 60px;
+    max-width: 700px;
+    margin-bottom: 20px;
+  }
+  .swatch {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.35);
+    cursor: pointer;
+  }
+  .swatch.active { border-color: #ffcf4d; box-shadow: 0 0 0 2px #ffcf4d; }
+  #createOptions .fullBreak, #weaponCreateOptions .fullBreak { flex-basis: 100%; height: 0; }
+  #createStats { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; font-size: 1rem; }
+  #createStats input[type="range"] { vertical-align: middle; margin-inline-start: 10px; width: 200px; }
+  #createBackBtn, #weaponCreateBackBtn { margin-top: 12px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
+  #createNameInput.shake, #weaponCreateNameInput.shake { animation: cantAffordShake 0.3s ease; border-color: #e05a5a; }
 
   /* מוצג תמיד, בכל מסך (זירה/לובי/חנות) - לכן z-index גבוה מכל המסכים */
   #moneyBadge {
@@ -423,7 +551,7 @@
 </div>
 <div id="label">🥊 סווארק מול בו - שלב חיים ונזק</div>
 <div id="controls">
-  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> חסימה
+  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> חסימה &nbsp;·&nbsp; <b>רווח</b> קפיצה
 </div>
 
 <div id="lootStack">
@@ -452,6 +580,11 @@
 
 <div id="gameOverOverlay">
   <div id="gameOverTitle"></div>
+  <div id="gameOverStats">
+    <div id="gameOverGrade"></div>
+    <div id="statPlayerLine"></div>
+    <div id="statEnemyLine"></div>
+  </div>
   <div id="btnRow">
     <button id="playAgainBtn">🔄 לשחק שוב</button>
     <button id="lobbyBtn">🏠 לובי</button>
@@ -459,6 +592,7 @@
 </div>
 
 <div id="lobbyOverlay">
+  <div class="eventBanner">🎉 איוונט מיוחד! 30% הנחה בחנות!</div>
   <div id="loadoutRow">
     <button id="charPrevBtn" class="cycleBtn">◀</button>
     <div id="loadoutLabel">🥊 סווארק</div>
@@ -471,14 +605,76 @@
   </div>
   <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
+  <button class="bigBtn secondary eventOnly" id="openCreateBtn">🎨 בנייה עצמית</button>
+  <button class="bigBtn secondary eventOnly" id="openWeaponCreateBtn">🔨 בניית נשק</button>
+  <div id="bossRow" class="eventOnly">
+    <button id="bossPrevBtn" class="cycleBtn">◀</button>
+    <div id="bossLabel">👹 קראגור</div>
+    <button id="bossNextBtn" class="cycleBtn">▶</button>
+  </div>
+  <button class="bigBtn secondary eventOnly" id="bossFightBtn">👹 קרב בוס</button>
+  <button class="bigBtn secondary" id="openAdventureBtn">🗺️ הרפתקה</button>
+</div>
+
+<div id="adventureOverlay">
+  <div class="screenTitle">🗺️ הרפתקה</div>
+  <div style="max-width:500px; text-align:center; margin-bottom:26px; opacity:0.85; font-size:1.05rem;">
+    בכל עולם מוסתר אוצר עם הרבה כסף - תחפש אותו!
+  </div>
+  <button class="bigBtn" id="worldIslandBtn">🏝️ האי האבוד</button>
+  <button class="bigBtn" id="worldCaveBtn">💎 מערת הקריסטל</button>
+  <button class="bigBtn" id="worldLavaBtn">🌋 מכתש הלבה</button>
+  <button id="adventureBackBtn">⬅ חזרה ללובי</button>
+</div>
+
+<div id="caveHud">
+  <div id="caveInstructions">↑ להליכה &nbsp;·&nbsp; ← → לפנייה &nbsp;·&nbsp; האוצר מוחבא איפשהו - תחפש טוב!</div>
+  <button id="caveExitBtn">⬅ יציאה למפה</button>
+</div>
+
+<div id="treasureFoundOverlay">
+  <div id="treasureFoundTitle">💰 מצאת את האוצר!</div>
+  <div id="treasureFoundAmount"></div>
+  <button class="bigBtn" id="treasureContinueBtn">✅ המשך</button>
 </div>
 
 <div id="shopOverlay">
+  <div class="eventBanner">🎉 איוונט מיוחד! 30% הנחה!</div>
   <div class="screenTitle">🛒 חנות</div>
-  <div id="shopNote">👀 אפשר לראות מה יש בחנות, אבל עדיין אי אפשר לקנות - זה יגיע כשיהיה כסף במשחק!</div>
   <div id="shopTabs"></div>
   <div id="shopGrid"></div>
   <button id="backLobbyBtn">⬅ חזרה ללובי</button>
+</div>
+
+<div id="createOverlay">
+  <div class="screenTitle">🎨 בונים דמות</div>
+  <input id="createNameInput" type="text" maxlength="12" placeholder="שם הדמות שלך">
+  <div id="createTabs"></div>
+  <div id="createOptions"></div>
+  <div id="createStats">
+    <label>💪 כוח: <span id="createPowerVal">5.0</span>/8.5
+      <input id="createPowerSlider" type="range" min="0" max="8.5" step="0.1" value="5">
+    </label>
+    <label>⚡ מהירות: <span id="createSpeedVal">5.0</span>/8.5
+      <input id="createSpeedSlider" type="range" min="0" max="8.5" step="0.1" value="5">
+    </label>
+  </div>
+  <button class="bigBtn" id="createSaveBtn">✅ צור דמות</button>
+  <button id="createBackBtn">⬅ ביטול</button>
+</div>
+
+<div id="weaponCreateOverlay">
+  <div class="screenTitle">🔨 בונים נשק</div>
+  <input id="weaponCreateNameInput" type="text" maxlength="12" placeholder="שם הנשק שלך">
+  <div id="weaponCreateTabs"></div>
+  <div id="weaponCreateOptions"></div>
+  <div id="createStats">
+    <label>💥 נזק: <span id="weaponDamageVal">30</span>/67
+      <input id="weaponDamageSlider" type="range" min="0" max="67" step="1" value="30">
+    </label>
+  </div>
+  <button class="bigBtn" id="weaponCreateSaveBtn">✅ צור נשק</button>
+  <button id="weaponCreateBackBtn">⬅ ביטול</button>
 </div>
 
 <script type="importmap">
@@ -713,6 +909,373 @@ crowdPositions.forEach((p, i) => {
 });
 
 scene.add(crowdBodies, crowdHeads);
+
+// ============================================================================
+//  הרפתקה — מערת הקריסטל
+//
+//  עולם ראשון מתוך שלושה שהמשתמש ביקש (האי האבוד, מכתש הלבה, מערת
+//  הקריסטל - כל אחד עם אוצר מוסתר שצריך למצוא בהליכה חופשית). נבנה הרחק
+//  מהזירה בעולם (offset גדול) במקום לעטוף את כל קוד הזירה הקיים בקבוצה
+//  אחת שאפשר להסתיר - כך שקוד הזירה שכבר עובד לא נוגע בכלל. הערפל
+//  (scene.fog) חוסם את הזירה מלהיראות מהמערה ולהפך, כל עוד המצלמה
+//  ב"אזור" הנכון - בדיוק כמו שתי במות רחוקות באותו עולם.
+// ============================================================================
+const CAVE_OFFSET = new THREE.Vector3(0, 0, -300);
+const CAVE_RADIUS = 140;   // "ענקיות ממש - רואים את העולם באופק", לפי בקשת המשתמש (פי 7 מהגרסה הקודמת)
+const caveGroup = new THREE.Group();
+caveGroup.position.copy(CAVE_OFFSET);
+scene.add(caveGroup);
+
+const caveFloor = new THREE.Mesh(
+  new THREE.CircleGeometry(CAVE_RADIUS, 40),
+  new THREE.MeshStandardMaterial({ color: 0x2a2438, roughness: 0.95 }));
+caveFloor.rotation.x = -Math.PI / 2;
+caveFloor.receiveShadow = true;
+caveGroup.add(caveFloor);
+
+// כיפה חלולה שנראית רק מבפנים (BackSide) - נותנת תחושת "בתוך מערה" בלי
+// לבנות קירות סלע מדויקים.
+const caveDome = new THREE.Mesh(
+  new THREE.SphereGeometry(CAVE_RADIUS * 1.05, 24, 16),
+  new THREE.MeshStandardMaterial({ color: 0x1a1526, roughness: 1, side: THREE.BackSide }));
+caveDome.position.y = 2;
+caveGroup.add(caveDome);
+
+// תאורה סגלגלה עמומה, ייחודית למערה - לא מושפעת מהתאורה הלבנה של הזירה
+// כי היא תלויה על caveGroup, לא ישירות על scene.
+caveGroup.add(new THREE.AmbientLight(0x6a5acd, 0.55));
+const caveKeyLight = new THREE.PointLight(0x9a86ff, 1.3, 40);
+caveKeyLight.position.set(0, 6, 0);
+caveGroup.add(caveKeyLight);
+
+// אשכולות קריסטל מפוזרים באקראי - "מערה גדולה עם הרבה קריסטלים". אותה
+// שיטת חרוטים בדיוק כמו cfg.headCrystals (לוסטר), רק מפוזרת ברצפה
+// בגדלים/צבעים/כמויות משתנים לכל אשכול, במקום שלושה חרוטים קבועים על ראש.
+const CAVE_CRYSTAL_COLORS = [0x6fe8f0, 0x9b59ff, 0xff6ec7, 0x4fd1a5];
+for (let i = 0; i < 150; i++) {
+  const ang = Math.random() * Math.PI * 2;
+  const dist = 2.2 + Math.random() * (CAVE_RADIUS - 3.5);
+  const color = CAVE_CRYSTAL_COLORS[i % CAVE_CRYSTAL_COLORS.length];
+  const mat = new THREE.MeshStandardMaterial({
+    color, roughness: 0.15, metalness: 0.2, emissive: color, emissiveIntensity: 0.4,
+  });
+  const cluster = new THREE.Group();
+  const shardCount = 2 + Math.floor(Math.random() * 3);
+  for (let k = 0; k < shardCount; k++) {
+    const len = 0.45 + Math.random() * 1.05;
+    const shard = new THREE.Mesh(new THREE.ConeGeometry(0.12 + Math.random() * 0.09, len, 6), mat);
+    shard.position.set((Math.random() - 0.5) * 0.28, len / 2, (Math.random() - 0.5) * 0.28);
+    shard.rotation.z = (Math.random() - 0.5) * 0.5;
+    shard.rotation.x = (Math.random() - 0.5) * 0.3;
+    shard.castShadow = true;
+    cluster.add(shard);
+  }
+  cluster.position.set(Math.cos(ang) * dist, 0, Math.sin(ang) * dist);
+  caveGroup.add(cluster);
+}
+
+// ---------- אוצר מוסתר ----------
+// רחוק מנקודת ההתחלה (0,0,4) ופינתי במערה הגדולה - בלי קרן-אור-מנחה
+// (הוסרה לפי בקשת המשתמש - "תחביא את האוצר הרבה יותר טוב") צריך
+// באמת לחפש ולהתקרב כדי לראות אותה, לא רק ללכת לכיוון אור מרחוק.
+const TREASURE_POS = { x: 91, z: -84 };   // מיקום יחסי זהה, פי 7 - תואם את הגדלת המערה
+const TREASURE_REWARD = 300;
+{
+  const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
+  const chestGoldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.3, metalness: 0.7 });
+  const treasureChest = new THREE.Group();
+  const chestBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.35), chestWoodMat);
+  chestBase.position.y = 0.15;
+  treasureChest.add(chestBase);
+  const chestLid = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 0.5, 12, 1, false, 0, Math.PI), chestWoodMat);
+  chestLid.rotation.z = Math.PI / 2;
+  chestLid.position.set(0, 0.3, 0);
+  treasureChest.add(chestLid);
+  const chestBand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.37), chestGoldMat);
+  chestBand.position.y = 0.15;
+  treasureChest.add(chestBand);
+  const chestGlow = new THREE.PointLight(0xffe9a8, 0.7, 2.5);
+  chestGlow.position.y = 0.4;
+  treasureChest.add(chestGlow);
+  treasureChest.position.set(TREASURE_POS.x, 0, TREASURE_POS.z);
+  caveGroup.add(treasureChest);
+
+  // הסתרה אמיתית, לא רק עמעום: טבעת קריסטלים גדולים סביב התיבה חוסמת
+  // קו-ראייה מכל כיוון חוץ מפתח אחד צר - "רואים אותה עומדת באמצע
+  // העולם" לא יקרה יותר, כי פיזית יש קיר בין השחקן לתיבה עד שמגיעים
+  // ממש לפתח. גובה 2.6 גבוה מהמצלמה (2.0) ומהדמות - חוסם אמיתי.
+  const hideMat = new THREE.MeshStandardMaterial({
+    color: 0x9b59ff, roughness: 0.15, metalness: 0.2, emissive: 0x9b59ff, emissiveIntensity: 0.3,
+  });
+  const RING_COUNT = 8, GAP_INDEX = 4;
+  for (let i = 0; i < RING_COUNT; i++) {
+    if (i === GAP_INDEX) continue;
+    const ang = (i / RING_COUNT) * Math.PI * 2;
+    const shard = new THREE.Mesh(new THREE.ConeGeometry(0.55, 2.6, 7), hideMat);
+    shard.position.set(
+      TREASURE_POS.x + Math.cos(ang) * 1.7, 1.3,
+      TREASURE_POS.z + Math.sin(ang) * 1.7);
+    shard.rotation.x = (Math.random() - 0.5) * 0.15;
+    shard.rotation.z = (Math.random() - 0.5) * 0.15;
+    caveGroup.add(shard);
+  }
+}
+
+// ============================================================================
+//  הרפתקה — האי האבוד
+//
+//  עולם שני מתוך שלושה. נבנה באותה שיטה בדיוק כמו מערת הקריסטל (offset
+//  רחוק בעולם - כאן על ציר X, לא Z, כדי לא להתנגש עם המערה שנמצאת על Z
+//  שלילי - כך שאין סיכוי ששני העולמות ייראו זה מתוך זה) - לא נוגעים
+//  בקוד הזירה או המערה שכבר עובדים. "אי עם גלים חזקים וכל מיני מקומות
+//  נטושים" - ים סוער סביב אי חול, מזח שבור, ספינה טרופה ובקתה הרוסה,
+//  ואוצר מוחבא. בשלב הזה: סביבה + הליכה חופשית + אוצר, בדיוק כמו השלב
+//  הראשון של מערת הקריסטל - מפלצות יתווספו בהמשך אחרי בדיקה.
+// ============================================================================
+const ISLAND_OFFSET = new THREE.Vector3(300, 0, 0);
+const ISLAND_RADIUS = 168;   // "ענקיות ממש - רואים את העולם באופק", פי 7 מהגרסה הקודמת
+const islandGroup = new THREE.Group();
+islandGroup.position.copy(ISLAND_OFFSET);
+scene.add(islandGroup);
+
+const islandSand = new THREE.Mesh(
+  new THREE.CircleGeometry(ISLAND_RADIUS, 48),
+  new THREE.MeshStandardMaterial({ color: 0xd8c07a, roughness: 1 }));
+islandSand.rotation.x = -Math.PI / 2;
+islandSand.receiveShadow = true;
+islandGroup.add(islandSand);
+
+// ים עם גלים חזקים - מישור גדול שמקיף את האי, עם גובה שמתעוות כל פריים
+// (ראה animate) לפי שתי גלי-סינוס חופפות - "גלים חזקים" מהאפיון, לא רק
+// אדוות עדינות. oceanBasePositions שומר את המיקומים המקוריים כדי שהגובה
+// יוחלף כל פריים במקום להצטבר.
+const OCEAN_SIZE = 900, OCEAN_SEGMENTS = 60;   // ענק, כדי שהים ימשיך לכל האופק גם מהאי הענק החדש
+const oceanGeo = new THREE.PlaneGeometry(OCEAN_SIZE, OCEAN_SIZE, OCEAN_SEGMENTS, OCEAN_SEGMENTS);
+const oceanMesh = new THREE.Mesh(oceanGeo,
+  new THREE.MeshStandardMaterial({ color: 0x2f6f8f, roughness: 0.55, metalness: 0.1 }));
+oceanMesh.rotation.x = -Math.PI / 2;
+oceanMesh.position.y = -0.65;   // מספיק נמוך כדי שאף גל (עד גובה ~0.53) לא יבצבץ מעל החול
+islandGroup.add(oceanMesh);
+const oceanBasePositions = oceanGeo.attributes.position.array.slice();
+
+// שמיים אפורים-סוערים וערפל - האי מרגיש נטוש/סוער, לא כמו חוף טרופי שמח.
+islandGroup.add(new THREE.AmbientLight(0x9fb0bb, 0.8));
+const islandSun = new THREE.DirectionalLight(0xdfe8ea, 0.9);
+islandSun.position.set(20, 30, 10);
+islandGroup.add(islandSun);
+
+// ---------- מזח שבור ----------
+{
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x5a4632, roughness: 0.9 });
+  const pier = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const plank = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.08, 1.1), woodMat);
+    plank.position.set(0, 0.35, 2.2 - i * 1.1);
+    plank.rotation.z = (Math.random() - 0.5) * 0.25;
+    plank.rotation.x = (Math.random() - 0.5) * 0.15;
+    pier.add(plank);
+  }
+  [[-0.5, 2.2, 0], [0.5, 2.2, 0], [-0.5, -0.6, 0.6], [0.5, -0.6, 0]].forEach(([x, z, tilt]) => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 8), woodMat);
+    post.position.set(x, 0.3, z);
+    post.rotation.z = tilt;   // עמוד אחד שבור/נטוי
+    pier.add(post);
+  });
+  pier.position.set(70, 0, 56);
+  islandGroup.add(pier);
+}
+
+// ---------- ספינה טרופה ----------
+{
+  const hullMat = new THREE.MeshStandardMaterial({ color: 0x4a3a2a, roughness: 0.9 });
+  const wreck = new THREE.Group();
+  const hull = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.6, 1.6, 4.2, 16, 1, true, 0, Math.PI), hullMat);
+  hull.rotation.z = Math.PI / 2;
+  hull.rotation.y = 0.3;
+  hull.position.y = 0.4;
+  wreck.add(hull);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 3.2, 8), hullMat);
+  mast.position.set(0.3, 1.6, 0);
+  mast.rotation.z = 0.35;
+  wreck.add(mast);
+  wreck.position.set(-98, 0, -70);
+  wreck.rotation.y = 0.6;
+  islandGroup.add(wreck);
+}
+
+// ---------- בקתה הרוסה ----------
+{
+  const woodMat2 = new THREE.MeshStandardMaterial({ color: 0x6b5a3f, roughness: 0.9 });
+  const hut = new THREE.Group();
+  [[-1, -1, 1.7], [1, -1, 0.9], [1, 1, 1.7], [-1, 1, 1.7]].forEach(([x, z, h]) => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, h, 8), woodMat2);
+    post.position.set(x, h / 2, z);
+    hut.add(post);
+  });
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 2.4), woodMat2);
+  roof.position.set(0.1, 1.55, 0);
+  roof.rotation.z = 0.18;
+  roof.rotation.x = -0.1;
+  hut.add(roof);
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 1.2, 0.08), woodMat2);
+  wall.position.set(0, 0.7, -1);
+  hut.add(wall);
+  hut.position.set(42, 0, -98);
+  islandGroup.add(hut);
+}
+
+// ---------- אוצר מוסתר ----------
+// בלי קרן-אור-מנחה (הוסרה לפי בקשת המשתמש) ופינתי באי הגדול - צריך
+// באמת לחפש בין המקומות הנטושים כדי למצוא אותה.
+const ISLAND_TREASURE_POS = { x: -63, z: -133 };
+const ISLAND_TREASURE_REWARD = 350;
+{
+  const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
+  const chestGoldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.3, metalness: 0.7 });
+  const treasureChest = new THREE.Group();
+  const chestBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.35), chestWoodMat);
+  chestBase.position.y = 0.15;
+  treasureChest.add(chestBase);
+  const chestLid = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 0.5, 12, 1, false, 0, Math.PI), chestWoodMat);
+  chestLid.rotation.z = Math.PI / 2;
+  chestLid.position.set(0, 0.3, 0);
+  treasureChest.add(chestLid);
+  const chestBand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.37), chestGoldMat);
+  chestBand.position.y = 0.15;
+  treasureChest.add(chestBand);
+  const chestGlow = new THREE.PointLight(0xffe9a8, 0.7, 2.5);
+  chestGlow.position.y = 0.4;
+  treasureChest.add(chestGlow);
+  treasureChest.position.set(ISLAND_TREASURE_POS.x, 0, ISLAND_TREASURE_POS.z);
+  islandGroup.add(treasureChest);
+
+  // הסתרה אמיתית - טבעת דיונות חול סביב התיבה חוסמת קו-ראייה מכל כיוון
+  // חוץ מפתח אחד צר (ראה אותה טכניקה במערה, hideMat/RING_COUNT/GAP_INDEX).
+  const duneMat = new THREE.MeshStandardMaterial({ color: 0xc7a862, roughness: 1 });
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) continue;
+    const ang = (i / 8) * Math.PI * 2;
+    const dune = new THREE.Mesh(new THREE.ConeGeometry(1.3, 2.2, 10), duneMat);
+    dune.position.set(
+      ISLAND_TREASURE_POS.x + Math.cos(ang) * 1.9, 1.1,
+      ISLAND_TREASURE_POS.z + Math.sin(ang) * 1.9);
+    dune.rotation.x = (Math.random() - 0.5) * 0.2;
+    dune.rotation.z = (Math.random() - 0.5) * 0.2;
+    islandGroup.add(dune);
+  }
+}
+
+// ============================================================================
+//  הרפתקה — מכתש הלבה
+//
+//  עולם שלישי ואחרון. אותה שיטה בדיוק כמו שני הקודמים (offset רחוק
+//  בעולם - כאן Z חיובי, לא מתנגש עם המערה [Z שלילי] או האי [X חיובי]).
+//  "מקום עם המון הרי געש ונהרות לבה" - קרקע סלע געשי כהה, שלושה הרי
+//  געש עם ראש זוהר, נהרות לבה שזורמים מהם, ואגם לבה מרכזי גדול (טבעת
+//  הליכה סביבו, אי אפשר להיכנס אליו) - "מכתש" ממש. אוצר מוסתר ומפלצות
+//  שמתאימות למקום, בדיוק כמו שני העולמות הקודמים.
+// ============================================================================
+const LAVA_OFFSET = new THREE.Vector3(0, 0, 300);
+const LAVA_RADIUS = 154;   // "ענקיות ממש - רואים את העולם באופק", פי 7 מהגרסה הקודמת
+const LAVA_LAKE_RADIUS = 38;   // אגם מרכזי גדול יותר, באותה פרופורציה למכתש
+const lavaGroup = new THREE.Group();
+lavaGroup.position.copy(LAVA_OFFSET);
+scene.add(lavaGroup);
+
+const lavaGround = new THREE.Mesh(
+  new THREE.CircleGeometry(LAVA_RADIUS, 48),
+  new THREE.MeshStandardMaterial({ color: 0x2b2420, roughness: 1 }));
+lavaGround.rotation.x = -Math.PI / 2;
+lavaGround.receiveShadow = true;
+lavaGroup.add(lavaGround);
+
+// אגם לבה מרכזי - שוקע קצת מתחת לרצפה, זוהר ופועם (ראה animate). אי
+// אפשר להיכנס אליו (ראה updateLavaExplorer) - זה "המכתש" עצמו.
+const lavaLakeMat = new THREE.MeshStandardMaterial({
+  color: 0xff4a1a, roughness: 0.4, emissive: 0xff4a1a, emissiveIntensity: 1.1,
+});
+const lavaLake = new THREE.Mesh(new THREE.CircleGeometry(LAVA_LAKE_RADIUS, 40), lavaLakeMat);
+lavaLake.rotation.x = -Math.PI / 2;
+lavaLake.position.y = -0.25;
+lavaGroup.add(lavaLake);
+
+// שמיים אדמדמים-כהים וערפל - "מכתש" סוער, לא נוף פתוח נעים.
+lavaGroup.add(new THREE.AmbientLight(0x7a4030, 0.6));
+const lavaGlow = new THREE.PointLight(0xff6a2a, 2.2, 30);
+lavaGlow.position.set(0, 8, 0);
+lavaGroup.add(lavaGlow);
+
+// ---------- הרי געש עם ראש זוהר ונהרות לבה ----------
+// מיקומים פי 7 (תואם את הגדלת המכתש), גודל ההר עצמו פי ~2.3 - כדי
+// שישמש כציון-דרך גדול ובולט שרואים ממרחק בעולם הענק, לא ייבלע בו.
+const LAVA_VOLCANOES = [{ x: 98, z: 70 }, { x: -105, z: 42 }, { x: 14, z: -119 }];
+const rockMat = new THREE.MeshStandardMaterial({ color: 0x362d27, roughness: 0.95 });
+const riverMat = new THREE.MeshStandardMaterial({
+  color: 0xff5a1f, roughness: 0.5, emissive: 0xff5a1f, emissiveIntensity: 0.9,
+});
+LAVA_VOLCANOES.forEach(({ x, z }) => {
+  const volcano = new THREE.Group();
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(8, 16, 20), rockMat);
+  cone.position.y = 8;
+  volcano.add(cone);
+  const crater = new THREE.Mesh(new THREE.CircleGeometry(2, 16), riverMat);
+  crater.rotation.x = -Math.PI / 2;
+  crater.position.y = 15.5;
+  volcano.add(crater);
+  // נהר לבה - כמה מקטעים שיורדים לכיוון אגם המרכז, כדי לא לבנות עקום מדויק
+  const dirX = -x, dirZ = -z, dist = Math.hypot(dirX, dirZ);
+  const nx = dirX / dist, nz = dirZ / dist;
+  for (let i = 0; i < 6; i++) {
+    const seg = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.05, 5), riverMat);
+    const segDist = 8.5 + i * 5;
+    seg.position.set(nx * segDist, 0.03, nz * segDist);
+    seg.rotation.y = Math.atan2(nx, nz);
+    volcano.add(seg);
+  }
+  volcano.position.set(x, 0, z);
+  lavaGroup.add(volcano);
+});
+
+// ---------- אוצר מוסתר ----------
+const LAVA_TREASURE_POS = { x: -63, z: -98 };
+const LAVA_TREASURE_REWARD = 400;
+{
+  const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
+  const chestGoldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.3, metalness: 0.7 });
+  const treasureChest = new THREE.Group();
+  const chestBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.35), chestWoodMat);
+  chestBase.position.y = 0.15;
+  treasureChest.add(chestBase);
+  const chestLid = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 0.5, 12, 1, false, 0, Math.PI), chestWoodMat);
+  chestLid.rotation.z = Math.PI / 2;
+  chestLid.position.set(0, 0.3, 0);
+  treasureChest.add(chestLid);
+  const chestBand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.37), chestGoldMat);
+  chestBand.position.y = 0.15;
+  treasureChest.add(chestBand);
+  const chestGlow = new THREE.PointLight(0xffe9a8, 0.7, 2.5);
+  chestGlow.position.y = 0.4;
+  treasureChest.add(chestGlow);
+  treasureChest.position.set(LAVA_TREASURE_POS.x, 0, LAVA_TREASURE_POS.z);
+  lavaGroup.add(treasureChest);
+
+  // הסתרה אמיתית - טבעת סלעי געש סביב התיבה חוסמת קו-ראייה מכל כיוון
+  // חוץ מפתח אחד צר (אותה טכניקה בדיוק כמו במערה/באי).
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) continue;
+    const ang = (i / 8) * Math.PI * 2;
+    const boulder = new THREE.Mesh(new THREE.DodecahedronGeometry(1.15, 0), rockMat);
+    boulder.position.set(
+      LAVA_TREASURE_POS.x + Math.cos(ang) * 1.8, 1.0,
+      LAVA_TREASURE_POS.z + Math.sin(ang) * 1.8);
+    boulder.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+    lavaGroup.add(boulder);
+  }
+}
 
 // ============================================================================
 //  בניית דמות v2 — משטח רציף במקום הרכבת גופים נפרדים
@@ -1048,6 +1611,28 @@ const stoneTex = (hex) => canvasTex(128, (ctx, n) => {
   }
 }, 1, 1);
 
+// קליפת אגוז (מסכת סטנבר) - מרקם חוזר (לא ממופה למקום מסוים, כי המסכה
+// היא גוף עצמאי קטן ולא חלק ממערכת ה-UV המוסכמת של הגוף) עם קמטים
+// כהים מעוקלים בכל הכיוונים, כמו הקמטים האמיתיים על קליפת אגוז.
+const walnutShellTex = (hex) => canvasTex(128, (ctx, n) => {
+  ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
+  ctx.strokeStyle = 'rgba(40,24,12,0.5)';
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * n, y = Math.random() * n;
+    const len = n * (0.10 + Math.random() * 0.16);
+    const ang = Math.random() * Math.PI * 2;
+    ctx.lineWidth = n * (0.012 + Math.random() * 0.01);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(
+      x + Math.cos(ang) * len * 0.5 + (Math.random() - 0.5) * n * 0.10,
+      y + Math.sin(ang) * len * 0.5 + (Math.random() - 0.5) * n * 0.10,
+      x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+    ctx.stroke();
+  }
+}, 2, 2);
+
 // פסים צבעוניים אופקיים (כמו על ז'קט ורסיטי) - חוזרים לאורך האיבר, לא סביבו,
 // ולכן repeat.set(1, ry): בלי חזרה סביב ההיקף (אין תפר בצבע), הרבה חזרות
 // לאורך (טבעות צבע רצופות מהכתפיים ולמטה).
@@ -1067,6 +1652,76 @@ const stripeTex = (baseHex, colors) => {
       ctx.fillRect(0, bandH * (i * 1.4 + 0.7), n, bandH * 0.62);
     });
   }, 1, 4);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
+
+// פסי חתול על הראש (ברטו) - כמה קווים כהים מעוקלים על גבי צבע הבסיס,
+// פזורים על פני כל הקנבס בלי לחשב מראש איפה בדיוק "החזית" על ה-UV
+// הסטנדרטי של SphereGeometry (בניגוד לגוף, שנבנה עם UV מוסכם ומחושב -
+// כאן זו בחירה סגנונית, אז בודקים ברינדור ולא פותרים משוואה). אותו
+// עקרון colorSpace כמו stripeTex - הצבע האמיתי חי בתוך הקנבס.
+const catStripeTex = (baseHex) => {
+  const t = canvasTex(256, (ctx, n) => {
+    ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+    // ⚠️ ניסיון ראשון (רק 0.60 שקיפות) כמעט לא נראה תחת התאורה החזקה של
+    // הזירה - אותו לקח כמו על צבעים - כאן על הניגוד מול הבסיס, לא רק על
+    // הבהירות המוחלטת. הועלה לכמעט אטום וכהה משמעותית מהבסיס.
+    ctx.strokeStyle = 'rgba(12,11,13,0.92)';
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 34; i++) {
+      const x = Math.random() * n, y = Math.random() * n;
+      const len = n * (0.09 + Math.random() * 0.11);
+      const ang = Math.random() * Math.PI * 2;
+      ctx.lineWidth = n * (0.022 + Math.random() * 0.014);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(
+        x + Math.cos(ang) * len * 0.5 + (Math.random() - 0.5) * n * 0.04,
+        y + Math.sin(ang) * len * 0.5 + (Math.random() - 0.5) * n * 0.04,
+        x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+      ctx.stroke();
+    }
+  }, 1, 1);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
+
+// עור מנומר (סלייקי) - כתמים גדולים וחוזרים של צבע שני על גבי צבע בסיס,
+// לא ציור במקום מסוים (כמו catStripeTex) אלא מרקם חוזר, כי המרקם הזה
+// מיושם על *כל* הגוף (skinMat עצמו) ולא רק על הראש - ראש, גו, ורגליים
+// כולם משתמשים באותה טקסטורה חוזרת, בלי צורך במיקום מדויק.
+const mottledSkinTex = (baseHex, spotHex) => {
+  const t = canvasTex(128, (ctx, n) => {
+    ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+    ctx.fillStyle = spotHex;
+    for (let i = 0; i < 22; i++) {
+      ctx.beginPath();
+      ctx.ellipse(
+        Math.random() * n, Math.random() * n,
+        n * (0.10 + Math.random() * 0.12), n * (0.07 + Math.random() * 0.09),
+        Math.random() * Math.PI, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, 3, 3);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+};
+
+// עור עם נקודות זוהרות (מוקרוט - "גוף אדום-סגול עם נקודות זוהרות") -
+// אותו רעיון מבני כמו mottledSkinTex, רק נקודות עגולות קטנות במקום
+// כתמים גדולים. לא זוהר אמיתי (החומר עדיין MeshStandardMaterial רגיל,
+// לא emissive) - רק נקודות בהירות שקוראות כ"זוהרות" בניגוד לבסיס הכהה.
+const glowDotsTex = (baseHex, dotHex) => {
+  const t = canvasTex(128, (ctx, n) => {
+    ctx.fillStyle = baseHex; ctx.fillRect(0, 0, n, n);
+    ctx.fillStyle = dotHex;
+    for (let i = 0; i < 40; i++) {
+      ctx.beginPath();
+      ctx.arc(Math.random() * n, Math.random() * n, n * (0.015 + Math.random() * 0.02), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, 4, 4);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 };
@@ -1148,6 +1803,24 @@ const bigLetterBadgeTex = (bg, letterColor, letter) => badgeTex((ctx, n) => {
   ctx.font = `bold ${Math.round(n * 0.62)}px Arial, sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(letter, cx, cy + n * 0.02);
+});
+
+// עיגול-רקע עם ברק - נייטווינג ("סמל סגול בצורת ברק על החזה"). אותו
+// עיקרון כמו bigLetterBadgeTex, רק polygon של ברק במקום אות.
+const lightningBadgeTex = (bg, boltColor) => badgeTex((ctx, n) => {
+  const cx = n / 2, cy = n / 2, r = n * 0.48;
+  ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = boltColor;
+  ctx.beginPath();
+  ctx.moveTo(cx + n * 0.06, cy - n * 0.34);
+  ctx.lineTo(cx - n * 0.16, cy + n * 0.04);
+  ctx.lineTo(cx - n * 0.01, cy + n * 0.04);
+  ctx.lineTo(cx - n * 0.09, cy + n * 0.34);
+  ctx.lineTo(cx + n * 0.19, cy - n * 0.06);
+  ctx.lineTo(cx + n * 0.03, cy - n * 0.06);
+  ctx.closePath();
+  ctx.fill();
 });
 
 // קעקוע - בניגוד לתגי הקבוצות (badgeTex, עיגול אטום) קעקוע צריך רקע
@@ -1238,6 +1911,54 @@ const drillScarTex = () => tattooTex((ctx, n) => {
     ctx.beginPath();
     ctx.moveTo(cx + Math.cos(a) * n * 0.13, cy + Math.sin(a) * n * 0.13);
     ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+    ctx.stroke();
+  }
+});
+
+// צלקת פשוטה מתחת לעין (סינזר) - קו אלכסוני עיקרי ותפר קטן חוצה אותו,
+// אותה שיטה בדיוק כמו drillScarTex למעלה (רקע שקוף, קו בצבע עור כהה יותר).
+const eyeScarTex = () => tattooTex((ctx, n) => {
+  ctx.strokeStyle = 'rgba(90,55,42,0.85)';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = n * 0.05;
+  ctx.beginPath(); ctx.moveTo(n * 0.28, n * 0.18); ctx.lineTo(n * 0.66, n * 0.80); ctx.stroke();
+  ctx.lineWidth = n * 0.028;
+  ctx.beginPath(); ctx.moveTo(n * 0.34, n * 0.42); ctx.lineTo(n * 0.24, n * 0.48); ctx.stroke();
+});
+
+// עין בצורת ברק זוהר (סינזר, cfg.boltEyes) - במקום גלגל עין רגיל, פלאנה
+// שטוחה עם ברק מלא צבוע עליה (רקע שקוף, כמו כל שאר הדקאלים כאן).
+// MeshBasicMaterial (לא מושפע מתאורה) כדי שהברק "יזהר" גם באזורים מוצללים -
+// אותו עיקרון בדיוק כמו עיניים זוהרות רגילות (cfg.glowEyes).
+const boltEyeTex = (color) => tattooTex((ctx, n) => {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(n * 0.58, n * 0.06);
+  ctx.lineTo(n * 0.30, n * 0.52);
+  ctx.lineTo(n * 0.46, n * 0.52);
+  ctx.lineTo(n * 0.34, n * 0.94);
+  ctx.lineTo(n * 0.72, n * 0.40);
+  ctx.lineTo(n * 0.52, n * 0.40);
+  ctx.closePath();
+  ctx.fill();
+});
+
+// מרקם שריון צב - פראנק ("שריון ענק של צב על הגב"). עיגול-על-עיגול
+// שמדמה פלטת שריון מרכזית, וכמה קווים רדיאליים כלפי חוץ שמחלקים אותה
+// לפלחים - לא ציור מדויק של קונכיית צב אמיתית, רק סימון מסוגנן וקריא,
+// באותה רוח בדיוק כמו lightningBadgeTex/bigLetterBadgeTex למעלה.
+const turtleShellTex = (bg, lineHex) => badgeTex((ctx, n) => {
+  const cx = n / 2, cy = n / 2, r = n * 0.48;
+  ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = lineHex;
+  ctx.lineWidth = n * 0.025;
+  [0.20, 0.34].forEach((f) => { ctx.beginPath(); ctx.arc(cx, cy, r * f, 0, Math.PI * 2); ctx.stroke(); });
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * r * 0.34, cy + Math.sin(a) * r * 0.34);
+    ctx.lineTo(cx + Math.cos(a) * r * 0.97, cy + Math.sin(a) * r * 0.97);
     ctx.stroke();
   }
 });
@@ -1409,6 +2130,12 @@ const LEG_PROFILE = [
   pr(0.72, 0.51, 0.54),
   pr(1.00, 0.285, 0.31),
 ];
+
+// מכפיל עובי לפרופיל קיים (cfg.armScale/cfg.legScale, פראנק - "ידיים
+// ענקיות וכבדות... רגליים עבות מאוד") - רק rx/rz גדלים, t (המיקום לאורך
+// האיבר) נשאר זהה. לא נוגע ב-ARM_PROFILE/LEG_PROFILE המשותפים עצמם,
+// כדי שלא להשפיע על שאר הדמויות - כל דמות עם המכפיל מקבלת עותק משלה.
+const scaleProfile = (profile, mult) => profile.map(({ t, rx, rz }) => ({ t, rx: rx * mult, rz: rz * mult }));
 
 // פלג גוף: אגן → מותן צר → חזה → כתפיים משופעות
 const TORSO_PROFILE = [
@@ -1629,13 +2356,46 @@ function createFighter(cfg) {
   const M = (color, roughness, metalness = 0) =>
     new THREE.MeshStandardMaterial({ color, roughness, metalness });
 
+  // עור מנומר (cfg.mottledSkin, סלייקי) מחליף את skinMat *הכללי* עצמו -
+  // בניגוד ל-headMat למטה (שמיוחד רק לראש), כאן כל הגוף חשוף (בלי בגדים)
+  // וצריך את אותו מרקם בכל מקום, אז הכי פשוט להחליף את skinMat עצמו.
+  // עור מקועקע (cfg.tattooedSkin, קולין - "כל הגוף שלו קעקועים כולל
+  // הראש") - אותו רעיון בדיוק כמו העור המנומר למעלה, רק במקום כתמים
+  // (mottledSkinTex) עושה שימוש חוזר ב-catStripeTex (קווים כהים
+  // מעוקלים) שכבר נבנה בשביל פסי החתול של ברטו - קווי דיו על עור קוראים
+  // דומה מאוד לקווי פס, אז אותה טקסטורה עובדת לשני השימושים בלי שינוי.
+  const skinMat = cfg.mottledSkin ? new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.62,
+    map: mottledSkinTex(
+      '#' + new THREE.Color(cfg.skin).getHexString(),
+      '#' + new THREE.Color(cfg.mottledColor2 ?? 0xcc2222).getHexString()),
+  }) : cfg.tattooedSkin ? new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.62,
+    map: catStripeTex('#' + new THREE.Color(cfg.skin).getHexString()),
+  }) : cfg.glowDotsSkin ? new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.55,
+    map: glowDotsTex(
+      '#' + new THREE.Color(cfg.skin).getHexString(),
+      '#' + new THREE.Color(cfg.glowDotsColor ?? 0xffe28a).getHexString()),
+  }) : cfg.crystalSkin ? new THREE.MeshStandardMaterial({
+    // עור גביש (לוסטר) - לא טקסטורה, חומר מבריק וחלק (roughness נמוך,
+    // metalness בינוני) שנותן מראה של קריסטל מלוטש בלי צורך בשקיפות
+    // אמיתית (שקיפות אמיתית מסתבכת עם סדר רינדור וצללים במנוע הפשוט הזה).
+    color: cfg.skin, roughness: 0.15, metalness: 0.35,
   // cfg.skinTex/cfg.hairTex הן דגלים אופציונליים (כמו cfg.topTex) - בלי
   // אותם הדמות ממשיכה לקבל צבע אחיד בדיוק כמו קודם, כדי לא להשפיע על
   // דמויות שכבר אושרו. עם הדגל, מרקם עדין (עור/קווצות שיער) מוכפל בצבע
   // האמיתי במקום צבע פלסטיק שטוח.
-  const skinMat = cfg.skinTex
-    ? new THREE.MeshStandardMaterial({ color: cfg.skin, roughness: 0.62, map: skinTex('#ffffff') })
-    : M(cfg.skin, 0.62);
+  }) : cfg.skinTex ? new THREE.MeshStandardMaterial({
+    color: cfg.skin, roughness: 0.62, map: skinTex('#ffffff'),
+  }) : M(cfg.skin, 0.62);
+  // פסי חתול (cfg.catStripes) חיים רק על הראש (כולל הלסת) - הגוף נשאר
+  // בגוון אחיד. אותו עיקרון בדיוק כמו jacketMat: הצבע חי בתוך המרקם
+  // עצמו, ולכן צבע החומר לבן ניטרלי.
+  const headMat = cfg.catStripes ? new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.62,
+    map: catStripeTex('#' + new THREE.Color(cfg.skin).getHexString()),
+  }) : skinMat;
   const hairMat = cfg.hairTex
     ? new THREE.MeshStandardMaterial({ color: cfg.hair, roughness: 0.88, map: hairTex('#ffffff') })
     : M(cfg.hair, 0.88);
@@ -1659,9 +2419,17 @@ function createFighter(cfg) {
       cfg.jacketStripes ?? ['#e4573d', '#f2b632', '#3fa7a0', '#e85fa0']),
     side: THREE.DoubleSide,
   }) : null;
-  const pantsMat = cfg.pants ? new THREE.MeshStandardMaterial({
-    color: cfg.pants, roughness: 0.94, map: denimTex('#ffffff'),
-  }) : null;
+  // cfg.pantsLeather (חדש, לסטנבר - "מכנסיים מעור שור") מחליף את מרקם
+  // האריגה של הג'ינס במרקם עור מחוספס. שניהם משתמשים ב-'#ffffff' כבסיס
+  // ומכפילים בצבע החומר עצמו (cfg.pants), אז ההחלפה בטוחה.
+  // מכנס "מבריק" (cfg.pantsShiny, סינזר - "מכנסיים שחורות ומבריקות") -
+  // חומר חלק וקוטבי בלי מרקם בד בכלל, בניגוד לג'ינס/עור הרגילים.
+  const pantsMat = cfg.pants ? (cfg.pantsShiny
+    ? new THREE.MeshStandardMaterial({ color: cfg.pants, roughness: 0.12, metalness: 0.55 })
+    : new THREE.MeshStandardMaterial({
+        color: cfg.pants, roughness: cfg.pantsLeather ? 0.55 : 0.94,
+        map: cfg.pantsLeather ? leatherTex('#ffffff') : denimTex('#ffffff'),
+      })) : null;
   const boxerMat = cfg.boxers ? M(cfg.boxers, 0.85) : null;
   const bootMat = cfg.boots ? new THREE.MeshStandardMaterial({
     color: cfg.boots, roughness: 0.55, map: leatherTex('#ffffff'),
@@ -1678,9 +2446,20 @@ function createFighter(cfg) {
     color: 0xf2efe7, roughness: 0.96, map: bandageTex('#ffffff'),
   });
   const eyeWhiteMat = M(0xfcfcfc, 0.22);
-  const irisMat  = M(cfg.eyeColor ?? 0x5a3a20, 0.28);
-  const pupilMat = M(0x120e0a, 0.2);
+  // עיניים זוהרות (cfg.glowEyes, למשל נייטווינג/לוסטר) - MeshBasicMaterial
+  // לא מושפע מתאורה, ולכן נשאר בהיר וקבוע גם בפינות חשוכות של הזירה,
+  // בניגוד ל-M() הרגיל (MeshStandardMaterial) שכהה בצל. גם האישון זוהר
+  // באותו גוון (לא שחור) - עין "זוהרת" אמיתית היא כתם אור אחיד, לא גלגל
+  // עין רגיל עם אישון כהה.
+  const irisMat  = cfg.glowEyes
+    ? new THREE.MeshBasicMaterial({ color: cfg.eyeColor ?? 0x5a3a20 })
+    : M(cfg.eyeColor ?? 0x5a3a20, 0.28);
+  const pupilMat = cfg.glowEyes ? irisMat : M(0x120e0a, 0.2);
   const glintMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  // ברק זוהר במקום גלגל עין (cfg.boltEyes, סינזר) - ראה boltEyeTex למעלה.
+  const boltEyeMat = cfg.boltEyes
+    ? new THREE.MeshBasicMaterial({ map: boltEyeTex(cfg.boltEyeColor ?? '#fff35c'), transparent: true, side: THREE.DoubleSide })
+    : null;
   const mouthMat = M(cfg.lipColor ?? 0x8a4a44, 0.6);
   const lashMat = M(0x1a1310, 0.7);
   const goldMat  = M(0xd9b23c, 0.2, 0.95);
@@ -1703,6 +2482,10 @@ function createFighter(cfg) {
 
   // ---------- רגליים ----------
   // המסלול מתחיל *בתוך* האגן → החיבור קבור ואינו נראה מבחוץ.
+  // cfg.legScale (פראנק - "רגליים עבות מאוד") מעבה רק את צינור הרגל
+  // החשופה עצמה, לא כל שימוש אחר של LEG_PROFILE (מכנס/מגף/גרב) - זה בטוח
+  // כי פראנק (היחיד שמשתמש בזה) לא לובש אף אחד מהם.
+  const legProfile = cfg.legScale ? scaleProfile(LEG_PROFILE, cfg.legScale) : LEG_PROFILE;
   const legCurves = [];
   const LEG_KEYS = ['legL', 'legR'];
   [[S.hipL, S.kneeL, S.ankleL], [S.hipR, S.kneeR, S.ankleR]].forEach(([hip, knee, ankle], li) => {
@@ -1710,7 +2493,7 @@ function createFighter(cfg) {
     const c = makeCurve([hipIn, hip, knee, ankle]);
     legCurves.push(c);
     BIND = { chain: LEG_KEYS[li] };
-    part(sweepCurve(legMat, c, LEG_PROFILE, { refDir: V(1, 0, 0), steps: 34 }));
+    part(sweepCurve(legMat, c, legProfile, { refDir: V(1, 0, 0), steps: 34 }));
   });
 
   // ---------- תחתונים ----------
@@ -1766,7 +2549,9 @@ function createFighter(cfg) {
       }
     });
 
-    if (!cfg.shorts) {
+    // חגורה: תמיד עם מכנס ארוך (ג'ינס), ובנוסף עם מכנס קצר אם cfg.belt
+    // ביקש זאת במפורש (ברטו - "מכנסיים קצרצרים" *עם* חגורה לפי האפיון).
+    if (!cfg.shorts || cfg.belt) {
       BIND = { chain: 'torso' };
       part(garment(beltMat, torsoCurve, TORSO_PROFILE, { u0: 0.335, u1: 0.390, pad: 0.015, steps: 8 }));
       const bp = torsoCurve.getPointAt(0.362);
@@ -1821,6 +2606,37 @@ function createFighter(cfg) {
       logo.position.set(S.hipR.x + 0.012, S.hipR.y - 0.045, S.hipR.z + 0.095);
       part(logo);
     }
+  }
+
+  // ---------- זנב חתול ----------
+  // קשיח על עצם האגן (root) - כמו האבזם למעלה - ולא chain, כי הוא לא
+  // אמור להתעוות עם הליכה, רק לנוע יחד עם הגוף כולו. צבע הפרווה, אם לא
+  // נקבע במפורש (cfg.catFurColor), הולך אחרי צבע השיער - כדי שיתאים.
+  // ⚠️ עובי: pr() מכפיל תמיד ב-R (רדיוס הגולגולת, 0.117) - עובי בסיס
+  // ברמת "קצה אוזן" (0.04) יצא חוט דק כמעט בלתי-נראה, לא זנב. תוקן
+  // לעובי ברמת קרסול/פרק כף יד (0.30 בבסיס), נמצא ברינדור.
+  if (cfg.catTail) {
+    BIND = { bone: 'root' };
+    // cfg.tailLength (חדש, סלייקי - "זנב ארוך") מאריך את הזנב פרופורציונלית
+    // - האופסטים מ-pelvis.y (לא pelvis.y עצמו) מוכפלים, כך שהבסיס נשאר
+    // צמוד לגוף והקצה מתרחק. cfg.tailStripeColor (חדש) מחליף את הפרווה
+    // האחידה במרקם פסים (stripeTex הקיים, שכבר נותן טבעות צבע חוזרות
+    // לאורך צינור - בדיוק "פסים" על זנב).
+    const tailLen = cfg.tailLength ?? 1;
+    const tailMat = cfg.tailStripeColor
+      ? new THREE.MeshStandardMaterial({
+          color: 0xffffff, roughness: 0.75,
+          map: stripeTex('#' + new THREE.Color(cfg.catFurColor ?? cfg.hair).getHexString(),
+            ['#' + new THREE.Color(cfg.tailStripeColor).getHexString()]),
+        })
+      : M(cfg.catFurColor ?? cfg.hair, 0.75);
+    part(sweep(tailMat, [
+      V(0, S.pelvis.y - 0.01, -0.085),
+      V(0, S.pelvis.y + 0.16 * tailLen, -0.26 * tailLen),
+      V(0.05, S.pelvis.y + 0.32 * tailLen, -0.30 * tailLen),
+    ], [
+      pr(0, 0.300, 0.300), pr(0.55, 0.200, 0.200), pr(1, 0.040, 0.040),
+    ], { steps: 16, radial: 14, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.6 }));
   }
 
   // ---------- הצצת בוקסר מעל המכנסיים ----------
@@ -2040,9 +2856,34 @@ function createFighter(cfg) {
     }
   });
 
+  // ---------- גבישים סביב הברכיים ----------
+  // לוסטר - "רגליים עבות וכבדות עם גבישים גדולים מסביב לברכיים". קשיח
+  // על עצם הברך (כמו הצמיד על שורש כף היד), לא chain - אשכול קטן של
+  // חרוטים מזוויות שונות סביב אותה נקודה, לא איבר שמתעוות.
+  if (cfg.kneeCrystals) {
+    const crystalMat = new THREE.MeshStandardMaterial({
+      color: cfg.crystalColor ?? 0x6fe8f0, roughness: 0.12, metalness: 0.25,
+    });
+    ['kneeL', 'kneeR'].forEach((knee) => {
+      BIND = { bone: knee };
+      const p = S[knee];
+      [0, 1.3, 2.6, 3.9, 5.2].forEach((a) => {
+        const shard = new THREE.Mesh(new THREE.ConeGeometry(0.020, 0.075, 6), crystalMat);
+        shard.position.set(
+          p.x + Math.cos(a) * 0.045, p.y + Math.sin(a) * 0.02, p.z + Math.sin(a) * 0.045);
+        shard.rotation.z = a + Math.PI / 2;
+        shard.castShadow = true;
+        part(shard);
+      });
+    });
+  }
+
   // ---------- זרועות ----------
   // המסלול מתחיל בתוך בית החזה, והדלתא היא פשוט הקטע העבה של הזרוע.
   // אין כדור כתף בכלל — זה מה שהעיף את "הידיים הנפוחות".
+  // cfg.armScale (פראנק - "ידיים ענקיות וכבדות") מעבה רק את צינור הזרוע
+  // החשופה - בטוח מאותה סיבה כמו legScale למעלה (פראנק בלי תחבושות/קעקוע/ז'קט).
+  const armProfile = cfg.armScale ? scaleProfile(ARM_PROFILE, cfg.armScale) : ARM_PROFILE;
   const ARM_KEYS = ['armL', 'armR'];
   const WRIST_BONES = ['wristL', 'wristR'];
   [[S.shoulderL, S.elbowL, S.wristL, -1], [S.shoulderR, S.elbowR, S.wristR, 1]]
@@ -2050,7 +2891,7 @@ function createFighter(cfg) {
       const shIn = V(sh.x * 0.38, sh.y - 0.045, sh.z);
       const armCurve = makeCurve([shIn, sh, el, wr]);
       BIND = { chain: ARM_KEYS[ai] };
-      part(sweepCurve(skinMat, armCurve, ARM_PROFILE, { refDir: V(0, 1, 0), steps: 36 }));
+      part(sweepCurve(skinMat, armCurve, armProfile, { refDir: V(0, 1, 0), steps: 36 }));
 
       const dir = armCurve.getTangentAt(1).normalize();
       const across = new THREE.Vector3().crossVectors(dir, V(0, 1, 0)).normalize();
@@ -2087,23 +2928,26 @@ function createFighter(cfg) {
       // ---------- אגרוף ----------
       // לא כדור: רחב מעומקו, מתנפח בפרקי האצבעות ומתעגל בקצה.
       // האגרוף על כל פרטיו נוסע קשיח עם עצם שורש כף היד.
+      // cfg.fistScale (פראנק - "אגרופי סלע ענקים") - ברירת מחדל cfg.armScale,
+      // כי זרוע ענקית עם אגרוף רגיל הייתה נראית לא פרופורציונלית.
+      const fistScale = cfg.fistScale ?? cfg.armScale ?? 1;
       const fistMat = cfg.handWraps ? wrapMat : skinMat;
       BIND = { bone: WRIST_BONES[ai] };
       part(sweep(fistMat,
-        [wr.clone().addScaledVector(dir, -0.010),
-         wr.clone().addScaledVector(dir, 0.030),
-         wr.clone().addScaledVector(dir, 0.068)],
-        [pr(0.00, 0.30, 0.28), pr(0.5, 0.44, 0.40), pr(1.00, 0.41, 0.37)],
+        [wr.clone().addScaledVector(dir, -0.010 * fistScale),
+         wr.clone().addScaledVector(dir, 0.030 * fistScale),
+         wr.clone().addScaledVector(dir, 0.068 * fistScale)],
+        [pr(0.00, 0.30 * fistScale, 0.28 * fistScale), pr(0.5, 0.44 * fistScale, 0.40 * fistScale), pr(1.00, 0.41 * fistScale, 0.37 * fistScale)],
         { steps: 16, refDir: across, capEnd: 'round', domeScale: 0.8 }));
 
       // פרקי אצבעות — ארבע בליטות קטנות בחזית האגרוף
       const up2 = new THREE.Vector3().crossVectors(across, dir).normalize();
       [-1.5, -0.5, 0.5, 1.5].forEach((k) => {
-        const kn = new THREE.Mesh(new THREE.SphereGeometry(R * 0.075, 12, 10), fistMat);
+        const kn = new THREE.Mesh(new THREE.SphereGeometry(R * 0.075 * fistScale, 12, 10), fistMat);
         kn.position.copy(wr.clone()
-          .addScaledVector(dir, 0.052)
-          .addScaledVector(across, k * 0.0175)
-          .addScaledVector(up2, 0.014));
+          .addScaledVector(dir, 0.052 * fistScale)
+          .addScaledVector(across, k * 0.0175 * fistScale)
+          .addScaledVector(up2, 0.014 * fistScale));
         kn.scale.set(1, 0.85, 0.8);
         kn.castShadow = true;
         part(kn);
@@ -2111,12 +2955,15 @@ function createFighter(cfg) {
 
       // אגודל מקופל על צד האגרוף
       part(sweep(fistMat,
-        [wr.clone().addScaledVector(dir, 0.004).addScaledVector(across, side * 0.036),
-         wr.clone().addScaledVector(dir, 0.048).addScaledVector(across, side * 0.022)],
-        [pr(0, 0.16, 0.16), pr(1, 0.13, 0.13)],
+        [wr.clone().addScaledVector(dir, 0.004 * fistScale).addScaledVector(across, side * 0.036 * fistScale),
+         wr.clone().addScaledVector(dir, 0.048 * fistScale).addScaledVector(across, side * 0.022 * fistScale)],
+        [pr(0, 0.16 * fistScale, 0.16 * fistScale), pr(1, 0.13 * fistScale, 0.13 * fistScale)],
         { steps: 8, radial: 20, capEnd: 'round' }));
 
-      if (cfg.fingerRing && side === 1) {
+      // cfg.fingerRingBothWrists (חדש, קיטי) - טבעת גם על יד שמאל, לא
+      // רק ימין. אין בניית אצבעות נפרדות, אז "טבעות" (ברבים) על יד אחת
+      // אינו מיוצג - הריבוי מיוצג בעיקר דרך הצמידים המרובים.
+      if (cfg.fingerRing && (side === 1 || cfg.fingerRingBothWrists)) {
         const ring = new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.008, 8, 20), goldMat);
         ring.position.copy(wr.clone().addScaledVector(dir, 0.036));
         ring.quaternion.setFromUnitVectors(V(0, 0, 1), dir);
@@ -2126,14 +2973,184 @@ function createFighter(cfg) {
 
       // צמיד — כמו הטבעת אבל רחב יותר וקצת אחורה על שורש כף היד/האמה
       // במקום קדימה על האגרוף, כדי שלא יתנגש איתה.
-      if (cfg.bracelet && side === 1) {
-        const bracelet = new THREE.Mesh(new THREE.TorusGeometry(0.050, 0.010, 8, 20), goldMat);
-        bracelet.position.copy(wr.clone().addScaledVector(dir, -0.085));
-        bracelet.quaternion.setFromUnitVectors(V(0, 0, 1), dir);
-        bracelet.castShadow = true;
-        part(bracelet);
+      // צמידים - ברירת מחדל: אחד, רק יד ימין (כמו לורד/סלייקי). קולין
+      // ("מלא צמידי זהב") מבקש כמה, ועל שתי הידיים - cfg.braceletCount/
+      // cfg.braceletBothWrists מרחיבים בלי לגעת בברירת המחדל הקיימת.
+      if (cfg.bracelet && (side === 1 || cfg.braceletBothWrists)) {
+        const count = cfg.braceletCount ?? 1;
+        for (let i = 0; i < count; i++) {
+          const bracelet = new THREE.Mesh(new THREE.TorusGeometry(0.050, 0.010, 8, 20), goldMat);
+          bracelet.position.copy(wr.clone().addScaledVector(dir, -0.085 - i * 0.024));
+          bracelet.quaternion.setFromUnitVectors(V(0, 0, 1), dir);
+          bracelet.castShadow = true;
+          part(bracelet);
+        }
+      }
+
+      // טפרים - קירוב פשוט של "אצבעות עם טפרים": כמה חרוטים קטנים על
+      // חזית האגרוף (שהוא ממילא כדור מוכלל, לא אצבעות נפרדות), לא בניית
+      // יד עם אצבעות בפועל. נייטווינג ("טפרים קצרים וחדים").
+      if (cfg.claws) {
+        const clawMat = M(cfg.clawColor ?? 0x141414, 0.4);
+        [-1.5, -0.5, 0.5, 1.5].forEach((k) => {
+          const claw = new THREE.Mesh(new THREE.ConeGeometry(0.010, 0.045, 8), clawMat);
+          claw.position.copy(wr.clone()
+            .addScaledVector(dir, 0.086)
+            .addScaledVector(across, k * 0.0175)
+            .addScaledVector(up2, 0.014));
+          claw.quaternion.setFromUnitVectors(V(0, 1, 0), dir);
+          claw.castShadow = true;
+          part(claw);
+        });
       }
     });
+
+  // ---------- כנפיים ----------
+  // נייטווינג - "כנפיים ענקיות ושחורות עם קצוות מחודדות". לא משטח קרום
+  // רציף (מורכב מדי לבנייה כרגע) - כמה "אצבעות" שטוחות שיוצאות מאותה
+  // נקודת עוגן על הגב במניפה, בדיוק כמו אוזני החתול (כמה sweep-ים
+  // מאותו בסיס) רק גדולות, שטוחות (rz קטן מאוד) ולא ביחידות R כי הן
+  // גדולות בהרבה מהראש - ביחידות עולם מוחלטות, כמו מיקומי השלד עצמו.
+  if (cfg.wings) {
+    BIND = { bone: 'chest' };
+    const wingMat = M(cfg.wingColor ?? 0x0a0a0d, 0.75);
+    // cfg.wingStyle==='butterfly' (חדש, קיטי - "כנפי פרפר לא-אמיתיות
+    // (קישוט)") - שתי אונות עגולות ורחבות במקום ארבע אצבעות מחודדות:
+    // הקצה (t=1) נשאר רחב עם capEnd:'round' במקום להצטמצם לנקודה.
+    const butterfly = cfg.wingStyle === 'butterfly';
+    // cfg.wingScale (חדש, קראגור - "כנפי עטלף קטנים") - מכפיל אורך בלבד,
+    // לא נוגע בזווית (ang) כדי שהצורה/הפריסה של הכנף תישאר זהה, רק קטנה יותר.
+    const wingScale = cfg.wingScale ?? 1;
+    const FINGERS = (butterfly
+      ? [{ ang: 0.30, len: 0.28 }, { ang: 0.85, len: 0.22 }]
+      : [
+          { ang: 0.20, len: 0.40 },
+          { ang: 0.55, len: 0.56 },
+          { ang: 0.92, len: 0.52 },
+          { ang: 1.28, len: 0.36 },
+        ]).map(({ ang, len }) => ({ ang, len: len * wingScale }));
+    [-1, 1].forEach((s) => {
+      // ⚠️ ניסיון ראשון של הפרפר (rz עד 0.045, base ב-z-0.06) יצא גוש
+      // עבה ותפוח קרוב לכתף, לא כנף שטוחה - נראה ברינדור. תוקן עם rz
+      // דק בהרבה (כמו כנף העטלף שכבר עבדה) ובסיס רחוק יותר לאחור.
+      const base = V(s * 0.06, S.chest.y + 0.10, S.chest.z - (butterfly ? 0.10 : 0.06));
+      FINGERS.forEach(({ ang, len }) => {
+        const dir2 = V(Math.sin(ang) * s, Math.cos(ang) * 0.55, -0.35 - ang * 0.15).normalize();
+        const mid = base.clone().addScaledVector(dir2, len * 0.55);
+        const tip = base.clone().addScaledVector(dir2, len);
+        part(sweep(wingMat, [base, mid, tip], butterfly ? [
+          { t: 0, rx: 0.040, rz: 0.010 },
+          { t: 0.5, rx: 0.075, rz: 0.014 },
+          { t: 1, rx: 0.055, rz: 0.010 },
+        ] : [
+          { t: 0, rx: 0.050, rz: 0.014 },
+          { t: 0.5, rx: 0.075, rz: 0.010 },
+          { t: 1, rx: 0.004, rz: 0.004 },
+        ], { steps: 10, radial: 10, refDir: V(0, 1, 0), capStart: 'round', capEnd: butterfly ? 'round' : 'flat', domeScale: 0.5 }));
+      });
+    });
+  }
+
+  // ---------- קריסטל ענק בחזה ----------
+  // לוסטר - "במרכז החזה קריסטל ענק וזוהר שמכיל את האנרגיה שלו". עצמאי
+  // מ-cfg.chestCrestTex (שדורש חולצה/ז'קט) כי ללוסטר אין בגד כלל -
+  // תלוי ישירות על עצם החזה. MeshBasicMaterial (כמו עיניים זוהרות)
+  // כדי שייראה זוהר גם באזורים מוצללים, לא חומר רגיל שמתכהה בצל.
+  if (cfg.chestGem) {
+    BIND = { bone: 'chest' };
+    const gemMat = new THREE.MeshBasicMaterial({ color: cfg.chestGemColor ?? 0x6fe8f0 });
+    const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.075, 0), gemMat);
+    gem.position.set(0, S.chest.y - 0.02, S.chest.z + 0.10);
+    gem.rotation.y = Math.PI / 4;
+    part(gem);
+  }
+
+  // ---------- שריון זהב על החזה ----------
+  // צ'ארס - "שריון זהב על החזה". אותה טכניקה בדיוק כמו שריון הצב של
+  // פראנק (כיפה חלקית תלויה קשיח על עצם החזה) - רק קטנה יותר, זהובה,
+  // ועל *חזית* הגוף (z חיובי) במקום הגב (z שלילי): rotation.x=+π/2
+  // (לא -π/2 כמו הצב) ממפה את קוטב הכיפה מ-+Y ל-+Z, כלומר קדימה.
+  if (cfg.chestArmor) {
+    const armorMat = new THREE.MeshStandardMaterial({
+      color: cfg.chestArmorColor ?? 0xd9b23c, roughness: 0.25, metalness: 0.85,
+    });
+    const plate = new THREE.Mesh(
+      new THREE.SphereGeometry(0.11, 20, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), armorMat);
+    plate.position.set(0, S.chest.y + 0.01, S.chest.z + 0.08);
+    plate.rotation.x = Math.PI / 2;
+    plate.castShadow = true;
+    part(plate);
+  }
+
+  // ---------- חרבות בגב ----------
+  // סינזר - "יש לו גם חרבות בגב". קישוט קבוע (לא נשק מצויד בקרב), בנוי
+  // מאותה גיאומטריה בדיוק כמו 'חרב' בחנות (weaponShaft+guard+weaponBlade,
+  // ראה WEAPON_CFGS למטה) - קשיח על עצם החזה, בצד האחורי (z שלילי, כמו
+  // הכנפיים למעלה - "לא ביחידות R, ביחידות עולם מוחלטות כמו מיקומי השלד").
+  if (cfg.backSwords) {
+    BIND = { bone: 'chest' };
+    [-1, 1].forEach((s) => {
+      const sword = new THREE.Group();
+      sword.add(weaponShaft(0.11, 0.013, 0x2b2b2f));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, 0.02),
+        new THREE.MeshStandardMaterial({ color: 0xb9a06a, roughness: 0.3, metalness: 0.7 }));
+      guard.position.y = 0.11;
+      guard.castShadow = true;
+      sword.add(guard);
+      sword.add(weaponBlade(0.11, 0.42, 0.05, 0xd8dde3, 0.16));
+      sword.position.set(s * 0.07, S.chest.y - 0.08, S.chest.z - 0.09);
+      sword.rotation.z = s * 0.62;   // אלכסון - שתי החרבות יחד יוצרות X
+      sword.rotation.x = Math.PI * 0.08;
+      part(sword);
+    });
+  }
+
+  // ---------- חרמש ענק בגב ----------
+  // פרוקנט - "קוצר-נשמות... על הגב חרמש ענק אחד". קישוט קבוע, אותו
+  // עיקרון בדיוק כמו חרבות הגב של סינזר למעלה (BIND='chest', z שלילי
+  // ביחידות עולם מוחלטות) - רק להב מעוקל (TorusGeometry חלקי) במקום
+  // להב ישר, כדי שיהיה מזוהה כחרמש ולא כחרב שלישית.
+  if (cfg.backScythe) {
+    BIND = { bone: 'chest' };
+    const shaftMat = new THREE.MeshStandardMaterial({ color: 0x2b2b2f, roughness: 0.6 });
+    const bladeMat = new THREE.MeshStandardMaterial({ color: 0xb8bec5, roughness: 0.25, metalness: 0.65 });
+    const scythe = new THREE.Group();
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.62, 8), shaftMat);
+    shaft.position.y = 0.31;
+    shaft.castShadow = true;
+    scythe.add(shaft);
+    const blade = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.022, 8, 20, Math.PI * 1.15), bladeMat);
+    blade.position.y = 0.62;
+    blade.rotation.z = Math.PI * 0.15;
+    blade.castShadow = true;
+    scythe.add(blade);
+    scythe.position.set(0.04, S.chest.y + 0.02, S.chest.z - 0.10);
+    scythe.rotation.z = 0.30;
+    scythe.rotation.x = Math.PI * 0.06;
+    part(scythe);
+  }
+
+  // ---------- שריון צב ענק בגב ----------
+  // פראנק - "על הגב שלו יש שריון ענק של צב". חצי-כדור גדול (לא כדור שלם -
+  // אחרת ייראה כמו בלון תקוע בגב), קשיח על עצם החזה כמו הכנפיים/החרבות
+  // למעלה, ביחידות עולם מוחלטות כי הוא גדול משמעותית מהראש.
+  if (cfg.turtleShell) {
+    const shellMat = new THREE.MeshStandardMaterial({
+      color: cfg.shellColor ?? 0x5a6b3f, roughness: 0.8,
+      map: turtleShellTex('#5a6b3f', '#33401f'),
+    });
+    const shell = new THREE.Mesh(
+      new THREE.SphereGeometry(0.16, 24, 18, 0, Math.PI * 2, 0, Math.PI * 0.55), shellMat);
+    shell.position.set(0, S.chest.y + 0.02, S.chest.z - 0.13);
+    // ⚠️ ברירת המחדל של הכיפה (thetaStart=0) פונה כלפי מעלה (+Y, כמו
+    // "כובע" על קוטב הכדור), לא אחורה - סיבוב ראשון (Math.PI) יצא הפוך
+    // (קערה פתוחה קדימה, כמו צלחת לוויין) כי זה רק הפך את הכיוון לאורך
+    // אותו ציר, לא סובב אותו לציר אחר. נמצא ברינדור. rotation.x=-π/2
+    // ממפה את קוטב הכיפה (+Y) לכיוון -Z (אחורה, הרחק מעמוד השדרה).
+    shell.rotation.x = -Math.PI / 2;
+    shell.castShadow = true;
+    part(shell);
+  }
 
   // ---------- גופייה ----------
   // אותו מסלול של פלג הגוף + מרווח → צמודה, והשוליים עוקבים אחרי קו הגוף.
@@ -2142,7 +3159,11 @@ function createFighter(cfg) {
     // המסגרת של פלג הגוף היא N=+X, ולכן: θ=0 ימין, θ=π/2 גב, θ=π שמאל, θ=3π/2 חזית.
     // הקצה גבוה בכתפיים (שם נוצרות הכתפיות) ונמוך בחזית ובגב (המחשוף).
     // הזרוע יוצאת מבית החזה מתחת לקצה הגבוה — וזה מייצר את פתח השרוול.
-    const edgeU = (th) => 0.880 + 0.112 * Math.pow(Math.abs(Math.cos(th)), 2.1);
+    // cfg.necklineLow/necklineRange (חדש, לסטנבר) מנמיכים את נקודת השפל
+    // בחזית/בגב - "חור גדול לצוואר כמו פונצ'ו" - בלי לגעת בברירת המחדל.
+    const necklineLow = cfg.necklineLow ?? 0.880;
+    const necklineRange = cfg.necklineRange ?? 0.112;
+    const edgeU = (th) => necklineLow + necklineRange * Math.pow(Math.abs(Math.cos(th)), 2.1);
     const shirtProfile = (u) => {
       const b = profileAt(TORSO_PROFILE, u);
       return { rx: b.rx + 0.008, rz: b.rz + 0.008 };
@@ -2205,9 +3226,28 @@ function createFighter(cfg) {
   // אלה חלקים שלא אמורים להתעוות מבפנים, רק לפנות יחד עם הראש.
   BIND = { bone: 'head' };
   const HC = S.headCenter;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(R, 44, 34), skinMat);
+  // ראש "מעוך" (cfg.headSquish, סלייקי) - שטוח ורחב, במקום פרופורציית
+  // הראש הרגילה. משפיע גם על השיער (cap+RINGS למטה, שמשתמשים באותו
+  // headScale) כדי שהוא יישאר צמוד לצורת הגולגולת החדשה, לא לישנה.
+  // ראש ענק (cfg.bigHeadMult, מוקרוט) - הגדלה *אחידה* (לא מעוך) - קל
+  // יותר להתאים כי כל תו הפנים (עיניים/אף/פה/לסת) פשוט מתרחק פרופורציונלית
+  // ממרכז הראש לפי headMult, בלי לשנות יחס רוחב/גובה/עומק בין תו לתו.
+  const headMult = cfg.bigHeadMult ?? 1;
+  const headScale = cfg.headSquish
+    ? { x: 1.35, y: 0.60, z: 1.00 }
+    : { x: HEAD_SCALE.x * headMult, y: HEAD_SCALE.y * headMult, z: HEAD_SCALE.z * headMult };
+  // ראש משושה (cfg.hexHead, לוסטר - "עשוי כמעט כולו מגבישים... ראש
+  // משושה") - מנסרה שישתית (CylinderGeometry עם 6 מקטעים) במקום כדור.
+  // rotation.y=π/6 מסובב כך שפאה שטוחה (לא קודקוד) פונה קדימה - חשוב
+  // כדי שהחישוב הקיים של עומק הפנים (ez, ראה למטה) יישאר קרוב לנכון.
+  // אין לסת/סנטר לראש משושה - כדור רך לא הולם צורה גיאומטרית-קשיחה.
+  const head = cfg.hexHead
+    ? new THREE.Mesh(
+        new THREE.CylinderGeometry(R * 0.95 * headMult, R * 0.95 * headMult, R * 1.9 * headMult, 6), headMat)
+    : new THREE.Mesh(new THREE.SphereGeometry(R, 44, 34), headMat);
   head.position.copy(HC);
-  head.scale.set(HEAD_SCALE.x, HEAD_SCALE.y, HEAD_SCALE.z);
+  if (cfg.hexHead) head.rotation.y = Math.PI / 6;
+  else head.scale.set(headScale.x, headScale.y, headScale.z);
   head.castShadow = true;
   head.receiveShadow = true;
   part(head);
@@ -2215,15 +3255,69 @@ function createFighter(cfg) {
   // לסת וסנטר — מרככים את "הכדור המושלם" לצורת פנים
   // נשאר *בתוך* אליפסואיד הראש בכל הכיוונים חוץ מלמטה, ולכן הוא מוסיף סנטר
   // בלי ליצור טבעת תפר נראית סביב הפנים.
-  const jaw = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78, 34, 26), skinMat);
-  jaw.position.set(0, HC.y - R * 0.55, R * 0.05);
-  jaw.scale.set(0.68, 0.88, 0.78);
-  jaw.castShadow = true;
-  part(jaw);
+  if (!cfg.hexHead) {
+    const jaw = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78 * headMult, 34, 26), headMat);
+    jaw.position.set(0, HC.y - R * 0.55 * headMult, R * 0.05 * headMult);
+    jaw.scale.set(0.68, 0.88, 0.78);
+    jaw.castShadow = true;
+    part(jaw);
+  }
+
+  // ---------- זקן ----------
+  // חצי-אליפסואיד שמכסה את הלסת התחתונה והסנטר - קשיח על עצם הראש,
+  // בדיוק כמו הלסת עצמה (BIND כבר 'head' בקטע הזה). ברירת המחדל לצבע
+  // היא צבע השיער, כדי שזקן+שיער יתאימו בלי לבחור צבע נפרד.
+  // ⚠️ עומק (z): פני השטח האמיתיים של הלסת (jaw, מעל) מגיעים לכ-0.66R
+  // (מיקומה 0.05R + רדיוס אפקטיבי 0.78R*0.78≈0.61R) - זקן שממוקם קרוב
+  // מדי למרכז הראש (כמו ניסיון ראשון ב-0.20R) נבלע לגמרי בתוך הלסת
+  // ולא נראה בכלל. לכן המיקום כאן דוחף הרבה יותר קדימה, בדיוק כמו הלקח
+  // הטכני על מסכת סטנבר.
+  if (cfg.beard) {
+    const beardMat = M(cfg.beardColor ?? cfg.hair, 0.85);
+    if (cfg.beardLength) {
+      // זקן ארוך מאוד (cfg.beardLength, קראגור) - צינור מחודד שיורד
+      // מהסנטר, לא הכדור-שטוח הקטן למטה (מתאים לזקן קצר בלבד).
+      // ⚠️ ניסיון ראשון המשיך את העקומה המקורית (שנועדה לזקן-עז קצר
+      // שמתעקל *פנימה* לכיוון הגוף) ופשוט הגדיל את המרחק למטה - באורך
+      // גדול זה דחף את הקצה *מאחורי* פלג הגוף (שרדיוסו האמיתי, ביחידות
+      // עולם מוחלטות, גדול בהרבה מ-R הקטן של הראש) ופשוט נבלע שם, בלי
+      // שגיאה ובלי שנראה שהאורך בכלל השתנה. נמצא ברינדור. תוקן עם קו
+      // ישר שיורד *וגם* מתרחק קדימה (לא חוזר פנימה) ביחס ל-len - כך
+      // שהזקן תמיד נשאר לפני הגוף לכל אורך שהוא, כמו זקן שתלוי בחופשיות
+      // באוויר ולא נצמד לבית החזה.
+      const len = cfg.beardLength;
+      const start = V(0, HC.y - R * 0.78 * headMult, R * 0.60 * headMult);
+      const dir = V(0, -1, 0.10).normalize();
+      part(sweep(beardMat, [
+        start,
+        start.clone().addScaledVector(dir, len * 0.5 * R),
+        start.clone().addScaledVector(dir, len * R),
+      ], [
+        pr(0, 0.16, 0.13), pr(0.6, 0.10, 0.08), pr(1, 0.015, 0.015),
+      ], { steps: 14, radial: 12, refDir: V(1, 0, 0), capStart: 'round', capEnd: 'round', domeScale: 0.6 }));
+    } else {
+      const beard = new THREE.Mesh(new THREE.SphereGeometry(R * 0.55 * headMult, 24, 18), beardMat);
+      beard.position.set(0, HC.y - R * 1.00 * headMult, R * 0.36 * headMult);
+      beard.scale.set(0.80, 0.46, 0.52);
+      beard.castShadow = true;
+      part(beard);
+    }
+  }
 
   // ---------- אוזניים ----------
   [-1, 1].forEach((s) => {
-    if (cfg.ears === 'pointed') {
+    if (cfg.ears === 'pointed' && cfg.headSquish) {
+      // ⚠️ הנוסחה הרגילה של אוזן חדה (למטה) הונחה על ראש רגיל וצר - על
+      // ראש שטוח ורחב היא יוצאת קבורה כמעט לגמרי בתוך הגולגולת הרחבה
+      // הרבה יותר (נראה ברינדור). כאן האוזן יוצאת בעיקר *הצידה*, לאורך
+      // הרוחב של הראש, ולא כלפי מעלה כמו בראש הרגיל.
+      part(sweep(skinMat,
+        [V(s * R * 1.00, HC.y + R * 0.05, -R * 0.10),
+         V(s * R * 1.30, HC.y + R * 0.10, -R * 0.18),
+         V(s * R * 1.62, HC.y + R * 0.16, -R * 0.28)],
+        [pr(0, 0.28, 0.16), pr(0.55, 0.20, 0.10), pr(1, 0.04, 0.025)],
+        { steps: 14, radial: 20, refDir: V(0, 0, 1), capEnd: 'round', domeScale: 0.6 }));
+    } else if (cfg.ears === 'pointed') {
       part(sweep(skinMat,
         [V(s * R * 0.70, HC.y + R * 0.02, -R * 0.04),
          V(s * R * 1.00, HC.y + R * 0.62, -R * 0.26),
@@ -2239,50 +3333,175 @@ function createFighter(cfg) {
     }
   });
 
+  // ---------- אוזני חתול ----------
+  // תוספת מעל הראש (לא מחליפה את cfg.ears הרגילות בצד) - שני משולשים
+  // שמצביעים כלפי מעלה, עם חלק ורוד פנימי קטן יותר. צבע הפרווה הולך
+  // אחרי צבע השיער אם לא נקבע צבע נפרד (cfg.catFurColor).
+  // ⚠️ גובה: הניסיון הראשון (קצה ב-1.55R) נבלע לגמרי בתוך מסת השיער
+  // "הקצר" (שמגיע בפועל עד כ-1.4-1.5R) - נראה ברינדור, לא בקריאת קוד.
+  // הקצה הועלה ל-2.05R כדי לבלוט בבירור מעל השיער מכל זווית.
+  if (cfg.catEars) {
+    const furMat = M(cfg.catFurColor ?? cfg.hair, 0.75);
+    const innerMat = M(0xf2b6c6, 0.7);
+    [-1, 1].forEach((s) => {
+      part(sweep(furMat, [
+        V(s * R * 0.40, HC.y + R * 0.95, -R * 0.08),
+        V(s * R * 0.58, HC.y + R * 1.55, -R * 0.02),
+        V(s * R * 0.74, HC.y + R * 2.05, R * 0.05),
+      ], [
+        pr(0, 0.24, 0.24), pr(0.6, 0.15, 0.15), pr(1, 0.015, 0.015),
+      ], { steps: 10, radial: 14, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.6 }));
+
+      part(sweep(innerMat, [
+        V(s * R * 0.33, HC.y + R * 0.98, R * 0.00),
+        V(s * R * 0.46, HC.y + R * 1.45, R * 0.03),
+        V(s * R * 0.58, HC.y + R * 1.85, R * 0.06),
+      ], [
+        pr(0, 0.13, 0.13), pr(0.6, 0.08, 0.08), pr(1, 0.006, 0.006),
+      ], { steps: 8, radial: 10, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.6 }));
+    });
+  }
+
+  // ---------- קרניים קטנות פונות לאחור ----------
+  // נייטווינג - שתי קרניים קטנות שמתחילות למעלה על הראש ומתעקלות
+  // לאחור (z שלילי) במקום לצדדים כמו אוזני חתול. cfg.hornColor ברירת
+  // מחדל לצבע העור עצמו (קרן כהה שממשיכה את גוון הגוף).
+  if (cfg.backHorns) {
+    const hornMat = M(cfg.hornColor ?? cfg.skin, 0.5);
+    // cfg.hornScale (חדש, קראגור - "קרניים חדות וארוכות") מאריך את הקרן
+    // מנקודת הבסיס שלה על הראש (לא סתם מכפיל את כל הקואורדינטות, אחרת
+    // הבסיס עצמו היה זז ונשמט מהראש) - וקטור מהבסיס לכל נקודה מוכפל
+    // באורך, לא הנקודה המוחלטת.
+    const hornScale = cfg.hornScale ?? 1;
+    [-1, 1].forEach((s) => {
+      const base = V(s * R * 0.26, HC.y + R * 0.88, R * 0.10);
+      const mid = V(s * R * 0.32, HC.y + R * 1.05, -R * 0.15);
+      const tip = V(s * R * 0.36, HC.y + R * 1.18, -R * 0.42);
+      const midS = base.clone().add(mid.clone().sub(base).multiplyScalar(hornScale));
+      const tipS = base.clone().add(tip.clone().sub(base).multiplyScalar(hornScale));
+      part(sweep(hornMat, [base, midS, tipS], [
+        pr(0, 0.10 * Math.min(hornScale, 1.6), 0.10 * Math.min(hornScale, 1.6)), pr(0.6, 0.06, 0.06), pr(1, 0.008, 0.008),
+      ], { steps: 8, radial: 10, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.6 }));
+    });
+  }
+
+  // ---------- גבישי קריסטל מעל הראש ----------
+  // לוסטר - "גבישי קריסטלים גדולים מעל הראש כמו קרניים". חרוטים
+  // מרובעי-פאות (6 מקטעים, לא עגולים חלקים) כדי שייראו כמו גבישים
+  // מלוטשים ולא כמו קרניים אורגניות רכות.
+  if (cfg.headCrystals) {
+    const crystalMat = new THREE.MeshStandardMaterial({
+      color: cfg.crystalColor ?? 0x6fe8f0, roughness: 0.12, metalness: 0.25,
+    });
+    // פסגת הראש: על ראש משושה (לוסטר) זה חצי-הגובה של הצילינדר (0.95,
+    // קבוע - ראה בניית הראש למעלה); על ראש כדורי רגיל (פראנק) זה
+    // headScale.y - אחרת הגביש היה נבלע חלקית בתוך הכדור (0.95 < 1.10).
+    const crystalTopY = cfg.hexHead ? 0.95 : headScale.y;
+    [
+      { x: -0.34, len: 0.80, tilt: -0.20 },
+      { x: 0, len: 1.05, tilt: 0 },
+      { x: 0.34, len: 0.80, tilt: 0.20 },
+    ].forEach(({ x, len, tilt }) => {
+      const shard = new THREE.Mesh(new THREE.ConeGeometry(R * 0.22 * headMult, R * len * headMult, 6), crystalMat);
+      shard.position.set(x * R * headMult, HC.y + R * (crystalTopY + len * 0.5) * headMult, 0);
+      shard.rotation.z = tilt;
+      shard.castShadow = true;
+      part(shard);
+    });
+  }
+
+  // ---------- טבעת אור מעל הראש ----------
+  // צ'ארס - "ישות אור... טבעת אור מעל הראש". טבעת שטוחה זוהרת
+  // (MeshBasicMaterial כמו עיניים זוהרות - לא מושפעת מתאורה/צל) שצפה
+  // אופקית מעל הראש, לא נוגעת בו.
+  if (cfg.halo) {
+    const haloMat = new THREE.MeshBasicMaterial({ color: cfg.haloColor ?? 0xffe9a8 });
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(R * 0.75 * headMult, R * 0.055 * headMult, 12, 30), haloMat);
+    halo.position.set(0, HC.y + R * (headScale.y + 0.45) * headMult, 0);
+    halo.rotation.x = Math.PI / 2;
+    part(halo);
+  }
+
   // ---------- פנים ----------
   // עיניים קטנות ומבטאות כמו ברפרנס — לא עיניים ענקיות בסגנון אנימה
-  [-1, 1].forEach((s) => {
-    const ex = s * R * 0.40, ey = HC.y + R * 0.10, ez = R * 0.80;
+  // עין אחת (cfg.oneEye, סלייקי) - איטרציה על [0] בלבד (עין אחת במרכז,
+  // s=0) במקום [-1,1], עם sizeMult שמגדיל את כל חלקי העין כדי שהיא
+  // תיראה כמו עין דומיננטית אחת ולא כמו עין קטנה שאיבדה את הזוג שלה.
+  // הגבה מדלגת ב-one-eye: הנוסחה שלה תלויה ב-s לכיוון הקשת (s=0 הופך
+  // אותה לקו ישר מנוון), ומפלצת עם עין אחת ממילא לא צריכה גבה סימטרית.
+  const eyeSlots = cfg.oneEye ? [0] : [-1, 1];
+  // cfg.eyeSizeMult (חדש) מאפשר עיניים גדולות בלי עין-אחת (מוקרוט,
+  // "שתי עיניים צהובות גדולות") - עצמאי מ-oneEye, לא רק ברירת המחדל שלו.
+  const eyeSizeMult = cfg.eyeSizeMult ?? (cfg.oneEye ? 1.9 : 1);
+  eyeSlots.forEach((s) => {
+    const ex = s * R * 0.40 * headMult, ey = HC.y + R * 0.10 * headMult;
+    // ez=0.80R הונח על סמך הראש הרגיל (headScale.z=0.90). ראש שטוח ורחב
+    // (headScale.z=1.00, y=0.60) מזיז את פני השטח האמיתיים באותו גובה-עין
+    // קדימה (החישוב: z_surface = R*headScale.z*sqrt(1-(0.10/0.60)²)≈0.986R)
+    // - ez הישן יצא *מאחורי* פני הראש, והעין נבלעה כליל בלי להיראות בכלל.
+    // נמצא ברינדור (עין שלמה נעלמה), לא בחישוב מראש. תוקן עם מרווח קדימה.
+    // ראש ענק (headMult) מרחיק את פני השטח פרופורציונלית בכל הכיוונים
+    // (ראה ההערה על head.scale למעלה) - ez מוכפל גם הוא כדי להישאר צמוד.
+    // ראש משושה (hexHead) - הפאה השטוחה נמצאת באפותם המשושה
+    // (R*0.95*cos(30°)≈0.82R), לא על עקומת כדור - מספר קרוב אך שונה.
+    const ez = cfg.headSquish ? R * 1.05 : cfg.hexHead ? R * 0.85 * headMult : R * 0.80 * headMult;
     // (ez נבחר כך שחזית הלובן תעבור את פני הפנים בכ-0.001 בלבד)
 
+    // עיניים בצורת ברק זוהר (cfg.boltEyes, סינזר) - במקום גלגל עין שלם,
+    // רק פלאנה שטוחה עם ברק מלא צבוע עליה, זוהרת (MeshBasicMaterial) -
+    // "עיניים בצורת ברק" נלקח מילולית, לא "עין רגילה עם ברק בתוכה".
+    if (cfg.boltEyes) {
+      const bolt = new THREE.Mesh(
+        new THREE.PlaneGeometry(R * 0.34 * eyeSizeMult, R * 0.46 * eyeSizeMult), boltEyeMat);
+      bolt.position.set(ex, ey, ez + R * 0.02 * eyeSizeMult);
+      part(bolt);
+    } else {
     // פני הראש בגובה העין נמצאים ב-z=0.876R. כל שכבה כאן בולטת רק במעט מעל
     // קודמתה, אחרת גלגל העין יוצא ככדור מודבק על הפנים במקום עין שקועה בארובה.
-    const white = new THREE.Mesh(new THREE.SphereGeometry(R * 0.21, 24, 22), eyeWhiteMat);
+    const white = new THREE.Mesh(new THREE.SphereGeometry(R * 0.21 * eyeSizeMult, 24, 22), eyeWhiteMat);
     white.position.set(ex, ey, ez);
     white.scale.set(1, 0.70, 0.42);
     part(white);
 
     // הקשתית תופסת ~45% מרוחב העין, ולכן הלובן נראה משני צדדיה.
-    const iris = new THREE.Mesh(new THREE.SphereGeometry(R * 0.095, 20, 18), irisMat);
-    iris.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.055);
+    // ⚠️ ההיסטים הקטנים בין השכבות (0.055/0.088/0.105) הם ברמת "עין
+    // רגילה" - עם eyeSizeMult גדול (עין אחת מוגדלת) הלובן המוגדל בלע
+    // את הקשתית/האישון/הברק, כי הם בלטו קדימה רק במעט קבוע בעוד שהלובן
+    // עצמו גדל. נמצא ברינדור (עין לבנה בלי אישון) - תוקן עם היסטים
+    // שגדלים יחד עם eyeSizeMult, לא קבועים.
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(R * 0.095 * eyeSizeMult, 20, 18), irisMat);
+    iris.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.055 * eyeSizeMult);
     iris.scale.set(1, 1, 0.45);
     part(iris);
 
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(R * 0.042, 16, 14), pupilMat);
-    pupil.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.088);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(R * 0.042 * eyeSizeMult, 16, 14), pupilMat);
+    pupil.position.set(ex + s * R * 0.012, ey - R * 0.008, ez + R * 0.088 * eyeSizeMult);
     pupil.scale.set(1, 1, 0.45);
     part(pupil);
 
-    const glint = new THREE.Mesh(new THREE.SphereGeometry(R * 0.028, 10, 10), glintMat);
-    glint.position.set(ex + s * R * 0.058, ey + R * 0.062, ez + R * 0.105);
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(R * 0.028 * eyeSizeMult, 10, 10), glintMat);
+    glint.position.set(ex + s * R * 0.058, ey + R * 0.062, ez + R * 0.105 * eyeSizeMult);
     part(glint);
 
     // עפעף עליון — כיפה בצבע עור שמכסה את החלק העליון של גלגל העין.
     // בלי זה העין נשארת עיגול שלם והמבט יוצא פעור וקפוא.
     const lid = new THREE.Mesh(
-      new THREE.SphereGeometry(R * 0.222, 24, 18, 0, Math.PI * 2, 0, 0.85), skinMat);
+      new THREE.SphereGeometry(R * 0.222 * eyeSizeMult, 24, 18, 0, Math.PI * 2, 0, 0.85), skinMat);
     lid.position.set(ex, ey + R * 0.012, ez);
     lid.scale.set(1, 0.70, 0.44);
     lid.castShadow = true;
     part(lid);
+    }
 
-    // גבה עבה ומעוקלת (בולטת ברפרנס) — רצועה, לא קופסה
-    part(sweep(hairMat,
-      [V(ex - s * R * 0.30, HC.y + R * 0.235, R * 0.780),
-       V(ex,                HC.y + R * 0.290, R * 0.856),
-       V(ex + s * R * 0.30, HC.y + R * 0.245, R * 0.780)],
-      [pr(0, 0.04, 0.032), pr(0.5, 0.078, 0.055), pr(1, 0.04, 0.032)],
-      { steps: 10, radial: 14, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
+    if (!cfg.oneEye) {
+      // גבה עבה ומעוקלת (בולטת ברפרנס) — רצועה, לא קופסה
+      part(sweep(hairMat,
+        [V(ex - s * R * 0.30 * headMult, HC.y + R * 0.235 * headMult, R * 0.780 * headMult),
+         V(ex,                          HC.y + R * 0.290 * headMult, R * 0.856 * headMult),
+         V(ex + s * R * 0.30 * headMult, HC.y + R * 0.245 * headMult, R * 0.780 * headMult)],
+        [pr(0, 0.04, 0.032), pr(0.5, 0.078, 0.055), pr(1, 0.04, 0.032)],
+        { steps: 10, radial: 14, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
+    }
 
     // ריסים — שלוש קווצות דקות שיוצאות מהקצה העליון-חיצוני של העין ונפתחות
     // החוצה ומעלה. זה הסימן הכי ברור וקריא לפרצוף "של בת" בסגנון הזה,
@@ -2299,6 +3518,33 @@ function createFighter(cfg) {
       });
     }
   });
+
+  // ---------- צלקת מתחת לעין ----------
+  // סינזר - "צלקת מתחת לעין". דקאל שקוף קטן, ישירות על עצם הראש (לא
+  // דרך bodyDecal - זו בנויה סביב torsoCurve ולא מתאימה לפנים). מתחת
+  // לעין הימנית (s=1) בלבד - "מתחת לעין" יחיד, לא שתיים.
+  if (cfg.eyeScar) {
+    const scarMat = new THREE.MeshBasicMaterial({ map: eyeScarTex(), transparent: true, side: THREE.DoubleSide });
+    const scar = new THREE.Mesh(new THREE.PlaneGeometry(R * 0.22, R * 0.22), scarMat);
+    scar.position.set(R * 0.42 * headMult, HC.y - R * 0.14 * headMult, R * 0.90 * headMult);
+    part(scar);
+  }
+
+  // ---------- שפמים ----------
+  // שלושה קווים דקים בכל לחי, מהאף כלפי חוץ - אותה שיטה כמו הריסים
+  // למעלה (sweep דק שנפתח מבסיס לקצה), רק על הלחי ולא על העין.
+  if (cfg.whiskers) {
+    const whiskerMat = M(0xf5f0e6, 0.55);
+    [-1, 1].forEach((s) => {
+      const baseX = s * R * 0.30, baseY = HC.y - R * 0.30, baseZ = R * 0.76;
+      [[0.12], [0], [-0.12]].forEach(([dy]) => {
+        part(sweep(whiskerMat,
+          [V(baseX, baseY, baseZ), V(s * R * 1.05, baseY + R * dy, baseZ - R * 0.08)],
+          [pr(0, 0.014, 0.014), pr(1, 0.003, 0.003)],
+          { steps: 3, radial: 6, capStart: 'round', capEnd: 'round' }));
+      });
+    });
+  }
 
   // אף = גשר שיוצא מבין הגבות ויורד אל קצה מעוגל, ואז חוזר לתוך הפנים.
   // הגשר קבור בתוך הראש, ולכן אין תפר — רק הקצה בולט החוצה.
@@ -2336,7 +3582,9 @@ function createFighter(cfg) {
     ], [
       pr(0.00, 0.46, 0.34), pr(0.55, 0.42, 0.28), pr(1.00, 0.32, 0.20),
     ], { steps: 16, radial: 18, refDir: V(1, 0, 0), capEnd: 'round', domeScale: 0.6 }));
-    part(sweep(M(0x3f5a34, 0.8), [
+    // cfg.snoutJawColor (חדש, לונג) - ברירת המחדל היא הירוק המקורי של
+    // בונדרילו; לונג (דרקון צהוב) צריך שהלסת התחתונה תתאים לצבע גופו.
+    part(sweep(M(cfg.snoutJawColor ?? 0x3f5a34, 0.8), [
       V(0, sy - R * 0.26, sz + R * 0.05), V(0, sy - R * 0.30, sz + len * 0.86),
     ], [pr(0, 0.38, 0.20), pr(1, 0.28, 0.15)],
       { steps: 10, radial: 14, refDir: V(1, 0, 0), capEnd: 'round', domeScale: 0.6 }));
@@ -2351,25 +3599,67 @@ function createFighter(cfg) {
         part(t);
       });
     }
+    // ניבים ממש ארוכים (cfg.longFangs, לונג) - שני חרוטים גדולים בנוסף
+    // לשורת השיניים הקטנה, בקצה קדמי של הפה.
+    if (cfg.longFangs) {
+      [-1, 1].forEach((s) => {
+        const fang = new THREE.Mesh(new THREE.ConeGeometry(R * 0.08, R * 0.62, 6), toothMat);
+        fang.position.set(s * R * 0.32, sy - R * 0.30, sz + len * 0.22);
+        fang.rotation.x = Math.PI;
+        fang.castShadow = true;
+        part(fang);
+      });
+    }
   } else {
+    // cfg.noseLength/noseSharp (חדש, קיטי - "אף ארוך וקצת מחודד") -
+    // מאריכים רק את קצה האף (נקודת השיא, t=0.76) קדימה, ומצמצמים את
+    // הרוחב שם לחוד מחודד יותר. ברירת מחדל 1/1 = בדיוק האף הקיים.
+    const noseLen = cfg.noseLength ?? 1;
+    const noseSharp = cfg.noseSharp ?? 1;
     part(sweep(skinMat, [
-      V(0, HC.y + R * 0.20, R * 0.72),
-      V(0, HC.y + R * 0.00, R * 0.80),
-      V(0, HC.y - R * 0.15, R * 0.875),
-      V(0, HC.y - R * 0.27, R * 0.775),
+      V(0, HC.y + R * 0.20 * headMult, R * 0.72 * headMult),
+      V(0, HC.y + R * 0.00 * headMult, R * 0.80 * headMult),
+      V(0, HC.y - R * 0.15 * headMult, R * (0.775 + 0.10 * noseLen) * headMult),
+      V(0, HC.y - R * 0.27 * headMult, R * 0.775 * headMult),
     ], [
       pr(0.00, 0.040, 0.040), pr(0.42, 0.082, 0.078),
-      pr(0.76, 0.112, 0.106), pr(1.00, 0.078, 0.074),
+      pr(0.76, 0.112 * noseSharp, 0.106 * noseSharp), pr(1.00, 0.078, 0.074),
     ], { steps: 18, radial: 22, refDir: V(1, 0, 0), capStart: 'round', domeScale: 0.7 }));
   }
 
   // הפה מוסתר מאחורי החוטם של התנין, ולכן מדלגים עליו שם
   if (!cfg.snout) {
+    // cfg.mouthScale (חדש, מוקרוט - "פה קטן") - גודל הפה עצמו נפרד
+    // מ-headMult: ראש ענק לא אמור להביא איתו פה גדול יותר באופן אוטומטי.
+    const mouthScale = cfg.mouthScale ?? 1;
     const smile = new THREE.Mesh(
-      new THREE.TorusGeometry(R * 0.215, R * 0.034, 10, 26, Math.PI * 0.78), mouthMat);
-    smile.position.set(0, HC.y - R * 0.48, R * 0.775);
+      new THREE.TorusGeometry(R * 0.215 * mouthScale, R * 0.034 * mouthScale, 10, 26, Math.PI * 0.78), mouthMat);
+    smile.position.set(0, HC.y - R * 0.48 * headMult, R * 0.775 * headMult);
     smile.rotation.z = Math.PI * 1.10;
     part(smile);
+
+    // שיניים חדות בפה הרגיל (cfg.mouthTeeth, נייטווינג/מוקרוט) - שורת
+    // חרוטים קטנים מתחת לקשת החיוך, לא לאורך חוטם תנין ישר, אז המיקום
+    // כאן קירוב פשוט (מרווח שווה על ציר X) ולא טריגונומטריה של הטבעת -
+    // בחירה סגנונית, לא משטח שצריך להיות מדויק. goldIndices מאפשר שיניים
+    // בודדות בזהב (מוקרוט: "כמה שיניים בצבע זהב").
+    if (cfg.mouthTeeth) {
+      // cfg.mouthTeeth.stubby (חדש, פראנק - "שיניים קצרות ועבות") - חרוט
+      // רחב וקצר במקום ניב חד וארוך, אותה גיאומטריה בדיוק רק ביחס אחר.
+      const { count = 4, goldIndices = [], stubby = false } = cfg.mouthTeeth;
+      const toothMat = M(0xf6f4ec, 0.4);
+      const toothLen = (stubby ? 0.045 : 0.09) * mouthScale;
+      const toothRad = (stubby ? 0.050 : 0.028) * mouthScale;
+      for (let i = 0; i < count; i++) {
+        const t0 = (i + 0.5) / count - 0.5;
+        const tooth = new THREE.Mesh(
+          new THREE.ConeGeometry(R * toothRad, R * toothLen, 6), goldIndices.includes(i) ? goldMat : toothMat);
+        tooth.position.set(t0 * R * 0.30 * mouthScale, HC.y - R * 0.40 * headMult, R * 0.79 * headMult);
+        tooth.rotation.x = Math.PI;
+        tooth.castShadow = true;
+        part(tooth);
+      }
+    }
   }
 
   if (cfg.noseRing) {
@@ -2417,14 +3707,20 @@ function createFighter(cfg) {
       { steps: 8, radial: 8, refDir: V(0, 1, 0), capStart: 'round', capEnd: 'round' }));
   }
 
-  // עגיל באוזן - טבעת קטנה שתלויה מתחת לכל אוזן
+  // עגיל באוזן - טבעת קטנה שתלויה מתחת לכל אוזן. cfg.earRingCount (חדש,
+  // קיטי - "המון עגילי זהב באוזן") מוסיף עוד טבעות קטנות יותר בשורה
+  // עולה על תנוך האוזן, בנוסף לעגיל הראשון - ברירת מחדל 1 לא משנה כלום.
   if (cfg.earRing) {
+    const earRingCount = cfg.earRingCount ?? 1;
     [-1, 1].forEach((s) => {
-      const e = new THREE.Mesh(new THREE.TorusGeometry(R * 0.10, R * 0.028, 8, 16), goldMat);
-      e.position.set(s * R * 0.74, HC.y - R * 0.34, -R * 0.06);
-      e.rotation.y = Math.PI / 2;
-      e.castShadow = true;
-      part(e);
+      for (let i = 0; i < earRingCount; i++) {
+        const rad = R * (0.10 - i * 0.022);
+        const e = new THREE.Mesh(new THREE.TorusGeometry(Math.max(rad, R * 0.035), R * 0.022, 8, 16), goldMat);
+        e.position.set(s * R * 0.74, HC.y - R * 0.34 + i * R * 0.14, -R * 0.06 - i * R * 0.01);
+        e.rotation.y = Math.PI / 2;
+        e.castShadow = true;
+        part(e);
+      }
     });
   }
 
@@ -2438,23 +3734,116 @@ function createFighter(cfg) {
     part(t);
   }
 
+  // ---------- מסכת אגוז (סטנבר) ----------
+  // מכסה את כל הפנים - אליפסואיד שטוח שיושב *לפני* פני הפנים. ניסיון
+  // ראשון (קצה ב-~0.104R) יצא כמעט בלתי-נראה - נבלע כמעט לגמרי מאחורי
+  // האף (שמגיע ל-0.875R!) ותווי הפנים, ורק פינה קטנה בלטה. נמצא ברינדור,
+  // לא בחישוב - בדיוק הלקח "לחשב לא לנחש" עומק, רק שהניחוש הראשון פספס.
+  // תוקן עם קצה שיוצא הרבה יותר קדימה (~0.13R) ומעטפת גדולה יותר.
+  // חורי העיניים והפה לא גיאומטריה אמיתית (לא "רואים דרכם") - רק עיגולים
+  // כהים קשיחים לפני המסכה, שנותנים את האשליה בלי לסבך את הגיאומטריה.
+  if (cfg.walnutMask) {
+    // cfg.maskMetal (חדש, לוין - "מסכת ברזל") - אותה גיאומטריית מסכה
+    // בדיוק, רק חומר מתכתי חלק (roughness נמוך, metalness גבוה) במקום
+    // מרקם קליפת האגוז - שימוש חוזר במסכה השלמה שכבר נבנתה לסטנבר.
+    const maskMat = cfg.maskMetal
+      ? new THREE.MeshStandardMaterial({ color: cfg.maskColor ?? 0xc0c0c8, roughness: 0.2, metalness: 0.6 })
+      : new THREE.MeshStandardMaterial({
+          color: 0xffffff, roughness: 0.85,
+          map: walnutShellTex('#' + new THREE.Color(cfg.maskColor ?? 0x4a2e18).getHexString()),
+        });
+    const mask = new THREE.Mesh(new THREE.SphereGeometry(R * 0.78, 30, 24), maskMat);
+    mask.position.set(0, HC.y - R * 0.10, R * 0.62);
+    mask.scale.set(0.92, 1.15, 0.62);
+    mask.castShadow = true;
+    part(mask);
+
+    // חורי העיניים - ברירת מחדל חור כהה, אבל cfg.maskEyeColor (חדש)
+    // מאפשר "עיניים" זוהרות אדומות למסכת גיבור, כמו לוין.
+    const holeMat = new THREE.MeshBasicMaterial({ color: cfg.maskEyeColor ?? 0x0c0908 });
+    [-1, 1].forEach((s) => {
+      const hole = new THREE.Mesh(new THREE.CircleGeometry(R * 0.15, 20), holeMat);
+      hole.position.set(s * R * 0.40, HC.y + R * 0.10, R * 1.05);
+      part(hole);
+    });
+    const mouthHole = new THREE.Mesh(new THREE.CircleGeometry(R * 0.13, 20), holeMat);
+    mouthHole.position.set(0, HC.y - R * 0.46, R * 1.02);
+    part(mouthHole);
+  }
+
+  // ---------- מגן זכוכית עגול ----------
+  // לוין - "על הראש מגן זכוכית עגול שמחובר לחליפה". כיפת זכוכית
+  // שקופה-למחצה מעל הראש (לא כדור שלם - חצי עליון בלבד, אחרת הצד
+  // האחורי היה נראה כמו בועה סגורה מוזרה מכל זווית), וטבעת מתכת צווארון
+  // בבסיס הצוואר שנותנת את הרושם של "מחובר לחליפה" מתחתיו.
+  if (cfg.glassDome) {
+    const domeMat = new THREE.MeshStandardMaterial({
+      color: cfg.domeColor ?? 0xaee6f5, roughness: 0.08, metalness: 0.1,
+      transparent: true, opacity: 0.35, side: THREE.DoubleSide,
+    });
+    const dome = new THREE.Mesh(
+      new THREE.SphereGeometry(R * 1.05, 24, 18, 0, Math.PI * 2, 0, Math.PI * 0.62), domeMat);
+    dome.position.set(0, HC.y + R * 0.20, 0);
+    dome.rotation.x = -0.12;
+    part(dome);
+
+    const collarMat = new THREE.MeshStandardMaterial({
+      color: cfg.maskColor ?? 0xc0c0c8, roughness: 0.25, metalness: 0.55,
+    });
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(R * 0.95, R * 0.12, 12, 24), collarMat);
+    collar.position.set(0, HC.y - R * 0.68, 0);
+    collar.rotation.x = Math.PI / 2;
+    collar.castShadow = true;
+    part(collar);
+  }
+
   // ---------- שיער ----------
   // ברפרנס נפח השיער גדול ומקיף — הוא מה שנותן את הצללית, לא ראש גדול.
   // הכיפה מוטה לאחור: קו השיער בחזית עולה מעל המצח, ובעורף הוא יורד נמוך.
   // בלי ההטיה נוצר "קסדה" עם פס כהה חוצה שמסתיר את העיניים.
-  const cap = new THREE.Mesh(
-    new THREE.SphereGeometry(R * 1.02, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.54), hairMat);
-  cap.position.copy(HC);
-  cap.position.y += R * 0.06;
-  cap.position.z -= R * 0.21;
-  cap.rotation.x = -0.44;
-  // מסת השיער רחבה מהגולגולת עצמה — ברפרנס היא מה שנותן לראש את הנוכחות.
-  cap.scale.set(HEAD_SCALE.x * 1.04, HEAD_SCALE.y * 1.02, HEAD_SCALE.z * 1.04);
-  cap.castShadow = true;
-  part(cap);
+  // ⚠️ ראש שטוח ורחב (cfg.headSquish) + הכיפה הזו יחד כיסו את כל הפנים,
+  // כולל העין היחידה של סלייקי - נראה ברינדור (לא ניתן לחישוב מראש בלי
+  // לראות). הכיפה מדלגת שם - נשארים רק קוצי השיער הבודדים למטה, שנותנים
+  // מראה של "כתר קוצים" במקום קסדה שלמה, ולא קוברים את הפנים.
+  if (!cfg.headSquish && !cfg.bald) {
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(R * 1.02, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.54), hairMat);
+    cap.position.copy(HC);
+    cap.position.y += R * 0.06;
+    cap.position.z -= R * 0.21;
+    cap.rotation.x = -0.44;
+    // מסת השיער רחבה מהגולגולת עצמה — ברפרנס היא מה שנותן לראש את הנוכחות.
+    cap.scale.set(headScale.x * 1.04, headScale.y * 1.02, headScale.z * 1.04);
+    cap.castShadow = true;
+    part(cap);
+  }
 
-  const hx = R * HEAD_SCALE.x * 1.24, hy = R * HEAD_SCALE.y * 1.06, hz = R * HEAD_SCALE.z * 1.14;
-  const RINGS = [
+  // ---------- ברדס ----------
+  // פרוקנט - "עטוף בגלימה שחורה קרועה עם ברדס, בלי לראות פנים בכלל,
+  // רק עיניים זוהרות בתוך החשכה". אותה טכניקה בדיוק כמו כיפת השיער
+  // למעלה (כיפה חלקית שמוטה קדימה על המצח) - רק גדולה יותר, כהה, ומוטה
+  // קדימה עוד יותר כדי לצנוח נמוך על המצח ולהצל את הפנים. הפנים עצמן
+  // (עור כהה כמעט-שחור + עיניים זוהרות) עדיין נבנות כרגיל מתחת - ה"אי
+  // אפשר לראות פנים" מושג בעיקר בזכות עור כהה שנבלע בצל הברדס, לא
+  // חור אמיתי בגיאומטריה.
+  if (cfg.hood) {
+    const hoodMat = M(cfg.hoodColor ?? 0x0d0d0f, 0.9);
+    const hood = new THREE.Mesh(
+      new THREE.SphereGeometry(R * 1.30, 34, 26, 0, Math.PI * 2, 0, Math.PI * 0.62), hoodMat);
+    hood.position.copy(HC);
+    hood.position.y += R * 0.02;
+    hood.position.z -= R * 0.16;
+    hood.rotation.x = -0.55;
+    hood.scale.set(headScale.x * 1.12, headScale.y * 1.08, headScale.z * 1.12);
+    hood.castShadow = true;
+    part(hood);
+  }
+
+  // דמות קירחת (cfg.bald, קולין) - מדלגת על כל קווצות השיער (לא רק
+  // הכיפה למעלה). בלי הדגל הזה, אי-הגדרת hairStyle עדיין הייתה נופלת
+  // ל-branch ברירת המחדל (תלתול) למטה, לא משאירה ראש חלק.
+  const hx = R * headScale.x * 1.24, hy = R * headScale.y * 1.06, hz = R * headScale.z * 1.14;
+  const RINGS = cfg.bald ? [] : [
     { phi: 0.18, count: 7 }, { phi: 0.42, count: 12 }, { phi: 0.66, count: 16 },
     { phi: 0.90, count: 19 }, { phi: 1.14, count: 21 }, { phi: 1.38, count: 21 },
     { phi: 1.60, count: 18 },
@@ -2559,6 +3948,74 @@ function createFighter(cfg) {
     knot.position.set(HC.x, HC.y + R * 0.99, R * 0.10);
     knot.castShadow = true;
     part(knot);
+  }
+
+  // ---------- כובע סיני חרוטי ----------
+  // לונג - "כובע סיני צהוב". חרוט רחב ושטוח (כמו דוֹלִי/כובע קש סיני)
+  // עם שוליים גליליים נמוכים בבסיסו, יושב על קודקוד הראש.
+  if (cfg.conicalHat) {
+    const hatMat = M(cfg.hatColor ?? 0xe8c93a, 0.6);
+    const hat = new THREE.Mesh(new THREE.ConeGeometry(R * 1.35, R * 0.85, 24), hatMat);
+    hat.position.set(0, HC.y + R * 1.25, R * 0.05);
+    hat.castShadow = true;
+    part(hat);
+    const brim = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.35, R * 1.35, R * 0.06, 24), hatMat);
+    brim.position.set(0, HC.y + R * 0.85, R * 0.05);
+    brim.castShadow = true;
+    part(brim);
+  }
+
+  // ---------- כובע פטרייה ----------
+  // מוקרוט - "פטרייה על הראש": כיפה רחבה ושטוחה (כמו כובע פטרייה) על
+  // "גבעול" גליל קצר, יושבת על קודקוד הראש. מוכפל ב-headMult כמו כל
+  // שאר תווי הראש, כדי שיישאר יחסי לראש הענק.
+  if (cfg.mushroomCap) {
+    const capMat = M(cfg.mushroomCapColor ?? 0xb8304a, 0.6);
+    const stemMat = M(cfg.mushroomStemColor ?? 0xf2ead6, 0.7);
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(R * 0.95 * headMult, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.5), capMat);
+    cap.position.set(0, HC.y + R * 1.15 * headMult, 0);
+    cap.scale.set(1.35, 0.75, 1.35);
+    cap.castShadow = true;
+    part(cap);
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(R * 0.28 * headMult, R * 0.34 * headMult, R * 0.35 * headMult, 16), stemMat);
+    stem.position.set(0, HC.y + R * 0.95 * headMult, 0);
+    stem.castShadow = true;
+    part(stem);
+    if (cfg.mushroomSpots) {
+      const spotMat = M(0xf5efe0, 0.5);
+      for (let i = 0; i < 6; i++) {
+        const ang = (i / 6) * Math.PI * 2;
+        const spot = new THREE.Mesh(new THREE.SphereGeometry(R * 0.10 * headMult, 10, 8), spotMat);
+        spot.position.set(
+          Math.cos(ang) * R * 0.65 * headMult, HC.y + R * 1.25 * headMult, Math.sin(ang) * R * 0.65 * headMult);
+        part(spot);
+      }
+    }
+  }
+
+  // ---------- שורשים ירוקים מהגב ----------
+  // מוקרוט - "מהגב שלו צומחים שורשים קטנים וירוקים שזזים כשהוא זז".
+  // כמה קווצות דקות ומעוקלות מנקודת עוגן אחת על עצם החזה (כמו הכנפיים
+  // של נייטווינג), פונות אחורה. התנועה בפועל ("שזזים") לא מומשה - אין
+  // כרגע מנגנון אנימציית-משנה (secondary motion) לחלקים כאלה במשחק.
+  if (cfg.backRoots) {
+    BIND = { bone: 'chest' };
+    const rootMat = M(cfg.rootColor ?? 0x3a7a3a, 0.7);
+    [
+      { ang: -0.30, len: 0.22 }, { ang: 0.10, len: 0.30 },
+      { ang: 0.50, len: 0.20 }, { ang: 0.85, len: 0.26 },
+    ].forEach(({ ang, len }, i) => {
+      const s = i % 2 === 0 ? -1 : 1;
+      const base = V(s * 0.05, S.chest.y - 0.05, S.chest.z - 0.06);
+      const dir = V(Math.sin(ang) * s * 0.6, -0.3 - ang * 0.1, -0.7).normalize();
+      const mid = base.clone().addScaledVector(dir, len * 0.6);
+      const tip = base.clone().addScaledVector(dir, len);
+      part(sweep(rootMat, [base, mid, tip], [
+        { t: 0, rx: 0.018, rz: 0.018 }, { t: 0.6, rx: 0.012, rz: 0.012 }, { t: 1, rx: 0.003, rz: 0.003 },
+      ], { steps: 10, radial: 8, refDir: V(0, 1, 0), capStart: 'round', domeScale: 0.6 }));
+    });
   }
 
   return { group: g, parts };
@@ -2957,14 +4414,174 @@ const BONDRILO_CFG = {
   boots: null,
 };
 
+// נייטווינג (רמה 6) - "מפלצת עטלף אפלה, גוף שחור ודק עם שרירים קטנים
+// ועיניים גדולות וזוהרות בצבע סגול וכנפיים ענקיות ושחורות עם קצוות
+// מחודדות ועל הראש שתי קרניים קטנות שפונות לאחור ושיניים חדות אבל לא
+// גדולות ועל החזה סמל סגול בצורת ברק, טפרים קצרים וחדים על האצבעות,
+// רגליים ארוכות וחזקות." חמש יכולות חדשות בבונה הדמויות: cfg.glowEyes
+// (עיניים לא-מושפעות מתאורה, ראה irisMat/pupilMat למעלה), cfg.wings
+// (כמה "אצבעות" שטוחות ממניפה אחת על הגב, לא קרום רציף), cfg.backHorns
+// (קרניים קטנות שמתעקלות לאחור, לא לצדדים כמו אוזני חתול), cfg.mouthTeeth
+// (שיניים על הפה הרגיל, לא רק על חוטם תנין), ו-cfg.claws (חרוטים קטנים
+// על חזית האגרוף - קירוב, אין בניית אצבעות אמיתית). "רגליים ארוכות" לא
+// מומש (אין מנגנון לשינוי אורך גפיים כרגע).
+const NIGHTWING_CFG = {
+  power: 8.0, speed: 8.5,
+  skin: 0x1c1a22,
+  hair: 0x0c0a10,
+  bald: true,
+  eyeColor: 0x9b30ff,
+  glowEyes: true,
+  ears: 'pointed',
+  backHorns: true,
+  hornColor: 0x0c0a10,
+  mouthTeeth: { count: 4 },
+  chestCrestTex: () => lightningBadgeTex('#151318', '#9b30ff'),
+  wings: true,
+  wingColor: 0x08070a,
+  claws: true,
+  clawColor: 0x0a0a0a,
+  top: null,
+  pants: null,
+  boxers: 0x0e0d12,
+  boots: null,
+};
+
+// לונג (רמה 7) - "רובוט סיני עם כובע סיני צהוב וגוף דרקון צהוב, ניבים
+// ממש ארוכים ושפם חתול ארוך." השלד המשותף לכל הדמויות הוא תמיד אנושי
+// (זרועות/רגליים/שלד קרב), אז "גוף דרקון" מתפרש כאן כסגנון (חוטם דרקון,
+// זנב, קשקשים בצבע) על גוף אנושי, לא דרקון מרובע-רגליים אמיתי - בניית
+// שלד לא-אנושי חדש חורגת מהיקף הכלים הקיימים. שתי יכולות חדשות:
+// cfg.conicalHat (כובע סיני חרוטי) ו-cfg.longFangs (ניבים גדולים בנוסף
+// לשיניים הרגילות של cfg.snout). cfg.snoutJawColor (חדש) מאפשר ללסת
+// התחתונה של החוטם להיות בצבע הדרקון (צהוב) במקום ירוק בונדרילו הקבוע.
+// שפם חתול = cfg.whiskers הקיים (מברטו). זנב = cfg.catTail הקיים,
+// בצבע צהוב תואם, בלי פסים.
+const LONG_CFG = {
+  power: 8.4, speed: 7.5,
+  skin: 0xd9b32a,
+  hair: 0x2a1f10,
+  bald: true,
+  eyeColor: 0x8a1f1f,
+  ears: 'round',
+  snout: true,
+  snoutJawColor: 0xb8912a,
+  longFangs: true,
+  whiskers: true,
+  conicalHat: true,
+  hatColor: 0xe8c93a,
+  catTail: true,
+  catFurColor: 0xd9b32a,
+  tailLength: 1.3,
+  top: null,
+  pants: null,
+  boxers: 0x2a2a2a,
+  boots: null,
+};
+
+// קולין (רמה 8) - "דמות אנימה שדומה ללופי, לנאמי ולזורו, כל הגוף שלו
+// קעקועים כולל הראש והוא קירח, מלא צמידי זהב, מכנסיים קרועים ולבנים,
+// קוביות בטן, בלי חולצה." לא עותק של דמויות אמיתיות - רק הרכב הפריטים
+// שהמשתמש פירט (קעקועים/קרחת/צמידים/בטן/בלי חולצה). יכולת חדשה:
+// cfg.tattooedSkin (ראה skinMat למעלה - שימוש חוזר ב-catStripeTex).
+// הרחבת bracelet הקיים ל-braceletCount+braceletBothWrists ("מלא צמידי
+// זהב", לא רק אחד). "מכנסיים קרועים" (התפר המשונן, כמו tornHem לחולצה)
+// לא מומש על מכנסיים - מנגנון ה-garment של הרגליים לא תומך בקצה תלוי-
+// זווית כרגע; המכנסיים הלבנים בכל זאת קיימים, רק חלקים ולא עם שוליים
+// משוננים בפועל.
+const COLIN_CFG = {
+  power: 8.9, speed: 9.0,
+  skin: 0xc98a56,
+  tattooedSkin: true,
+  bald: true,
+  eyeColor: 0x2e2016,
+  ears: 'round',
+  abs: true,
+  bracelet: true,
+  braceletCount: 4,
+  braceletBothWrists: true,
+  top: null,
+  pants: 0xf2f0ea,
+  boots: null,
+};
+
+// מוקרוט (רמה 9) - "ראש ענק עם פטרייה על הראש, גוף אדום-סגול עם נקודות
+// זוהרות, שתי עיניים צהובות גדולות, פה קטן עם כמה שיניים חדות וכמה
+// שיניים בצבע זהב, גוף קטן ועגלגל, שתי רגליים קצרות וחזקות, ידיים
+// ארוכות עם אצבעות דקיקות, ומהגב שלו צומחים שורשים קטנים וירוקים
+// שזזים כשהוא זז." ארבע יכולות חדשות: cfg.bigHeadMult (הגדלה אחידה של
+// הראש - ראה headMult למעלה, שמזיז פרופורציונלית גם עיניים/אף/פה/לסת),
+// cfg.eyeSizeMult (עיניים גדולות בלי עין-אחת), cfg.mushroomCap (כובע
+// פטרייה על הראש), cfg.glowDotsSkin (נקודות בהירות על העור - לא זוהר
+// אמיתי, ראה glowDotsTex), ו-cfg.backRoots (שורשים סטטיים מהגב -
+// "שזזים" לא מומש, אין מנגנון אנימציית-משנה). "גוף קטן ועגלגל, רגליים
+// קצרות, ידיים ארוכות עם אצבעות דקיקות" לא מומשו - אין מנגנון לשינוי
+// יחסי גוף/גפיים כרגע.
+const MUKROT_CFG = {
+  power: 9.4, speed: 8.0,
+  skin: 0x7a2f5e,
+  glowDotsSkin: true,
+  glowDotsColor: 0xffd8a0,
+  bald: true,
+  eyeColor: 0xf2d21a,
+  eyeSizeMult: 1.35,
+  bigHeadMult: 1.30,
+  mouthScale: 0.6,
+  ears: 'round',
+  mouthTeeth: { count: 5, goldIndices: [1, 3] },
+  mushroomCap: true,
+  mushroomCapColor: 0xb8304a,
+  mushroomSpots: true,
+  backRoots: true,
+  top: null,
+  pants: null,
+  boxers: 0x2a1a22,
+  boots: null,
+};
+
+// לוסטר (רמה 10, האחרון) - "עשוי כמעט כולו מגבישים. ראש משושה וגבישי
+// קריסטלים גדולים מעל הראש כמו קרניים. עיניים זוהרות בצבע תכלת. רגליים
+// עבות וכבדות עם גבישים גדולים מסביב לברכיים. במרכז החזה קריסטל ענק
+// וזוהר שמכיל את האנרגיה שלו." חמש יכולות חדשות: cfg.crystalSkin (חומר
+// מבריק במקום טקסטורה - ראה skinMat למעלה), cfg.hexHead (מנסרה שישתית
+// במקום כדור, כולל דילוג על הלסת), cfg.headCrystals (גבישים חדים מעל
+// הראש), cfg.kneeCrystals (אשכולות גביש על הברכיים), ו-cfg.chestGem
+// (קריסטל זוהר עצמאי בחזה, לא תלוי בבגד כמו chestCrestTex). עיניים
+// זוהרות תכלת = cfg.glowEyes הקיים (מנייטווינג) עם eyeColor מתאים.
+// "רגליים עבות וכבדות" לא מומש (אין מנגנון לעובי גפיים).
+const LUSTER_CFG = {
+  power: 10, speed: 7.0,
+  skin: 0x4fb8d8,
+  crystalSkin: true,
+  hexHead: true,
+  bald: true,
+  eyeColor: 0x2fe8f0,
+  glowEyes: true,
+  ears: 'round',
+  headCrystals: true,
+  crystalColor: 0x6fe8f0,
+  kneeCrystals: true,
+  chestGem: true,
+  chestGemColor: 0x6fe8f0,
+  top: null,
+  pants: null,
+  boxers: 0x1a3a42,
+  boots: null,
+};
+
 // רשימת האויבים לפי רמות. `enemy` הוא let (כמו player) כדי שאפשר יהיה
 // להחליף אותו בין קרבות - ראה switchEnemy למטה.
 const ENEMY_LEVELS = [
-  { name: 'בו',       cfg: BO_CFG,        hp: 75  },
-  { name: 'זומי',     cfg: ZOOMI_CFG,     hp: 95  },
-  { name: 'ברדי',     cfg: BREDY_CFG,     hp: 120 },
-  { name: 'זיק',      cfg: ZIK_CFG,       hp: 150 },
-  { name: 'בונדרילו', cfg: BONDRILO_CFG,  hp: 190 },
+  { name: 'בו',        cfg: BO_CFG,        hp: 75  },
+  { name: 'זומי',      cfg: ZOOMI_CFG,     hp: 95  },
+  { name: 'ברדי',      cfg: BREDY_CFG,     hp: 120 },
+  { name: 'זיק',       cfg: ZIK_CFG,       hp: 150 },
+  { name: 'בונדרילו',  cfg: BONDRILO_CFG,  hp: 190 },
+  { name: 'נייטווינג', cfg: NIGHTWING_CFG, hp: 230 },
+  { name: 'לונג',      cfg: LONG_CFG,      hp: 275 },
+  { name: 'קולין',     cfg: COLIN_CFG,     hp: 325 },
+  { name: 'מוקרוט',    cfg: MUKROT_CFG,    hp: 380 },
+  { name: 'לוסטר',     cfg: LUSTER_CFG,    hp: 440 },
 ];
 let enemyLevel = 0;
 let enemy = makeFighter(ENEMY_LEVELS[0].cfg, 1.7, -1, ENEMY_LEVELS[0].hp);
@@ -3098,6 +4715,320 @@ const LIZZY_CFG = {
   crocColor: 0xe85f9c,
   boots: null,            // הקרוקס מחליפים את הנעליים
 };
+
+// ברטו - "נראה כמו חתול": אוזני חתול, זנב ושפמים (יכולות חדשות, ראה
+// cfg.catEars/cfg.catTail/cfg.whiskers) מעל גוף אנושי רגיל. חגורה
+// (עם cfg.belt - חגורה גם על מכנס קצר, לא רק ג'ינס ארוך), מכנסיים
+// קצרצרים, בלי חולצה, ויחף - בדיוק לפי game-spec.md. צבעים לא תוארו
+// באפיון - נבחר בהתחלה ג'ינג'י, ואז המשתמש ביקש מפורשות "אפור עם פסי
+// חתול על הראש" (cfg.catStripes - חדש, ראה catStripeTex) - הוסר גם
+// glasses לפי בקשה. עור/פרווה (ears+tail) אפורים תואמים, שיער אפור-פחם
+// כהה יותר לניגוד, עיניים ענבר נשארו (מתאימות גם לחתול אפור).
+// ⚠️ גוון אפור-בינוני (כמו 0x9aa3a6 שנוסה קודם) "נשטף" כמעט ללבן על עור -
+// לא רק על ז'קטים, כמו שתועד קודם (ראה CLAUDE.md, לקח על פלייטי/ברייק) -
+// אותה תופעה בדיוק חלה גם על צבע עור. נבדק ברינדור: אותו 0x9aa3a6 בדיוק
+// על סווארק (לניסוי) יצא לבן כמעט מלא בגוף. תוקן לגוון כהה יותר, כבר
+// מוכח שורד את התאורה (זהה לז'קט של ליזי).
+const BERTO_CFG = {
+  power: 8.6, speed: 8.6,
+  skin: 0x4a4f57,
+  hair: 0x2b2e33,
+  hairStyle: 'short',
+  eyeColor: 0xc9932e,
+  ears: 'round',
+  catEars: true,
+  catTail: true,
+  catStripes: true,
+  catFurColor: 0x4a4f57,
+  whiskers: true,
+  top: null,
+  pants: 0x33414f,
+  pantsLength: 0.22,      // "קצרצרים" - קצר משמעותית ממכנסי הספורט הרגילים (0.34-0.40)
+  shorts: true,
+  belt: true,
+  boots: null,            // יחף
+};
+
+// סטנבר - "ילד אתיופי, עור בגוון חום. מכנסיים מעור שור. חולצה בלי
+// שרוולים עם חור גדול לצוואר (כמו פונצ'ו). שיער קצוץ קצר בצבע שחור.
+// נעליים מעץ. מסכה בצורת אגוז על הפנים." לפי game-spec.md.
+// יכולות חדשות: cfg.walnutMask (מסכה מלאה - המשתמש אישר שהיא מכסה את
+// כל הפנים, לא רק את העיניים), cfg.necklineLow/necklineRange (חור צוואר
+// גדול בחולצה - כללי, שימושי לכל דמות עתידית עם צווארון פתוח), ו-
+// cfg.pantsLeather (מרקם עור על המכנס במקום ג'ינס). "נעליים מעץ" קורבה
+// כצבע בלבד על מנגנון הנעליים הקיים - אין עדיין צורת קלוג ייעודית.
+// עיניים לא תוארו (ממילא כמעט לא נראות מתחת למסכה) - נבחר חום כהה.
+// ⚠️ אותו לקח *שוב* (אחרי ברטו): עור/בד בגוון בינוני "נשטף" בהיר משמעותית
+// תחת התאורה החזקה של הזירה. 0x6b4226/0xc9a15a הראשונים יצאו ברינדור
+// בהירים בהרבה ממה שתוכנן (חום כהה יצא כמעט כמו העור הבהיר של דמויות
+// אחרות). הוכהו משמעותית משם - שוב נמצא ברינדור, לא בבחירה מראש.
+const STANBER_CFG = {
+  power: 8.9, speed: 9.5,
+  skin: 0x40270f,
+  hair: 0x141212,
+  hairStyle: 'short',
+  eyeColor: 0x3a2415,
+  ears: 'round',
+  walnutMask: true,
+  // "פונצ'ו" - בכוונה *בהיר* מהעור (לא כהה כמוהו): מהניסיון עם המסכה,
+  // צבע שנשטף בהיר תחת התאורה נותן דווקא ניגוד טוב מול עור כהה יותר -
+  // נעשה שימוש מודע באפקט, לא רק תיקון שלו.
+  top: 0x8a6a35,
+  necklineLow: 0.74,       // חור צוואר גדול (ברירת מחדל 0.88)
+  pants: 0x5a3c20,
+  pantsLeather: true,      // "מעור שור"
+  boots: 0x6b451f,         // קירוב ל"נעליים מעץ"
+};
+
+// סלייקי - "עור בגווני צהוב ואדום. ראש 'מעוך' עם עין אחת. שיער עשוי
+// קווים עבים מאוד שזזים, בצבע כחול. בלי בגדים (דמות מפלצת, לא אנושית).
+// זנב ארוך עם פסים אדומים. אוזניים חדות. גוף שרירי עם בטן קוביות." לפי
+// game-spec.md. לפני בנייה נשאלו שתי שאלות הבהרה - המשתמש בחר: ראש
+// מעוך = שטוח ורחב (לא צר וארוך), וצבעי העור = אדום משולב עם צהוב על
+// כל הגוף (לא רק כתמים/פסים מקומיים).
+// שלוש יכולות חדשות: cfg.mottledSkin (מרקם כתמים חוזר על skinMat עצמו -
+// כל הגוף, לא רק הראש כמו catStripes), cfg.headSquish (חלופת headScale
+// שטוחה ורחבה במקום HEAD_SCALE, כולל השיער שתלוי בה), ו-cfg.oneEye
+// (עין מרכזית אחת מוגדלת, מדלגת על הגבה שנשברת בלי שני צדדים). גם
+// cfg.tailLength/cfg.tailStripeColor חדשים על cfg.catTail הקיים (ראה שם).
+// "בלי בגדים" - אותה שיטה כמו בו: top/pants null, בוקסר בלבד ליחף.
+const SLAIKY_CFG = {
+  power: 9.2, speed: 10,
+  skin: 0xd4a91f,
+  mottledSkin: true,
+  mottledColor2: 0xb3241f,
+  hair: 0x2255c9,
+  hairStyle: 'spiky',
+  eyeColor: 0x3ec23e,
+  ears: 'pointed',
+  headSquish: true,
+  oneEye: true,
+  abs: true,
+  catTail: true,
+  catFurColor: 0xd4a91f,
+  tailStripeColor: 0xb3241f,
+  tailLength: 1.6,
+  top: null,
+  pants: null,
+  boxers: 0x1a1a1a,
+  boots: null,
+};
+
+// קיטי - "ילדה-אריה: רעמה סגולה, אף ארוך וקצת מחודד. גופיית בטן ורודה.
+// כנפי פרפר לא-אמיתיות (קישוט) על הגב. מכנסיים בגווני ורוד-סגול. גוף
+// שרירי. המון צמידים וטבעות על היד, והמון עגילי זהב באוזן." לפי
+// game-spec.md. בניגוד לברטו/סלייקי, "ילדה-אריה" כאן מתואר רק דרך שיער
+// ואף - לא אוזני חתול (לא הוזכרו במפורש בתיאור המדויק, אז לא נוספו).
+// שלוש יכולות חדשות: cfg.noseLength/noseSharp (אף ארוך ומחודד - מותח
+// רק את קצה האף הקיים קדימה ומצמצם אותו שם), cfg.wingStyle='butterfly'
+// (הרחבת cfg.wings הקיים מנייטווינג - שתי אונות עגולות במקום ארבע
+// אצבעות מחודדות, "לא-אמיתיות (קישוט)" ולכן ורודות ולא שחורות), ו-
+// cfg.earRingCount/fingerRingBothWrists (הרחבת עגיל/טבעת הקיימים ל"המון").
+// כנפי הקישוט קשיחות (כמו אצל נייטווינג) ולא באמת מעופפות - זה בסדר,
+// האפיון עצמו אומר "לא-אמיתיות".
+const KITTY_CFG = {
+  power: 9.5, speed: 9.9,
+  skin: 0xf0c8a0,
+  hair: 0x9b4fd8,
+  hairStyle: 'spiky',
+  eyeColor: 0xc9932e,
+  ears: 'round',
+  noseLength: 1.15,
+  noseSharp: 0.75,
+  top: 0xf07ab4,
+  topHem: 0.36,
+  abs: true,
+  pants: 0x8a3fa8,
+  pantsStripeColor: 0xf07ab4,
+  wings: true,
+  wingStyle: 'butterfly',
+  wingColor: 0xe86fc9,
+  bracelet: true,
+  braceletCount: 3,
+  braceletBothWrists: true,
+  fingerRing: true,
+  fingerRingBothWrists: true,
+  earRing: true,
+  earRingCount: 3,
+  boots: 0x5a2f6a,
+};
+
+// לוין - "חליפת ברזל כסופה עם נגיעות אדום בהיר, נוצצת וזוהרת. מסכת
+// ברזל על הפנים. על הראש מגן זכוכית עגול שמחובר לחליפה." לפי
+// game-spec.md - הדמות האחת-עשרה והאחרונה, הכי יקרה (750₪). "חליפת
+// ברזל" מתפרשת כגוף מתכתי אחיד (בלי בגד נפרד מעל) - cfg.crystalSkin
+// (מלוסטר) כבר נותן בדיוק את המראה המבריק/מתכתי הזה, ולכן משמש כאן
+// כ"עור" שהוא בעצם החליפה עצמה, בלי pants/top נפרדים.
+// שתי יכולות חדשות (הרחבה של cfg.walnutMask הקיים מסטנבר):
+// cfg.maskMetal (מסכה מתכתית חלקה במקום מרקם קליפת אגוז) ו-
+// cfg.maskEyeColor (חורי עיניים זוהרים אדומים במקום כהים - "נגיעות
+// אדום"). יכולת חדשה שלישית: cfg.glassDome - כיפת זכוכית שקופה-למחצה
+// מעל הראש עם טבעת צווארון מתכתית, שנותנת את הרושם של "מחובר לחליפה".
+// קריסטל החזה הזוהר (cfg.chestGem, מלוסטר) משמש כאן כליבת אנרגיה
+// אדומה - "נוצצת וזוהרת" מתאים לו במדויק.
+const LEWIN_CFG = {
+  power: 10, speed: 10,
+  skin: 0xbfc4c9,
+  crystalSkin: true,
+  bald: true,
+  eyeColor: 0x2a2a2a,
+  ears: 'round',
+  walnutMask: true,
+  maskMetal: true,
+  maskColor: 0xd8dce0,
+  maskEyeColor: 0xff3b30,
+  glassDome: true,
+  domeColor: 0xaee6f5,
+  chestGem: true,
+  chestGemColor: 0xff3b30,
+  top: null,
+  pants: null,
+  boxers: null,
+  boots: 0x9aa0a6,
+};
+
+// סינזר - דמות איוונט (game-spec.md סעיף 14, "כוח 15/10, מהירות 15/10,
+// הרבה חיים") שנוצרה לפי תיאור מהמשתמש (לא באפיון): "איש ברק בצבע זהוב
+// עם עיניים בצורת ברק זוהר וצלקת מתחת לעין ומכנסיים שחורות ומבריקות ויש
+// לו גם חרבות בגב וקוביות מטורפות בבטן והוא בלי חולצה". 15/10 חורג
+// בכוונה מהסולם הרגיל (0-10) של שאר הדמויות - בדיוק כמו שהאפיון מגדיר
+// לדמויות איוונט, "עוצמתיות בהרבה" מהרגילות.
+const SINZER_CFG = {
+  power: 15, speed: 15,
+  skin: 0xb8860b,             // זהוב - גוון שכבר הוכח כבטוח (לא נשטף) בדמויות קודמות
+  hair: 0x1a1410, hairStyle: 'spiky',
+  eyeColor: 0xfff35c,
+  boltEyes: true, boltEyeColor: '#fff35c',
+  eyeScar: true,
+  ears: 'round',
+  top: null,                  // בלי חולצה
+  abs: true,
+  pants: 0x0d0d10, pantsShiny: true,
+  boots: 0x1a1a1a,
+  backSwords: true,
+};
+
+// פראנק - דמות איוונט שנייה (game-spec.md סעיף 14, "כוח 15/10, מהירות
+// 15/10, הרבה חיים") לפי תיאור מהמשתמש: "איש ענק עשוי אבנים וסלעים ופה
+// גדול עם שיניים קצרות ועבות וידיים ענקיות וכבדות עם אגרופי סלע ענקים
+// ויש לו רגליים עבות מאוד ועל הגב שלו יש שריון ענק של צב ומהראש יוצאים
+// לו אבנים ממש חדות". כמעט כל היכולות כאן כבר קיימות משלבים קודמים -
+// "אבנים חדות מהראש" משתמש חוזר ב-cfg.headCrystals (לוסטר, גוון אבן
+// אפור במקום קריסטל זוהר), ו"עשוי מאבנים" ב-cfg.mottledSkin (סלייקי,
+// גווני אפור/חום במקום אדום-צהוב). armScale/legScale/fistScale ו-
+// turtleShell/mouthTeeth.stubby הן היכולות החדשות היחידות (ראה למעלה).
+const FRANK_CFG = {
+  power: 15, speed: 15,
+  skin: 0x6e6a63,
+  mottledSkin: true, mottledColor2: 0x47433c,
+  hair: 0x3a3a38,    // קירח (bald:true) אז לא נראה בשיער, אבל הגבות עדיין משתמשות בצבע הזה
+  bald: true,
+  eyeColor: 0x2a2a2a,
+  ears: 'round',
+  mouthScale: 1.4,
+  mouthTeeth: { count: 6, stubby: true },
+  top: null, pants: null, boxers: null, boots: null,
+  armScale: 1.6, fistScale: 2.0, legScale: 1.5,
+  headCrystals: true, crystalColor: 0x8a8579,
+  turtleShell: true, shellColor: 0x5a6b3f,
+};
+
+// קראגור - בוס איוונט ראשון (game-spec.md סעיף 17: "יכולים להופיע בוסים
+// מיוחדים... חזקים בהרבה מאויבים רגילים... קרבות מיוחדים ותגמולים
+// גדולים"). תיאור מהמשתמש: "שד ענק ואדום עם קרניים חדות וארוכות ועיניים
+// זוהרות וזקן ארוך מאוד וכנפי עטלף קטנים". "ענק" = armScale/legScale/
+// fistScale מתונים יותר מפראנק (זה שד-ענק, לא סלע-ענק). קרניים/זקן/כנפיים
+// כולם שימוש חוזר ביכולות קיימות עם המכפילים החדשים (hornScale/
+// beardLength/wingScale) שנוספו במיוחד בשביל התיאור הזה.
+const KRAGOR_CFG = {
+  power: 15, speed: 12,
+  skin: 0x8a1a1a,
+  hair: 0x1a1410, hairStyle: 'short',
+  glowEyes: true, eyeColor: 0xffb020,
+  ears: 'pointed',
+  backHorns: true, hornScale: 2.2, hornColor: 0x2a1a12,
+  beard: true, beardLength: 6.5, beardColor: 0x1a1410,
+  wings: true, wingScale: 0.45, wingColor: 0x141013,
+  top: null, pants: null, boxers: null, boots: null,
+  armScale: 1.3, fistScale: 1.4, legScale: 1.25,
+};
+
+// פרוקנט - בוס איוונט שני. תיאור: "קוצר-נשמות אפל - גוף רזה וגבוה
+// עטוף בגלימה שחורה קרועה עם ברדס, בלי לראות פנים בכלל, רק שתי עיניים
+// סגולות זוהרות בתוך החשכה. ידיים ארוכות עם טפרים חדים, ועל הגב חרמש
+// ענק אחד" - רעיון שהוצע ואושר, מפחיד מקרח/אש שהבוסים האחרים כבר
+// מכסים. cfg.hood ו-cfg.backScythe הן היכולות החדשות (ראה למעלה);
+// claws/skirt.torn/glowEyes/jacketStripes:[] כולם שימוש חוזר קיים.
+const PROKENT_CFG = {
+  power: 15, speed: 14,
+  skin: 0x0a0a0a,
+  bald: true,
+  hood: true, hoodColor: 0x0d0d0f,
+  glowEyes: true, eyeColor: 0x9b30ff,
+  ears: 'round',
+  claws: true, clawColor: 0x1a1a1a,
+  jacket: 0x0d0d0f, jacketStripes: [],
+  skirt: { len: 0.85, r0: 0.16, r1: 0.30, color: 0x0d0d0f, torn: true },
+  top: null, pants: null, boxers: null, boots: null,
+  armScale: 0.92, legScale: 0.95,
+  backScythe: true,
+};
+
+// צ'ארס - בוס איוונט שלישי והאחרון. האפיון עצמו רומז לכיוון פיראטי
+// (אמוג'י 🏴‍☠️ ליד השם, בניגוד ל-👹 של קראגור/פרוקנט) - אבל אחרי כמה
+// סבבי הצעות (פיראט רפאים, מפלצת-ים, קברניט-עץ) המשתמש ביקש כיוון
+// אחר לגמרי: "ישות אור/שמיים - עור לבן זוהר, כנפיים גדולות לבנות,
+// טבעת אור מעל הראש, עיניים לבנות טהורות, שריון זהב על החזה" - ניגוד
+// מכוון לכל שאר הבוסים הכהים/אדמתיים (אש/אבן/צל). cfg.halo ו-
+// cfg.chestArmor הן היכולות החדשות (ראה למעלה); wings עם wingScale
+// גדול (הפוך מ-0.45 הקטן של קראגור) ו-glowEyes הם שימוש חוזר.
+const CHARES_CFG = {
+  power: 16, speed: 13,
+  skin: 0xf2ede0,
+  hair: 0xf5f0e0,
+  bald: true,
+  glowEyes: true, eyeColor: 0xffffff,
+  ears: 'round',
+  wings: true, wingScale: 1.7, wingColor: 0xf5f0e0,
+  halo: true, haloColor: 0xffe9a8,
+  chestArmor: true, chestArmorColor: 0xd9b23c,
+  top: null, pants: null, boots: null,
+  boxers: 0xece4d0,
+};
+
+// ---------- בוסי איוונט ----------
+// שונים מ-ENEMY_LEVELS (סולם קבוע, עולים רמה בניצחון): בוס לא קשור
+// לסולם בכלל - נכנסים אליו ישירות מכפתור בלובי (רק בזמן איוונט), אפשר
+// להילחם בו שוב ושוב, והתגמול קבוע וגדול במקום תלוי-נזק. isBossFight
+// מסמן ש-`enemy` הנוכחי הוא בוס, כדי ש-endGame ידע להתייחס אחרת.
+const BOSS_LEVELS = [
+  { name: 'קראגור', cfg: KRAGOR_CFG, hp: 260, reward: 150 },
+  { name: 'פרוקנט', cfg: PROKENT_CFG, hp: 280, reward: 160 },
+  { name: "צ'ארס", cfg: CHARES_CFG, hp: 320, reward: 200 },
+];
+let isBossFight = false;
+let activeBossIndex = 0;
+// הבוס שנבחר בחצי הלובי - אותו דפוס בדיוק כמו בחירת דמות/נשק, רק
+// שהחצים האלה מוצגים רק בזמן איוונט (BOSS_LEVELS.length>1 מ-2026-08-30).
+let selectedBossIndex = 0;
+function cycleBossChoice(dir) {
+  selectedBossIndex = (selectedBossIndex + dir + BOSS_LEVELS.length) % BOSS_LEVELS.length;
+  document.getElementById('bossLabel').textContent = '👹 ' + BOSS_LEVELS[selectedBossIndex].name;
+}
+
+function startBossFight(idx) {
+  const boss = BOSS_LEVELS[idx];
+  activeBossIndex = idx;
+  isBossFight = true;
+  const oldX = enemy.x, oldFacing = enemy.facing;
+  scene.remove(enemy.group);
+  enemy.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  enemy = makeFighter(boss.cfg, oldX, oldFacing, boss.hp);
+  addStoneProp(enemy);
+  hpNameEnemyEl.textContent = '👹 ' + boss.name;
+  resetGame();
+  showScreen('battle');
+}
 
 addStoneProp(player);
 addStoneProp(enemy);
@@ -3286,7 +5217,7 @@ function poseFighter(f, t, dt) {
 // ============================================================================
 
 const KEYS = {};
-const WATCHED = ['ArrowLeft', 'ArrowRight', 'KeyA', 'KeyS', 'KeyD', 'KeyW', 'Space'];
+const WATCHED = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyS', 'KeyD', 'KeyW', 'Space'];
 // jumpRequested נדלק פעם אחת בלבד בלחיצה (לא כל עוד המקש לחוץ) - אחרת קפיצה
 // הייתה יוצאת מיד שוב כשנוגעים בקרקע ומחזיקים את המקש.
 let jumpRequested = false;
@@ -3309,6 +5240,11 @@ const WALK_SPEED = 1.95;
 const BLOCK_SPEED = 0.75;
 const MIN_GAP = 0.95;                 // כמה קרוב מותר להתקרב — בלי לעבור דרך היריב
 const EDGE = RING_HALF - 0.75;
+// עוגן הקרב: (0,0) בזירה הרגילה - כל מספרי ה-x שהיו קיימים תמיד נשארים
+// תקפים ללא שינוי. קרב מפלצת בהרפתקה (startCaveMonsterFight) מזיז את זה
+// זמנית למיקום המפלצת במערה, כדי שהקרב יקרה שם במקום להעביר מסך לזירה -
+// ו-returnToCave מאפס בחזרה ל-(0,0) כשחוזרים לחקור.
+let battleAnchorX = 0, battleAnchorZ = 0;
 
 // ---------- קפיצה ----------
 // פיזיקה פשוטה: מהירות כלפי מעלה שדועכת עם הזמן (כובד המשיכה), בדיוק כמו
@@ -3345,7 +5281,10 @@ function moveFighter(f, other, dt) {
 
   if (Math.abs(nx - f.x) < 1e-5) f.mv = 0;   // נלחץ בקיר → לא לצעוד במקום
   f.x = nx;
-  f.group.position.x = nx;
+  // battleAnchorX/Z: 0 בזירה הרגילה (ללא שינוי בהתנהגות הישנה). קרב מפלצת
+  // בהרפתקה מזיז את העוגן למיקום המפלצת במערה, כדי שהקרב יתרחש שם ולא
+  // בזירה - ראה startCaveMonsterFight.
+  f.group.position.x = battleAnchorX + nx;
   // הפאזה מתקדמת לפי כיוון ההליכה, כך שצעידה אחורה נראית אחורה
   if (f.mv !== 0) f.phase += dt * 8.5 * (f.mv * f.facing > 0 ? 1 : -1);
 }
@@ -3412,7 +5351,11 @@ const shieldFlashEl = document.getElementById('shieldFlash');
 const shieldToastEl = document.getElementById('shieldToast');
 const gameOverEl = document.getElementById('gameOverOverlay');
 const gameOverTitleEl = document.getElementById('gameOverTitle');
+const gameOverGradeEl = document.getElementById('gameOverGrade');
+const statPlayerLineEl = document.getElementById('statPlayerLine');
+const statEnemyLineEl = document.getElementById('statEnemyLine');
 const playAgainBtn = document.getElementById('playAgainBtn');
+const lobbyBtnEl = document.getElementById('lobbyBtn');
 
 function updateHealthUI(f, who) {
   const pct = Math.max(0, f.hp / f.maxHp) * 100;
@@ -3453,7 +5396,9 @@ function tickCombat(attacker, defender, who, otherWho) {
   // מתווסף בסוף כמספר קבוע (האפיון: "+3 כוח"), לא מוכפל.
   const isWeaponHit = attacker.action === 'stone' && attacker.weaponDmg != null;
   const base = isWeaponHit ? attacker.weaponDmg : cfg.dmg * (attacker.powerMult || 1);
-  const dmg = base + (attacker.powerBonus || 0);
+  // powerMult יכול לצאת עם שברים (בונוס 5% לרמת שדרוג) - מעגלים למספר שלם
+  // כדי שפס החיים תמיד יציג מספר עגול, לא עשרוני.
+  const dmg = Math.round(base + (attacker.powerBonus || 0));
 
   // מגן מהלוט: חוסם לגמרי, ואם יש לו יכולת מיוחדת - היא מופעלת כאן
   // אוטומטית, כי "נשק פגע במגן" זה בדיוק הרגע הזה (האפיון, סעיף 9).
@@ -3475,7 +5420,7 @@ function tickCombat(attacker, defender, who, otherWho) {
 // 1₪ לכל נקודת נזק, אבל לא יותר מ-MAX_MONEY_PER_GAME בקרב אחד - בלי התקרה
 // קרב יחיד יכול לתת המון כסף (עד 75, כל החיים של בו), וזה מרוקן מתוכן
 // את הרעיון של "לנצח כמה פעמים כדי לחסוך".
-const MAX_MONEY_PER_GAME = 52;   // פחות מ-53, לפי בקשת המשתמש
+const MAX_MONEY_PER_GAME = 52;   // חזרה ל-52, לפי בקשת המשתמש
 let money = 0;
 const moneyBadgeEl = document.getElementById('moneyBadge');
 function updateMoneyUI() { moneyBadgeEl.textContent = '💰 ' + money + '₪'; }
@@ -3491,7 +5436,10 @@ function switchEnemy(levelIdx) {
   const lvl = ENEMY_LEVELS[enemyLevel];
 
   const oldX = enemy.x, oldFacing = enemy.facing, wasVisible = enemy.group.visible;
-  scene.remove(enemy.group);
+  // parent.remove ולא scene.remove: אחרי קרב מפלצת בהרפתקה ה-enemy הקודם
+  // (המפלצת) חי בתוך caveGroup, לא ב-scene - scene.remove היה לא עושה כלום
+  // ומשאיר מש מפורק (geometry disposed) תקוע בעץ הסצנה.
+  if (enemy.group.parent) enemy.group.parent.remove(enemy.group);
   enemy.group.traverse((o) => {
     if (o.geometry) o.geometry.dispose();
     if (o.material) o.material.dispose();
@@ -3511,10 +5459,90 @@ function updateBattleLabel() {
     ' - רמה ' + (enemyLevel + 1) + '/' + ENEMY_LEVELS.length;
 }
 
+// מערכת ציונים (game-spec.md סעיף 12: C/B/A/S/SS/SSS, מחושב לפי נזק
+// שנגרם, נזק שהתקבל, כמה חיים נשארו, וניצחון/הפסד - "ביצועים מיוחדים"
+// לא מומש, אין כרגע מנגנון למדוד את זה בנפרד). האפיון נותן את המרכיבים
+// אבל לא נוסחה מדויקת - זו נוסחה שעוצבה כאן. אחוזים מתוך ה-hp המקסימלי
+// (לא מספרי נזק גולמיים), כדי שקרב מול אויב עם הרבה יותר hp (כמו לוסטר,
+// 440) לא ייתן ציון מנופח אוטומטית לעומת קרב מול אויב חלש.
+function computeGrade(win) {
+  const dmgDealtPct = Math.min(100, (player.damageDealt / enemy.maxHp) * 100);
+  const dmgReceivedPct = Math.min(100, (enemy.damageDealt / player.maxHp) * 100);
+  const hpRemainPct = Math.max(0, player.hp / player.maxHp) * 100;
+  const points = dmgDealtPct - dmgReceivedPct * 0.5 + hpRemainPct * 0.5 + (win ? 60 : -20);
+  if (points >= 180) return 'SSS';
+  if (points >= 140) return 'SS';
+  if (points >= 100) return 'S';
+  if (points >= 60) return 'A';
+  if (points >= 20) return 'B';
+  return 'C';
+}
+
+// חיי ההתחלה = maxHp תמיד (resetGame ממלא חיים בתחילת כל קרב), וחיי
+// הסיום = f.hp *ברגע endGame*, לפני ש-resetGame מאפס אותם לקרב הבא.
+// ⚠️ ניסיון ראשון השתמש בחץ ("100 ⟵ 62") - עלול להתבלבל בטקסט עברי
+// (RTL) עם ספרות (LTR) בתוכו. תוקן לניסוח מילולי רגיל, כמו שהמשתמש
+// עצמו ניסח את הבקשה ("כמה חיים... התחיל... כמה... גמר").
+function updateGameOverStats(win) {
+  gameOverGradeEl.textContent = '⭐ ציון: ' + computeGrade(win);
+  statPlayerLineEl.textContent =
+    '🥊 אתה: התחיל עם ' + player.maxHp +
+    ' חיים, סיים עם ' + Math.max(0, player.hp);
+  statEnemyLineEl.textContent =
+    '🥋 ' + ENEMY_LEVELS[enemyLevel].name + ': התחיל עם ' + enemy.maxHp +
+    ' חיים, סיים עם ' + Math.max(0, enemy.hp);
+}
+
+// ⚠️ תיקון באג: אם שני הלוחמים נופלים לאפס חיים באותו פריים בדיוק (למשל
+// מכה שלך הורגת את האויב, ובאותו רגע גם המכה שלו כבר הייתה "באוויר" ופוגעת
+// בך) - שני הקריאות ל-tickCombat באותו פריים (קודם שלך, אחר כך שלו) יכולות
+// שתיהן לקרוא ל-endGame. בלי השמירה הבאה, הקריאה השנייה (שלו) הייתה
+// דורסת ומראה הפסד, למרות שאתה זה שהיכית קודם. `gameOver` נבדק בכניסה
+// ל-endGame עצמה (לא רק ב-animate) כדי שהתוצאה הראשונה תמיד תנצח.
 function endGame(winnerWho) {
+  if (gameOver) return;
   gameOver = true;
   gameOverEl.classList.add('show');
-  if (winnerWho === 'player') {
+  const win = winnerWho === 'player';
+  updateGameOverStats(win);
+  playAgainBtn.style.display = '';
+  playAgainBtn.textContent = '🔄 לשחק שוב';
+  lobbyBtnEl.textContent = '🏠 לובי';
+  if (win && isBossFight) {
+    // קרב בוס - "תגמולים גדולים" (game-spec.md סעיף 17): סכום קבוע וגדול,
+    // לא תלוי-נזק כמו קרב רגיל, ובלי עליית רמה - בוסים הם מחוץ לסולם
+    // האויבים הרגיל (ENEMY_LEVELS), אפשר להילחם בהם שוב ושוב.
+    money += BOSS_LEVELS[activeBossIndex].reward;
+    updateMoneyUI();
+    gameOverTitleEl.textContent = '👑 ניצחת את הבוס!';
+  } else if (win && isCaveFight) {
+    // מפלצת הרפתקה - תגמול קבוע (כמו בוס, לא לפי נזק) - המפלצות האלה
+    // קשות (130 חיים) וחד-פעמיות, מגיע תגמול גדול וברור בלי תלות בכמה
+    // דיוק פגעת. מנצחים → המפלצת מוסרת לצמיתות מהמערה (ראה returnToCave),
+    // וחוזרים לחקור, לא ללובי.
+    money += caveMonsters[activeCaveMonsterIndex].reward;
+    updateMoneyUI();
+    gameOverTitleEl.textContent = '🏆 ניצחת את המפלצת!';
+    caveFightWasWin = true;
+    playAgainBtn.style.display = 'none';   // המפלצת הובסה - אין מה "לשחק שוב"
+    lobbyBtnEl.textContent = '🗺️ חזרה למערה';
+  } else if (win && isIslandFight) {
+    // אותו עיקרון בדיוק כמו מפלצת מערה, רק על האי.
+    money += islandMonsters[activeIslandMonsterIndex].reward;
+    updateMoneyUI();
+    gameOverTitleEl.textContent = '🏆 ניצחת את המפלצת!';
+    islandFightWasWin = true;
+    playAgainBtn.style.display = 'none';
+    lobbyBtnEl.textContent = '🗺️ חזרה לאי';
+  } else if (win && isLavaFight) {
+    // אותו עיקרון בדיוק כמו מפלצת מערה/אי, רק על מכתש הלבה.
+    money += lavaMonsters[activeLavaMonsterIndex].reward;
+    updateMoneyUI();
+    gameOverTitleEl.textContent = '🏆 ניצחת את המפלצת!';
+    lavaFightWasWin = true;
+    playAgainBtn.style.display = 'none';
+    lobbyBtnEl.textContent = '🗺️ חזרה למכתש';
+  } else if (win) {
     money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
     updateMoneyUI();
     const isLast = enemyLevel >= ENEMY_LEVELS.length - 1;
@@ -3524,8 +5552,23 @@ function endGame(winnerWho) {
     // עולים רמה רק אם יש עוד אויב. ההחלפה עצמה קורית ב-resetGame, כדי
     // שהאויב שהובס יישאר על המסך מאחורי מסך הניצחון עד הקרב הבא.
     if (!isLast) pendingEnemyLevel = enemyLevel + 1;
+  } else if (isCaveFight) {
+    caveFightWasWin = false;
+    gameOverTitleEl.textContent = '❌ הפסד למפלצת';
+    playAgainBtn.textContent = '⚔️ קרב שוב';
+    lobbyBtnEl.textContent = '🗺️ חזרה למערה';
+  } else if (isIslandFight) {
+    islandFightWasWin = false;
+    gameOverTitleEl.textContent = '❌ הפסד למפלצת';
+    playAgainBtn.textContent = '⚔️ קרב שוב';
+    lobbyBtnEl.textContent = '🗺️ חזרה לאי';
+  } else if (isLavaFight) {
+    lavaFightWasWin = false;
+    gameOverTitleEl.textContent = '❌ הפסד למפלצת';
+    playAgainBtn.textContent = '⚔️ קרב שוב';
+    lobbyBtnEl.textContent = '🗺️ חזרה למכתש';
   } else {
-    gameOverTitleEl.textContent = '❌ הפסד';
+    gameOverTitleEl.textContent = isBossFight ? '❌ הפסד לבוס' : '❌ הפסד';
   }
 }
 
@@ -3540,7 +5583,8 @@ function resetGame() {
   [[player, 'player', -1.7, 1], [enemy, 'enemy', 1.7, -1]].forEach(([f, who, x0]) => {
     f.hp = f.maxHp;
     f.x = x0;
-    f.group.position.x = x0;
+    f.group.position.x = battleAnchorX + x0;
+    f.group.position.z = battleAnchorZ;
     f.action = null; f.actionT = 0; f.hitDone = false;
     f.blocking = false; f.blockAmt = 0;
     f.mv = 0; f.cool = 0; f.think = 0; f.mode = 'wait'; f.blockTimer = 0;
@@ -3572,6 +5616,11 @@ let uiScreen = 'battle';
 
 const lobbyEl = document.getElementById('lobbyOverlay');
 const shopEl = document.getElementById('shopOverlay');
+const createEl = document.getElementById('createOverlay');
+const weaponCreateEl = document.getElementById('weaponCreateOverlay');
+const adventureEl = document.getElementById('adventureOverlay');
+const caveHudEl = document.getElementById('caveHud');
+const caveInstructionsEl = document.getElementById('caveInstructions');
 const shopTabsEl = document.getElementById('shopTabs');
 const shopGridEl = document.getElementById('shopGrid');
 const hpRowEl = document.getElementById('hpRow');
@@ -3587,10 +5636,29 @@ function focusLobbyCamera() {
   camera.lookAt(p.x + 0.10, p.y + 0.85, 0);
 }
 
+// דמות התצוגה המקדימה של מסך "בנייה עצמית" - יושבת במקום קבוע (מרכז
+// הזירה, x=0), נבנית מחדש בכל שינוי בחירה (בדיוק כמו captureCharacterThumb
+// למטה), ולא נוגעת ב-player האמיתי עד שממש שומרים.
+let previewFighter = null;
+function focusCreateCamera() {
+  camera.position.set(0.75, GROUND_Y + 1.35, 2.35);
+  camera.lookAt(0.05, GROUND_Y + 0.90, 0);
+}
+
 function showScreen(name) {
+  const wasInCave = uiScreen === 'crystalCave';
+  const wasInIsland = uiScreen === 'lostIsland';
+  const wasInLava = uiScreen === 'lavaCrater';
   uiScreen = name;
   lobbyEl.classList.toggle('show', name === 'lobby');
   shopEl.classList.toggle('show', name === 'shop');
+  createEl.classList.toggle('show', name === 'create');
+  weaponCreateEl.classList.toggle('show', name === 'weaponCreate');
+  adventureEl.classList.toggle('show', name === 'adventure');
+  caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater');
+  if (wasInCave && name !== 'crystalCave') exitCave();
+  if (wasInIsland && name !== 'lostIsland') exitIsland();
+  if (wasInLava && name !== 'lavaCrater') exitLava();
   const inBattle = name === 'battle';
   hpRowEl.style.display = inBattle ? '' : 'none';
   controlsEl.style.display = inBattle ? '' : 'none';
@@ -3604,11 +5672,53 @@ function showScreen(name) {
   // ביד - "רואים את הדמות ואת הנשק שאיתם משחקים", בלי לבנות שום דבר חדש.
   if (name === 'lobby') {
     enemy.group.visible = false;
+    player.group.visible = true;
     player.forceWeaponVisible = true;
+    if (previewFighter) previewFighter.group.visible = false;
     focusLobbyCamera();
+  } else if (name === 'create') {
+    // מסך "בנייה עצמית" - מסתירים את השחקן/האויב האמיתיים ומראים דמות
+    // תצוגה מקדימה נפרדת (previewFighter) שנבנית מחדש בכל שינוי בחירה,
+    // בדיוק כמו switchPlayerCharacter, רק על אובייקט נפרד כדי לא לגעת
+    // בדמות האמיתית של השחקן לפני שהוא באמת שומר.
+    enemy.group.visible = false;
+    player.group.visible = false;
+    if (!previewFighter) rebuildPreview();
+    previewFighter.group.visible = true;
+    focusCreateCamera();
+  } else if (name === 'weaponCreate') {
+    // מסך "בניית נשק" - אותה דמות תצוגה מקדימה בדיוק כמו "בנייה עצמית",
+    // רק עם הנשק הנבנה מוצמד לידה במקום לשנות את המראה שלה. אם נכנסים
+    // ישר לכאן בלי לעבור קודם ב"בנייה עצמית" (previewFighter עדיין
+    // לא קיים), בונים אותה עם ברירת המחדל של createState.
+    enemy.group.visible = false;
+    player.group.visible = false;
+    if (!previewFighter) rebuildPreview();
+    previewFighter.group.visible = true;
+    rebuildWeaponPreview();
+    focusCreateCamera();
+  } else if (name === 'crystalCave') {
+    // הרפתקה - מערת הקריסטל. player.group עצמו (אותה דמות שהשחקן בחר
+    // בלובי) מוצמד למערה וזז חופשית - לא previewFighter נפרד כמו שאר
+    // מסכי הבנייה, כי כאן הוא באמת "משחק" עם הדמות, לא רק מסתכל עליה.
+    enemy.group.visible = false;
+    if (previewFighter) previewFighter.group.visible = false;
+    if (!wasInCave) enterCave();
+  } else if (name === 'lostIsland') {
+    // הרפתקה - האי האבוד. אותו עיקרון בדיוק כמו מערת הקריסטל.
+    enemy.group.visible = false;
+    if (previewFighter) previewFighter.group.visible = false;
+    if (!wasInIsland) enterIsland();
+  } else if (name === 'lavaCrater') {
+    // הרפתקה - מכתש הלבה. אותו עיקרון בדיוק כמו שני העולמות הקודמים.
+    enemy.group.visible = false;
+    if (previewFighter) previewFighter.group.visible = false;
+    if (!wasInLava) enterLava();
   } else {
     enemy.group.visible = true;
+    player.group.visible = true;
     player.forceWeaponVisible = false;
+    if (previewFighter) previewFighter.group.visible = false;
     if (name === 'battle') {
       camera.position.copy(BATTLE_CAM.pos);
       camera.lookAt(BATTLE_CAM.look);
@@ -3616,8 +5726,874 @@ function showScreen(name) {
   }
 }
 
+// ============================================================================
+//  הרפתקה — הליכה חופשית במערת הקריסטל
+//
+//  שונה לגמרי מהתנועה בזירה (ציר X בלבד, נעולה בין הלוחמים): כאן player
+//  זז חופשי בשני צירים (x/z) בתוך עיגול המערה, עם זווית פנייה משלו
+//  (explorerYaw) שלא קשורה בכלל ל-facing/STANCE_YAW של הזירה. המצלמה
+//  עוקבת מאחורי הדמות בגובה קבוע, כמו משחק הרפתקאות בגוף שלישי פשוט.
+// ============================================================================
+let explorerYaw = 0;
+let explorerTreasureFound = false;
+let savedFog = null, savedBackground = null;
+const EXPLORE_SPEED = 8;   // הוגדל פי ~3.3 יחד עם הגדלת העולמות פי ~7, כדי שהחצייה לא תיקח נצח
+const EXPLORE_TURN_SPEED = 2.6;
+// אופסט בין זווית ההליכה (explorerYaw) לבין rotation.y שגורם לדמות
+// באמת *להסתכל* לכיוון הזה - נמדד ברינדור (ראה יומן הפיתוח), כי "חזית"
+// המודל המצויר לא בהכרח מיושרת עם ציר Z העולמי בזווית אפס.
+const EXPLORE_FRONT_OFFSET = 0;   // אומת ברינדור: ב-rotation.y=0 הדמות כבר פונה ל-Z+, תואם לנוסחת התנועה
+
+// ---------- מפלצות בהרפתקה ----------
+// "שומר הגביש" - המשתמש אמר שהגרסה הראשונה נראתה כמו לוסטר. הסיבה: היא
+// חזרה על אותו שילוב מדויק (crystalSkin+hexHead+headCrystals) שמגדיר את
+// המראה של לוסטר. הפעם המראה שונה מכוונה: **גולם אבן גדול ומגושם** עם
+// גידולי גביש עליו - לא "יצור עשוי כולו גביש" כמו לוסטר. שינויים
+// מרכזיים: בלי crystalSkin (עור אבן מחוספס רגיל, לא חומר גביש מבריק),
+// בלי hexHead (ראש עגיל רגיל, לא משושה - הצורה הכי מזוהה עם לוסטר),
+// וגוף מוגדל (armScale/legScale/fistScale כמו פראנק) - גולם, לא דמות
+// רזה בפרופורציות רגילות. הקריסטלים (headCrystals/kneeCrystals/chestGem)
+// נשארו כי הם מה שהופך "גולם אבן" ל"שומר גביש" - אבל על גוף אחר לגמרי.
+const CRYSTAL_GUARDIAN_CFG = {
+  power: 6, speed: 4,
+  skin: 0x6b6a72,
+  hexHead: false,
+  bald: true,
+  eyeColor: 0xbfe8ff,
+  glowEyes: true,
+  ears: 'round',
+  headCrystals: true,
+  crystalColor: 0xbfe8ff,
+  kneeCrystals: true,
+  chestGem: true,
+  chestGemColor: 0xbfe8ff,
+  armScale: 1.3, legScale: 1.25, fistScale: 1.3,
+  top: null, pants: null, boxers: 0x1a1a22, boots: null,
+};
+const CRYSTAL_GUARDIAN2_CFG = {
+  power: 6, speed: 4,
+  skin: 0x5a5560,
+  hexHead: false,
+  bald: true,
+  eyeColor: 0x9be8ff,
+  glowEyes: true,
+  ears: 'round',
+  headCrystals: true,
+  crystalColor: 0x6fe8f0,
+  kneeCrystals: true,
+  chestGem: true,
+  chestGemColor: 0x6fe8f0,
+  armScale: 1.3, legScale: 1.25, fistScale: 1.3,
+  top: null, pants: null, boxers: 0x14202a, boots: null,
+};
+
+// לכל עולם הרפתקה יש רשימת מפלצות משלו (רק מערת הקריסטל בנויה כרגע -
+// האי האבוד ומכתש הלבה עדיין "בקרוב", בלי תוכן). ההיתקלות עצמה (הליכה
+// קרוב למפלצת) עוברת לקרב אגרוף רגיל *בתוך המערה עצמה* - ראה
+// startCaveMonsterFight. ניצחון מסיר את המפלצת מהמערה לצמיתות (עד
+// ביקור חדש); הפסד משאיר אותה במקום לניסיון נוסף.
+const CAVE_MONSTER_DEFS = {
+  crystalCave: [
+    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN_CFG, hp: 130, pos: { x: -49, z: -14 }, reward: 0 },
+    { name: 'שומר הגביש', cfg: CRYSTAL_GUARDIAN2_CFG, hp: 130, pos: { x: 14, z: 63 }, reward: 0 },
+  ],
+};
+let caveMonsters = [];   // מפלצות המערה הפעילה: {name, pos, hp, cfg, alive, fighter}
+let isCaveFight = false;
+let activeCaveMonsterIndex = -1;
+let caveFightWasWin = false;
+let caveReturnState = null;   // מיקום/זווית לחזרה למערה אחרי קרב (null = כניסה טרייה)
+const MONSTER_ENCOUNTER_DIST = 1.1;
+const MONSTER_SIGHT_RANGE = 20;   // מרחק שבו מפלצת "רואה" את השחקן ובאה לתקוף
+const MONSTER_CHASE_SPEED = 6;    // קצת יותר לאט מהשחקן (8) - אפשר לברוח, לא קל
+
+// מפלצת שרואה את השחקן (בטווח MONSTER_SIGHT_RANGE) רודפת אחריו במקום
+// לחכות שייגע בה - משותף לשלושת עולמות ההרפתקה (המנגנון זהה, רק
+// מערך המפלצות ופונקציית-התחלת-הקרב שונים לכל עולם). מחזיר true אם
+// קרב התחיל, כדי שהקורא ידע להפסיק לעדכן תנועה/מפלצות באותו פריים.
+function updateMonsterChase(monsters, px, pz, dt, t, startFight) {
+  for (const m of monsters) {
+    if (!m.alive) continue;
+    const dx = px - m.pos.x, dz = pz - m.pos.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist < MONSTER_ENCOUNTER_DIST) {
+      startFight(m);
+      return true;
+    }
+    if (dist < MONSTER_SIGHT_RANGE) {
+      // צועדת ישר לכיוון השחקן, בלי לעבור ממש דרכו (עוצרת בסף המגע)
+      const step = Math.min(MONSTER_CHASE_SPEED * dt, dist - MONSTER_ENCOUNTER_DIST + 0.01);
+      m.pos.x += (dx / dist) * step;
+      m.pos.z += (dz / dist) * step;
+      m.fighter.group.position.x = m.pos.x;
+      m.fighter.group.position.z = m.pos.z;
+      m.fighter.group.rotation.y = Math.atan2(dx, dz) + EXPLORE_FRONT_OFFSET;
+      m.fighter.mv = 1;
+      m.fighter.phase += dt * 8.5;
+    } else {
+      m.fighter.mv = 0;
+    }
+    poseFighter(m.fighter, t, dt);
+  }
+  return false;
+}
+
+function spawnCaveMonsters(defs) {
+  caveMonsters.forEach((m) => {
+    caveGroup.remove(m.fighter.group);
+    m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  });
+  caveMonsters = defs.map((d) => {
+    const f = makeFighter(d.cfg, 0, 1, d.hp);   // makeFighter מוסיפה ל-scene כברירת מחדל
+    scene.remove(f.group);
+    caveGroup.add(f.group);
+    f.group.position.set(d.pos.x, 0, d.pos.z);
+    return { name: d.name, pos: { x: d.pos.x, z: d.pos.z }, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
+  });
+}
+
+// אם השחקן נמצא קרוב מדי למפלצת חיה - מרחיקים אותו למרחק בטוח. נחוץ
+// בחזרה למערה אחרי הפסד: המיקום השמור הוא *בדיוק* המקום שההיתקלות
+// קרתה בו, ובלי הרחקה updateExplorer היה מזהה "קרוב מדי" שוב מייד
+// ופותח קרב חדש בלי שהמשתמש ביקש (נתפס ב-console.log, לא ברינדור).
+function avoidLiveMonsters() {
+  for (const m of caveMonsters) {
+    if (!m.alive) continue;
+    const dx = player.group.position.x - m.pos.x, dz = player.group.position.z - m.pos.z;
+    const dist = Math.hypot(dx, dz);
+    // עכשיו שמפלצות רודפות אחרי מי שהן רואות (MONSTER_SIGHT_RANGE),
+    // "מרחק בטוח" חייב להיות מעבר לטווח הראייה - אחרת חוזרים מהפסד
+    // ומיד נרדפים שוב בלי הזדמנות אמיתית להחליט מה לעשות.
+    const safe = MONSTER_SIGHT_RANGE + 3;
+    if (dist < safe) {
+      const nx = dist > 0.001 ? dx / dist : 0, nz = dist > 0.001 ? dz / dist : 1;
+      player.group.position.x += nx * (safe - dist);
+      player.group.position.z += nz * (safe - dist);
+    }
+  }
+}
+
+// גובה המצלמה/המבט של BATTLE_CAM מחושבים *יחסית לגובה הרגליים* (GROUND_Y
+// בזירה), כדי שאותה מסגרת תעבוד גם על רצפת המערה (גובה 0) בלי לנחש
+// מספרים חדשים - אותו יחס גובה מהלוחמים, רק רצפה שונה.
+const CAVE_BATTLE_CAM_Y = BATTLE_CAM.pos.y - GROUND_Y;
+const CAVE_BATTLE_LOOK_Y = BATTLE_CAM.look.y - GROUND_Y;
+
+function updateCaveBattleCamera() {
+  const wx = battleAnchorX + CAVE_OFFSET.x, wz = battleAnchorZ + CAVE_OFFSET.z, wy = CAVE_OFFSET.y;
+  camera.position.set(wx, wy + CAVE_BATTLE_CAM_Y, wz + BATTLE_CAM.pos.z);
+  camera.lookAt(wx, wy + CAVE_BATTLE_LOOK_Y, wz);
+}
+
+// היתקלות עם מפלצת בהרפתקה - קרב אגרוף אמיתי *בתוך המערה עצמה*, לא
+// העברה למסך הזירה (המשתמש ביקש שלא "יזמן לזירה"). עושים את זה בלי
+// לגעת בלוגיקת הקרב עצמה (tickCombat/moveFighter/poseFighter נשארים
+// בדיוק כמו שהם) - רק מזיזים את "עוגן" הקרב (battleAnchorX/Z) למיקום
+// המפלצת במערה במקום (0,0) של הזירה, ומצמידים את שני הלוחמים ל-
+// caveGroup כדי שהם באמת יירנדרו שם.
+function startCaveMonsterFight(m) {
+  isCaveFight = true;
+  activeCaveMonsterIndex = caveMonsters.indexOf(m);
+  caveReturnState = { x: player.group.position.x, z: player.group.position.z, yaw: explorerYaw };
+  m.fighter.group.visible = false;   // מסתירים את המפלצת ה"עומדת" במערה - נבנה עותק קרב נפרד מייד
+
+  const oldFacing = enemy.facing;
+  if (enemy.group.parent) enemy.group.parent.remove(enemy.group);
+  enemy.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  enemy = makeFighter(m.cfg, 0, oldFacing, m.hp);
+  scene.remove(enemy.group);       // makeFighter מוסיפה ל-scene כברירת מחדל
+  caveGroup.add(enemy.group);      // הקרב קורה בתוך המערה - שני הלוחמים שם
+  enemy.group.position.y = 0;      // רצפת המערה, לא GROUND_Y של הזירה
+  addStoneProp(enemy);
+  hpNameEnemyEl.textContent = '👹 ' + m.name;
+  labelEl.textContent = '🥊 ' + selectedCharacterName + ' מול ' + m.name;
+
+  battleAnchorX = m.pos.x;
+  battleAnchorZ = m.pos.z;
+  resetGame();
+  // ⚠️ באג אמיתי: resetGame לא נוגע ב-rotation.y בכלל (רק ב-position),
+  // ו-moveFighter/poseFighter לא נוגעים בו במהלך קרב (רק ב-position.x
+  // וזוויות עצמות) - כי בזירה הרגילה exitCave/exitIsland כבר קובעים
+  // אותו נכון *לפני* שהקרב מתחיל. כאן, בקרב-במקום, אף פעם לא יוצאים
+  // מהמערה - אז player.group.rotation.y נשאר תקוע על הכיוון האחרון
+  // מהחקירה החופשית (לאן שהשחקן במקרה הביט כשההיתקלות קרתה), לא מיושר
+  // לציר הקרב. הפגיעה עצמה כבר עבדה נכון (מבוססת על x, לא על כיוון
+  // חזותי) - זה מה שבלבל: "הפניתי גב וזה עדיין פגע", כי חזותית זה לא
+  // היה מיושר לקרב מלכתחילה, ובלי תיקון גם לא היה דרך "לתקן" את זה
+  // (Left/Right בקרב מזיזים במקום לפי mv, לא מסובבים).
+  player.group.rotation.y = player.facing * STANCE_YAW;
+  updateCaveBattleCamera();
+
+  // מציגים ממשק קרב (פסי חיים/מקשים/לוט) בלי לעבור מסך - נשארים
+  // ב-uiScreen==='crystalCave', רק isCaveFight=true מפעיל את לולאת
+  // הקרב ב-animate() במקום את החקירה החופשית.
+  caveHudEl.classList.remove('show');
+  hpRowEl.style.display = '';
+  controlsEl.style.display = '';
+  labelEl.style.display = '';
+  lootStackEl.style.display = '';
+  renderLootBar();
+  updateBuffRow();
+}
+
+// אחרי קרב מפלצת (ניצחון או הפסד) - חוזרים לחקור באותה מערה, בדיוק
+// מהמקום שבו ההיתקלות קרתה (caveReturnState) - אף פעם לא באמת יצאנו
+// מ-uiScreen==='crystalCave'. אם ניצחנו, המפלצת מוסרת לצמיתות; אם
+// הפסדנו, היא נשארת ואפשר לפגוש אותה שוב. חייבים להחזיר את `enemy`
+// לאויב הסולם הרגיל (switchEnemy) - בדיוק כמו שקרב בוס עושה - אחרת
+// `enemy` נשאר תקוע כמפלצת בפעם הבאה שנכנסים לזירה האמיתית.
+function returnToCave() {
+  if (activeCaveMonsterIndex >= 0) {
+    const m = caveMonsters[activeCaveMonsterIndex];
+    if (m) {
+      if (caveFightWasWin) {
+        m.alive = false;
+        caveGroup.remove(m.fighter.group);
+        m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+      } else {
+        m.fighter.group.visible = true;   // הפסדנו - המפלצת חוזרת לעמוד במערה כמו קודם
+      }
+    }
+  }
+  switchEnemy(enemyLevel);   // מפרק את מפלצת-הקרב (caveGroup) ובונה אויב סולם רגיל (scene)
+  isCaveFight = false;
+  activeCaveMonsterIndex = -1;
+  battleAnchorX = 0;
+  battleAnchorZ = 0;
+  resetGame();
+
+  hpRowEl.style.display = 'none';
+  controlsEl.style.display = 'none';
+  labelEl.style.display = 'none';
+  lootStackEl.style.display = 'none';
+  caveHudEl.classList.add('show');
+  enemy.group.visible = false;
+
+  if (caveReturnState) {
+    player.group.position.set(caveReturnState.x, 0, caveReturnState.z);
+    explorerYaw = caveReturnState.yaw;
+    caveReturnState = null;
+  }
+  avoidLiveMonsters();
+  player.group.rotation.y = explorerYaw + EXPLORE_FRONT_OFFSET;
+  updateExplorerCamera();
+}
+
+function enterCave() {
+  caveInstructionsEl.textContent = '↑ להליכה · ← → לפנייה · האוצר מוחבא איפשהו - תחפש טוב!';
+  scene.remove(player.group);
+  caveGroup.add(player.group);
+  if (caveReturnState) {
+    player.group.position.set(caveReturnState.x, 0, caveReturnState.z);
+    explorerYaw = caveReturnState.yaw;
+    caveReturnState = null;
+    avoidLiveMonsters();
+  } else {
+    player.group.position.set(0, 0, 28);
+    explorerYaw = Math.PI;   // פונה פנימה למערה (Z שלילי) מנקודת הכניסה
+    explorerTreasureFound = false;
+    spawnCaveMonsters(CAVE_MONSTER_DEFS.crystalCave);
+  }
+  player.group.rotation.y = explorerYaw + EXPLORE_FRONT_OFFSET;
+  player.group.visible = true;
+  // מנקים שאריות ממצב קרב קודם - בלי זה תנוחת הליכה חדשה עלולה "להתחרות"
+  // בתנוחת מכה/חסימה תקועה מהזירה.
+  player.action = null;
+  player.blocking = false;
+  player.blockAmt = 0;
+  player.mv = 0;
+  savedFog = scene.fog;
+  savedBackground = scene.background;
+  // ערפל רחוק בהרבה - במערה ענקית צריך *לראות* את הכיפה/אופק מרחוק,
+  // לא רק את הסביבה הקרובה (לפי בקשת המשתמש: "רואים את העולם באופק").
+  scene.fog = new THREE.Fog(0x120f1c, 20, 145);
+  scene.background = new THREE.Color(0x0a0814);
+  updateExplorerCamera();
+}
+
+function exitCave() {
+  caveGroup.remove(player.group);
+  scene.add(player.group);
+  player.group.position.set(player.x, GROUND_Y, 0);
+  player.group.rotation.y = player.facing * STANCE_YAW;
+  if (savedFog) scene.fog = savedFog;
+  if (savedBackground) scene.background = savedBackground;
+  document.getElementById('treasureFoundOverlay').classList.remove('show');
+}
+
+// ============================================================================
+//  הרפתקה — האי האבוד: הליכה חופשית
+//
+//  אותו מנגנון בדיוק כמו מערת הקריסטל (משתני yaw/מיקום/מצלמה נפרדים
+//  לגמרי, לא חולקים כלום עם explorerYaw של המערה) - שוכפל במקום לשתף
+//  קוד, בדיוק מאותה סיבה שהמערה עצמה נבנתה רחוק מהזירה: לא לגעת בקוד
+//  שכבר עובד ואומת.
+// ============================================================================
+let islandExplorerYaw = 0;
+let islandTreasureFound = false;
+let savedIslandFog = null, savedIslandBackground = null;
+let islandReturnState = null;   // מיקום/זווית לחזרה לאי אחרי קרב (null = כניסה טרייה)
+
+// ---------- מפלצות האי האבוד ----------
+// "שומר האי" - יצור-ים מכוסה קשקשים שמזכיר תנין (snout, כמו בונדרילו),
+// אבל שונה ממנו במכוון (לא רק גוון אחר): שריון-צב על הגב (turtleShell,
+// שימוש חוזר מפראנק), עיניים זוהרות (בונדרילו לא זוהר), וגוף מוצק יותר
+// (armScale/legScale/fistScale קטנים, לא רזה כמו תנין-אדם) - לא חצאית/
+// טבעות כמו בונדרילו. לא פיראטי בכוונה - המשתמש דחה כיוון פיראטי בעבר
+// (ראה יומן צ'ארס).
+const ISLAND_GUARDIAN_CFG = {
+  power: 6, speed: 5,
+  skin: 0x4a6b5a,
+  hair: 0x3a4a40,
+  hairStyle: 'short',
+  eyeColor: 0xffe066,
+  glowEyes: true,
+  ears: 'round',
+  snout: true,
+  snoutJawColor: 0x3a5a48,
+  turtleShell: true, shellColor: 0x2f4a3a,
+  earRing: true,
+  armScale: 1.2, legScale: 1.15, fistScale: 1.2,
+  top: null, pants: null, boxers: 0x1a2a20, boots: null,
+};
+const ISLAND_GUARDIAN2_CFG = {
+  power: 6, speed: 5,
+  skin: 0x5a7a68,
+  hair: 0x2a3a30,
+  hairStyle: 'short',
+  eyeColor: 0x8be6ff,
+  glowEyes: true,
+  ears: 'round',
+  snout: true,
+  snoutJawColor: 0x3a5a48,
+  turtleShell: true, shellColor: 0x24382c,
+  earRing: true,
+  armScale: 1.2, legScale: 1.15, fistScale: 1.2,
+  top: null, pants: null, boxers: 0x14201a, boots: null,
+};
+const ISLAND_MONSTER_DEFS = [
+  { name: 'שומר האי', cfg: ISLAND_GUARDIAN_CFG, hp: 130, pos: { x: -112, z: -42 }, reward: 0 },
+  { name: 'שומר האי', cfg: ISLAND_GUARDIAN2_CFG, hp: 130, pos: { x: 63, z: -112 }, reward: 0 },
+];
+let islandMonsters = [];
+let isIslandFight = false;
+let activeIslandMonsterIndex = -1;
+let islandFightWasWin = false;
+
+function spawnIslandMonsters(defs) {
+  islandMonsters.forEach((m) => {
+    islandGroup.remove(m.fighter.group);
+    m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  });
+  islandMonsters = defs.map((d) => {
+    const f = makeFighter(d.cfg, 0, 1, d.hp);
+    scene.remove(f.group);
+    islandGroup.add(f.group);
+    f.group.position.set(d.pos.x, 0, d.pos.z);
+    return { name: d.name, pos: { x: d.pos.x, z: d.pos.z }, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
+  });
+}
+
+function avoidLiveIslandMonsters() {
+  for (const m of islandMonsters) {
+    if (!m.alive) continue;
+    const dx = player.group.position.x - m.pos.x, dz = player.group.position.z - m.pos.z;
+    const dist = Math.hypot(dx, dz);
+    // ראה ההערה המלאה ב-avoidLiveMonsters
+    const safe = MONSTER_SIGHT_RANGE + 3;
+    if (dist < safe) {
+      const nx = dist > 0.001 ? dx / dist : 0, nz = dist > 0.001 ? dz / dist : 1;
+      player.group.position.x += nx * (safe - dist);
+      player.group.position.z += nz * (safe - dist);
+    }
+  }
+}
+
+function updateIslandBattleCamera() {
+  const wx = battleAnchorX + ISLAND_OFFSET.x, wz = battleAnchorZ + ISLAND_OFFSET.z, wy = ISLAND_OFFSET.y;
+  camera.position.set(wx, wy + CAVE_BATTLE_CAM_Y, wz + BATTLE_CAM.pos.z);
+  camera.lookAt(wx, wy + CAVE_BATTLE_LOOK_Y, wz);
+}
+
+// זהה ל-startCaveMonsterFight, רק על islandGroup/ISLAND_OFFSET - ראה שם
+// להסבר המלא על battleAnchorX/Z.
+function startIslandMonsterFight(m) {
+  isIslandFight = true;
+  activeIslandMonsterIndex = islandMonsters.indexOf(m);
+  islandReturnState = { x: player.group.position.x, z: player.group.position.z, yaw: islandExplorerYaw };
+  m.fighter.group.visible = false;
+
+  const oldFacing = enemy.facing;
+  if (enemy.group.parent) enemy.group.parent.remove(enemy.group);
+  enemy.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  enemy = makeFighter(m.cfg, 0, oldFacing, m.hp);
+  scene.remove(enemy.group);
+  islandGroup.add(enemy.group);
+  enemy.group.position.y = 0;
+  addStoneProp(enemy);
+  hpNameEnemyEl.textContent = '👹 ' + m.name;
+  labelEl.textContent = '🥊 ' + selectedCharacterName + ' מול ' + m.name;
+
+  battleAnchorX = m.pos.x;
+  battleAnchorZ = m.pos.z;
+  resetGame();
+  player.group.rotation.y = player.facing * STANCE_YAW;   // ראה ההערה המלאה ב-startCaveMonsterFight
+  updateIslandBattleCamera();
+
+  caveHudEl.classList.remove('show');
+  hpRowEl.style.display = '';
+  controlsEl.style.display = '';
+  labelEl.style.display = '';
+  lootStackEl.style.display = '';
+  renderLootBar();
+  updateBuffRow();
+}
+
+// זהה ל-returnToCave, רק על האי - ראה שם להסבר המלא.
+function returnToIsland() {
+  if (activeIslandMonsterIndex >= 0) {
+    const m = islandMonsters[activeIslandMonsterIndex];
+    if (m) {
+      if (islandFightWasWin) {
+        m.alive = false;
+        islandGroup.remove(m.fighter.group);
+        m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+      } else {
+        m.fighter.group.visible = true;
+      }
+    }
+  }
+  switchEnemy(enemyLevel);
+  isIslandFight = false;
+  activeIslandMonsterIndex = -1;
+  battleAnchorX = 0;
+  battleAnchorZ = 0;
+  resetGame();
+
+  hpRowEl.style.display = 'none';
+  controlsEl.style.display = 'none';
+  labelEl.style.display = 'none';
+  lootStackEl.style.display = 'none';
+  caveHudEl.classList.add('show');
+  enemy.group.visible = false;
+
+  if (islandReturnState) {
+    player.group.position.set(islandReturnState.x, 0, islandReturnState.z);
+    islandExplorerYaw = islandReturnState.yaw;
+    islandReturnState = null;
+  }
+  avoidLiveIslandMonsters();
+  player.group.rotation.y = islandExplorerYaw + EXPLORE_FRONT_OFFSET;
+  updateIslandExplorerCamera();
+}
+
+function enterIsland() {
+  caveInstructionsEl.textContent = '↑ להליכה · ← → לפנייה · תחפש את האוצר בין המקומות הנטושים!';
+  scene.remove(player.group);
+  islandGroup.add(player.group);
+  if (islandReturnState) {
+    player.group.position.set(islandReturnState.x, 0, islandReturnState.z);
+    islandExplorerYaw = islandReturnState.yaw;
+    islandReturnState = null;
+    avoidLiveIslandMonsters();
+  } else {
+    player.group.position.set(0, 0, 133);
+    islandExplorerYaw = Math.PI;   // פונה פנימה לאי (Z שלילי) מנקודת הכניסה
+    islandTreasureFound = false;
+    spawnIslandMonsters(ISLAND_MONSTER_DEFS);
+  }
+  player.group.rotation.y = islandExplorerYaw + EXPLORE_FRONT_OFFSET;
+  player.group.visible = true;
+  player.action = null;
+  player.blocking = false;
+  player.blockAmt = 0;
+  player.mv = 0;
+  savedIslandFog = scene.fog;
+  savedIslandBackground = scene.background;
+  // ערפל רחוק בהרבה - אי ענק, צריך לראות את קו האופק של הים ממרחק
+  // (לפי בקשת המשתמש: "רואים את העולם באופק").
+  scene.fog = new THREE.Fog(0x9db3bb, 40, 340);
+  scene.background = new THREE.Color(0x9db3bb);
+  updateIslandExplorerCamera();
+}
+
+function exitIsland() {
+  islandGroup.remove(player.group);
+  scene.add(player.group);
+  player.group.position.set(player.x, GROUND_Y, 0);
+  player.group.rotation.y = player.facing * STANCE_YAW;
+  if (savedIslandFog) scene.fog = savedIslandFog;
+  if (savedIslandBackground) scene.background = savedIslandBackground;
+  document.getElementById('treasureFoundOverlay').classList.remove('show');
+}
+
+function updateIslandExplorerCamera() {
+  const p = player.group.position;
+  const wx = p.x + ISLAND_OFFSET.x, wy = p.y + ISLAND_OFFSET.y, wz = p.z + ISLAND_OFFSET.z;
+  const camDist = 3.0, camHeight = 2.0;
+  camera.position.set(
+    wx - Math.sin(islandExplorerYaw) * camDist,
+    wy + camHeight,
+    wz - Math.cos(islandExplorerYaw) * camDist);
+  camera.lookAt(wx, wy + 1.0, wz);
+}
+
+function updateIslandExplorer(dt, t) {
+  if (KEYS.ArrowLeft) islandExplorerYaw += EXPLORE_TURN_SPEED * dt;
+  if (KEYS.ArrowRight) islandExplorerYaw -= EXPLORE_TURN_SPEED * dt;
+  const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
+  const p = player.group.position;
+  if (moveDir !== 0) {
+    let nx = p.x + Math.sin(islandExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    let nz = p.z + Math.cos(islandExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    const dist = Math.hypot(nx, nz), outerLimit = ISLAND_RADIUS - 0.6;
+    // מהדקים לגבול במקום לבטל את הצעד לגמרי - ראה ההערה המלאה ב-
+    // updateLavaExplorer (שם התגלה הבאג: "נתקע במקום" ליד קיר עגול).
+    if (dist > outerLimit) { const s = outerLimit / dist; nx *= s; nz *= s; }
+    p.x = nx; p.z = nz;
+  }
+  player.group.rotation.y = islandExplorerYaw + EXPLORE_FRONT_OFFSET;
+  updateIslandExplorerCamera();
+
+  player.mv = moveDir;
+  if (moveDir !== 0) player.phase += dt * 8.5 * moveDir;
+  poseFighter(player, t, dt);
+
+  if (!islandTreasureFound) {
+    const dx = p.x - ISLAND_TREASURE_POS.x, dz = p.z - ISLAND_TREASURE_POS.z;
+    if (Math.hypot(dx, dz) < 0.9) {
+      islandTreasureFound = true;
+      onTreasureFound(ISLAND_TREASURE_REWARD);
+    }
+  }
+
+  // מפלצות: נשימה קלה כדי שלא ייראו קפואות, ובדיקת מרחק להיתקלות - אותו
+  // עיקרון בדיוק כמו מפלצות המערה (ראה updateExplorer).
+  if (updateMonsterChase(islandMonsters, p.x, p.z, dt, t, startIslandMonsterFight)) return;
+}
+
+// ============================================================================
+//  הרפתקה — מכתש הלבה: הליכה חופשית + מפלצות
+//
+//  אותו מנגנון בדיוק כמו האי האבוד (ששוכפל מהמערה) - שוכפל שוב מאותה
+//  סיבה: לא לגעת בקוד של שני העולמות הקודמים שכבר עובד ואומת.
+// ============================================================================
+let lavaExplorerYaw = 0;
+let lavaTreasureFound = false;
+let savedLavaFog = null, savedLavaBackground = null;
+let lavaReturnState = null;
+
+// "שומר המכתש" - יצור לבה/אבן ניתוך: עור אובסידיאן שחור עם נקודות
+// זוהרות (glowDotsSkin - סדקי לבה, לא זוהר אמיתי אבל קורא נכון), ליבה
+// זוהרת בחזה (chestGem בגוון לבה במקום גביש), בלי קרניים - כדי לא
+// להידמות לקראגור (שד-אש עם קרניים ארוכות שכבר קיים).
+const LAVA_GUARDIAN_CFG = {
+  power: 6, speed: 5,
+  skin: 0x1a1512,
+  glowDotsSkin: true, glowDotsColor: 0xff6a1a,
+  bald: true,
+  eyeColor: 0xffae42,
+  glowEyes: true,
+  ears: 'round',
+  chestGem: true, chestGemColor: 0xff6a1a,
+  armScale: 1.2, legScale: 1.15, fistScale: 1.2,
+  top: null, pants: null, boxers: 0x0a0806, boots: null,
+};
+const LAVA_GUARDIAN2_CFG = {
+  power: 6, speed: 5,
+  skin: 0x241a14,
+  glowDotsSkin: true, glowDotsColor: 0xffd23a,
+  bald: true,
+  eyeColor: 0xffd23a,
+  glowEyes: true,
+  ears: 'round',
+  chestGem: true, chestGemColor: 0xffd23a,
+  armScale: 1.2, legScale: 1.15, fistScale: 1.2,
+  top: null, pants: null, boxers: 0x120d0a, boots: null,
+};
+const LAVA_MONSTER_DEFS = [
+  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN_CFG, hp: 130, pos: { x: 70, z: -42 }, reward: 0 },
+  { name: 'שומר המכתש', cfg: LAVA_GUARDIAN2_CFG, hp: 130, pos: { x: -77, z: 84 }, reward: 0 },
+];
+let lavaMonsters = [];
+let isLavaFight = false;
+let activeLavaMonsterIndex = -1;
+let lavaFightWasWin = false;
+
+function spawnLavaMonsters(defs) {
+  lavaMonsters.forEach((m) => {
+    lavaGroup.remove(m.fighter.group);
+    m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  });
+  lavaMonsters = defs.map((d) => {
+    const f = makeFighter(d.cfg, 0, 1, d.hp);
+    scene.remove(f.group);
+    lavaGroup.add(f.group);
+    f.group.position.set(d.pos.x, 0, d.pos.z);
+    return { name: d.name, pos: { x: d.pos.x, z: d.pos.z }, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
+  });
+}
+
+function avoidLiveLavaMonsters() {
+  for (const m of lavaMonsters) {
+    if (!m.alive) continue;
+    const dx = player.group.position.x - m.pos.x, dz = player.group.position.z - m.pos.z;
+    const dist = Math.hypot(dx, dz);
+    // ראה ההערה המלאה ב-avoidLiveMonsters
+    const safe = MONSTER_SIGHT_RANGE + 3;
+    if (dist < safe) {
+      const nx = dist > 0.001 ? dx / dist : 0, nz = dist > 0.001 ? dz / dist : 1;
+      player.group.position.x += nx * (safe - dist);
+      player.group.position.z += nz * (safe - dist);
+    }
+  }
+}
+
+function updateLavaBattleCamera() {
+  const wx = battleAnchorX + LAVA_OFFSET.x, wz = battleAnchorZ + LAVA_OFFSET.z, wy = LAVA_OFFSET.y;
+  camera.position.set(wx, wy + CAVE_BATTLE_CAM_Y, wz + BATTLE_CAM.pos.z);
+  camera.lookAt(wx, wy + CAVE_BATTLE_LOOK_Y, wz);
+}
+
+// זהה ל-startCaveMonsterFight/startIslandMonsterFight, רק על
+// lavaGroup/LAVA_OFFSET - ראה startCaveMonsterFight להסבר המלא.
+function startLavaMonsterFight(m) {
+  isLavaFight = true;
+  activeLavaMonsterIndex = lavaMonsters.indexOf(m);
+  lavaReturnState = { x: player.group.position.x, z: player.group.position.z, yaw: lavaExplorerYaw };
+  m.fighter.group.visible = false;
+
+  const oldFacing = enemy.facing;
+  if (enemy.group.parent) enemy.group.parent.remove(enemy.group);
+  enemy.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  enemy = makeFighter(m.cfg, 0, oldFacing, m.hp);
+  scene.remove(enemy.group);
+  lavaGroup.add(enemy.group);
+  enemy.group.position.y = 0;
+  addStoneProp(enemy);
+  hpNameEnemyEl.textContent = '👹 ' + m.name;
+  labelEl.textContent = '🥊 ' + selectedCharacterName + ' מול ' + m.name;
+
+  battleAnchorX = m.pos.x;
+  battleAnchorZ = m.pos.z;
+  resetGame();
+  player.group.rotation.y = player.facing * STANCE_YAW;   // ראה ההערה המלאה ב-startCaveMonsterFight
+  updateLavaBattleCamera();
+
+  caveHudEl.classList.remove('show');
+  hpRowEl.style.display = '';
+  controlsEl.style.display = '';
+  labelEl.style.display = '';
+  lootStackEl.style.display = '';
+  renderLootBar();
+  updateBuffRow();
+}
+
+// זהה ל-returnToCave/returnToIsland, רק על מכתש הלבה - ראה returnToCave.
+function returnToLava() {
+  if (activeLavaMonsterIndex >= 0) {
+    const m = lavaMonsters[activeLavaMonsterIndex];
+    if (m) {
+      if (lavaFightWasWin) {
+        m.alive = false;
+        lavaGroup.remove(m.fighter.group);
+        m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+      } else {
+        m.fighter.group.visible = true;
+      }
+    }
+  }
+  switchEnemy(enemyLevel);
+  isLavaFight = false;
+  activeLavaMonsterIndex = -1;
+  battleAnchorX = 0;
+  battleAnchorZ = 0;
+  resetGame();
+
+  hpRowEl.style.display = 'none';
+  controlsEl.style.display = 'none';
+  labelEl.style.display = 'none';
+  lootStackEl.style.display = 'none';
+  caveHudEl.classList.add('show');
+  enemy.group.visible = false;
+
+  if (lavaReturnState) {
+    player.group.position.set(lavaReturnState.x, 0, lavaReturnState.z);
+    lavaExplorerYaw = lavaReturnState.yaw;
+    lavaReturnState = null;
+  }
+  avoidLiveLavaMonsters();
+  player.group.rotation.y = lavaExplorerYaw + EXPLORE_FRONT_OFFSET;
+  updateLavaExplorerCamera();
+}
+
+function enterLava() {
+  caveInstructionsEl.textContent = '↑ להליכה · ← → לפנייה · תזהר מהלבה, ותחפש את האוצר!';
+  scene.remove(player.group);
+  lavaGroup.add(player.group);
+  if (lavaReturnState) {
+    player.group.position.set(lavaReturnState.x, 0, lavaReturnState.z);
+    lavaExplorerYaw = lavaReturnState.yaw;
+    lavaReturnState = null;
+    avoidLiveLavaMonsters();
+  } else {
+    player.group.position.set(0, 0, LAVA_RADIUS - 3);
+    lavaExplorerYaw = Math.PI;
+    lavaTreasureFound = false;
+    spawnLavaMonsters(LAVA_MONSTER_DEFS);
+  }
+  player.group.rotation.y = lavaExplorerYaw + EXPLORE_FRONT_OFFSET;
+  player.group.visible = true;
+  player.action = null;
+  player.blocking = false;
+  player.blockAmt = 0;
+  player.mv = 0;
+  savedLavaFog = scene.fog;
+  savedLavaBackground = scene.background;
+  // ערפל רחוק בהרבה - מכתש ענק, צריך לראות הרי געש רחוקים באופק (לפי
+  // בקשת המשתמש: "רואים את העולם באופק").
+  scene.fog = new THREE.Fog(0x2a140f, 30, 160);
+  scene.background = new THREE.Color(0x1a0d0a);
+  updateLavaExplorerCamera();
+}
+
+function exitLava() {
+  lavaGroup.remove(player.group);
+  scene.add(player.group);
+  player.group.position.set(player.x, GROUND_Y, 0);
+  player.group.rotation.y = player.facing * STANCE_YAW;
+  if (savedLavaFog) scene.fog = savedLavaFog;
+  if (savedLavaBackground) scene.background = savedLavaBackground;
+  document.getElementById('treasureFoundOverlay').classList.remove('show');
+}
+
+function updateLavaExplorerCamera() {
+  const p = player.group.position;
+  const wx = p.x + LAVA_OFFSET.x, wy = p.y + LAVA_OFFSET.y, wz = p.z + LAVA_OFFSET.z;
+  const camDist = 3.0, camHeight = 2.0;
+  camera.position.set(
+    wx - Math.sin(lavaExplorerYaw) * camDist,
+    wy + camHeight,
+    wz - Math.cos(lavaExplorerYaw) * camDist);
+  camera.lookAt(wx, wy + 1.0, wz);
+}
+
+function updateLavaExplorer(dt, t) {
+  if (KEYS.ArrowLeft) lavaExplorerYaw += EXPLORE_TURN_SPEED * dt;
+  if (KEYS.ArrowRight) lavaExplorerYaw -= EXPLORE_TURN_SPEED * dt;
+  const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
+  const p = player.group.position;
+  if (moveDir !== 0) {
+    let nx = p.x + Math.sin(lavaExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    let nz = p.z + Math.cos(lavaExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    const dist = Math.hypot(nx, nz);
+    // טבעת הליכה: מותר מחוץ לאגם הלבה המרכזי ובתוך גבול המכתש - "מכתש
+    // הלבה" אמיתי, לא רק אזור פתוח עם אגם דקורטיבי.
+    // ⚠️ באג אמיתי שהמשתמש דיווח: הגרסה הקודמת דחתה את כל הצעד (לא
+    // מזיזה בכלל) ברגע שהיעד חצה אחד מהגבולות - כולל כשההליכה הייתה
+    // בעיקר *לאורך* גבול האגם (למשל מקיפים אותו), לא לתוכו ממש. זה
+    // הרגיש כמו "נתקע במקום" ליד שפת האגם. תוקן: מהדקים את המיקום
+    // לגבול הקרוב במקום לבטל את הצעד לגמרי - "מחליקים" לאורך הקיר
+    // הבלתי-נראה, בדיוק כמו שקירות עובדים במשחקים אחרים.
+    const outerLimit = LAVA_RADIUS - 0.6, innerLimit = LAVA_LAKE_RADIUS + 0.4;
+    if (dist > outerLimit) {
+      const s = outerLimit / dist;
+      nx *= s; nz *= s;
+    } else if (dist < innerLimit && dist > 0.0001) {
+      const s = innerLimit / dist;
+      nx *= s; nz *= s;
+    }
+    p.x = nx; p.z = nz;
+  }
+  player.group.rotation.y = lavaExplorerYaw + EXPLORE_FRONT_OFFSET;
+  updateLavaExplorerCamera();
+
+  player.mv = moveDir;
+  if (moveDir !== 0) player.phase += dt * 8.5 * moveDir;
+  poseFighter(player, t, dt);
+
+  if (!lavaTreasureFound) {
+    const dx = p.x - LAVA_TREASURE_POS.x, dz = p.z - LAVA_TREASURE_POS.z;
+    if (Math.hypot(dx, dz) < 0.9) {
+      lavaTreasureFound = true;
+      onTreasureFound(LAVA_TREASURE_REWARD);
+    }
+  }
+
+  if (updateMonsterChase(lavaMonsters, p.x, p.z, dt, t, startLavaMonsterFight)) return;
+}
+
+function updateExplorerCamera() {
+  // player.group הוא ילד של caveGroup - המיקום שלו יחסי למערה, לא לעולם.
+  // המצלמה צריכה מיקום עולם אמיתי, אחרת היא נשארת ליד הזירה (CAVE_OFFSET).
+  const p = player.group.position;
+  const wx = p.x + CAVE_OFFSET.x, wy = p.y + CAVE_OFFSET.y, wz = p.z + CAVE_OFFSET.z;
+  const camDist = 3.0, camHeight = 2.0;
+  camera.position.set(
+    wx - Math.sin(explorerYaw) * camDist,
+    wy + camHeight,
+    wz - Math.cos(explorerYaw) * camDist);
+  camera.lookAt(wx, wy + 1.0, wz);
+}
+
+function updateExplorer(dt, t) {
+  if (KEYS.ArrowLeft) explorerYaw += EXPLORE_TURN_SPEED * dt;
+  if (KEYS.ArrowRight) explorerYaw -= EXPLORE_TURN_SPEED * dt;
+  const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
+  const p = player.group.position;
+  if (moveDir !== 0) {
+    let nx = p.x + Math.sin(explorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    let nz = p.z + Math.cos(explorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    const dist = Math.hypot(nx, nz), outerLimit = CAVE_RADIUS - 0.6;
+    // מהדקים לגבול במקום לבטל את הצעד לגמרי - ראה ההערה המלאה ב-
+    // updateLavaExplorer (שם התגלה הבאג: "נתקע במקום" ליד קיר עגול).
+    if (dist > outerLimit) { const s = outerLimit / dist; nx *= s; nz *= s; }
+    p.x = nx; p.z = nz;
+  }
+  player.group.rotation.y = explorerYaw + EXPLORE_FRONT_OFFSET;
+  updateExplorerCamera();
+
+  // אנימציית הליכה אמיתית - שימוש חוזר בדיוק באותה מנגנון של הזירה
+  // (poseFighter קורא ל-mv/phase כדי להזיז ירכיים/ברכיים/כתפיים). בזירה
+  // moveFighter מטפל בזה; כאן, בלי moveFighter, מעדכנים את שניהם ידנית.
+  player.mv = moveDir;
+  if (moveDir !== 0) player.phase += dt * 8.5 * moveDir;
+  poseFighter(player, t, dt);
+
+  if (!explorerTreasureFound) {
+    const dx = p.x - TREASURE_POS.x, dz = p.z - TREASURE_POS.z;
+    if (Math.hypot(dx, dz) < 0.9) {
+      explorerTreasureFound = true;
+      onTreasureFound(TREASURE_REWARD);
+    }
+  }
+
+  // מפלצות: נשימה קלה כדי שלא ייראו קפואות, ובדיקת מרחק להיתקלות. אם
+  // הגענו קרוב מדי למפלצת חיה - קרב מתחיל מייד, ואין טעם להמשיך לעדכן
+  // תנועה/מצלמה באותו פריים (המסך עומד להתחלף).
+  if (updateMonsterChase(caveMonsters, p.x, p.z, dt, t, startCaveMonsterFight)) return;
+}
+
+// reward כפרמטר (לא TREASURE_REWARD קבוע) - כדי שכל עולם הרפתקה יוכל
+// להשתמש באותה פונקציה עם התגמול שלו.
+function onTreasureFound(reward) {
+  money += reward;
+  updateMoneyUI();
+  document.getElementById('treasureFoundAmount').textContent = '💰 +' + reward + '₪';
+  document.getElementById('treasureFoundOverlay').classList.add('show');
+}
+
+document.getElementById('openAdventureBtn').addEventListener('click', () => showScreen('adventure'));
+document.getElementById('adventureBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('worldCaveBtn').addEventListener('click', () => showScreen('crystalCave'));
+document.getElementById('worldIslandBtn').addEventListener('click', () => showScreen('lostIsland'));
+document.getElementById('worldLavaBtn').addEventListener('click', () => showScreen('lavaCrater'));
+document.getElementById('caveExitBtn').addEventListener('click', () => showScreen('adventure'));
+document.getElementById('treasureContinueBtn').addEventListener('click', () => {
+  document.getElementById('treasureFoundOverlay').classList.remove('show');
+});
+
 // נתוני החנות - הועתקו ישירות מ-game-spec.md, מקור האמת למספרים האלה.
-// אין עדיין מערכת כסף, ולכן זו תצוגה בלבד (ראה shopNote למעלה).
 // ---------- תמונות אמיתיות של דמויות בחנות ----------
 // לכל דמות שכבר נבנתה בפועל (יש לה קונפיג) יש "צילום" אמיתי: בונים אותה
 // זמנית באמצע הזירה, מקטינים את הקנבס לריבוע קטן לרגע אחד, מרנדרים,
@@ -3625,7 +6601,9 @@ function showScreen(name) {
 // החנות תמיד אטום ומכסה את כל הקנבס כשזה קורה.
 const CHARACTER_CFGS = {
   'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG,
-  'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG,
+  'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG, 'ברטו': BERTO_CFG, 'סטנבר': STANBER_CFG,
+  'סלייקי': SLAIKY_CFG, 'קיטי': KITTY_CFG, 'לוין': LEWIN_CFG,
+  'סינזר': SINZER_CFG, 'פראנק': FRANK_CFG,
 };
 const characterThumbs = {};
 const THUMB_SIZE = 360;
@@ -3678,6 +6656,8 @@ const SHOP_DATA = {
     ['סלייקי', 'כוח 9.2/10', 'מהירות 10/10', '300₪'],
     ['קיטי', 'כוח 9.5/10', 'מהירות 9.9/10', '370₪'],
     ['לוין', 'כוח 10/10', 'מהירות 10/10', '750₪'],
+    ['סינזר', 'כוח 15/10', 'מהירות 15/10', '200₪'],
+    ['פראנק', 'כוח 15/10', 'מהירות 15/10', '200₪'],
   ]},
   weapons: { label: '⚔️ נשקים', rows: [
     ['אבן חדה', 'נזק 7', 'חינם'],
@@ -3734,6 +6714,51 @@ const SHOP_DATA = {
   ]},
   upgrades: { label: '⭐ שדרוגים', rows: [] },
 };
+
+// ============================================================================
+//  איוונט — כל יום שישי, 22:00-22:45 (לפי השעון האמיתי של המחשב)
+//
+//  לפי האפיון (game-spec.md סעיף 14): "מבצעים - פריטים או דמויות במחירים
+//  מיוחדים". השלב הזה מטפל רק בחלק הזה (הנחה על מחירי החנות) - דמויות
+//  האיוונט המיוחדות (פראנק/סינזר), יצירת דמות/נשק עצמאית והבוסים המיוחדים
+//  הם שלבים נפרדים שעדיין לא נבנו.
+// ============================================================================
+const EVENT_WEEKDAY = 5;            // יום שישי - Date.getDay(): 0=ראשון...6=שבת
+const EVENT_START_MIN = 22 * 60;    // 22:00, בדקות מתחילת היום
+const EVENT_END_MIN = 22 * 60 + 45; // 22:45
+const EVENT_DISCOUNT = 0.3;         // 30% הנחה על פריטי חנות בזמן איוונט
+
+// מצב הדגמה: כשרוצים להראות איך האיוונט נראה בלי לחכות ליום שישי 22:00,
+// אפשר לכפות אותו פעיל כאן זמנית - true מדליק את האיוונט תמיד, בלי קשר
+// לשעון האמיתי. FALSE הוא המצב הרגיל (תלוי בשעון, כמו שהאפיון דורש).
+// ⚠️ זה שינוי זמני לצורך הדגמה - יש להחזיר ל-false כשמסיימים להראות.
+const FORCE_EVENT_DEMO = false;
+
+function isEventActive(d = new Date()) {
+  if (FORCE_EVENT_DEMO) return true;
+  if (d.getDay() !== EVENT_WEEKDAY) return false;
+  const mins = d.getHours() * 60 + d.getMinutes();
+  return mins >= EVENT_START_MIN && mins < EVENT_END_MIN;
+}
+
+let eventActive = isEventActive();
+
+function updateEventUI() {
+  document.querySelectorAll('.eventBanner').forEach((el) => el.classList.toggle('show', eventActive));
+  // כפתורים שקיימים רק באיוונט (כרגע: "בנייה עצמית" בלובי - סעיפים 15-16 באפיון)
+  document.querySelectorAll('.eventOnly').forEach((el) => el.classList.toggle('show', eventActive));
+  // אם החנות פתוחה כרגע, מרעננים כדי שהמחירים המוזלים יופיעו/ייעלמו מיד
+  const activeTab = shopTabsEl.querySelector('.shopTab.active');
+  if (uiScreen === 'shop' && activeTab) renderShopCategory(activeTab.dataset.key);
+}
+
+// בדיקה כל שנייה מספיקה בהחלט (השעון עצמו לא זז מהר יותר), ולא תלויה
+// בלולאת האנימציה - כך שהבאנר וההנחות מתעדכנים גם אם המשחק פתוח בלובי/חנות
+// ולא בקרב בכלל.
+setInterval(() => {
+  const now = isEventActive();
+  if (now !== eventActive) { eventActive = now; updateEventUI(); }
+}, 1000);
 
 // ---------- מלאי וקנייה ----------
 // מפתח לכל פריט הוא "קטגוריה:שם". סווארק והאבן החדה כבר שייכים לשחקן
@@ -4013,10 +7038,23 @@ const weaponPrevBtn = document.getElementById('weaponPrevBtn');
 const weaponNextBtn = document.getElementById('weaponNextBtn');
 const weaponKeyLegendEl = document.getElementById('weaponKeyLegend');
 
+// דמויות שנבנו במסך "בנייה עצמית" זמינות למשחק רק באיוונט (game-spec.md
+// סעיף 15: "הדמות זמינה למשחק רק באיוונטים") - גם אם כבר קנית/יצרת אותן.
+const CUSTOM_CHARACTER_NAMES = new Set();
+// דמויות איוונט מהאפיון (game-spec.md סעיף 14, כמו סינזר/פראנק) - נקנות
+// ונבחרות רק בזמן איוונט, בדיוק כמו דמויות "בנייה עצמית" - אותו דגל.
+CUSTOM_CHARACTER_NAMES.add('סינזר');
+CUSTOM_CHARACTER_NAMES.add('פראנק');
 const ownedCharacterNames = () =>
-  Object.keys(CHARACTER_CFGS).filter((n) => inventory.has('characters:' + n));
+  Object.keys(CHARACTER_CFGS).filter((n) =>
+    inventory.has('characters:' + n) && (!CUSTOM_CHARACTER_NAMES.has(n) || eventActive));
+// נשקים שנוצרו ב"בנייה עצמית" זמינים רק באיוונט - בדיוק אותו דגל
+// כמו CUSTOM_CHARACTER_NAMES (game-spec.md סעיף 16: "הנשק זמין למשחק
+// רק באיוונטים").
+const CUSTOM_WEAPON_NAMES = new Set();
 const ownedWeaponNames = () =>
-  Object.keys(WEAPON_CFGS).filter((n) => inventory.has('weapons:' + n));
+  Object.keys(WEAPON_CFGS).filter((n) =>
+    inventory.has('weapons:' + n) && (!CUSTOM_WEAPON_NAMES.has(n) || eventActive));
 
 function updateLoadoutUI() {
   loadoutLabelEl.textContent = '🥊 ' + selectedCharacterName;
@@ -4151,7 +7189,10 @@ function renderShopCategory(key) {
   shopGridEl.innerHTML = '';
   if (key === 'upgrades') { renderUpgradesCategory(); return; }
 
-  const { rows } = SHOP_DATA[key];
+  // דמויות איוונט (game-spec.md סעיף 14, כמו סינזר) מוצגות בקטגוריית
+  // הדמויות רק בזמן איוונט - "זמינות רק באיוונטים" חל גם על הקנייה עצמה,
+  // לא רק על הבחירה בלובי.
+  const rows = SHOP_DATA[key].rows.filter(([name]) => !CUSTOM_CHARACTER_NAMES.has(name) || eventActive);
   if (rows.length === 0) {
     shopGridEl.innerHTML = '<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">🚧 עוד לא הוחלט מה יהיה כאן - בקרוב!</div>';
     return;
@@ -4172,9 +7213,16 @@ function renderShopCategory(key) {
         ? `<img class="itemThumb" src="${thumb}">`
         : `<div class="itemThumb itemThumbPlaceholder">🚧<br>בקרוב</div>`;
     }
+    // בזמן איוונט - 30% הנחה על כל פריט שלא חינם. data-price הוא המחיר
+    // שבאמת יורד מהכסף (buyItem פשוט קורא אותו), כדי שההנחה תיאכף גם בקנייה.
+    const onSale = eventActive && price > 0;
+    const chargePrice = onSale ? Math.round(price * (1 - EVENT_DISCOUNT)) : price;
+    const priceHtml = onSale
+      ? `<span class="oldPrice">${price}₪</span> 🎉${chargePrice}₪`
+      : priceStr;
     const buyHtml = owned
       ? `<button class="buyBtn owned" disabled>✅ שלך</button>`
-      : `<button class="buyBtn" data-key="${key}" data-name="${name}" data-price="${price}">💰 קנה ב-${priceStr}</button>`;
+      : `<button class="buyBtn" data-key="${key}" data-name="${name}" data-price="${chargePrice}">💰 קנה ב-${priceHtml}</button>`;
 
     card.innerHTML = media + `<div class="itemName">${name}</div>` +
       mid.map((s) => `<div class="itemStat">${s}</div>`).join('') +
@@ -4187,6 +7235,374 @@ function renderShopCategory(key) {
   });
 }
 
+// ============================================================================
+//  בנייה עצמית — יצירת דמות באיוונט (game-spec.md סעיף 15)
+//
+//  "השחקן יכול לבחור: שם, מראה, עיצוב, כוח, מהירות. מגבלות: כוח מקסימלי
+//  8.5/10, מהירות מקסימלית 8.5/10. הדמות זמינה למשחק רק באיוונטים."
+//
+//  "מראה" נבחר מתוך 8 קטגוריות (בדיוק כמו שהמשתמש ביקש), כל אחת עם כמה
+//  אפשרויות מוכנות מראש (סווטצ'ים/סגנונות) - לא צביעה חופשית, כי הפרויקט
+//  כבר גילה שגוונים "בינוניים" נשטפים תחת התאורה של הזירה (לקח טכני קיים).
+//  כל האפשרויות כאן נבחרו מתוך גוונים שכבר הוכחו כבטוחים בדמויות קיימות.
+// ============================================================================
+
+const CREATE_CATEGORIES = [
+  { key: 'hair', icon: '💇', label: 'שיער' },
+  { key: 'skin', icon: '🎨', label: 'עור' },
+  { key: 'shirt', icon: '👕', label: 'חולצה' },
+  { key: 'pants', icon: '👖', label: 'מכנסיים' },
+  { key: 'shoes', icon: '👟', label: 'נעליים' },
+  { key: 'socks', icon: '🧦', label: 'גרביים' },
+  { key: 'glasses', icon: '👓', label: 'משקפיים' },
+  { key: 'beard', icon: '🧔', label: 'זקן' },
+];
+const HAIR_STYLES = [
+  { key: 'short', label: 'קצר' }, { key: 'long', label: 'ארוך' },
+  { key: 'spiky', label: 'פרוע' }, { key: 'curly', label: 'מתולתל' },
+  { key: 'bald', label: 'קירח' },
+];
+const SHOE_TYPES = [
+  { key: 'boots', label: '👢 מגפיים' }, { key: 'crocs', label: '🐊 קרוקס' },
+  { key: 'flipflops', label: '🩴 כפכפים' }, { key: 'barefoot', label: '🦶 יחף' },
+];
+const SKIN_SWATCHES = [0xf3c9a0, 0xe8b382, 0xc98a54, 0x8a5a34, 0x5a3820, 0xf0d5c0, 0xd4915c, 0x6b4423];
+const HAIR_SWATCHES = [0x1a1410, 0x3a2718, 0x6b3a1e, 0xb8860b, 0xd94f4f, 0x2b2b8a, 0x2f8f5c, 0xe0e0e0];
+const CLOTH_SWATCHES = [0xd94f4f, 0x2b3a67, 0x2f8f5c, 0xffcf4d, 0x6b2fa0, 0x1a1a1a, 0xf7f6f3, 0xe85f9c, 0x2b2b33, 0x8a5a2e];
+
+const createState = {
+  hairStyle: 'short', hair: 0x2a1a16,
+  skin: 0xf3c9a0,
+  top: 0xd94f4f,
+  pants: 0x2b3a67,
+  shoeType: 'boots', shoeColor: 0x4a2f1a,
+  socks: false, socksColor: 0xf7f6f3,
+  glasses: false, glassColor: 0x2b2b33,
+  beard: false, beardColor: 0x2a1a16,
+  power: 5, speed: 5,
+};
+let createActiveCat = 'hair';
+
+function customCharCfg() {
+  const s = createState;
+  const c = {
+    power: s.power, speed: s.speed,
+    skin: s.skin, hair: s.hair,
+    eyeColor: 0x3a2a1a, ears: 'round',
+    top: s.top, pants: s.pants,
+  };
+  // "קירח" הוא cfg.bald (מדלג על כיפת השיער וכל הקווצות) - לא ערך של
+  // hairStyle. hairStyle לא מוגדר כלל במקרה הזה, כדי שלא ייפול בטעות
+  // ל-branch ברירת המחדל (תלתול) של בניית קווצות השיער.
+  if (s.hairStyle === 'bald') c.bald = true;
+  else c.hairStyle = s.hairStyle;
+  if (s.shoeType === 'boots') {
+    c.boots = s.shoeColor;
+  } else {
+    c.boots = null;
+    if (s.shoeType === 'crocs') { c.crocs = true; c.crocColor = s.shoeColor; }
+    else if (s.shoeType === 'flipflops') { c.flipflops = true; c.flipflopColor = s.shoeColor; }
+  }
+  if (s.socks) c.socks = { color: s.socksColor, opacity: 0.55, from: 0.35 };
+  if (s.glasses) { c.glasses = true; c.glassColor = s.glassColor; }
+  if (s.beard) { c.beard = true; c.beardColor = s.beardColor; }
+  return c;
+}
+
+// בדיוק כמו switchPlayerCharacter/switchEnemy - מפרקת את התצוגה המקדימה
+// הישנה ובונה חדשה מהבחירות הנוכחיות. לא נוגעת ב-player האמיתי.
+// ⚠️ משתמשת ב-makeFighter (עם שלד אמיתי), לא רק createFighter כמו בהתחלה -
+// כדי שאפשר יהיה גם להצמיד נשק (addWeaponProp דורש f.byName/f.near, ששניהם
+// קיימים רק אחרי בניית שלד). מכיוון שהתצוגה המקדימה אף פעם לא מונפשת
+// (לא עוברת poseFighter), הצמדת השלד בתנוחת המנוחה לא משנה שום דבר
+// חזותית - זהה לגמרי לגרסה הישנה בלי שלד.
+function rebuildPreview() {
+  if (previewFighter) {
+    scene.remove(previewFighter.group);
+    previewFighter.group.traverse((o) => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) o.material.dispose();
+    });
+  }
+  previewFighter = makeFighter(customCharCfg(), 0, 1, 100);
+}
+
+const createTabsEl = document.getElementById('createTabs');
+const createOptionsEl = document.getElementById('createOptions');
+const createNameInputEl = document.getElementById('createNameInput');
+
+function renderCreateTabs() {
+  createTabsEl.innerHTML = '';
+  CREATE_CATEGORIES.forEach((c) => {
+    const b = document.createElement('button');
+    b.className = 'shopTab' + (c.key === createActiveCat ? ' active' : '');
+    b.textContent = c.icon + ' ' + c.label;
+    b.addEventListener('click', () => { createActiveCat = c.key; renderCreateTabs(); renderCreateOptions(); });
+    createTabsEl.appendChild(b);
+  });
+}
+
+function renderCreateOptions() {
+  const el = createOptionsEl;
+  el.innerHTML = '';
+  const cat = createActiveCat;
+  const onChange = () => { renderCreateOptions(); rebuildPreview(); };
+
+  const addBreak = () => { const b = document.createElement('div'); b.className = 'fullBreak'; el.appendChild(b); };
+  const addSwatchRow = (colors, current, onPick) => {
+    colors.forEach((c) => {
+      const b = document.createElement('button');
+      b.className = 'swatch' + (c === current ? ' active' : '');
+      b.style.background = '#' + c.toString(16).padStart(6, '0');
+      b.addEventListener('click', () => { onPick(c); onChange(); });
+      el.appendChild(b);
+    });
+  };
+  const addStyleRow = (options, currentKey, onPick) => {
+    options.forEach((o) => {
+      const b = document.createElement('button');
+      b.className = 'shopTab' + (o.key === currentKey ? ' active' : '');
+      b.textContent = o.label;
+      b.addEventListener('click', () => { onPick(o.key); onChange(); });
+      el.appendChild(b);
+    });
+  };
+  const addToggle = (label, checked, onToggle) => {
+    const b = document.createElement('button');
+    b.className = 'bigBtn secondary';
+    b.textContent = (checked ? '✅ ' : '⬜ ') + label;
+    b.addEventListener('click', () => { onToggle(!checked); onChange(); });
+    el.appendChild(b);
+  };
+
+  if (cat === 'hair') {
+    addStyleRow(HAIR_STYLES, createState.hairStyle, (k) => { createState.hairStyle = k; });
+    if (createState.hairStyle !== 'bald') {
+      addBreak();
+      addSwatchRow(HAIR_SWATCHES, createState.hair, (c) => { createState.hair = c; });
+    }
+  } else if (cat === 'skin') {
+    addSwatchRow(SKIN_SWATCHES, createState.skin, (c) => { createState.skin = c; });
+  } else if (cat === 'shirt') {
+    addSwatchRow(CLOTH_SWATCHES, createState.top, (c) => { createState.top = c; });
+  } else if (cat === 'pants') {
+    addSwatchRow(CLOTH_SWATCHES, createState.pants, (c) => { createState.pants = c; });
+  } else if (cat === 'shoes') {
+    addStyleRow(SHOE_TYPES, createState.shoeType, (k) => { createState.shoeType = k; });
+    if (createState.shoeType !== 'barefoot') {
+      addBreak();
+      addSwatchRow(CLOTH_SWATCHES, createState.shoeColor, (c) => { createState.shoeColor = c; });
+    }
+  } else if (cat === 'socks') {
+    addToggle('גרביים', createState.socks, (v) => { createState.socks = v; });
+    if (createState.socks) { addBreak(); addSwatchRow(CLOTH_SWATCHES, createState.socksColor, (c) => { createState.socksColor = c; }); }
+  } else if (cat === 'glasses') {
+    addToggle('משקפיים', createState.glasses, (v) => { createState.glasses = v; });
+    if (createState.glasses) { addBreak(); addSwatchRow(HAIR_SWATCHES, createState.glassColor, (c) => { createState.glassColor = c; }); }
+  } else if (cat === 'beard') {
+    addToggle('זקן', createState.beard, (v) => { createState.beard = v; });
+    if (createState.beard) { addBreak(); addSwatchRow(HAIR_SWATCHES, createState.beardColor, (c) => { createState.beardColor = c; }); }
+  }
+}
+
+function flashCreateName() {
+  createNameInputEl.style.borderColor = '#e05a5a';
+  createNameInputEl.classList.add('shake');
+  setTimeout(() => { createNameInputEl.style.borderColor = ''; createNameInputEl.classList.remove('shake'); }, 300);
+}
+
+function openCreateScreen() {
+  createState.hairStyle = 'short'; createState.hair = 0x2a1a16;
+  createState.skin = 0xf3c9a0; createState.top = 0xd94f4f; createState.pants = 0x2b3a67;
+  createState.shoeType = 'boots'; createState.shoeColor = 0x4a2f1a;
+  createState.socks = false; createState.glasses = false; createState.beard = false;
+  createState.power = 5; createState.speed = 5;
+  createActiveCat = 'hair';
+  createNameInputEl.value = '';
+  document.getElementById('createPowerSlider').value = 5;
+  document.getElementById('createSpeedSlider').value = 5;
+  document.getElementById('createPowerVal').textContent = '5.0';
+  document.getElementById('createSpeedVal').textContent = '5.0';
+  renderCreateTabs();
+  renderCreateOptions();
+  showScreen('create');
+  rebuildPreview();   // showScreen כבר קורא לזה אם previewFighter ריק, אבל כאן תמיד רוצים בנייה טרייה מהאיפוס למעלה
+}
+
+function saveCustomCharacter() {
+  const name = createNameInputEl.value.trim();
+  if (!name || CHARACTER_CFGS[name]) { flashCreateName(); return; }
+  const cfg = customCharCfg();
+  CHARACTER_CFGS[name] = cfg;
+  CUSTOM_CHARACTER_NAMES.add(name);
+  inventory.add('characters:' + name);
+  updateLoadoutUI();
+  showScreen('lobby');
+}
+
+document.getElementById('openCreateBtn').addEventListener('click', openCreateScreen);
+document.getElementById('createBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('createSaveBtn').addEventListener('click', saveCustomCharacter);
+document.getElementById('createPowerSlider').addEventListener('input', (e) => {
+  createState.power = +e.target.value;
+  document.getElementById('createPowerVal').textContent = createState.power.toFixed(1);
+  rebuildPreview();
+});
+document.getElementById('createSpeedSlider').addEventListener('input', (e) => {
+  createState.speed = +e.target.value;
+  document.getElementById('createSpeedVal').textContent = createState.speed.toFixed(1);
+  rebuildPreview();
+});
+
+// ============================================================================
+//  בניית נשק — יצירת נשק באיוונט (game-spec.md סעיף 16)
+//
+//  "השחקן יכול לבחור: שם, מראה, סוג, נזק. מגבלת נזק: מקסימום 67. גם הנשק
+//  זמין רק באיוונטים." אותו דפוס בדיוק כמו בניית הדמות למעלה - קטגוריות
+//  עם אפשרויות מוכנות, תצוגה מקדימה חיה, שמירה עם דגל "רק באיוונט".
+//  "מראה"/"סוג" כאן הוא שילוב של ראש נשק + חומר/צבע + אורך ידית - כל
+//  הגיאומטריות הבסיסיות (weaponShaft/weaponSpike/weaponBlade) כבר קיימות
+//  ונבנו בשביל 10 הנשקים בחנות, אז בונים נשק חדש זה בעיקר הרכבה, לא
+//  יכולות חדשות.
+// ============================================================================
+
+const WEAPON_HEAD_TYPES = [
+  { key: 'blade', label: '⚔️ להב ישר' },
+  { key: 'spike', label: '🗡️ חוד חד' },
+  { key: 'trident', label: '🔱 קלשון' },
+  { key: 'mace', label: '🔨 פטיש כבד' },
+];
+const WEAPON_COLORS = [
+  { key: 'steel', label: 'פלדה בהירה', hex: 0xc7ccd1 },
+  { key: 'gold', label: 'זהב', hex: 0xd9b23c },
+  { key: 'wood', label: 'ברונזה', hex: 0x6b4423 },
+  { key: 'iron', label: 'ברזל כהה', hex: 0x2b2b2f },
+];
+const WEAPON_HANDLE_LENGTHS = [
+  { key: 'short', label: 'קצרה', len: 0.06 },
+  { key: 'medium', label: 'בינונית', len: 0.11 },
+  { key: 'long', label: 'ארוכה', len: 0.20 },
+];
+
+const weaponCreateState = { head: 'blade', color: 'steel', handle: 'medium', damage: 30 };
+let weaponCreateActiveCat = 'head';
+const TEMP_WEAPON_NAME = ' tempCustomWeapon';   // מפתח פנימי לתצוגה מקדימה בלבד, לא מוצג למשתמש ולא נשמר
+
+function customWeaponCfg() {
+  const s = weaponCreateState;
+  const color = WEAPON_COLORS.find((c) => c.key === s.color).hex;
+  const handleLen = WEAPON_HANDLE_LENGTHS.find((h) => h.key === s.handle).len;
+  return {
+    dmg: s.damage,
+    gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(handleLen, 0.013, 0x2b2b2f));
+      if (s.head === 'blade') {
+        g.add(weaponBlade(handleLen, 0.30, 0.045, color, 0.18));
+      } else if (s.head === 'spike') {
+        const spike = weaponSpike(0.24, 0.028, color);
+        spike.position.y = handleLen;
+        g.add(spike);
+      } else if (s.head === 'trident') {
+        [-0.22, 0, 0.22].forEach((ang) => {
+          const spike = weaponSpike(0.16, 0.018, color, ang);
+          spike.position.y = handleLen;
+          g.add(spike);
+        });
+      } else if (s.head === 'mace') {
+        const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.06, 0),
+          new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.5 }));
+        head.position.y = handleLen + 0.04;
+        head.castShadow = true;
+        g.add(head);
+      }
+      return g;
+    },
+  };
+}
+
+// מרעננת רק את הנשק ביד דמות התצוגה המקדימה (previewFighter כבר קיימת -
+// אותה אחת בדיוק כמו במסך "בנייה עצמית") - בלי לפרק ולבנות מחדש את כל
+// הדמות, בדיוק כמו switchPlayerWeapon לשחקן האמיתי.
+function rebuildWeaponPreview() {
+  WEAPON_CFGS[TEMP_WEAPON_NAME] = customWeaponCfg();
+  removeWeaponProp(previewFighter);
+  addWeaponProp(previewFighter, TEMP_WEAPON_NAME);
+  previewFighter.forceWeaponVisible = true;
+  if (previewFighter.stoneMesh) previewFighter.stoneMesh.visible = true;
+}
+
+const weaponCreateTabsEl = document.getElementById('weaponCreateTabs');
+const weaponCreateOptionsEl = document.getElementById('weaponCreateOptions');
+const weaponCreateNameInputEl = document.getElementById('weaponCreateNameInput');
+
+function renderWeaponCreateTabs() {
+  weaponCreateTabsEl.innerHTML = '';
+  [{ key: 'head', icon: '🗡️', label: 'ראש' }, { key: 'color', icon: '🎨', label: 'צבע' }, { key: 'handle', icon: '📏', label: 'ידית' }]
+    .forEach((c) => {
+      const b = document.createElement('button');
+      b.className = 'shopTab' + (c.key === weaponCreateActiveCat ? ' active' : '');
+      b.textContent = c.icon + ' ' + c.label;
+      b.addEventListener('click', () => { weaponCreateActiveCat = c.key; renderWeaponCreateTabs(); renderWeaponCreateOptions(); });
+      weaponCreateTabsEl.appendChild(b);
+    });
+}
+
+function renderWeaponCreateOptions() {
+  const el = weaponCreateOptionsEl;
+  el.innerHTML = '';
+  const onChange = () => { renderWeaponCreateOptions(); rebuildWeaponPreview(); };
+  const addStyleRow = (options, currentKey, onPick) => {
+    options.forEach((o) => {
+      const b = document.createElement('button');
+      b.className = 'shopTab' + (o.key === currentKey ? ' active' : '');
+      b.textContent = o.label;
+      b.addEventListener('click', () => { onPick(o.key); onChange(); });
+      el.appendChild(b);
+    });
+  };
+  if (weaponCreateActiveCat === 'head') addStyleRow(WEAPON_HEAD_TYPES, weaponCreateState.head, (k) => { weaponCreateState.head = k; });
+  else if (weaponCreateActiveCat === 'color') addStyleRow(WEAPON_COLORS, weaponCreateState.color, (k) => { weaponCreateState.color = k; });
+  else if (weaponCreateActiveCat === 'handle') addStyleRow(WEAPON_HANDLE_LENGTHS, weaponCreateState.handle, (k) => { weaponCreateState.handle = k; });
+}
+
+function flashWeaponCreateName() {
+  weaponCreateNameInputEl.classList.add('shake');
+  setTimeout(() => weaponCreateNameInputEl.classList.remove('shake'), 300);
+}
+
+function openWeaponCreateScreen() {
+  weaponCreateState.head = 'blade'; weaponCreateState.color = 'steel'; weaponCreateState.handle = 'medium'; weaponCreateState.damage = 30;
+  weaponCreateActiveCat = 'head';
+  weaponCreateNameInputEl.value = '';
+  document.getElementById('weaponDamageSlider').value = 30;
+  document.getElementById('weaponDamageVal').textContent = '30';
+  renderWeaponCreateTabs();
+  renderWeaponCreateOptions();
+  showScreen('weaponCreate');
+  rebuildWeaponPreview();
+}
+
+function saveCustomWeapon() {
+  const name = weaponCreateNameInputEl.value.trim();
+  if (!name || WEAPON_CFGS[name]) { flashWeaponCreateName(); return; }
+  WEAPON_CFGS[name] = customWeaponCfg();
+  CUSTOM_WEAPON_NAMES.add(name);
+  inventory.add('weapons:' + name);
+  updateLoadoutUI();
+  showScreen('lobby');
+}
+
+document.getElementById('openWeaponCreateBtn').addEventListener('click', openWeaponCreateScreen);
+document.getElementById('weaponCreateBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('weaponCreateSaveBtn').addEventListener('click', saveCustomWeapon);
+document.getElementById('weaponDamageSlider').addEventListener('input', (e) => {
+  weaponCreateState.damage = +e.target.value;
+  document.getElementById('weaponDamageVal').textContent = weaponCreateState.damage;
+  rebuildWeaponPreview();
+});
+
 Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
   const btn = document.createElement('button');
   btn.className = 'shopTab';
@@ -4196,9 +7612,21 @@ Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
   shopTabsEl.appendChild(btn);
 });
 
-document.getElementById('lobbyBtn').addEventListener('click', () => { resetGame(); showScreen('lobby'); });
+lobbyBtnEl.addEventListener('click', () => {
+  // אחרי קרב מפלצת הרפתקה חוזרים למערה/לאי, לא ללובי - ראה returnToCave/returnToIsland.
+  if (isCaveFight) { returnToCave(); return; }
+  if (isIslandFight) { returnToIsland(); return; }
+  if (isLavaFight) { returnToLava(); return; }
+  // אם באים מקרב בוס - מחזירים את האויב הרגיל של הרמה הנוכחית לפני
+  // שחוזרים ללובי, כי `enemy` הוחלף זמנית לבוס ב-startBossFight.
+  if (isBossFight) { switchEnemy(enemyLevel); isBossFight = false; }
+  resetGame(); showScreen('lobby');
+});
 document.getElementById('startFightBtn').addEventListener('click', () => { resetGame(); showScreen('battle'); });
 document.getElementById('openShopBtn').addEventListener('click', () => { showScreen('shop'); renderShopCategory('characters'); });
+document.getElementById('bossFightBtn').addEventListener('click', () => startBossFight(selectedBossIndex));
+document.getElementById('bossPrevBtn').addEventListener('click', () => cycleBossChoice(-1));
+document.getElementById('bossNextBtn').addEventListener('click', () => cycleBossChoice(1));
 document.getElementById('backLobbyBtn').addEventListener('click', () => showScreen('lobby'));
 charPrevBtn.addEventListener('click', () => cycleCharacter(-1));
 charNextBtn.addEventListener('click', () => cycleCharacter(1));
@@ -4212,6 +7640,13 @@ updateMoneyUI();
 updateLoadoutUI();
 renderLootBar();
 updateBuffRow();
+updateEventUI();
+document.getElementById('bossLabel').textContent = '👹 ' + BOSS_LEVELS[selectedBossIndex].name;
+
+// המסך הראשון שרואים כשפותחים את המשחק הוא הלובי, לא קרב באמצע -
+// uiScreen מתחיל כ-'battle' (כברירת מחדל פנימית של הזירה) אבל בלי
+// הקריאה הזו שום דבר לא מציג בפועל את מסך הלובי בטעינה הראשונה.
+showScreen('lobby');
 
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
@@ -4223,7 +7658,16 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.05);   // תקרה: מונע קפיצה אחרי לשונית ברקע
   const t = clock.elapsedTime;
 
-  if (gameOver || uiScreen !== 'battle') {
+  // קרב פעיל: גם הזירה הרגילה וגם קרב מפלצת בהרפתקה (isCaveFight/isIslandFight,
+  // בתוך uiScreen==='crystalCave'/'lostIsland' עצמם - הקרב קורה שם, לא
+  // במסך הזירה, ראה startCaveMonsterFight/startIslandMonsterFight) מריצים
+  // בדיוק את אותה לוגיקת קרב.
+  const inBattleMode = uiScreen === 'battle' ||
+    (uiScreen === 'crystalCave' && isCaveFight) ||
+    (uiScreen === 'lostIsland' && isIslandFight) ||
+    (uiScreen === 'lavaCrater' && isLavaFight);
+
+  if (gameOver || !inBattleMode) {
     player.mv = 0; enemy.mv = 0;
     player.blocking = false; enemy.blocking = false;
   } else {
@@ -4242,17 +7686,54 @@ function animate() {
     }
   }
 
-  [player, enemy].forEach((f) => {
-    tickAction(f, dt);
-    tickJump(f, dt);
-    f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16));
-  });
+  // בחקירה חופשית במערת הקריסטל player.group זז בשני צירים (x/z) ומסתובב
+  // בזווית חופשית - moveFighter/poseFighter הרגילים מניחים תנועת x בלבד,
+  // ויקפצו את המיקום בחזרה כל פריים אם ירוצו כאן. לכן מדלגים עליהם לגמרי
+  // בזמן חקירה, ומריצים updateExplorer במקומם. בקרב (גם בזירה וגם קרב
+  // מפלצת בתוך המערה) מריצים את מנגנון הקרב הרגיל ללא שינוי.
+  if (uiScreen === 'crystalCave' && !isCaveFight) {
+    updateExplorer(dt, t);
+  } else if (uiScreen === 'lostIsland' && !isIslandFight) {
+    updateIslandExplorer(dt, t);
+  } else if (uiScreen === 'lavaCrater' && !isLavaFight) {
+    updateLavaExplorer(dt, t);
+  } else if (inBattleMode) {
+    [player, enemy].forEach((f) => {
+      tickAction(f, dt);
+      tickJump(f, dt);
+      f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16));
+    });
 
-  moveFighter(player, enemy, dt);
-  moveFighter(enemy, player, dt);
+    moveFighter(player, enemy, dt);
+    moveFighter(enemy, player, dt);
 
-  poseFighter(player, t, dt);
-  poseFighter(enemy, t, dt);
+    poseFighter(player, t, dt);
+    poseFighter(enemy, t, dt);
+  }
+
+  // גלים חזקים באי האבוד - מעוותים את גובה הים לפי שתי גלי-סינוס חופפות.
+  // מחושב רק כשבאמת רואים את האי (חוסך עבודה על ~3600 קודקודים בכל
+  // פריים כשלא צריך). תדירות הגל הוקטנה (חלוקה ב-~4.5) יחד עם הגדלת
+  // הים (OCEAN_SIZE 200→900) בלי להוסיף קודקודים - אחרת כל משבצת ברשת
+  // הייתה גדולה יותר מאורך-גל שלם, והגלים היו יוצאים משוננים/מקוטעים
+  // במקום חלקים. המשרעת הוגדלה פי 2 - גלים "חזקים" יותר, מתאים לעולם
+  // ענק יותר.
+  if (uiScreen === 'lostIsland') {
+    const posAttr = oceanGeo.attributes.position;
+    for (let i = 0; i < posAttr.count; i++) {
+      const ox = oceanBasePositions[i * 3], oy = oceanBasePositions[i * 3 + 1];
+      posAttr.array[i * 3 + 2] = 0.7 * Math.sin(ox * 0.078 + t * 1.6) + 0.36 * Math.sin(oy * 0.11 + t * 2.3);
+    }
+    posAttr.needsUpdate = true;
+  }
+
+  // לבה "חיה" במכתש - עוצמת הזוהר פועמת (במקום לעוות גיאומטריה כמו הים,
+  // כי לבה לא גועשת בגלים - היא רק זורמת ובוערת). מחושב רק כשבאמת שם.
+  if (uiScreen === 'lavaCrater') {
+    const pulse = 1.0 + 0.25 * Math.sin(t * 1.8);
+    lavaLakeMat.emissiveIntensity = 1.1 * pulse;
+    riverMat.emissiveIntensity = 0.9 * pulse;
+  }
 
   // תנועת קהל עדינה - נותנת חיים לאולם
   crowdPositions.forEach((p, i) => {
@@ -4275,7 +7756,8 @@ animate();
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
-  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, inventory,
+  renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, SINZER_CFG, FRANK_CFG, KRAGOR_CFG, PROKENT_CFG, CHARES_CFG, inventory,
+  BOSS_LEVELS, startBossFight, get isBossFight() { return isBossFight; },
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
@@ -4286,6 +7768,33 @@ window.game = {
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
   get gameOver() { return gameOver; }, get uiScreen() { return uiScreen; }, get money() { return money; },
   set money(v) { money = v; updateMoneyUI(); },
+  isEventActive, updateEventUI,
+  get eventActive() { return eventActive; },
+  set eventActive(v) { eventActive = v; updateEventUI(); },   // לבדיקות בלבד - עוקף את השעון האמיתי
+  openCreateScreen, saveCustomCharacter, customCharCfg, createState, CUSTOM_CHARACTER_NAMES,
+  openWeaponCreateScreen, saveCustomWeapon, customWeaponCfg, weaponCreateState, CUSTOM_WEAPON_NAMES,
+  get previewFighter() { return previewFighter; },
+  enterCave, exitCave, updateExplorer, TREASURE_POS, TREASURE_REWARD,
+  get explorerYaw() { return explorerYaw; },
+  set explorerYaw(v) { explorerYaw = v; },   // לבדיקות בלבד
+  get explorerTreasureFound() { return explorerTreasureFound; },
+  get caveMonsters() { return caveMonsters; },
+  get isCaveFight() { return isCaveFight; },
+  startCaveMonsterFight, returnToCave, CAVE_MONSTER_DEFS, MONSTER_ENCOUNTER_DIST,
+  MONSTER_SIGHT_RANGE, MONSTER_CHASE_SPEED,
+  get battleAnchorX() { return battleAnchorX; }, get battleAnchorZ() { return battleAnchorZ; },
+  ISLAND_TREASURE_POS, ISLAND_TREASURE_REWARD, ISLAND_OFFSET,
+  get islandTreasureFound() { return islandTreasureFound; },
+  get islandExplorerYaw() { return islandExplorerYaw; },
+  set islandExplorerYaw(v) { islandExplorerYaw = v; },
+  get islandMonsters() { return islandMonsters; },
+  get isIslandFight() { return isIslandFight; },
+  startIslandMonsterFight, returnToIsland, ISLAND_MONSTER_DEFS,
+  LAVA_TREASURE_POS, LAVA_TREASURE_REWARD, LAVA_OFFSET, LAVA_RADIUS, LAVA_LAKE_RADIUS,
+  get lavaTreasureFound() { return lavaTreasureFound; },
+  get lavaMonsters() { return lavaMonsters; },
+  get isLavaFight() { return isLavaFight; },
+  startLavaMonsterFight, returnToLava, LAVA_MONSTER_DEFS,
 };
 </script>
 </body>
