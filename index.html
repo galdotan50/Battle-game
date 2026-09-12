@@ -240,6 +240,20 @@
   }
   #lobbyBtn:hover, #backLobbyBtn:hover { background: rgba(255,255,255,0.18); }
 
+  /* כשהמשחק פתוח בתוך מסגרת (iframe) - למשל בקישור אינטרנט - הדפדפן לא
+     מעביר לחצני מקלדת עד שלוחצים בתוך המסגרת פעם אחת. המסך הזה מבקש
+     בדיוק את הקליק הזה, ואז נעלם לתמיד. פתיחה כקובץ מקומי לא מושפעת -
+     קליק אחד קטן בהתחלה, ולא שוב. */
+  #clickStartOverlay {
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(5,8,16,0.88);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; text-align: center; cursor: pointer;
+    font-size: 1.4rem; gap: 14px;
+  }
+  #clickStartOverlay .big { font-size: 3rem; animation: clickPulse 1.1s ease-in-out infinite; }
+  @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
   #lobbyOverlay, #shopOverlay {
     position: fixed;
@@ -403,6 +417,10 @@
 </style>
 </head>
 <body>
+<div id="clickStartOverlay">
+  <div class="big">👆</div>
+  <div>לחץ כאן כדי להתחיל לשחק</div>
+</div>
 <div id="label">🥊 סווארק מול בו - שלב חיים ונזק</div>
 <div id="controls">
   <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> חסימה
@@ -3279,6 +3297,13 @@ addEventListener('keydown', (e) => {
 });
 addEventListener('keyup', (e) => { KEYS[e.code] = false; });
 addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; });
+
+// בתוך iframe (למשל כשהמשחק פתוח מקישור אינטרנט) הדפדפן לא מעביר מקשים
+// עד שלוחצים בתוך המסגרת פעם אחת - הקליק הזה בדיוק נותן לה "פוקוס".
+// פתיחה כקובץ מקומי לא מרגישה בזה כי הדף כבר ממוקד מלכתחילה.
+document.getElementById('clickStartOverlay').addEventListener('click', function () {
+  this.remove();
+}, { once: true });
 
 const WALK_SPEED = 1.95;
 const BLOCK_SPEED = 0.75;
