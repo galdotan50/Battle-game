@@ -817,8 +817,13 @@ import * as THREE from 'three';
 
 // ---------- בסיס: סצנה, מצלמה, רנדרר ----------
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x121a29);
-scene.fog = new THREE.Fog(0x121a29, 26, 60);
+// שלב 2 המשך - "יותר כהה ודרמטית, כמו במערה": ה-fog הקודם (26→60) התחיל
+// הרבה מעבר למרחק הקהל מהמצלמה (הקהל הרחוק ביותר במרחק ~30 יחידות בערך),
+// ולכן הקהל תמיד יצא צבעוני וברור לגמרי בלי שום עמעום מרחק - בדיוק ההפך
+// מהאווירה האפלה של המערה. עכשיו ה-fog מתחיל כבר קרוב לקצה הבמה, כך
+// שהקהל הרחוק דועך לתוך חושך במקום להישאר בהיר וצבעוני. הרקע גם הוכהה.
+scene.background = new THREE.Color(0x0a0e1a);
+scene.fog = new THREE.Fog(0x0a0e1a, 9, 22);
 
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
 // המצלמה יושבת בחלל הפתוח שבין הזירה ליציעים, ומביטה מעל החבל העליון
@@ -847,8 +852,8 @@ window.addEventListener('resize', () => {
 // צל, אז השטח המוצל עדיין מקבל מהם אור מלא. התוצאה: אין כמעט צל נראה על
 // הבמה מתחת ללוחמים, והגוף שלהם נראה שטוח כמעט בלי הבדל אור/צל. נבדק
 // ברינדור לפני ואחרי (לא ניחוש) - ראו יומן הפיתוח.
-scene.add(new THREE.HemisphereLight(0xaec6e8, 0x2f2a24, 0.45));
-scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+scene.add(new THREE.HemisphereLight(0xaec6e8, 0x2f2a24, 0.28));
+scene.add(new THREE.AmbientLight(0xffffff, 0.10));
 
 const keyLight = new THREE.DirectionalLight(0xfff3dd, 2.6);
 keyLight.position.set(-6, 12, 7);
@@ -1037,8 +1042,10 @@ crowdPositions.forEach((p, i) => {
   dummy.updateMatrix();
   crowdHeads.setMatrixAt(i, dummy.matrix);
 
-  crowdBodies.setColorAt(i, colorTmp.setHex(shirtPalette[Math.floor(Math.random() * shirtPalette.length)]));
-  crowdHeads.setColorAt(i, colorTmp.setHex(skinPalette[Math.floor(Math.random() * skinPalette.length)]));
+  // הצבעים מוכהים (0.55x) - קהל צבעוני-בהיר לגמרי לא מתאים לאווירה
+  // הדרמטית/כהה שהמשתמש ביקש (כמו במערה); עדיין מזהים גוון, רק פחות זוהר.
+  crowdBodies.setColorAt(i, colorTmp.setHex(shirtPalette[Math.floor(Math.random() * shirtPalette.length)]).multiplyScalar(0.55));
+  crowdHeads.setColorAt(i, colorTmp.setHex(skinPalette[Math.floor(Math.random() * skinPalette.length)]).multiplyScalar(0.7));
 });
 
 scene.add(crowdBodies, crowdHeads);
