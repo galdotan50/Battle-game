@@ -841,10 +841,16 @@ window.addEventListener('resize', () => {
 });
 
 // ---------- תאורה ----------
-scene.add(new THREE.HemisphereLight(0xaec6e8, 0x2f2a24, 0.8));
-scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+// לפני התיקון: אור כללי (ambient) חזק מדי (0.55, לבן, מאיר הכול שווה בשווה)
+// יחד עם hemisphere חזק (0.8) "שטפו" את הצל שה-keyLight היחיד שמטיל צללים
+// יצר - כל שאר האורות (hemisphere/ambient/fillLight/זרקורים) לא מטילים
+// צל, אז השטח המוצל עדיין מקבל מהם אור מלא. התוצאה: אין כמעט צל נראה על
+// הבמה מתחת ללוחמים, והגוף שלהם נראה שטוח כמעט בלי הבדל אור/צל. נבדק
+// ברינדור לפני ואחרי (לא ניחוש) - ראו יומן הפיתוח.
+scene.add(new THREE.HemisphereLight(0xaec6e8, 0x2f2a24, 0.45));
+scene.add(new THREE.AmbientLight(0xffffff, 0.18));
 
-const keyLight = new THREE.DirectionalLight(0xfff3dd, 2.2);
+const keyLight = new THREE.DirectionalLight(0xfff3dd, 2.6);
 keyLight.position.set(-6, 12, 7);
 keyLight.castShadow = true;
 keyLight.shadow.mapSize.set(2048, 2048);
@@ -855,7 +861,7 @@ keyLight.shadow.camera.bottom = -12;
 keyLight.shadow.bias = -0.0012;
 scene.add(keyLight);
 
-const fillLight = new THREE.DirectionalLight(0xcfe0ff, 0.9);
+const fillLight = new THREE.DirectionalLight(0xcfe0ff, 0.45);
 fillLight.position.set(7, 8, -6);
 scene.add(fillLight);
 
