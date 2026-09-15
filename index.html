@@ -4295,6 +4295,12 @@ function makeFighter(cfg, startX, facing, maxHp) {
     // קפיצה: jumpY זה הגובה הנוכחי מעל הקרקע, jumpVel המהירות האנכית -
     // פיזיקה פשוטה של כוח כלפי מעלה שדועך עם הזמן (ראה tickJump).
     jumping: false, jumpY: 0, jumpVel: 0,
+    // שלב 4 - הדף/נפילה: knockVel מהירות הדף אופקית שדועכת (ראה moveFighter).
+    // staggerT זמן "הלם" שנשאר (לא יכול לפעול). down/downT - האם הלוחם
+    // שוכב על הרצפה כרגע וכמה זמן עבר מרגע הנפילה (ראה fallProgress).
+    // fallDir - לאיזה כיוון x הוא נפל, כדי שהטיה בהיפוך תמשיך לאותו כיוון
+    // גם אחרי שה-knockVel עצמו דעך לאפס.
+    knockVel: 0, staggerT: 0, down: false, downT: 0, fallDir: 0,
   };
 }
 
@@ -5290,10 +5296,15 @@ addStoneProp(enemy);
 // שבו u עבר אותו. לא "בין X ל-Y", כי בקצב פריימים משתנה (מחשב איטי, לשונית
 // ברקע) פריים בודד יכול "לדלג" מעל חלון צר לגמרי ולפספס אותו. hitDone כבר
 // מבטיח שהפגיעה תיספר פעם אחת בלבד, אז אין צורך בגבול עליון בשביל זה.
+// knock - מהירות ההדף (יחידות x/שנייה) שהנפגע מקבל, דועכת עם חיכוך
+// (KNOCK_FRICTION, ראה moveFighter) בדיוק כמו שקפיצה דועכת עם הכובד.
+// stagger - כמה זמן הנפגע "בהלם" ולא יכול לפעול (ראה updatePlayer/updateEnemy).
+// fall - האם המכה הזו חזקה מספיק כדי להפיל את הנפגע לרצפה (ראה tickCombat/
+// fallProgress) - רק בעיטה, אבן חדה ונשקים (שגם משתמשים בפעולת 'stone').
 const ATTACKS = {
-  punch: { dur: 0.40, peak: 0.34, hitAt: 0.28, dmg: 3, range: 1.35 },
-  kick:  { dur: 0.58, peak: 0.42, hitAt: 0.36, dmg: 5, range: 1.35 },
-  stone: { dur: 0.50, peak: 0.40, hitAt: 0.34, dmg: 7, range: 1.55 },
+  punch: { dur: 0.40, peak: 0.34, hitAt: 0.28, dmg: 3, range: 1.35, knock: 0.9, stagger: 0.18, fall: false },
+  kick:  { dur: 0.58, peak: 0.42, hitAt: 0.36, dmg: 5, range: 1.35, knock: 1.7, stagger: 0.30, fall: true },
+  stone: { dur: 0.50, peak: 0.40, hitAt: 0.34, dmg: 7, range: 1.55, knock: 2.3, stagger: 0.35, fall: true },
 };
 
 // ---------- שלב 3 בריאליזם: קולות מכה ----------
@@ -5378,6 +5389,11 @@ function startAction(f, kind) {
   // אגרוף מתחלף בין הידיים; בעיטה ומכת האבן תמיד בצד שקרוב למצלמה
   f.side = kind === 'punch' ? (f.side === f.near ? (f.near === 'L' ? 'R' : 'L') : f.near) : f.near;
 }
+
+// אובייקטים חד-פעמיים לחישוב הטיית הנפילה (שלב 4) - נוצרים פעם אחת ולא
+// בכל פריים, כדי לא לזבל את ה-garbage collector בכל אנימציה.
+const _axisY = new THREE.Vector3(0, 1, 0), _axisZ = new THREE.Vector3(0, 0, 1);
+const _fallYawQ = new THREE.Quaternion(), _fallTiltQ = new THREE.Quaternion();
 
 function poseFighter(f, t, dt) {
   const P = {};
@@ -5514,6 +5530,20 @@ function poseFighter(f, t, dt) {
   }
   f.bob += (bob - f.bob) * K;
   f.byName.root.position.y = J.root.y + f.bob + f.jumpY;
+
+  // ---------- שלב 4 - נפילה ----------
+  // מטים את *כל קבוצת הדמות* (לא עצם בודדת) סביב ציר Z של העולם, כדי
+  // שהיא "תיפול" בכיוון ההדף (ציר ה-x) - נשארת רק בלוחם שנפל (f.down),
+  // ובכוונה לא נוגעים בקבוצה בכל מקרה אחר: חקירה חופשית (מערה/אי/לבה)
+  // מסובבת את אותה קבוצה בעצמה לפי כיוון ההליכה (explorerYaw) בקוד אחר -
+  // אם היינו כותבים quaternion כאן תמיד, זה היה דורס את זה. נפילה קורית
+  // רק בקרב, אז אין התנגשות בפועל.
+  if (f.down) {
+    const downP = fallProgress(f);
+    _fallYawQ.setFromAxisAngle(_axisY, f.facing * STANCE_YAW);
+    _fallTiltQ.setFromAxisAngle(_axisZ, -f.fallDir * (Math.PI / 2) * downP);
+    f.group.quaternion.copy(_fallTiltQ).multiply(_fallYawQ);
+  }
 }
 
 // ============================================================================
@@ -5681,6 +5711,40 @@ function tickJump(f, dt) {
   if (f.jumpY <= 0) { f.jumpY = 0; f.jumpVel = 0; f.jumping = false; }
 }
 
+// ---------- שלב 4 - הדף וסטגר ----------
+// חיכוך שמאט את מהירות ההדף עד לאפס (בדיוק כמו GRAVITY שמאט את הקפיצה) -
+// ראה moveFighter, ששם ה-knockVel מתווסף לתזוזה ודועך.
+const KNOCK_FRICTION = 6.5;
+
+// ---------- שלב 4 - נפילה ----------
+// שלוש פאזות פשוטות: נופלים (FALL_TIME), שוכבים (LIE_TIME), קמים (GETUP_TIME).
+// downT סופר 0..DOWN_TOTAL; fallProgress ממיר את זה ל-0 (עומד) עד 1 (שוכב לגמרי)
+// וחזרה, כדי ש-poseFighter ידע כמה להטות את הגוף.
+const FALL_TIME = 0.22, LIE_TIME = 0.5, GETUP_TIME = 0.28;
+const DOWN_TOTAL = FALL_TIME + LIE_TIME + GETUP_TIME;
+
+function fallProgress(f) {
+  if (!f.down) return 0;
+  const t = f.downT;
+  if (t < FALL_TIME) return smoothstep(t / FALL_TIME);
+  if (t < FALL_TIME + LIE_TIME) return 1;
+  return 1 - smoothstep((t - FALL_TIME - LIE_TIME) / GETUP_TIME);
+}
+
+// עוקבים אחרי סטגר ונפילה של לוחם - נקראת לכל לוחם בכל פריים קרב (ראה animate).
+function tickFallState(f, dt) {
+  if (f.staggerT > 0) f.staggerT = Math.max(0, f.staggerT - dt);
+  if (f.down) {
+    f.downT += dt;
+    if (f.downT >= DOWN_TOTAL) {
+      f.down = false; f.downT = 0;
+      // מוודאים שהקבוצה חוזרת בדיוק לזווית העמידה - fallProgress כבר מחזירה
+      // כמעט 0 בפריים האחרון, אבל "כמעט" יכול להשאיר שארית הטיה זעירה.
+      f.group.quaternion.setFromAxisAngle(_axisY, f.facing * STANCE_YAW);
+    }
+  }
+}
+
 function moveFighter(f, other, dt) {
   // בונוס המהירות מהמשקה: 4 נקודות מהאפיון = 10% מהירות הליכה כל אחת,
   // כדי שההשפעה תורגש בלי להפוך את הדמות לבלתי נשלטת. speedMult הוא
@@ -5688,7 +5752,18 @@ function moveFighter(f, other, dt) {
   // ראה refreshPlayerCombatStats. אויבים נשארים על speedMult=1 (ברירת מחדל).
   const boost = (f.speedMult || 1) * (1 + (f.speedBonus || 0) * 0.10);
   const speed = (f.blocking ? BLOCK_SPEED : WALK_SPEED) * boost;
-  let nx = f.x + f.mv * speed * dt;
+  let dx = f.mv * speed * dt;
+
+  // הדף (שלב 4): מהירות נוספת מרגע הפגיעה (נקבעת ב-tickCombat), דועכת עם
+  // חיכוך עד שהיא מגיעה לאפס - בדיוק כמו שהקפיצה דועכת עם GRAVITY. פועל
+  // גם על f.mv=0 (למשל בזמן סטגר/נפילה, שאז אין תנועה יזומה בכלל).
+  if (f.knockVel) {
+    dx += f.knockVel * dt;
+    const drop = Math.sign(f.knockVel) * KNOCK_FRICTION * dt;
+    f.knockVel = Math.abs(drop) < Math.abs(f.knockVel) ? f.knockVel - drop : 0;
+  }
+
+  let nx = f.x + dx;
   nx = Math.max(-EDGE, Math.min(EDGE, nx));
   // חוסם מעבר דרך היריב: כל אחד נשאר בצד שלו
   nx = f.facing > 0 ? Math.min(nx, other.x - MIN_GAP) : Math.max(nx, other.x + MIN_GAP);
@@ -5704,6 +5779,10 @@ function moveFighter(f, other, dt) {
 }
 
 function updatePlayer(f, dt) {
+  // שלב 4: בזמן הלם (staggerT) או נפילה (down) אי אפשר לפעול בכלל - לא
+  // להכות, לא לחסום, לא לזוז ביוזמה. ההדף עצמו (knockVel) ממשיך לפעול
+  // ב-moveFighter גם ככה, כי הוא לא תלוי ב-f.mv.
+  if (f.down || f.staggerT > 0) { f.mv = 0; f.blocking = false; return; }
   f.blocking = !!KEYS.KeyD && !f.action;
   if (!f.action && !f.blocking) {
     if (KEYS.KeyA) startAction(f, 'punch');
@@ -5717,6 +5796,9 @@ function updatePlayer(f, dt) {
 // ---------- בו: המחשב משחק ----------
 // רמת קושי התחלתית: קלה בכוונה. ההפוגות ארוכות והוא לא רודף בלי הפסקה.
 function updateEnemy(f, p, dt) {
+  // שלב 4: אותו חסם בדיוק כמו אצל השחקן - בזמן הלם/נפילה האויב לא מגיב.
+  if (f.down || f.staggerT > 0) { f.mv = 0; f.blocking = false; return; }
+
   const dist = Math.abs(p.x - f.x);
   f.cool -= dt;
   f.think -= dt;
@@ -5799,6 +5881,9 @@ function tickCombat(attacker, defender, who, otherWho) {
   if (Math.abs(attacker.x - defender.x) > cfg.range) return;
 
   attacker.hitDone = true;
+  // שלב 4: אי אפשר לפגוע במישהו ששוכב על הרצפה - אחרת אפשר "לתקוע" אותו
+  // שם לנצח במכות רצופות במקום לתת לו רגע להתאושש ולקום.
+  if (defender.down) return;
   if (defender.blocking) { playHitSound('block'); return; }
   playHitSound(attacker.action);
 
@@ -5827,6 +5912,22 @@ function tickCombat(attacker, defender, who, otherWho) {
   attacker.damageDealt += dmg;
   updateHealthUI(defender, otherWho);
   flashHit();
+
+  // שלב 4: הדף + הלם (סטגר) - הנפגע נדחף אחורה ולא יכול לפעול לרגע.
+  // עוצמת ההדף/ההלם תלויה בסוג המכה (ATTACKS[...].knock/stagger), לא
+  // בנזק בפועל - כך שהתחושה עקבית גם אחרי שדרוגי כוח. הכיוון תמיד "משם
+  // אליו" (מהתוקף אל הנפגע), כדי שההדף ידחוף החוצה, לא פנימה.
+  const pushDir = Math.sign(defender.x - attacker.x) || attacker.facing;
+  defender.knockVel = pushDir * cfg.knock;
+  defender.staggerT = Math.max(defender.staggerT, cfg.stagger);
+  if (cfg.fall) {
+    defender.down = true;
+    defender.downT = 0;
+    defender.fallDir = pushDir;
+    defender.action = null;
+    defender.actionT = 0;
+  }
+
   if (defender.hp <= 0) endGame(who);
 }
 
@@ -6005,6 +6106,9 @@ function resetGame() {
     f.mv = 0; f.cool = 0; f.think = 0; f.mode = 'wait'; f.blockTimer = 0;
     f.damageDealt = 0;
     f.jumping = false; f.jumpY = 0; f.jumpVel = 0;
+    // שלב 4: קרב חדש תמיד מתחיל בעמידה - בלי הדף/הלם/נפילה שנשארו מהקרב הקודם.
+    f.knockVel = 0; f.staggerT = 0; f.down = false; f.downT = 0; f.fallDir = 0;
+    f.group.quaternion.setFromAxisAngle(_axisY, f.facing * STANCE_YAW);
     // ההשפעות מהלוט הן לקרב אחד בלבד
     f.powerBonus = 0; f.speedBonus = 0; f.guardTimer = 0;
     f.activeShield = null;
@@ -8228,6 +8332,7 @@ function animate() {
       [player, enemy].forEach((f) => {
         tickAction(f, dt);
         tickJump(f, dt);
+        tickFallState(f, dt);
         f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16));
       });
       moveFighter(player, enemy, dt);
