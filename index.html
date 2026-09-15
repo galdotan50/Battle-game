@@ -5255,6 +5255,72 @@ const ATTACKS = {
   stone: { dur: 0.50, peak: 0.40, hitAt: 0.34, dmg: 7, range: 1.55 },
 };
 
+// ---------- שלב 3 בריאליזם: קולות מכה ----------
+// בדיוק כמו הטקסטורות (מצוירות בקוד בזמן ריצה, לא קבצים) - הקולות כאן
+// "מסונתזים" עם Web Audio API, בלי שום קובץ שמע חיצוני. כל צליל הוא
+// שילוב של טון נמוך דועך (גוף המכה) ורעש לבן קצר מסונן (ה"קראק" של
+// פגיעה) - שתי שכבות שדועכות מהר ב-gain אקספוננציאלי, כמו כל מכה אמיתית.
+// audioCtx נוצר רק בפעם הראשונה שמנגנים צליל, ולא בטעינת הדף - דפדפנים
+// חוסמים AudioContext לפני מחווה אמיתית של המשתמש (בדיוק כמו שגילינו
+// עם פוקוס המקלדת ב-iframe) - ולכן גם ה"קליק להתחלה" הקיים כבר מפעיל
+// אותו, ולא רק פותח את המקלדת.
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) return null;
+    audioCtx = new Ctor();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function noiseBuffer(ctx, duration) {
+  const n = Math.max(1, Math.floor(ctx.sampleRate * duration));
+  const buf = ctx.createBuffer(1, n, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) data[i] = Math.random() * 2 - 1;
+  return buf;
+}
+
+function playImpact({ freq, toneDur, noiseDur, volume, filterFreq }) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, now);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(30, freq * 0.4), now + toneDur);
+  const oscGain = ctx.createGain();
+  oscGain.gain.setValueAtTime(volume, now);
+  oscGain.gain.exponentialRampToValueAtTime(0.001, now + toneDur);
+  osc.connect(oscGain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + toneDur);
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuffer(ctx, noiseDur);
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'lowpass';
+  noiseFilter.frequency.value = filterFreq;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(volume * 0.8, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + noiseDur);
+  noise.connect(noiseFilter).connect(noiseGain).connect(ctx.destination);
+  noise.start(now);
+}
+
+// ארבעה צלילים לפי בקשת המשתמש: אגרוף, בעיטה, מכת נשק (חדה יותר -
+// filterFreq גבוה, toneDur קצר), וחסימה (עמומה - filterFreq נמוך, נפח חלש).
+const HIT_SOUNDS = {
+  punch: () => playImpact({ freq: 140, toneDur: 0.09, noiseDur: 0.05, volume: 0.45, filterFreq: 1500 }),
+  kick:  () => playImpact({ freq: 90,  toneDur: 0.15, noiseDur: 0.08, volume: 0.55, filterFreq: 900 }),
+  stone: () => playImpact({ freq: 260, toneDur: 0.06, noiseDur: 0.04, volume: 0.5, filterFreq: 3200 }),
+  block: () => playImpact({ freq: 180, toneDur: 0.05, noiseDur: 0.03, volume: 0.3, filterFreq: 550 }),
+};
+function playHitSound(name) { HIT_SOUNDS[name]?.(); }
+
 const smoothstep = (a) => a * a * (3 - 2 * a);
 
 /** עקומת מכה: יציאה מהירה, חזרה מעט איטית יותר. 0 → 1 → 0 */
@@ -5431,6 +5497,7 @@ addEventListener('blur', () => { for (const k in KEYS) KEYS[k] = false; });
 // פתיחה כקובץ מקומי לא מרגישה בזה כי הדף כבר ממוקד מלכתחילה.
 document.getElementById('clickStartOverlay').addEventListener('click', function () {
   this.remove();
+  getAudioCtx();   // דפדפנים חוסמים צליל לפני מחווה אמיתית - בדיוק כמו הפוקוס למקלדת
 }, { once: true });
 
 // ============================================================================
@@ -5691,7 +5758,8 @@ function tickCombat(attacker, defender, who, otherWho) {
   if (Math.abs(attacker.x - defender.x) > cfg.range) return;
 
   attacker.hitDone = true;
-  if (defender.blocking) return;
+  if (defender.blocking) { playHitSound('block'); return; }
+  playHitSound(attacker.action);
 
   // מכת נשק (W) לוקחת את הנזק מהנשק המצויד בפועל (`f.weaponDmg`, נקבע
   // ב-addWeaponProp) במקום מהמספר הקבוע ב-ATTACKS - כדי שנשק חזק יותר
