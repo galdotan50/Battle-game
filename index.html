@@ -268,7 +268,7 @@
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -280,8 +280,27 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show { display: flex; }
+  /* קטגוריית לוט (אוכל/משקאות/מגנים) - כותרת + שורת כרטיסים, בדיוק כמו
+     #shopGrid אבל אחד לכל קטגוריה כדי שהמקסימום לכל קטגוריה יהיה ברור */
+  /* בלי width מפורש כאן, #lootSelectSections (הורה, בתוך flex-column עם
+     align-items:center) מתכווץ לפי התוכן שלו - וזה הופך למעגל: ה-grid
+     בפנים רוצה רוחב מההורה, וההורה רוצה רוחב מהתוכן. אז שלושתם צריכים
+     רוחב מפורש, לא רק ה-grid הכי פנימי. */
+  #lootSelectSections { width: 100%; max-width: 980px; }
+  .lootSelectSection { width: 100%; margin-bottom: 26px; }
+  .lootSelectHeading { font-size: 1.2rem; font-weight: bold; margin-bottom: 12px; }
+  .lootSelectGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+  }
+  .lootSelectEmpty { opacity: 0.65; font-size: 0.95rem; }
+  .buyBtn.selected {
+    background: rgba(90,210,140,0.85);
+    color: #0c1220;
+  }
   #adventureOverlay .bigBtn { font-size: 1.2rem; padding: 18px 46px; margin: 10px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
   #adventureOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #adventureOverlay .bigBtn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
@@ -713,6 +732,7 @@
   </div>
   <button class="bigBtn secondary eventOnly" id="bossFightBtn">👹 קרב בוס</button>
   <button class="bigBtn secondary" id="openAdventureBtn">🗺️ הרפתקה</button>
+  <button class="bigBtn secondary" id="openLootSelectBtn">🎒 ציוד לקרב</button>
 </div>
 
 <div id="adventureOverlay">
@@ -743,6 +763,15 @@
   <div id="shopTabs"></div>
   <div id="shopGrid"></div>
   <button id="backLobbyBtn">⬅ חזרה ללובי</button>
+</div>
+
+<div id="lootSelectOverlay">
+  <div class="screenTitle">🎒 ציוד לקרב</div>
+  <div style="max-width:500px; text-align:center; margin-bottom:26px; opacity:0.85; font-size:1.05rem;">
+    תבחר מה לקחת איתך לקרב הבא - עד 2 מאכלים, משקה אחד ומגן אחד.
+  </div>
+  <div id="lootSelectSections"></div>
+  <button id="lootSelectBackBtn">⬅ חזרה ללובי</button>
 </div>
 
 <!-- שליטה במגע לטלפון - מוצג רק אם קוד ה-JS מזהה מכשיר מגע, ורק בזמן קרב.
@@ -6005,6 +6034,7 @@ const shopEl = document.getElementById('shopOverlay');
 const createEl = document.getElementById('createOverlay');
 const weaponCreateEl = document.getElementById('weaponCreateOverlay');
 const adventureEl = document.getElementById('adventureOverlay');
+const lootSelectEl = document.getElementById('lootSelectOverlay');
 const caveHudEl = document.getElementById('caveHud');
 const caveInstructionsEl = document.getElementById('caveInstructions');
 const shopTabsEl = document.getElementById('shopTabs');
@@ -6041,6 +6071,8 @@ function showScreen(name) {
   createEl.classList.toggle('show', name === 'create');
   weaponCreateEl.classList.toggle('show', name === 'weaponCreate');
   adventureEl.classList.toggle('show', name === 'adventure');
+  lootSelectEl.classList.toggle('show', name === 'lootSelect');
+  if (name === 'lootSelect') renderLootSelectScreen();
   caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater');
   if (wasInCave && name !== 'crystalCave') exitCave();
   if (wasInIsland && name !== 'lostIsland') exitIsland();
@@ -7002,6 +7034,8 @@ function relocateTreasure(posObj, chestGroup, ringMeshes, minDist, maxDist) {
 }
 
 document.getElementById('openAdventureBtn').addEventListener('click', () => showScreen('adventure'));
+document.getElementById('openLootSelectBtn').addEventListener('click', () => showScreen('lootSelect'));
+document.getElementById('lootSelectBackBtn').addEventListener('click', () => showScreen('lobby'));
 document.getElementById('adventureBackBtn').addEventListener('click', () => showScreen('lobby'));
 document.getElementById('worldCaveBtn').addEventListener('click', () => showScreen('crystalCave'));
 document.getElementById('worldIslandBtn').addEventListener('click', () => showScreen('lostIsland'));
@@ -7251,6 +7285,74 @@ function lootItemsFor(key) {
     .filter((name) => inventory.has(key + ':' + name));
 }
 
+// אייקון + טקסט האפקט לכל קטגוריה - משותף למסך הבחירה (renderLootSelectScreen)
+// ולשורת הלוט בקרב עצמו (renderLootBar), כדי לא לכתוב את אותה לוגיקה פעמיים.
+const LOOT_GROUPS = [
+  ['food', '🍎', (n) => '+' + firstNum(SHOP_DATA.food.rows.find((r) => r[0] === n)[1]) + ' חיים'],
+  ['drinks', '🥤', (n) => { const bo = drinkBonus(n); return '+' + bo.power + ' כוח'; }],
+  // מגן עם יכולת מיוחדת מסומן באייקון שלה, כדי שיהיה ברור שהוא לא
+  // "עוד מגן" אלא עושה משהו נוסף כשחוסמים איתו
+  ['shields', '🛡️', (n) => {
+    const ab = SHIELD_ABILITY[n];
+    const icon = ab ? ({ bolt: '⚡', glue: '🧲', reflect: '🔁' })[ab.kind] + ' ' : '';
+    return icon + (SHIELD_SECONDS[n] ?? 3) + ' שנ׳';
+  }],
+];
+
+// כמה פריטים מותר לבחור בכל קטגוריה למסך "ציוד לקרב" - לפי בקשת המשתמש
+// (שני מאכלים, משקה אחד, מגן אחד - שונה מהאפיון שדיבר על אוכל אחד בלבד).
+const LOOT_CAPS = { food: 2, drinks: 1, shields: 1 };
+// הבחירה עצמה - נשמרת בין קרבות (כמו בחירת דמות/נשק), עד שמשנים אותה
+// במסך "ציוד לקרב". מתחילים ריקים - השחקן צריך לבחור בפעם הראשונה.
+const selectedLoot = { food: new Set(), drinks: new Set(), shields: new Set() };
+
+function toggleLootSelection(key, name, btn) {
+  const set = selectedLoot[key];
+  if (set.has(name)) {
+    set.delete(name);
+  } else if (set.size < LOOT_CAPS[key]) {
+    set.add(name);
+  } else {
+    // כבר בחר את המקסימום בקטגוריה הזאת - רעידה אדומה, בדיוק כמו "אין
+    // מספיק כסף" בחנות, בלי לשנות שום דבר.
+    btn.classList.remove('shake');
+    void btn.offsetWidth;
+    btn.classList.add('shake');
+    return;
+  }
+  renderLootSelectScreen();
+}
+
+function renderLootSelectScreen() {
+  const sectionsEl = document.getElementById('lootSelectSections');
+  sectionsEl.innerHTML = '';
+  const headingByKey = { food: '🍎 אוכל (עד 2)', drinks: '🥤 משקה (אחד)', shields: '🛡️ מגן (אחד)' };
+
+  LOOT_GROUPS.forEach(([key, icon, effectText]) => {
+    const section = document.createElement('div');
+    section.className = 'lootSelectSection';
+    const names = lootItemsFor(key);
+    const gridHtml = names.length
+      ? names.map((name) => {
+          const selected = selectedLoot[key].has(name);
+          return `<div class="itemCard">` +
+            `<div class="itemName">${icon} ${name}</div>` +
+            `<div class="itemStat">${effectText(name)}</div>` +
+            `<button class="buyBtn${selected ? ' selected' : ''}" data-key="${key}" data-name="${name}">` +
+            `${selected ? '✅ נבחר' : 'בחר'}</button>` +
+            `</div>`;
+        }).join('')
+      : `<div class="lootSelectEmpty">עוד לא קנית כלום בקטגוריה הזאת בחנות.</div>`;
+    section.innerHTML = `<div class="lootSelectHeading">${headingByKey[key]}</div>` +
+      `<div class="lootSelectGrid">${gridHtml}</div>`;
+    sectionsEl.appendChild(section);
+  });
+
+  sectionsEl.querySelectorAll('.buyBtn').forEach((btn) => {
+    btn.addEventListener('click', () => toggleLootSelection(btn.dataset.key, btn.dataset.name, btn));
+  });
+}
+
 function useLootItem(key, name) {
   const id = key + ':' + name;
   if (lootUsed.has(id) || gameOver || uiScreen !== 'battle') return;
@@ -7276,19 +7378,10 @@ function useLootItem(key, name) {
 
 function renderLootBar() {
   lootBarEl.innerHTML = '';
-  const groups = [
-    ['food', '🍎', (n) => '+' + firstNum(SHOP_DATA.food.rows.find((r) => r[0] === n)[1]) + ' חיים'],
-    ['drinks', '🥤', (n) => { const bo = drinkBonus(n); return '+' + bo.power + ' כוח'; }],
-    // מגן עם יכולת מיוחדת מסומן באייקון שלה, כדי שיהיה ברור שהוא לא
-    // "עוד מגן" אלא עושה משהו נוסף כשחוסמים איתו
-    ['shields', '🛡️', (n) => {
-      const ab = SHIELD_ABILITY[n];
-      const icon = ab ? ({ bolt: '⚡', glue: '🧲', reflect: '🔁' })[ab.kind] + ' ' : '';
-      return icon + (SHIELD_SECONDS[n] ?? 3) + ' שנ׳';
-    }],
-  ];
-  groups.forEach(([key, icon, effectText]) => {
-    lootItemsFor(key).forEach((name) => {
+  // רק פריטים שגם נקנו וגם נבחרו מראש במסך "ציוד לקרב" - לא כל מה שיש
+  // במלאי, לפי בקשת המשתמש (במקום להראות הכול כמו קודם).
+  LOOT_GROUPS.forEach(([key, icon, effectText]) => {
+    lootItemsFor(key).filter((name) => selectedLoot[key].has(name)).forEach((name) => {
       const used = lootUsed.has(key + ':' + name);
       const btn = document.createElement('button');
       btn.className = 'lootItem';
@@ -8194,6 +8287,7 @@ window.game = {
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
   useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
+  selectedLoot, LOOT_CAPS, toggleLootSelection, renderLootSelectScreen, lootItemsFor,
   upgradeCharacter, getLevels, characterLevels, upgradeCost, MAX_UPGRADE_LEVEL,
   refreshPlayerCombatStats, startJump,
   get enemy() { return enemy; },              // enemy הוא let ומתחלף בין רמות
