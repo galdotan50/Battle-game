@@ -1118,8 +1118,10 @@ for (let i = 0; i < 150; i++) {
 // רחוק מנקודת ההתחלה (0,0,4) ופינתי במערה הגדולה - בלי קרן-אור-מנחה
 // (הוסרה לפי בקשת המשתמש - "תחביא את האוצר הרבה יותר טוב") צריך
 // באמת לחפש ולהתקרב כדי לראות אותה, לא רק ללכת לכיוון אור מרחוק.
-const TREASURE_POS = { x: 91, z: -84 };   // מיקום יחסי זהה, פי 7 - תואם את הגדלת המערה
+const TREASURE_POS = { x: 91, z: -84 };   // מיקום התחלתי - מוחלף באקראי בכל כניסה טרייה, ראה relocateTreasure
 const TREASURE_REWARD = 300;
+let caveTreasureChest;
+const caveTreasureRing = [];
 {
   const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
   const chestGoldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.3, metalness: 0.7 });
@@ -1140,6 +1142,7 @@ const TREASURE_REWARD = 300;
   treasureChest.add(chestGlow);
   treasureChest.position.set(TREASURE_POS.x, 0, TREASURE_POS.z);
   caveGroup.add(treasureChest);
+  caveTreasureChest = treasureChest;
 
   // הסתרה אמיתית, לא רק עמעום: טבעת קריסטלים גדולים סביב התיבה חוסמת
   // קו-ראייה מכל כיוון חוץ מפתח אחד צר - "רואים אותה עומדת באמצע
@@ -1159,6 +1162,7 @@ const TREASURE_REWARD = 300;
     shard.rotation.x = (Math.random() - 0.5) * 0.15;
     shard.rotation.z = (Math.random() - 0.5) * 0.15;
     caveGroup.add(shard);
+    caveTreasureRing.push(shard);
   }
 }
 
@@ -1271,6 +1275,8 @@ islandGroup.add(islandSun);
 // באמת לחפש בין המקומות הנטושים כדי למצוא אותה.
 const ISLAND_TREASURE_POS = { x: -63, z: -133 };
 const ISLAND_TREASURE_REWARD = 350;
+let islandTreasureChest;
+const islandTreasureRing = [];
 {
   const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
   const chestGoldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.3, metalness: 0.7 });
@@ -1291,6 +1297,7 @@ const ISLAND_TREASURE_REWARD = 350;
   treasureChest.add(chestGlow);
   treasureChest.position.set(ISLAND_TREASURE_POS.x, 0, ISLAND_TREASURE_POS.z);
   islandGroup.add(treasureChest);
+  islandTreasureChest = treasureChest;
 
   // הסתרה אמיתית - טבעת דיונות חול סביב התיבה חוסמת קו-ראייה מכל כיוון
   // חוץ מפתח אחד צר (ראה אותה טכניקה במערה, hideMat/RING_COUNT/GAP_INDEX).
@@ -1305,6 +1312,7 @@ const ISLAND_TREASURE_REWARD = 350;
     dune.rotation.x = (Math.random() - 0.5) * 0.2;
     dune.rotation.z = (Math.random() - 0.5) * 0.2;
     islandGroup.add(dune);
+    islandTreasureRing.push(dune);
   }
 }
 
@@ -1382,6 +1390,8 @@ LAVA_VOLCANOES.forEach(({ x, z }) => {
 // ---------- אוצר מוסתר ----------
 const LAVA_TREASURE_POS = { x: -63, z: -98 };
 const LAVA_TREASURE_REWARD = 400;
+let lavaTreasureChest;
+const lavaTreasureRing = [];
 {
   const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
   const chestGoldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.3, metalness: 0.7 });
@@ -1402,6 +1412,7 @@ const LAVA_TREASURE_REWARD = 400;
   treasureChest.add(chestGlow);
   treasureChest.position.set(LAVA_TREASURE_POS.x, 0, LAVA_TREASURE_POS.z);
   lavaGroup.add(treasureChest);
+  lavaTreasureChest = treasureChest;
 
   // הסתרה אמיתית - טבעת סלעי געש סביב התיבה חוסמת קו-ראייה מכל כיוון
   // חוץ מפתח אחד צר (אותה טכניקה בדיוק כמו במערה/באי).
@@ -1414,6 +1425,7 @@ const LAVA_TREASURE_REWARD = 400;
       LAVA_TREASURE_POS.z + Math.sin(ang) * 1.8);
     boulder.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
     lavaGroup.add(boulder);
+    lavaTreasureRing.push(boulder);
   }
 }
 
@@ -6371,6 +6383,7 @@ function enterCave() {
     player.group.position.set(0, 0, 28);
     explorerYaw = Math.PI;   // פונה פנימה למערה (Z שלילי) מנקודת הכניסה
     explorerTreasureFound = false;
+    relocateTreasure(TREASURE_POS, caveTreasureChest, caveTreasureRing, 40, 130);
     spawnCaveMonsters(CAVE_MONSTER_DEFS.crystalCave);
   }
   player.group.rotation.y = explorerYaw + EXPLORE_FRONT_OFFSET;
@@ -6579,6 +6592,7 @@ function enterIsland() {
     player.group.position.set(0, 0, 133);
     islandExplorerYaw = Math.PI;   // פונה פנימה לאי (Z שלילי) מנקודת הכניסה
     islandTreasureFound = false;
+    relocateTreasure(ISLAND_TREASURE_POS, islandTreasureChest, islandTreasureRing, 40, 155);
     spawnIslandMonsters(ISLAND_MONSTER_DEFS);
   }
   player.group.rotation.y = islandExplorerYaw + EXPLORE_FRONT_OFFSET;
@@ -6819,6 +6833,7 @@ function enterLava() {
     player.group.position.set(0, 0, LAVA_RADIUS - 3);
     lavaExplorerYaw = Math.PI;
     lavaTreasureFound = false;
+    relocateTreasure(LAVA_TREASURE_POS, lavaTreasureChest, lavaTreasureRing, 50, 145);
     spawnLavaMonsters(LAVA_MONSTER_DEFS);
   }
   player.group.rotation.y = lavaExplorerYaw + EXPLORE_FRONT_OFFSET;
@@ -6960,6 +6975,30 @@ function onTreasureFound(reward) {
   updateMoneyUI();
   document.getElementById('treasureFoundAmount').textContent = '💰 +' + reward + '₪';
   document.getElementById('treasureFoundOverlay').classList.add('show');
+}
+
+// מזיזה את האוצר למקום אקראי חדש בכניסה טרייה לעולם (לא בחזרה מקרב
+// מפלצת - שם caveReturnState/וכו' כבר מדלג על הענף הזה). posObj הוא
+// TREASURE_POS/ISLAND_TREASURE_POS/LAVA_TREASURE_POS עצמו (משנים x/z
+// במקום, כל שאר הקוד שקורא מהם תמיד קורא מחדש בכל פריים). ringMeshes
+// מוזזים לפי ההיסט המקורי שלהם מהמרכז הישן - כך שטבעת ההסתרה (עם הפתח
+// היחיד) שומרת על אותה צורה בדיוק סביב המרכז החדש, בלי לחשב מחדש זוויות.
+// אין צורך לבדוק "האם אפשר להגיע לשם" - בכל שלושת העולמות ההליכה חופשית
+// לגמרי (בלי התנגשות עם שום דבר חוץ מגבול העולם/אגם הלבה, ראה
+// updateExplorer/updateIslandExplorer/updateLavaExplorer), אז כל נקודה
+// בתוך minDist..maxDist מהמרכז נגישה תמיד בקו ישר.
+function relocateTreasure(posObj, chestGroup, ringMeshes, minDist, maxDist) {
+  const oldX = posObj.x, oldZ = posObj.z;
+  const ang = Math.random() * Math.PI * 2;
+  const dist = minDist + Math.random() * (maxDist - minDist);
+  posObj.x = Math.cos(ang) * dist;
+  posObj.z = Math.sin(ang) * dist;
+  chestGroup.position.x = posObj.x;
+  chestGroup.position.z = posObj.z;
+  ringMeshes.forEach((m) => {
+    m.position.x = posObj.x + (m.position.x - oldX);
+    m.position.z = posObj.z + (m.position.z - oldZ);
+  });
 }
 
 document.getElementById('openAdventureBtn').addEventListener('click', () => showScreen('adventure'));
