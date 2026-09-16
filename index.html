@@ -411,11 +411,12 @@
     padding-bottom: 60px;
   }
   #lobbyOverlay.show, #shopOverlay.show { display: flex; }
-  #loadoutRow, #weaponRow { display: flex; align-items: center; gap: 12px; }
+  #loadoutRow, #weaponRow, #modeRow { display: flex; align-items: center; gap: 12px; }
   #bossRow { align-items: center; gap: 12px; margin-bottom: 14px; }
   #loadoutRow { margin-bottom: 10px; }
   #weaponRow { margin-bottom: 22px; }
-  #loadoutLabel, #weaponLabel, #bossLabel {
+  #modeRow { margin-bottom: 14px; }
+  #loadoutLabel, #weaponLabel, #bossLabel, #modeLabel {
     background: rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.25);
     border-radius: 12px;
@@ -783,6 +784,11 @@
     <div id="weaponLabel">🪨 אבן חדה</div>
     <button id="weaponNextBtn" class="cycleBtn">▶</button>
   </div>
+  <div id="modeRow">
+    <button id="modePrevBtn" class="cycleBtn">◀</button>
+    <div id="modeLabel">⚔️ קרב רגיל</div>
+    <button id="modeNextBtn" class="cycleBtn">▶</button>
+  </div>
   <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
   <button class="bigBtn secondary eventOnly" id="openCreateBtn">🎨 בנייה עצמית</button>
@@ -795,7 +801,6 @@
   <button class="bigBtn secondary eventOnly" id="bossFightBtn">👹 קרב בוס</button>
   <button class="bigBtn secondary" id="openAdventureBtn">🗺️ הרפתקה</button>
   <button class="bigBtn secondary" id="openLootSelectBtn">🎒 ציוד לקרב</button>
-  <button class="bigBtn secondary" id="openSumoBtn">🎌 קרב סומו</button>
 </div>
 
 <div id="adventureOverlay">
@@ -7510,7 +7515,6 @@ document.getElementById('caveExitBtn').addEventListener('click', () => showScree
 document.getElementById('treasureContinueBtn').addEventListener('click', () => {
   document.getElementById('treasureFoundOverlay').classList.remove('show');
 });
-document.getElementById('openSumoBtn').addEventListener('click', () => showScreen('sumo'));
 document.getElementById('sumoExitBtn').addEventListener('click', () => showScreen('lobby'));
 document.getElementById('sumoLobbyBtn').addEventListener('click', () => showScreen('lobby'));
 // "עוד סומו" נשאר על מסך הסומו ופשוט בונה קרב טרי - בדיוק כמו playAgainBtn
@@ -8109,6 +8113,33 @@ function cycleWeapon(dir) {
   switchPlayerWeapon(names[(i + dir + names.length) % names.length]);
 }
 
+// ---------- בחירת סוג קרב בלובי (רגיל / סומו) ----------
+// אותו דפוס חצים בדיוק כמו בחירת דמות/נשק - "התחל קרב" מסתכל על הבחירה
+// הזו ומחליט לאיזה מסך להיכנס, במקום כפתור נפרד לכל סוג קרב.
+const BATTLE_MODES = [
+  { key: 'battle', label: '⚔️ קרב רגיל' },
+  { key: 'sumo', label: '🎌 קרב סומו' },
+];
+let selectedModeIndex = 0;
+
+function updateModeLabel() {
+  document.getElementById('modeLabel').textContent = BATTLE_MODES[selectedModeIndex].label;
+}
+
+function cycleBattleMode(dir) {
+  selectedModeIndex = (selectedModeIndex + dir + BATTLE_MODES.length) % BATTLE_MODES.length;
+  updateModeLabel();
+}
+
+function startSelectedBattle() {
+  if (BATTLE_MODES[selectedModeIndex].key === 'sumo') {
+    showScreen('sumo');
+  } else {
+    resetGame();
+    showScreen('battle');
+  }
+}
+
 function flashCantAfford(btn) {
   btn.classList.remove('shake');
   void btn.offsetWidth;         // מכריח את הדפדפן "לשכוח" את האנימציה הקודמת כדי שתתחיל שוב
@@ -8609,7 +8640,9 @@ lobbyBtnEl.addEventListener('click', () => {
   if (isBossFight) { switchEnemy(enemyLevel); isBossFight = false; }
   resetGame(); showScreen('lobby');
 });
-document.getElementById('startFightBtn').addEventListener('click', () => { resetGame(); showScreen('battle'); });
+document.getElementById('startFightBtn').addEventListener('click', startSelectedBattle);
+document.getElementById('modePrevBtn').addEventListener('click', () => cycleBattleMode(-1));
+document.getElementById('modeNextBtn').addEventListener('click', () => cycleBattleMode(1));
 document.getElementById('openShopBtn').addEventListener('click', () => { showScreen('shop'); renderShopCategory('characters'); });
 document.getElementById('bossFightBtn').addEventListener('click', () => startBossFight(selectedBossIndex));
 document.getElementById('bossPrevBtn').addEventListener('click', () => cycleBossChoice(-1));
@@ -8766,6 +8799,7 @@ window.game = {
   upgradeCharacter, getLevels, characterLevels, upgradeCost, MAX_UPGRADE_LEVEL,
   refreshPlayerCombatStats, startJump,
   SUMO_RADIUS, SUMO_OFFSET, enterSumo, exitSumo, endSumo,
+  BATTLE_MODES, cycleBattleMode, startSelectedBattle, get selectedModeIndex() { return selectedModeIndex; },
   get sumoOpponent() { return sumoOpponent; }, get sumoOver() { return sumoOver; },
   get enemy() { return enemy; },              // enemy הוא let ומתחלף בין רמות
   get enemyLevel() { return enemyLevel; },
