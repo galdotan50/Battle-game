@@ -411,12 +411,14 @@
     padding-bottom: 60px;
   }
   #lobbyOverlay.show, #shopOverlay.show { display: flex; }
-  #loadoutRow, #weaponRow, #modeRow { display: flex; align-items: center; gap: 12px; }
+  #loadoutRow, #weaponRow { display: flex; align-items: center; gap: 12px; }
   #bossRow { align-items: center; gap: 12px; margin-bottom: 14px; }
   #loadoutRow { margin-bottom: 10px; }
   #weaponRow { margin-bottom: 22px; }
-  #modeRow { margin-bottom: 14px; }
-  #loadoutLabel, #weaponLabel, #bossLabel, #modeLabel {
+  /* חצי בחירת מצב קרב (רגיל/סומו) צמודים ישירות לכפתור "התחל קרב" עצמו,
+     במקום שורה נפרדת עם תווית משלה - התווית היא טקסט הכפתור עצמו. */
+  #startRow { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  #loadoutLabel, #weaponLabel, #bossLabel {
     background: rgba(0,0,0,0.45);
     border: 1px solid rgba(255,255,255,0.25);
     border-radius: 12px;
@@ -784,12 +786,11 @@
     <div id="weaponLabel">🪨 אבן חדה</div>
     <button id="weaponNextBtn" class="cycleBtn">▶</button>
   </div>
-  <div id="modeRow">
+  <div id="startRow">
     <button id="modePrevBtn" class="cycleBtn">◀</button>
-    <div id="modeLabel">⚔️ קרב רגיל</div>
+    <button class="bigBtn" id="startFightBtn">⚔️ קרב רגיל</button>
     <button id="modeNextBtn" class="cycleBtn">▶</button>
   </div>
-  <button class="bigBtn" id="startFightBtn">⚔️ התחל קרב</button>
   <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
   <button class="bigBtn secondary eventOnly" id="openCreateBtn">🎨 בנייה עצמית</button>
   <button class="bigBtn secondary eventOnly" id="openWeaponCreateBtn">🔨 בניית נשק</button>
@@ -1644,6 +1645,11 @@ function enterSumo() {
   sumoOpponent.group.position.set(0, 0, -(SUMO_RADIUS - 1.3));
   sumoOppYaw = 0;
   sumoOpponent.group.rotation.y = sumoOppYaw + EXPLORE_FRONT_OFFSET;
+  // חוזק הדחיפה של היריב עולה לפי הרמה (בדיוק כמו שה-HP שלו כבר עולה) -
+  // בלי זה כל היריבים דוחפים באותו כוח בדיוק (powerMult=1 קבוע כברירת
+  // המחדל של makeFighter), וההיגיון של "מי חזק יותר מנצח במשיכת החבל"
+  // (ראה updateSumo) לא מרגיש שונה בין בו לבין היריב האחרון.
+  sumoOpponent.powerMult = 1 + enemyLevel * 0.15;
 
   sumoOver = false;
   document.getElementById('sumoResultOverlay').classList.remove('show');
@@ -8123,7 +8129,8 @@ const BATTLE_MODES = [
 let selectedModeIndex = 0;
 
 function updateModeLabel() {
-  document.getElementById('modeLabel').textContent = BATTLE_MODES[selectedModeIndex].label;
+  // אין תווית נפרדת - כפתור "התחל קרב" עצמו מציג את המצב הנבחר.
+  document.getElementById('startFightBtn').textContent = BATTLE_MODES[selectedModeIndex].label;
 }
 
 function cycleBattleMode(dir) {
