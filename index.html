@@ -1657,6 +1657,12 @@ function exitSumo() {
   player.group.rotation.y = player.facing * STANCE_YAW;
   if (savedSumoFog) scene.fog = savedSumoFog;
   if (savedSumoBackground) scene.background = savedSumoBackground;
+  // באג אמיתי שהמשתמש דיווח עליו: כפתור "לובי" על מסך התוצאה קורא ל-
+  // showScreen('lobby') (שקוראת ל-exitSumo, לא ל-enterSumo כמו "עוד סומו")
+  // - ובלי השורה הזו מסך התוצאה נשאר עם class 'show' לנצח, עם
+  // pointer-events:auto שחוסם את כל המסך שמתחתיו (גם לובי וגם קרב רגיל
+  // אחר כך) - בדיוק מה שהמשתמש תיאר ("עדיין מראה לי לשחק מחדש וצא ללובי").
+  document.getElementById('sumoResultOverlay').classList.remove('show');
 }
 
 // אם f נדחף/הלך מעבר לרדיוס הבמה - הוא נופל ומפסיד. משתמשים באותה
@@ -8759,7 +8765,7 @@ window.game = {
   selectedLoot, LOOT_CAPS, toggleLootSelection, renderLootSelectScreen, lootItemsFor,
   upgradeCharacter, getLevels, characterLevels, upgradeCost, MAX_UPGRADE_LEVEL,
   refreshPlayerCombatStats, startJump,
-  SUMO_RADIUS, SUMO_OFFSET, enterSumo, exitSumo,
+  SUMO_RADIUS, SUMO_OFFSET, enterSumo, exitSumo, endSumo,
   get sumoOpponent() { return sumoOpponent; }, get sumoOver() { return sumoOver; },
   get enemy() { return enemy; },              // enemy הוא let ומתחלף בין רמות
   get enemyLevel() { return enemyLevel; },
