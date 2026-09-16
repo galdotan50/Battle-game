@@ -253,6 +253,31 @@
   }
   #lobbyBtn:hover, #backLobbyBtn:hover { background: rgba(255,255,255,0.18); }
 
+  /* מסך תוצאה של סומו - מראה זהה ל-#gameOverOverlay, ids נפרדים כדי לא
+     להתנגש עם הלוגיקה הקיימת של הזירה הרגילה (אין כאן שום ניקוד/חיים). */
+  #sumoResultOverlay {
+    position: fixed; inset: 0;
+    background: rgba(5,8,14,0.74);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 24px; z-index: 30; opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  #sumoResultOverlay.show { opacity: 1; pointer-events: auto; }
+  #sumoResultTitle { font-size: 3rem; color: #fff; text-shadow: 0 4px 18px rgba(0,0,0,0.7); font-weight: 800; }
+  #sumoBtnRow { display: flex; gap: 14px; }
+  #sumoPlayAgainBtn {
+    font-size: 1.2rem; padding: 12px 34px; border-radius: 14px; border: none;
+    background: #ffcf4d; color: #1a1a1a; font-weight: bold; cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  }
+  #sumoPlayAgainBtn:hover { background: #ffd968; }
+  #sumoLobbyBtn {
+    font-size: 1.2rem; padding: 12px 34px; border-radius: 14px;
+    border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.08);
+    color: #fff; font-weight: bold; cursor: pointer;
+  }
+  #sumoLobbyBtn:hover { background: rgba(255,255,255,0.18); }
+
   /* כשהמשחק פתוח בתוך מסגרת (iframe) - למשל בקישור אינטרנט - הדפדפן לא
      מעביר לחצני מקלדת עד שלוחצים בתוך המסגרת פעם אחת. המסך הזה מבקש
      בדיוק את הקליק הזה, ואז נעלם לתמיד. פתיחה כקובץ מקומי לא מושפעת -
@@ -327,6 +352,35 @@
     margin-bottom: 10px;
   }
   #caveExitBtn {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+  }
+
+  /* ---------- סומו: HUD בזמן קרב חופשי (זהה במבנה ל-caveHud) ---------- */
+  #sumoHud {
+    display: none;
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 45;
+    text-align: center;
+  }
+  #sumoHud.show { display: block; }
+  #sumoInstructions {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 8px 20px;
+    color: #fff;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+  #sumoExitBtn {
     background: rgba(255,255,255,0.12);
     color: #fff;
     border: 1px solid rgba(255,255,255,0.35);
@@ -709,6 +763,14 @@
   </div>
 </div>
 
+<div id="sumoResultOverlay">
+  <div id="sumoResultTitle"></div>
+  <div id="sumoBtnRow">
+    <button id="sumoPlayAgainBtn">🔄 עוד סומו</button>
+    <button id="sumoLobbyBtn">🏠 לובי</button>
+  </div>
+</div>
+
 <div id="lobbyOverlay">
   <div class="eventBanner">🎉 איוונט מיוחד! 30% הנחה בחנות!</div>
   <div id="loadoutRow">
@@ -733,6 +795,7 @@
   <button class="bigBtn secondary eventOnly" id="bossFightBtn">👹 קרב בוס</button>
   <button class="bigBtn secondary" id="openAdventureBtn">🗺️ הרפתקה</button>
   <button class="bigBtn secondary" id="openLootSelectBtn">🎒 ציוד לקרב</button>
+  <button class="bigBtn secondary" id="openSumoBtn">🎌 קרב סומו</button>
 </div>
 
 <div id="adventureOverlay">
@@ -749,6 +812,11 @@
 <div id="caveHud">
   <div id="caveInstructions">↑ להליכה &nbsp;·&nbsp; ← → לפנייה &nbsp;·&nbsp; האוצר מוחבא איפשהו - תחפש טוב!</div>
   <button id="caveExitBtn">⬅ יציאה למפה</button>
+</div>
+
+<div id="sumoHud">
+  <div id="sumoInstructions">↑ להתקדם ולדחוף &nbsp;·&nbsp; ↓ אחורה &nbsp;·&nbsp; ← → לפנייה &nbsp;·&nbsp; תדחוף את היריב מחוץ לעיגול!</div>
+  <button id="sumoExitBtn">⬅ יציאה ללובי</button>
 </div>
 
 <div id="treasureFoundOverlay">
@@ -1455,6 +1523,267 @@ const lavaTreasureRing = [];
     boulder.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
     lavaGroup.add(boulder);
     lavaTreasureRing.push(boulder);
+  }
+}
+
+// ============================================================================
+//  סומו — זירה עגולה, תנועה חופשית דו-ממדית, בלי חיים ובלי הכות
+//
+//  שונה משלושת עולמות ההרפתקה: שני לוחמים (לא רק player) זזים חופשי, ושונה
+//  מזירת האגרוף: אין punch/kick/stone בכלל, רק תנועה - מנצחים בדחיפה בלבד.
+//  "דחיפה" היא לגמרי פיזית: מי שהולך *לתוך* היריב (מחזיק "למעלה" בכיוונו)
+//  דוחף אותו; אם שניהם דוחפים בו-זמנית זו משיכת חבל אמיתית, ומי שחזק יותר
+//  (powerMult - אותו מכפיל כוח שכבר קיים משדרוגי החנות!) מנצח. מי שנדחף
+//  מחוץ לעיגול נופל - ומשתמשים באותה אנימציית נפילה בדיוק משלב 4
+//  (fallProgress/fallDirX/fallDirZ/fallBaseYaw, אחרי ההכללה למעלה מסיבוב
+//  סביב ציר x בלבד לכל כיוון במישור x/z).
+// ============================================================================
+const SUMO_OFFSET = new THREE.Vector3(-300, 0, 0);
+const sumoGroup = new THREE.Group();
+sumoGroup.position.copy(SUMO_OFFSET);
+scene.add(sumoGroup);
+const SUMO_RADIUS = 4.5;
+
+// רצפה חיצונית כהה, מדרגה אחת נמוך יותר מהבמה - כדי שנפילה מחוץ לעיגול
+// תיראה ברורה מיד (השחקן פשוט "נעלם" למטה, לא רק חוצה קו בלתי נראה).
+const sumoOuterFloor = new THREE.Mesh(
+  new THREE.CircleGeometry(30, 40),
+  new THREE.MeshStandardMaterial({ color: 0x1c1f26, roughness: 0.95 }));
+sumoOuterFloor.rotation.x = -Math.PI / 2;
+sumoOuterFloor.position.y = -0.5;
+sumoOuterFloor.receiveShadow = true;
+sumoGroup.add(sumoOuterFloor);
+
+// הבמה העגולה (הדוהיו) - גליל נמוך בצבע חול/חימר, קצת רחב יותר בבסיס.
+const sumoPlatform = new THREE.Mesh(
+  new THREE.CylinderGeometry(SUMO_RADIUS, SUMO_RADIUS * 1.05, 0.4, 40),
+  new THREE.MeshStandardMaterial({ color: 0xd8c08a, roughness: 0.9 }));
+sumoPlatform.position.y = -0.2;
+sumoPlatform.receiveShadow = true;
+sumoPlatform.castShadow = true;
+sumoGroup.add(sumoPlatform);
+
+// טבעת חבילות קש סביב הקצה - מסמנת בבירור איפה הגבול. הרבה עותקים
+// זהים → InstancedMesh (לפי הלקח הטכני הקיים בפרויקט).
+{
+  const baleCount = 28;
+  const baleGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.32, 8);
+  const baleMat = new THREE.MeshStandardMaterial({ color: 0xc9a355, roughness: 0.85 });
+  const sumoBales = new THREE.InstancedMesh(baleGeo, baleMat, baleCount);
+  sumoBales.castShadow = true;
+  const m4 = new THREE.Matrix4();
+  for (let i = 0; i < baleCount; i++) {
+    const ang = (i / baleCount) * Math.PI * 2;
+    m4.makeRotationY(ang);
+    m4.setPosition(Math.sin(ang) * SUMO_RADIUS, 0.16, Math.cos(ang) * SUMO_RADIUS);
+    sumoBales.setMatrixAt(i, m4);
+  }
+  sumoBales.instanceMatrix.needsUpdate = true;
+  sumoGroup.add(sumoBales);
+}
+
+// תאורה מקומית - אותו עיקרון בדיוק כמו שלושת עולמות ההרפתקה (הקבוצה רחוקה
+// 300 יחידות מהתאורה הראשית של הזירה, וצריכה תאורה משלה).
+sumoGroup.add(new THREE.AmbientLight(0xaabbdd, 0.7));
+const sumoTopLight = new THREE.PointLight(0xffffff, 1.6, 20);
+sumoTopLight.position.set(0, 7, 0);
+sumoGroup.add(sumoTopLight);
+
+// ---------- מצב הסומו ----------
+let sumoOpponent = null;
+let sumoPlayerYaw = 0, sumoOppYaw = 0;
+let sumoOver = false;
+let savedSumoFog = null, savedSumoBackground = null;
+const SUMO_CONTACT_DIST = 1.0;   // מרחק שנחשב "מגע" בין שני הלוחמים
+const SUMO_MIN_GAP = 0.85;       // הכי קרוב שמותר - כמו MIN_GAP בזירה הרגילה, רק דו-ממדי
+const SUMO_BASE_PUSH = 3.0;      // עוצמת הדחיפה הבסיסית (לפני מכפיל הכוח)
+const SUMO_KNOCK_FRICTION = 5.0; // חיכוך שמאט את ההדף - אותו רעיון בדיוק כמו KNOCK_FRICTION
+
+function updateSumoCamera() {
+  const p = player.group.position;
+  const wx = p.x + SUMO_OFFSET.x, wy = p.y + SUMO_OFFSET.y, wz = p.z + SUMO_OFFSET.z;
+  const camDist = 3.0, camHeight = 2.0;
+  camera.position.set(
+    wx - Math.sin(sumoPlayerYaw) * camDist,
+    wy + camHeight,
+    wz - Math.cos(sumoPlayerYaw) * camDist);
+  camera.lookAt(wx, wy + 1.0, wz);
+}
+
+// בונה/מאפסת קרב סומו טרי: השחקן והיריב נכנסים משני צידי העיגול, פונים
+// זה לזה. היריב הוא makeFighter נפרד (לא ה-enemy הגלובלי של הזירה) כדי
+// שלא לגעת בכלל במצב הקרב הרגיל - בדיוק כמו שמפלצות הרפתקה הן לוחמים
+// נפרדים מ-enemy (ראה spawnLavaMonsters).
+function enterSumo() {
+  scene.remove(player.group);
+  sumoGroup.add(player.group);
+  player.group.position.set(0, 0, SUMO_RADIUS - 1.3);
+  sumoPlayerYaw = Math.PI;
+  player.group.rotation.y = sumoPlayerYaw + EXPLORE_FRONT_OFFSET;
+  player.group.visible = true;
+  player.action = null; player.blocking = false; player.blockAmt = 0; player.mv = 0;
+  player.knockVelX = 0; player.knockVelZ = 0;
+  player.down = false; player.downT = 0; player.staggerT = 0;
+
+  const lvl = ENEMY_LEVELS[enemyLevel];
+  if (sumoOpponent) {
+    if (sumoOpponent.group.parent) sumoOpponent.group.parent.remove(sumoOpponent.group);
+    sumoOpponent.group.traverse((o) => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) o.material.dispose();
+    });
+  }
+  sumoOpponent = makeFighter(lvl.cfg, 0, -1, 1);
+  scene.remove(sumoOpponent.group);   // makeFighter מוסיפה ל-scene כברירת מחדל
+  sumoGroup.add(sumoOpponent.group);
+  sumoOpponent.group.position.set(0, 0, -(SUMO_RADIUS - 1.3));
+  sumoOppYaw = 0;
+  sumoOpponent.group.rotation.y = sumoOppYaw + EXPLORE_FRONT_OFFSET;
+
+  sumoOver = false;
+  document.getElementById('sumoResultOverlay').classList.remove('show');
+
+  savedSumoFog = scene.fog;
+  savedSumoBackground = scene.background;
+  scene.fog = new THREE.Fog(0x151b28, 8, 34);
+  scene.background = new THREE.Color(0x0d1219);
+  updateSumoCamera();
+}
+
+function exitSumo() {
+  sumoGroup.remove(player.group);
+  scene.add(player.group);
+  player.group.position.set(player.x, GROUND_Y, 0);
+  player.group.rotation.y = player.facing * STANCE_YAW;
+  if (savedSumoFog) scene.fog = savedSumoFog;
+  if (savedSumoBackground) scene.background = savedSumoBackground;
+}
+
+// אם f נדחף/הלך מעבר לרדיוס הבמה - הוא נופל ומפסיד. משתמשים באותה
+// אנימציית נפילה משלב 4 (down/downT/fallDirX/fallDirZ/fallBaseYaw) - רק
+// שכאן כיוון הנפילה יכול להיות בכל זווית במישור x/z, לא רק ציר x.
+function checkSumoFall(f, winnerWho) {
+  if (f.down) return;
+  const dist = Math.hypot(f.group.position.x, f.group.position.z);
+  if (dist > SUMO_RADIUS) {
+    f.down = true; f.downT = 0;
+    f.fallDirX = f.group.position.x / dist;
+    f.fallDirZ = f.group.position.z / dist;
+    f.fallBaseYaw = f.group.rotation.y;
+    endSumo(winnerWho);
+  }
+}
+
+function endSumo(winnerWho) {
+  if (sumoOver) return;
+  sumoOver = true;
+  const win = winnerWho === 'player';
+  document.getElementById('sumoResultTitle').textContent = win ? '🏆 ניצחת בסומו!' : '❌ נדחפת מהעיגול...';
+  document.getElementById('sumoResultOverlay').classList.add('show');
+}
+
+function updateSumo(dt, t) {
+  tickFallState(player, dt);
+  tickFallState(sumoOpponent, dt);
+
+  if (!sumoOver) {
+    // ---------- קלט השחקן - בדיוק כמו בהרפתקאות: חיצים לפנייה/הליכה ----------
+    if (!player.down) {
+      if (KEYS.ArrowLeft) sumoPlayerYaw += EXPLORE_TURN_SPEED * dt;
+      if (KEYS.ArrowRight) sumoPlayerYaw -= EXPLORE_TURN_SPEED * dt;
+      const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
+      player.mv = moveDir;
+      if (moveDir !== 0) {
+        player.group.position.x += Math.sin(sumoPlayerYaw) * EXPLORE_SPEED * dt * moveDir;
+        player.group.position.z += Math.cos(sumoPlayerYaw) * EXPLORE_SPEED * dt * moveDir;
+        player.phase += dt * 8.5 * moveDir;
+      }
+      player.group.rotation.y = sumoPlayerYaw + EXPLORE_FRONT_OFFSET;
+    } else {
+      player.mv = 0;
+    }
+
+    // ---------- בינה מלאכותית של היריב - תמיד מתקדם ומנסה לדחוף ----------
+    if (!sumoOpponent.down) {
+      const dx = player.group.position.x - sumoOpponent.group.position.x;
+      const dz = player.group.position.z - sumoOpponent.group.position.z;
+      const targetYaw = Math.atan2(dx, dz);
+      let yawDiff = targetYaw - sumoOppYaw;
+      while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
+      while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
+      sumoOppYaw += Math.sign(yawDiff) * Math.min(Math.abs(yawDiff), EXPLORE_TURN_SPEED * dt);
+      sumoOpponent.mv = 1;
+      sumoOpponent.group.position.x += Math.sin(sumoOppYaw) * EXPLORE_SPEED * dt;
+      sumoOpponent.group.position.z += Math.cos(sumoOppYaw) * EXPLORE_SPEED * dt;
+      sumoOpponent.phase += dt * 8.5;
+      sumoOpponent.group.rotation.y = sumoOppYaw + EXPLORE_FRONT_OFFSET;
+    } else {
+      sumoOpponent.mv = 0;
+    }
+
+    // ---------- מגע ודחיפה ----------
+    // מי שהולך *לתוך* היריב (mv>0) תורם כוח דחיפה, פי powerMult שלו -
+    // אותו מכפיל כוח בדיוק שכבר קיים משדרוגי החנות (ראה refreshPlayerCombatStats),
+    // עכשיו רלוונטי גם כאן, לא רק לאגרוף/בעיטה. ההפרש נטו נדחף על היריב
+    // כתוספת ל-knockVelX/Z שלו (ראה החיכוך למטה) - משיכת חבל אמיתית.
+    if (!player.down && !sumoOpponent.down) {
+      const dx = player.group.position.x - sumoOpponent.group.position.x;
+      const dz = player.group.position.z - sumoOpponent.group.position.z;
+      const dist = Math.hypot(dx, dz) || 0.0001;
+      if (dist < SUMO_CONTACT_DIST) {
+        const nx = dx / dist, nz = dz / dist;
+        const playerPush = (player.mv > 0 ? 1 : 0) * SUMO_BASE_PUSH * (player.powerMult || 1);
+        const oppPush = (sumoOpponent.mv > 0 ? 1 : 0) * SUMO_BASE_PUSH * (sumoOpponent.powerMult || 1);
+        const net = playerPush - oppPush;
+        if (net > 0) {
+          sumoOpponent.knockVelX -= nx * net * dt;
+          sumoOpponent.knockVelZ -= nz * net * dt;
+        } else if (net < 0) {
+          player.knockVelX += nx * (-net) * dt;
+          player.knockVelZ += nz * (-net) * dt;
+        }
+      }
+    }
+  }
+
+  // ---------- הדף: תזוזה + חיכוך (פועל גם על מי ששוכב, כדי שההדף "יגמור" את התנועה) ----------
+  [player, sumoOpponent].forEach((f) => {
+    if (f.knockVelX || f.knockVelZ) {
+      f.group.position.x += f.knockVelX * dt;
+      f.group.position.z += f.knockVelZ * dt;
+      const speed = Math.hypot(f.knockVelX, f.knockVelZ);
+      const drop = SUMO_KNOCK_FRICTION * dt;
+      if (drop >= speed) { f.knockVelX = 0; f.knockVelZ = 0; }
+      else { const s = (speed - drop) / speed; f.knockVelX *= s; f.knockVelZ *= s; }
+    }
+  });
+
+  // ---------- מונעים חפיפה מלאה (הליכה "דרך" היריב) ----------
+  // בדיוק כמו MIN_GAP בזירת האגרוף החד-ממדית, רק בשני צירים: אם אחרי כל
+  // התזוזה (רצונית + הדף) שני הלוחמים קרובים מדי, מרחיקים את שניהם
+  // symmetrically לאורך הקו שביניהם. בלי זה, תזוזה רצונית גדולה (לדוגמה
+  // בפריים איטי) יכולה "לדחוף" מישהו ממש דרך היריב במקום לעצור בו - נמצא
+  // בבדיקה: שחקן עם כוח חזק בהרבה מהיריב עדיין הפסיד, כי הוא פשוט הלך
+  // *דרכו* והמשיך עד לקצה השני של העיגול.
+  if (!player.down && !sumoOpponent.down) {
+    const dx = player.group.position.x - sumoOpponent.group.position.x;
+    const dz = player.group.position.z - sumoOpponent.group.position.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist > 0 && dist < SUMO_MIN_GAP) {
+      const push = (SUMO_MIN_GAP - dist) / 2;
+      const nx = dx / dist, nz = dz / dist;
+      player.group.position.x += nx * push; player.group.position.z += nz * push;
+      sumoOpponent.group.position.x -= nx * push; sumoOpponent.group.position.z -= nz * push;
+    }
+  }
+
+  poseFighter(player, t, dt);
+  poseFighter(sumoOpponent, t, dt);
+  updateSumoCamera();
+
+  if (!sumoOver) {
+    checkSumoFall(player, 'enemy');
+    checkSumoFall(sumoOpponent, 'player');
   }
 }
 
@@ -4295,12 +4624,18 @@ function makeFighter(cfg, startX, facing, maxHp) {
     // קפיצה: jumpY זה הגובה הנוכחי מעל הקרקע, jumpVel המהירות האנכית -
     // פיזיקה פשוטה של כוח כלפי מעלה שדועך עם הזמן (ראה tickJump).
     jumping: false, jumpY: 0, jumpVel: 0,
-    // שלב 4 - הדף/נפילה: knockVel מהירות הדף אופקית שדועכת (ראה moveFighter).
-    // staggerT זמן "הלם" שנשאר (לא יכול לפעול). down/downT - האם הלוחם
-    // שוכב על הרצפה כרגע וכמה זמן עבר מרגע הנפילה (ראה fallProgress).
-    // fallDir - לאיזה כיוון x הוא נפל, כדי שהטיה בהיפוך תמשיך לאותו כיוון
-    // גם אחרי שה-knockVel עצמו דעך לאפס.
-    knockVel: 0, staggerT: 0, down: false, downT: 0, fallDir: 0,
+    // שלב 4 - הדף/נפילה: knockVel מהירות הדף אופקית שדועכת (ציר x בלבד,
+    // לזירת האגרוף החד-ממדית - ראה moveFighter). knockVelX/knockVelZ הם
+    // הגרסה הדו-ממדית לאותו רעיון, לעולמות עם תנועה חופשית (למשל סומו -
+    // ראה updateSumo). staggerT זמן "הלם" שנשאר (לא יכול לפעול). down/downT -
+    // האם הלוחם שוכב על הרצפה כרגע וכמה זמן עבר מרגע הנפילה (ראה
+    // fallProgress). fallDirX/fallDirZ - כיוון הנפילה במישור x/z (וקטור
+    // יחידה), כדי שההטיה תמשיך לאותו כיוון גם אחרי שה-knockVel דעך לאפס.
+    // fallBaseYaw - זווית הפנייה (rotation.y) של הלוחם ברגע הנפילה עצמה -
+    // נשמרת כדי שההטיה תדע לאיזו "זווית עמידה" לחזור, בלי להניח שום דבר
+    // על facing/STANCE_YAW (שרלוונטיים רק לזירת האגרוף, לא לעולמות חופשיים).
+    knockVel: 0, knockVelX: 0, knockVelZ: 0, staggerT: 0, down: false, downT: 0,
+    fallDirX: 0, fallDirZ: -1, fallBaseYaw: facing * STANCE_YAW,
   };
 }
 
@@ -5392,7 +5727,7 @@ function startAction(f, kind) {
 
 // אובייקטים חד-פעמיים לחישוב הטיית הנפילה (שלב 4) - נוצרים פעם אחת ולא
 // בכל פריים, כדי לא לזבל את ה-garbage collector בכל אנימציה.
-const _axisY = new THREE.Vector3(0, 1, 0), _axisZ = new THREE.Vector3(0, 0, 1);
+const _axisY = new THREE.Vector3(0, 1, 0), _fallAxis = new THREE.Vector3();
 const _fallYawQ = new THREE.Quaternion(), _fallTiltQ = new THREE.Quaternion();
 
 function poseFighter(f, t, dt) {
@@ -5532,16 +5867,24 @@ function poseFighter(f, t, dt) {
   f.byName.root.position.y = J.root.y + f.bob + f.jumpY;
 
   // ---------- שלב 4 - נפילה ----------
-  // מטים את *כל קבוצת הדמות* (לא עצם בודדת) סביב ציר Z של העולם, כדי
-  // שהיא "תיפול" בכיוון ההדף (ציר ה-x) - נשארת רק בלוחם שנפל (f.down),
-  // ובכוונה לא נוגעים בקבוצה בכל מקרה אחר: חקירה חופשית (מערה/אי/לבה)
-  // מסובבת את אותה קבוצה בעצמה לפי כיוון ההליכה (explorerYaw) בקוד אחר -
-  // אם היינו כותבים quaternion כאן תמיד, זה היה דורס את זה. נפילה קורית
-  // רק בקרב, אז אין התנגשות בפועל.
+  // מטים את *כל קבוצת הדמות* (לא עצם בודדת) סביב ציר אופקי, כדי שהיא
+  // "תיפול" בכיוון ההדף בפועל (fallDirX/fallDirZ - וקטור יחידה במישור
+  // x/z, נקבע ברגע הנפילה) - נשארת רק בלוחם שנפל (f.down), ובכוונה לא
+  // נוגעים בקבוצה בכל מקרה אחר: חקירה חופשית (מערה/אי/לבה) מסובבת את
+  // אותה קבוצה בעצמה לפי כיוון ההליכה בקוד אחר - אם היינו כותבים
+  // quaternion כאן תמיד, זה היה דורס את זה. ציר ההטיה מחושב כניצב
+  // האופקי לכיוון הנפילה (סיבוב 90° סביב Y של הווקטור עצמו) - כללי
+  // לגמרי, לא מניח שהתנועה על ציר x בלבד (כמו בזירת האגרוף); כשהיא כן
+  // על ציר x זה בדיוק מצטמצם לציר Z הקבוע שהיה כאן במקור. fallBaseYaw
+  // (לא facing*STANCE_YAW) הוא "זווית העמידה" שממנה מטים - נשמרת בעצמה
+  // ברגע הנפילה, כדי שזה יעבוד גם בעולמות עם זווית פנייה חופשית (סומו).
   if (f.down) {
     const downP = fallProgress(f);
-    _fallYawQ.setFromAxisAngle(_axisY, f.facing * STANCE_YAW);
-    _fallTiltQ.setFromAxisAngle(_axisZ, -f.fallDir * (Math.PI / 2) * downP);
+    _fallYawQ.setFromAxisAngle(_axisY, f.fallBaseYaw);
+    _fallAxis.set(f.fallDirZ, 0, -f.fallDirX);
+    if (_fallAxis.lengthSq() < 1e-6) _fallAxis.set(0, 0, 1);
+    _fallAxis.normalize();
+    _fallTiltQ.setFromAxisAngle(_fallAxis, (Math.PI / 2) * downP);
     f.group.quaternion.copy(_fallTiltQ).multiply(_fallYawQ);
   }
 }
@@ -5738,9 +6081,10 @@ function tickFallState(f, dt) {
     f.downT += dt;
     if (f.downT >= DOWN_TOTAL) {
       f.down = false; f.downT = 0;
-      // מוודאים שהקבוצה חוזרת בדיוק לזווית העמידה - fallProgress כבר מחזירה
-      // כמעט 0 בפריים האחרון, אבל "כמעט" יכול להשאיר שארית הטיה זעירה.
-      f.group.quaternion.setFromAxisAngle(_axisY, f.facing * STANCE_YAW);
+      // מוודאים שהקבוצה חוזרת בדיוק לזווית העמידה (fallBaseYaw, לא
+      // facing*STANCE_YAW - ראה ההערה המלאה ב-poseFighter) - fallProgress
+      // כבר מחזירה כמעט 0 בפריים האחרון, אבל "כמעט" יכול להשאיר הטיה זעירה.
+      f.group.quaternion.setFromAxisAngle(_axisY, f.fallBaseYaw);
     }
   }
 }
@@ -5923,7 +6267,8 @@ function tickCombat(attacker, defender, who, otherWho) {
   if (cfg.fall) {
     defender.down = true;
     defender.downT = 0;
-    defender.fallDir = pushDir;
+    defender.fallDirX = pushDir; defender.fallDirZ = 0;
+    defender.fallBaseYaw = defender.group.rotation.y;
     defender.action = null;
     defender.actionT = 0;
   }
@@ -6107,7 +6452,8 @@ function resetGame() {
     f.damageDealt = 0;
     f.jumping = false; f.jumpY = 0; f.jumpVel = 0;
     // שלב 4: קרב חדש תמיד מתחיל בעמידה - בלי הדף/הלם/נפילה שנשארו מהקרב הקודם.
-    f.knockVel = 0; f.staggerT = 0; f.down = false; f.downT = 0; f.fallDir = 0;
+    f.knockVel = 0; f.staggerT = 0; f.down = false; f.downT = 0;
+    f.fallDirX = 0; f.fallDirZ = -1; f.fallBaseYaw = f.facing * STANCE_YAW;
     f.group.quaternion.setFromAxisAngle(_axisY, f.facing * STANCE_YAW);
     // ההשפעות מהלוט הן לקרב אחד בלבד
     f.powerBonus = 0; f.speedBonus = 0; f.guardTimer = 0;
@@ -6141,6 +6487,7 @@ const adventureEl = document.getElementById('adventureOverlay');
 const lootSelectEl = document.getElementById('lootSelectOverlay');
 const caveHudEl = document.getElementById('caveHud');
 const caveInstructionsEl = document.getElementById('caveInstructions');
+const sumoHudEl = document.getElementById('sumoHud');
 const shopTabsEl = document.getElementById('shopTabs');
 const shopGridEl = document.getElementById('shopGrid');
 const hpRowEl = document.getElementById('hpRow');
@@ -6169,6 +6516,7 @@ function showScreen(name) {
   const wasInCave = uiScreen === 'crystalCave';
   const wasInIsland = uiScreen === 'lostIsland';
   const wasInLava = uiScreen === 'lavaCrater';
+  const wasInSumo = uiScreen === 'sumo';
   uiScreen = name;
   lobbyEl.classList.toggle('show', name === 'lobby');
   shopEl.classList.toggle('show', name === 'shop');
@@ -6178,9 +6526,11 @@ function showScreen(name) {
   lootSelectEl.classList.toggle('show', name === 'lootSelect');
   if (name === 'lootSelect') renderLootSelectScreen();
   caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater');
+  sumoHudEl.classList.toggle('show', name === 'sumo');
   if (wasInCave && name !== 'crystalCave') exitCave();
   if (wasInIsland && name !== 'lostIsland') exitIsland();
   if (wasInLava && name !== 'lavaCrater') exitLava();
+  if (wasInSumo && name !== 'sumo') exitSumo();
   const inBattle = name === 'battle';
   hpRowEl.style.display = inBattle ? '' : 'none';
   // מקרא המקלדת מוסתר לצמיתות בטלפון (ראה __hideKeyboardLegend) - אין מקלדת
@@ -6241,6 +6591,12 @@ function showScreen(name) {
     enemy.group.visible = false;
     if (previewFighter) previewFighter.group.visible = false;
     if (!wasInLava) enterLava();
+  } else if (name === 'sumo') {
+    // קרב סומו - מסתירים את ה-enemy הרגיל של הזירה (הוא לא חלק ממשחק הסומו
+    // בכלל, ראה enterSumo שבונה יריב נפרד).
+    enemy.group.visible = false;
+    if (previewFighter) previewFighter.group.visible = false;
+    if (!wasInSumo) enterSumo();
   } else {
     enemy.group.visible = true;
     player.group.visible = true;
@@ -7148,6 +7504,12 @@ document.getElementById('caveExitBtn').addEventListener('click', () => showScree
 document.getElementById('treasureContinueBtn').addEventListener('click', () => {
   document.getElementById('treasureFoundOverlay').classList.remove('show');
 });
+document.getElementById('openSumoBtn').addEventListener('click', () => showScreen('sumo'));
+document.getElementById('sumoExitBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('sumoLobbyBtn').addEventListener('click', () => showScreen('lobby'));
+// "עוד סומו" נשאר על מסך הסומו ופשוט בונה קרב טרי - בדיוק כמו playAgainBtn
+// שנשאר בזירה הרגילה ורק קורא ל-resetGame.
+document.getElementById('sumoPlayAgainBtn').addEventListener('click', enterSumo);
 
 // נתוני החנות - הועתקו ישירות מ-game-spec.md, מקור האמת למספרים האלה.
 // ---------- תמונות אמיתיות של דמויות בחנות ----------
@@ -8318,6 +8680,8 @@ function animate() {
     updateIslandExplorer(dt, t);
   } else if (uiScreen === 'lavaCrater' && !isLavaFight) {
     updateLavaExplorer(dt, t);
+  } else if (uiScreen === 'sumo') {
+    updateSumo(dt, t);
   } else {
     // poseFighter חייבת לרוץ בכל מסך (לובי, חנות, מסך ניצחון/הפסד) ולא רק
     // בקרב - היא זו שמדליקה את הנשק ביד (f.forceWeaponVisible) ומריצה את
@@ -8395,6 +8759,8 @@ window.game = {
   selectedLoot, LOOT_CAPS, toggleLootSelection, renderLootSelectScreen, lootItemsFor,
   upgradeCharacter, getLevels, characterLevels, upgradeCost, MAX_UPGRADE_LEVEL,
   refreshPlayerCombatStats, startJump,
+  SUMO_RADIUS, SUMO_OFFSET, enterSumo, exitSumo,
+  get sumoOpponent() { return sumoOpponent; }, get sumoOver() { return sumoOver; },
   get enemy() { return enemy; },              // enemy הוא let ומתחלף בין רמות
   get enemyLevel() { return enemyLevel; },
   get player() { return player; },   // player הוא let ומתחלף בהחלפת דמות - חייב getter כדי לא להישאר עם רפרנס ישן
