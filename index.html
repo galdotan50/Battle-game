@@ -6728,6 +6728,10 @@ function showScreen(name) {
     if (name === 'battle') {
       camera.position.copy(BATTLE_CAM.pos);
       camera.lookAt(BATTLE_CAM.look);
+      // מוודאים שהכותרת חוזרת לתאר את הזירה הרגילה בכל כניסה, לא רק
+      // דרך startSelectedBattle - קרב קבוצות (enterTeamBattle) משנה את
+      // labelEl לתיאור שלה, והיא הייתה נשארת תקועה בלי זה.
+      updateBattleLabel();
     }
   }
 }
@@ -7910,6 +7914,7 @@ function enterTeamBattle() {
 
   enemy.group.visible = false;
   renderTeamHpUI();
+  labelEl.textContent = '🥊 קרב קבוצות - 2 נגד ' + enemyCount;
   camera.position.copy(TEAM_BATTLE_CAM.pos);
   camera.lookAt(TEAM_BATTLE_CAM.look);
 }
