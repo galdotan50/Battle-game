@@ -278,6 +278,65 @@
   }
   #sumoLobbyBtn:hover { background: rgba(255,255,255,0.18); }
 
+  /* מסך תוצאה של קרב קבוצות - זהה בדיוק ל-sumoResultOverlay, ids נפרדים. */
+  #teamResultOverlay {
+    position: fixed; inset: 0;
+    background: rgba(5,8,14,0.74);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 24px; z-index: 30; opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  #teamResultOverlay.show { opacity: 1; pointer-events: auto; }
+  #teamResultTitle { font-size: 3rem; color: #fff; text-shadow: 0 4px 18px rgba(0,0,0,0.7); font-weight: 800; }
+  #teamBtnRow { display: flex; gap: 14px; }
+  #teamPlayAgainBtn {
+    font-size: 1.2rem; padding: 12px 34px; border-radius: 14px; border: none;
+    background: #ffcf4d; color: #1a1a1a; font-weight: bold; cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  }
+  #teamPlayAgainBtn:hover { background: #ffd968; }
+  #teamLobbyBtn {
+    font-size: 1.2rem; padding: 12px 34px; border-radius: 14px;
+    border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.08);
+    color: #fff; font-weight: bold; cursor: pointer;
+  }
+  #teamLobbyBtn:hover { background: rgba(255,255,255,0.18); }
+
+  /* ---------- קרב קבוצות: פס חיים לכל לוחם, שני טורים (הצד שלך/הצד השני) ---------- */
+  #teamHpRow {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 0;
+    right: 0;
+    direction: ltr;
+    justify-content: space-between;
+    padding: 0 18px;
+    z-index: 10;
+    pointer-events: none;
+  }
+  #teamHpRow.show { display: flex; }
+  .teamHpSide { display: flex; flex-direction: column; gap: 6px; width: 180px; }
+  .teamHpSideRight { align-items: flex-end; }
+  .teamHpBar { display: flex; flex-direction: column; gap: 2px; width: 100%; }
+  .teamHpSideRight .teamHpBar { align-items: flex-end; }
+  .teamHpName {
+    color: #fff; font-size: 0.75rem; font-weight: bold;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.85);
+  }
+  .teamHpTrack {
+    width: 100%; height: 11px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .teamHpSideRight .teamHpTrack { display: flex; justify-content: flex-end; }
+  .teamHpFill { height: 100%; transition: width 0.25s ease-out; }
+  .teamHpSide:not(.teamHpSideRight) .teamHpFill { background: linear-gradient(90deg, #3ddc74, #24a852); }
+  .teamHpSideRight .teamHpFill { background: linear-gradient(90deg, #ff6b5b, #e63946); }
+  .teamHpBar.teamHpDead { opacity: 0.35; }
+
   /* כשהמשחק פתוח בתוך מסגרת (iframe) - למשל בקישור אינטרנט - הדפדפן לא
      מעביר לחצני מקלדת עד שלוחצים בתוך המסגרת פעם אחת. המסך הזה מבקש
      בדיוק את הקליק הזה, ואז נעלם לתמיד. פתיחה כקובץ מקומי לא מושפעת -
@@ -293,7 +352,7 @@
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -305,8 +364,11 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay, #lootSelectOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show, #lootSelectOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show { display: flex; }
+  #teamSizeOverlay .bigBtn { font-size: 1.2rem; padding: 18px 46px; margin: 10px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
+  #teamSizeOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
+  #teamSizeBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
   /* קטגוריית לוט (אוכל/משקאות/מגנים) - כותרת + שורת כרטיסים, בדיוק כמו
      #shopGrid אבל אחד לכל קטגוריה כדי שהמקסימום לכל קטגוריה יהיה ברור */
   /* בלי width מפורש כאן, #lootSelectSections (הורה, בתוך flex-column עם
@@ -772,6 +834,29 @@
     <button id="sumoPlayAgainBtn">🔄 עוד סומו</button>
     <button id="sumoLobbyBtn">🏠 לובי</button>
   </div>
+</div>
+
+<div id="teamResultOverlay">
+  <div id="teamResultTitle"></div>
+  <div id="teamBtnRow">
+    <button id="teamPlayAgainBtn">🔄 עוד קרב קבוצות</button>
+    <button id="teamLobbyBtn">🏠 לובי</button>
+  </div>
+</div>
+
+<div id="teamSizeOverlay">
+  <div class="screenTitle">🥊 קרב קבוצות</div>
+  <div style="max-width:500px; text-align:center; margin-bottom:26px; opacity:0.85; font-size:1.05rem;">
+    אתה ובן/בת זוג אקראי, מול כמה אויבים?
+  </div>
+  <button class="bigBtn" id="teamSize2Btn">👥 2 נגד 2</button>
+  <button class="bigBtn secondary" id="teamSize4Btn">👥 2 נגד 4</button>
+  <button id="teamSizeBackBtn">⬅ חזרה ללובי</button>
+</div>
+
+<div id="teamHpRow">
+  <div class="teamHpSide" id="teamHpLeft"></div>
+  <div class="teamHpSide teamHpSideRight" id="teamHpRight"></div>
 </div>
 
 <div id="lobbyOverlay">
@@ -6095,6 +6180,11 @@ function fallProgress(f) {
 function tickFallState(f, dt) {
   if (f.staggerT > 0) f.staggerT = Math.max(0, f.staggerT - dt);
   if (f.down) {
+    // קרב קבוצות: מי שמגיע לאפס חיים נופל לצמיתות (koPermanent) - השעון
+    // נעצר בדיוק ב-FALL_TIME (שוכב לגמרי, fallProgress=1) ולא ממשיך
+    // ל-LIE_TIME/GETUP_TIME, כדי שהוא לעולם לא יקום שוב. לוחמים רגילים
+    // (זירה/סומו, בלי koPermanent) ממשיכים בדיוק כמו קודם.
+    if (f.koPermanent) { f.downT = Math.min(f.downT + dt, FALL_TIME); return; }
     f.downT += dt;
     if (f.downT >= DOWN_TOTAL) {
       f.down = false; f.downT = 0;
@@ -6505,6 +6595,8 @@ const lootSelectEl = document.getElementById('lootSelectOverlay');
 const caveHudEl = document.getElementById('caveHud');
 const caveInstructionsEl = document.getElementById('caveInstructions');
 const sumoHudEl = document.getElementById('sumoHud');
+const teamSizeEl = document.getElementById('teamSizeOverlay');
+const teamHpRowEl = document.getElementById('teamHpRow');
 const shopTabsEl = document.getElementById('shopTabs');
 const shopGridEl = document.getElementById('shopGrid');
 const hpRowEl = document.getElementById('hpRow');
@@ -6534,6 +6626,7 @@ function showScreen(name) {
   const wasInIsland = uiScreen === 'lostIsland';
   const wasInLava = uiScreen === 'lavaCrater';
   const wasInSumo = uiScreen === 'sumo';
+  const wasInTeamBattle = uiScreen === 'teamBattle';
   uiScreen = name;
   lobbyEl.classList.toggle('show', name === 'lobby');
   shopEl.classList.toggle('show', name === 'shop');
@@ -6544,15 +6637,21 @@ function showScreen(name) {
   if (name === 'lootSelect') renderLootSelectScreen();
   caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater');
   sumoHudEl.classList.toggle('show', name === 'sumo');
+  teamSizeEl.classList.toggle('show', name === 'teamSize');
+  teamHpRowEl.classList.toggle('show', name === 'teamBattle');
   if (wasInCave && name !== 'crystalCave') exitCave();
   if (wasInIsland && name !== 'lostIsland') exitIsland();
   if (wasInLava && name !== 'lavaCrater') exitLava();
   if (wasInSumo && name !== 'sumo') exitSumo();
+  if (wasInTeamBattle && name !== 'teamBattle') exitTeamBattle();
   const inBattle = name === 'battle';
+  // קרב קבוצות משתמש ב-teamHpRow (כמה פסים) במקום hpRow (שני פסים בדיוק),
+  // אבל מקרא המקלדת/כותרת המסך זהים לזירה הרגילה - אותם מקשים בדיוק.
+  const showKeyboardUi = name === 'battle' || name === 'teamBattle';
   hpRowEl.style.display = inBattle ? '' : 'none';
   // מקרא המקלדת מוסתר לצמיתות בטלפון (ראה __hideKeyboardLegend) - אין מקלדת
-  controlsEl.style.display = (inBattle && !window.__hideKeyboardLegend) ? '' : 'none';
-  labelEl.style.display = inBattle ? '' : 'none';
+  controlsEl.style.display = (showKeyboardUi && !window.__hideKeyboardLegend) ? '' : 'none';
+  labelEl.style.display = showKeyboardUi ? '' : 'none';
   // כפתורי המגע (רק בטלפון - ראה isTouchDevice) מוצגים/מוסתרים באותו כלל
   // בדיוק כמו #controls של המקלדת. window.setTouchControlsVisible קיים
   // רק אם המכשיר תומך במגע, ולכן לא עושה כלום במחשב.
@@ -6614,6 +6713,13 @@ function showScreen(name) {
     enemy.group.visible = false;
     if (previewFighter) previewFighter.group.visible = false;
     if (!wasInSumo) enterSumo();
+  } else if (name === 'teamBattle') {
+    // קרב קבוצות - מסתירים את ה-enemy הרגיל של הזירה (הוא לא חלק ממצב הזה
+    // בכלל, ראה enterTeamBattle שבונה עד 5 לוחמים נפרדים).
+    enemy.group.visible = false;
+    player.forceWeaponVisible = false;
+    if (previewFighter) previewFighter.group.visible = false;
+    if (!wasInTeamBattle) enterTeamBattle();
   } else {
     enemy.group.visible = true;
     player.group.visible = true;
@@ -7526,6 +7632,19 @@ document.getElementById('sumoLobbyBtn').addEventListener('click', () => showScre
 // "עוד סומו" נשאר על מסך הסומו ופשוט בונה קרב טרי - בדיוק כמו playAgainBtn
 // שנשאר בזירה הרגילה ורק קורא ל-resetGame.
 document.getElementById('sumoPlayAgainBtn').addEventListener('click', enterSumo);
+document.getElementById('teamSizeBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('teamSize2Btn').addEventListener('click', () => {
+  pendingTeamEnemyCount = 2;
+  showScreen('teamBattle');
+});
+document.getElementById('teamSize4Btn').addEventListener('click', () => {
+  pendingTeamEnemyCount = 4;
+  showScreen('teamBattle');
+});
+document.getElementById('teamLobbyBtn').addEventListener('click', () => showScreen('lobby'));
+// "עוד קרב קבוצות" נשאר על מסך קרב הקבוצות ופשוט בונה קרב טרי - בדיוק
+// כמו sumoPlayAgainBtn שנשאר בסומו ורק קורא ל-enterSumo.
+document.getElementById('teamPlayAgainBtn').addEventListener('click', enterTeamBattle);
 
 // נתוני החנות - הועתקו ישירות מ-game-spec.md, מקור האמת למספרים האלה.
 // ---------- תמונות אמיתיות של דמויות בחנות ----------
@@ -7539,6 +7658,289 @@ const CHARACTER_CFGS = {
   'סלייקי': SLAIKY_CFG, 'קיטי': KITTY_CFG, 'לוין': LEWIN_CFG,
   'סינזר': SINZER_CFG, 'פראנק': FRANK_CFG,
 };
+
+// ============================================================================
+//  קרב קבוצות — אתה + בן/בת זוג אקראי מול 2 או 4 אויבים אקראיים,
+//  מנצחים כשכל הצד השני נופל (לא קם יותר - בשונה מסומו/זירה רגילה)
+//
+//  שונה מהזירה הרגילה (שני לוחמים בדיוק) ומסומו (בלי הכות בכלל): כאן יש
+//  עד 6 לוחמים בו-זמנית, כולם עם קרב אמיתי (אגרוף/בעיטה/אבן, בדיוק כמו
+//  הזירה הרגילה - ATTACKS/tickAction/tickJump/tickFallState משותפים
+//  לגמרי, לא מוגדרים מחדש). ההבדלים היחידים: יעד ההתקפה הוא "הכי קרוב
+//  מהצד השני" (nearestOpponent) במקום יריב יחיד קבוע, וחפיפה בין לוחמים
+//  נמנעת בין *כל* הזוגות (resolveTeamOverlaps) במקום MIN_GAP בין שניים
+//  בלבד. מי שמגיע לאפס חיים "נופל" (fallProgress, בדיוק כמו שלב 4) אבל
+//  עם דגל `koPermanent` - tickFallState עוצר את השעון בדיוק ברגע
+//  ששוכב לגמרי ולא נותן לו לקום, בשונה מנפילה רגילה שחוזרת לעמידה.
+// ============================================================================
+const TEAM_EDGE = RING_HALF - 0.3;      // קצת יותר רחב מ-EDGE הרגיל - מקום לכולם לזוז
+const TEAM_SPACING = 0.9;               // מרחק פתיחה בין לוחמים באותו צד
+const TEAM_BATTLE_CAM = { pos: V(0, 4.6, 10.4), look: V(0, 1.45, 0) };   // מצלמה רחוקה יותר - רואים את כולם
+
+let teamFighters = [];
+let teamBattleOver = false;
+let pendingTeamEnemyCount = 2;
+
+// בוחרת count שמות דמות אקראיים ושונים מתוך CHARACTER_CFGS, בלי לחזור על
+// exclude (השם של הדמות שהשחקן עצמו משחק בה - כדי לא לראות "עותק" של עצמך).
+function pickRandomTeamCharacters(count, exclude) {
+  const pool = Object.keys(CHARACTER_CFGS).filter((n) => !exclude.includes(n));
+  const picked = [];
+  for (let i = 0; i < count && pool.length > 0; i++) {
+    picked.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  }
+  return picked;
+}
+
+function buildTeamFighter(name, x, facing, hp, team) {
+  const f = makeFighter(CHARACTER_CFGS[name], x, facing, hp);
+  addStoneProp(f);
+  f.team = team;
+  f.teamName = name;
+  f.koPermanent = false;
+  return f;
+}
+
+function disposeTeamFighter(f) {
+  if (f.group.parent) f.group.parent.remove(f.group);
+  f.group.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) o.material.dispose();
+  });
+}
+
+// היעד הקרוב ביותר מהצד השני שעדיין לא נפל לצמיתות - null אם הצד השני נגמר.
+function nearestOpponent(f, fighters) {
+  let best = null, bestDist = Infinity;
+  for (const o of fighters) {
+    if (o.team === f.team || o.koPermanent) continue;
+    const d = Math.abs(o.x - f.x);
+    if (d < bestDist) { bestDist = d; best = o; }
+  }
+  return best;
+}
+
+// בדיוק updateEnemy הרגיל, רק שהיעד הוא nearestOpponent במקום היריב הקבוע.
+function updateTeamFighter(f, fighters, dt) {
+  if (f.down || f.staggerT > 0 || f.koPermanent) { f.mv = 0; f.blocking = false; return; }
+  const target = nearestOpponent(f, fighters);
+  if (!target) { f.mv = 0; return; }
+  const dist = Math.abs(target.x - f.x);
+  f.cool -= dt;
+  f.think -= dt;
+  f.blockTimer -= dt;
+
+  if (f.action) { f.mv = 0; f.blocking = false; return; }
+
+  if (target.action && dist < 2.0 && f.blockTimer < -0.2 && Math.random() < 0.05) f.blockTimer = 0.55;
+  f.blocking = f.blockTimer > 0;
+  if (f.blocking) { f.mv = 0; return; }
+
+  if (dist < 1.55 && f.cool <= 0) {
+    const r = Math.random();
+    startAction(f, r < 0.48 ? 'punch' : r < 0.80 ? 'kick' : 'stone');
+    f.cool = 1.0 + Math.random() * 1.2;
+    f.mv = 0;
+    return;
+  }
+
+  if (f.think <= 0) {
+    f.think = 0.5 + Math.random() * 0.9;
+    const r = Math.random();
+    f.mode = dist > 2.3 ? 'approach' : dist < 1.25 ? 'retreat' : r < 0.45 ? 'approach' : r < 0.75 ? 'retreat' : 'wait';
+  }
+  const toward = Math.sign(target.x - f.x);
+  f.mv = f.mode === 'approach' ? toward : f.mode === 'retreat' ? -toward : 0;
+}
+
+// בדיוק moveFighter הרגיל, רק שהחסימה מפני מעבר-דרך-היריב עברה
+// ל-resolveTeamOverlaps (כי כאן יש הרבה יותר משני לוחמים).
+function moveTeamFighter(f, dt) {
+  const boost = (f.speedMult || 1) * (1 + (f.speedBonus || 0) * 0.10);
+  const speed = (f.blocking ? BLOCK_SPEED : WALK_SPEED) * boost;
+  let dx = f.mv * speed * dt;
+  if (f.knockVel) {
+    dx += f.knockVel * dt;
+    const drop = Math.sign(f.knockVel) * KNOCK_FRICTION * dt;
+    f.knockVel = Math.abs(drop) < Math.abs(f.knockVel) ? f.knockVel - drop : 0;
+  }
+  let nx = f.x + dx;
+  nx = Math.max(-TEAM_EDGE, Math.min(TEAM_EDGE, nx));
+  if (Math.abs(nx - f.x) < 1e-5) f.mv = 0;
+  f.x = nx;
+  f.group.position.x = battleAnchorX + nx;
+  if (f.mv !== 0) f.phase += dt * 8.5 * (f.mv * f.facing > 0 ? 1 : -1);
+}
+
+// המקבילה הכללית ל-MIN_GAP: אחרי שכולם זזו, ממיינים לפי x ומרחיקים כל
+// זוג שכן קרוב מדי - פעמיים (הלוך ושוב) כדי שהתיקון יתייצב גם כשכמה
+// לוחמים נדחסים יחד בו-זמנית. לוחמים שנפלו לצמיתות לא נספרים בכלל -
+// אין טעם "לדחוף" מישהו ששוכב על הרצפה.
+function resolveTeamOverlaps(fighters) {
+  const active = fighters.filter((f) => !f.koPermanent);
+  active.sort((a, b) => a.x - b.x);
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 1; i < active.length; i++) {
+      const gap = active[i].x - active[i - 1].x;
+      if (gap < MIN_GAP) {
+        const push = (MIN_GAP - gap) / 2;
+        active[i - 1].x -= push;
+        active[i].x += push;
+      }
+    }
+  }
+  active.forEach((f) => {
+    f.x = Math.max(-TEAM_EDGE, Math.min(TEAM_EDGE, f.x));
+    f.group.position.x = battleAnchorX + f.x;
+  });
+}
+
+// בדיוק tickCombat הרגיל, רק שהיעד נמצא דינמית (nearestOpponent) במקום
+// יריב קבוע, ואין כסף/endGame/מגן-מהלוט - מי שמגיע לאפס נופל לצמיתות
+// (koPermanent) ו-checkTeamBattleEnd בודקת אם צד שלם נפל.
+function tickTeamCombat(attacker, fighters) {
+  if (!attacker.action || attacker.hitDone || attacker.koPermanent) return;
+  const cfg = ATTACKS[attacker.action];
+  const u = attacker.actionT / cfg.dur;
+  if (u < cfg.hitAt) return;
+
+  const defender = nearestOpponent(attacker, fighters);
+  if (!defender || Math.abs(attacker.x - defender.x) > cfg.range) return;
+
+  attacker.hitDone = true;
+  if (defender.down) return;
+  if (defender.blocking) { playHitSound('block'); return; }
+  playHitSound(attacker.action);
+
+  const isWeaponHit = attacker.action === 'stone' && attacker.weaponDmg != null;
+  const base = isWeaponHit ? attacker.weaponDmg : cfg.dmg * (attacker.powerMult || 1);
+  const dmg = Math.round(base + (attacker.powerBonus || 0));
+
+  defender.hp = Math.max(0, defender.hp - dmg);
+  flashHit();
+  renderTeamHpUI();
+
+  const pushDir = Math.sign(defender.x - attacker.x) || attacker.facing;
+  defender.knockVel = pushDir * cfg.knock;
+  defender.staggerT = Math.max(defender.staggerT, cfg.stagger);
+  if (cfg.fall) {
+    defender.down = true;
+    defender.downT = 0;
+    defender.fallDirX = pushDir; defender.fallDirZ = 0;
+    defender.fallBaseYaw = defender.group.rotation.y;
+    defender.action = null;
+    defender.actionT = 0;
+  }
+
+  if (defender.hp <= 0) {
+    defender.koPermanent = true;
+    defender.down = true;
+    defender.downT = 0;
+    defender.fallDirX = pushDir; defender.fallDirZ = 0;
+    defender.fallBaseYaw = defender.group.rotation.y;
+    checkTeamBattleEnd();
+  }
+}
+
+function checkTeamBattleEnd() {
+  if (teamBattleOver) return;
+  const alive0 = teamFighters.some((f) => f.team === 0 && !f.koPermanent);
+  const alive1 = teamFighters.some((f) => f.team === 1 && !f.koPermanent);
+  if (!alive0 || !alive1) {
+    teamBattleOver = true;
+    endTeamBattle(alive0);
+  }
+}
+
+function endTeamBattle(win) {
+  document.getElementById('teamResultTitle').textContent =
+    win ? '🏆 הקבוצה שלך ניצחה!' : '❌ הקבוצה שלך הפסידה...';
+  document.getElementById('teamResultOverlay').classList.add('show');
+}
+
+function renderTeamHpUI() {
+  const bar = (f) => {
+    const pct = Math.max(0, f.hp / f.maxHp) * 100;
+    const dead = f.koPermanent ? ' teamHpDead' : '';
+    return '<div class="teamHpBar' + dead + '">' +
+      '<div class="teamHpName">' + f.teamName + '</div>' +
+      '<div class="teamHpTrack"><div class="teamHpFill" style="width:' + pct + '%"></div></div>' +
+      '</div>';
+  };
+  document.getElementById('teamHpLeft').innerHTML = teamFighters.filter((f) => f.team === 0).map(bar).join('');
+  document.getElementById('teamHpRight').innerHTML = teamFighters.filter((f) => f.team === 1).map(bar).join('');
+}
+
+// בונה קרב טרי: מפרקת לוחמים קודמים (אם חוזרים לקרב קבוצות שוב), בוחרת
+// בן/בת זוג ואויבים אקראיים, וממקמת את כולם משני צידי המרכז.
+function enterTeamBattle() {
+  teamFighters.forEach((f) => { if (f !== player) disposeTeamFighter(f); });
+  teamFighters = [];
+  teamBattleOver = false;
+  document.getElementById('teamResultOverlay').classList.remove('show');
+
+  const enemyCount = pendingTeamEnemyCount;
+  const names = pickRandomTeamCharacters(1 + enemyCount, [selectedCharacterName]);
+  const allyName = names[0];
+  const enemyNames = names.slice(1);
+
+  player.team = 0;
+  player.teamName = selectedCharacterName;
+  player.koPermanent = false;
+  player.hp = player.maxHp;
+  player.group.visible = true;
+  player.x = -TEAM_SPACING;
+  player.facing = 1;
+  player.group.position.set(battleAnchorX + player.x, GROUND_Y, battleAnchorZ);
+  player.group.rotation.y = player.facing * STANCE_YAW;
+  player.action = null; player.actionT = 0; player.hitDone = false;
+  player.blocking = false; player.blockAmt = 0; player.mv = 0;
+  player.knockVel = 0; player.staggerT = 0; player.down = false; player.downT = 0;
+  player.fallDirX = 0; player.fallDirZ = -1; player.fallBaseYaw = player.facing * STANCE_YAW;
+  player.jumping = false; player.jumpY = 0; player.jumpVel = 0;
+  teamFighters.push(player);
+
+  const ally = buildTeamFighter(allyName, -TEAM_SPACING * 2, 1, 70, 0);
+  teamFighters.push(ally);
+
+  enemyNames.forEach((name, i) => {
+    const ef = buildTeamFighter(name, TEAM_SPACING * (i + 1), -1, 70, 1);
+    teamFighters.push(ef);
+  });
+
+  enemy.group.visible = false;
+  renderTeamHpUI();
+  camera.position.copy(TEAM_BATTLE_CAM.pos);
+  camera.lookAt(TEAM_BATTLE_CAM.look);
+}
+
+function exitTeamBattle() {
+  teamFighters.forEach((f) => { if (f !== player) disposeTeamFighter(f); });
+  teamFighters = [];
+  player.group.position.set(player.x, GROUND_Y, 0);
+  player.group.rotation.y = player.facing * STANCE_YAW;
+  document.getElementById('teamResultOverlay').classList.remove('show');
+}
+
+function updateTeamBattle(dt, t) {
+  teamFighters.forEach((f) => tickFallState(f, dt));
+  if (!teamBattleOver) {
+    teamFighters.forEach((f) => {
+      if (f === player) updatePlayer(f, dt);
+      else updateTeamFighter(f, teamFighters, dt);
+    });
+  } else {
+    teamFighters.forEach((f) => { f.mv = 0; f.blocking = false; });
+  }
+  teamFighters.forEach((f) => tickAction(f, dt));
+  teamFighters.forEach((f) => tickJump(f, dt));
+  teamFighters.forEach((f) => { f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16)); });
+  teamFighters.forEach((f) => moveTeamFighter(f, dt));
+  resolveTeamOverlaps(teamFighters);
+  if (!teamBattleOver) teamFighters.forEach((f) => tickTeamCombat(f, teamFighters));
+  teamFighters.forEach((f) => poseFighter(f, t, dt));
+}
+
 const characterThumbs = {};
 const THUMB_SIZE = 360;
 
@@ -8125,6 +8527,7 @@ function cycleWeapon(dir) {
 const BATTLE_MODES = [
   { key: 'battle', label: '⚔️ קרב רגיל' },
   { key: 'sumo', label: '🎌 קרב סומו' },
+  { key: 'team', label: '🥊 קרב קבוצות' },
 ];
 let selectedModeIndex = 0;
 
@@ -8139,8 +8542,13 @@ function cycleBattleMode(dir) {
 }
 
 function startSelectedBattle() {
-  if (BATTLE_MODES[selectedModeIndex].key === 'sumo') {
+  const mode = BATTLE_MODES[selectedModeIndex].key;
+  if (mode === 'sumo') {
     showScreen('sumo');
+  } else if (mode === 'team') {
+    // צריך לבחור קודם 2 נגד 2 / 2 נגד 4 - showScreen('teamBattle') בפועל
+    // קורה רק אחרי הבחירה (ראה teamSize2Btn/teamSize4Btn).
+    showScreen('teamSize');
   } else {
     resetGame();
     showScreen('battle');
@@ -8728,6 +9136,8 @@ function animate() {
     updateLavaExplorer(dt, t);
   } else if (uiScreen === 'sumo') {
     updateSumo(dt, t);
+  } else if (uiScreen === 'teamBattle') {
+    updateTeamBattle(dt, t);
   } else {
     // poseFighter חייבת לרוץ בכל מסך (לובי, חנות, מסך ניצחון/הפסד) ולא רק
     // בקרב - היא זו שמדליקה את הנשק ביד (f.forceWeaponVisible) ומריצה את
@@ -8807,6 +9217,9 @@ window.game = {
   refreshPlayerCombatStats, startJump,
   SUMO_RADIUS, SUMO_OFFSET, enterSumo, exitSumo, endSumo,
   BATTLE_MODES, cycleBattleMode, startSelectedBattle, get selectedModeIndex() { return selectedModeIndex; },
+  get teamFighters() { return teamFighters; }, get teamBattleOver() { return teamBattleOver; },
+  set pendingTeamEnemyCount(v) { pendingTeamEnemyCount = v; }, get pendingTeamEnemyCount() { return pendingTeamEnemyCount; },
+  enterTeamBattle, exitTeamBattle, endTeamBattle, checkTeamBattleEnd,
   get sumoOpponent() { return sumoOpponent; }, get sumoOver() { return sumoOver; },
   get enemy() { return enemy; },              // enemy הוא let ומתחלף בין רמות
   get enemyLevel() { return enemyLevel; },
