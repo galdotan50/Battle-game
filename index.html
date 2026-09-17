@@ -1749,8 +1749,16 @@ function enterSumo() {
 function exitSumo() {
   sumoGroup.remove(player.group);
   scene.add(player.group);
+  player.facing = 1;
+  // אם יוצאים בדיוק בזמן שנפלת (down) - מאפסים גם את מצב הנפילה, לא רק
+  // את המיקום/סיבוב. אותו לקח בדיוק כמו קרב קבוצות (ראה exitTeamBattle):
+  // .rotation.y=... לבד לא מספיק כי ה-Euler שומר את ה-x/z הישנים מהטיית
+  // הנפילה (שהוגדרה ישירות על quaternion, לא על rotation) - setFromAxisAngle
+  // בונה quaternion נקי מאפס, בלי שארית.
+  player.down = false; player.downT = 0; player.staggerT = 0;
+  player.knockVelX = 0; player.knockVelZ = 0;
   player.group.position.set(player.x, GROUND_Y, 0);
-  player.group.rotation.y = player.facing * STANCE_YAW;
+  player.group.quaternion.setFromAxisAngle(_axisY, player.facing * STANCE_YAW);
   if (savedSumoFog) scene.fog = savedSumoFog;
   if (savedSumoBackground) scene.background = savedSumoBackground;
   // באג אמיתי שהמשתמש דיווח עליו: כפתור "לובי" על מסך התוצאה קורא ל-
@@ -1780,7 +1788,16 @@ function endSumo(winnerWho) {
   if (sumoOver) return;
   sumoOver = true;
   const win = winnerWho === 'player';
-  document.getElementById('sumoResultTitle').textContent = win ? '🏆 ניצחת בסומו!' : '❌ נדחפת מהעיגול...';
+  let title = win ? '🏆 ניצחת בסומו!' : '❌ נדחפת מהעיגול...';
+  if (win) {
+    // בלי חיים/נזק בסומו (אין "כמה נזק גרמת" למדוד) - תגמול קבוע כמו
+    // בוס/מפלצת הרפתקה, עולה לפי רמת היריב (בדיוק כמו powerMult שלו).
+    const reward = 15 + enemyLevel * 5;
+    money += reward;
+    updateMoneyUI();
+    title += ' (💰 +' + reward + '₪)';
+  }
+  document.getElementById('sumoResultTitle').textContent = title;
   document.getElementById('sumoResultOverlay').classList.add('show');
 }
 
@@ -7857,8 +7874,16 @@ function checkTeamBattleEnd() {
 }
 
 function endTeamBattle(win) {
-  document.getElementById('teamResultTitle').textContent =
-    win ? '🏆 הקבוצה שלך ניצחה!' : '❌ הקבוצה שלך הפסידה...';
+  let title = win ? '🏆 הקבוצה שלך ניצחה!' : '❌ הקבוצה שלך הפסידה...';
+  if (win) {
+    // תגמול קבוע כמו בבוס/מפלצת הרפתקה - עולה לפי כמות האויבים (2 נגד 4
+    // קשה יותר מ-2 נגד 2, מגיע יותר כסף).
+    const reward = 15 * pendingTeamEnemyCount;
+    money += reward;
+    updateMoneyUI();
+    title += ' (💰 +' + reward + '₪)';
+  }
+  document.getElementById('teamResultTitle').textContent = title;
   document.getElementById('teamResultOverlay').classList.add('show');
 }
 
@@ -7922,8 +7947,17 @@ function enterTeamBattle() {
 function exitTeamBattle() {
   teamFighters.forEach((f) => { if (f !== player) disposeTeamFighter(f); });
   teamFighters = [];
+  // באג אמיתי שהמשתמש דיווח עליו: אם השחקן נופל לצמיתות (koPermanent) בקרב
+  // קבוצות ואז יוצא ללובי, ה-down/koPermanent נשארו דלוקים - poseFighter
+  // ממשיכה להטות אותו לשכיבה גם בלובי, כי שום דבר לא איפס את זה. מאפסים
+  // הכל בדיוק כמו resetGame עושה בתחילת קרב רגיל חדש.
+  player.facing = 1;
+  player.down = false; player.downT = 0; player.koPermanent = false;
+  player.staggerT = 0; player.knockVel = 0;
   player.group.position.set(player.x, GROUND_Y, 0);
-  player.group.rotation.y = player.facing * STANCE_YAW;
+  // setFromAxisAngle (לא rotation.y=...) - ה-Euler שומר x/z ישנים מהטיית
+  // הנפילה (שהוגדרה ישירות על quaternion), אז rotation.y לבד משאיר שארית.
+  player.group.quaternion.setFromAxisAngle(_axisY, player.facing * STANCE_YAW);
   document.getElementById('teamResultOverlay').classList.remove('show');
 }
 
@@ -7942,6 +7976,21 @@ function updateTeamBattle(dt, t) {
   teamFighters.forEach((f) => { f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16)); });
   teamFighters.forEach((f) => moveTeamFighter(f, dt));
   resolveTeamOverlaps(teamFighters);
+  // כל לוחם (כולל השחקן) פונה תמיד ליריב הכי קרוב אליו - כדי שאם מישהו
+  // "מתחלף מקום" על הקו ומסתובב מאחורי מישהו, אפשר יהיה גם להסתובב
+  // ולהכות אותו, לא להישאר קפוא בפנייה המקורית. ייחודי לקרב קבוצות - שם
+  // הסדר על הקו באמת יכול להתחלף עם כמה לוחמים; בזירה הרגילה/בסומו זה
+  // לא רלוונטי (יריב יחיד קבוע / כיוון חופשי משלך).
+  teamFighters.forEach((f) => {
+    if (f.down || f.koPermanent) return;
+    const target = nearestOpponent(f, teamFighters);
+    if (!target) return;
+    const dir = Math.sign(target.x - f.x);
+    if (dir !== 0 && dir !== f.facing) {
+      f.facing = dir;
+      f.group.rotation.y = f.facing * STANCE_YAW;
+    }
+  });
   if (!teamBattleOver) teamFighters.forEach((f) => tickTeamCombat(f, teamFighters));
   teamFighters.forEach((f) => poseFighter(f, t, dt));
 }
