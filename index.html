@@ -680,6 +680,20 @@
     color: #ffcf4d;
     z-index: 50;
   }
+  .cloudSignInBtn {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    background: rgba(0,0,0,0.55);
+    border: 2px solid rgba(120,170,255,0.6);
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #eaf1ff;
+    cursor: pointer;
+    z-index: 60;
+  }
 
   /* ---------- שליטה במגע (טלפון) ----------
      display: none כברירת מחדל תמיד. רק ה-JS שרץ אם המכשיר תומך במגע
@@ -860,6 +874,7 @@
 </div>
 
 <div id="lobbyOverlay">
+  <button id="cloudSignInBtn" class="cloudSignInBtn">🔵 התחבר עם גוגל (שומר התקדמות)</button>
   <div class="eventBanner">🎉 איוונט מיוחד! 30% הנחה בחנות!</div>
   <div id="loadoutRow">
     <button id="charPrevBtn" class="cycleBtn">◀</button>
@@ -996,13 +1011,37 @@
 <script type="importmap">
 {
   "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"
   }
 }
 </script>
 
 <script type="module">
 import * as THREE from 'three';
+
+// ---------- ענן: Firebase (Auth + Firestore) ----------
+// אותו פרויקט Google Cloud שמריץ את קלאוד ראן (gals-battle-game) - ראה
+// CLAUDE.md סעיף "דפלוי". הקוד הזה לא סודי (בטוח שיהיה גלוי בדפדפן) -
+// ההגנה האמיתית היא חוקי האבטחה של Firestore, לא הסתרת הקוד הזה.
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDQdlhNciuQatOhXY14gVfRA2osZX67CGk",
+  authDomain: "gals-battle-game.firebaseapp.com",
+  projectId: "gals-battle-game",
+  storageBucket: "gals-battle-game.firebasestorage.app",
+  messagingSenderId: "82960354590",
+  appId: "1:82960354590:web:9cde9d49ad8803902ecd0f"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
+const db = getFirestore(firebaseApp);
 
 // ---------- בסיס: סצנה, מצלמה, רנדרר ----------
 const scene = new THREE.Scene();
@@ -6507,6 +6546,10 @@ function tickCombat(attacker, defender, who, otherWho) {
 // את הרעיון של "לנצח כמה פעמים כדי לחסוך".
 const MAX_MONEY_PER_GAME = 52;   // חזרה ל-52, לפי בקשת המשתמש
 let money = 0;
+// נצחונות/הפסדים - רק על סולם האויבים הרגיל (ENEMY_LEVELS), לא סומו/קרב
+// קבוצות/בוסים/הרפתקה - לאלה יש כבר מנגנוני תגמול נפרדים משלהם.
+let wins = 0;
+let losses = 0;
 const moneyBadgeEl = document.getElementById('moneyBadge');
 function updateMoneyUI() { moneyBadgeEl.textContent = '💰 ' + money + '₪'; }
 
@@ -6638,6 +6681,7 @@ function endGame(winnerWho) {
   } else if (win) {
     money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
     updateMoneyUI();
+    wins++;
     const isLast = enemyLevel >= ENEMY_LEVELS.length - 1;
     gameOverTitleEl.textContent = isLast
       ? '👑 ניצחת את כולם!'
@@ -6667,7 +6711,9 @@ function endGame(winnerWho) {
     lobbyBtnEl.textContent = '🗺️ חזרה ליער';
   } else {
     gameOverTitleEl.textContent = isBossFight ? '❌ הפסד לבוס' : '❌ הפסד';
+    if (!isBossFight) losses++;   // הפסד לבוס לא נספר - בוסים מחוץ לסולם הרגיל
   }
+  saveCloudState();   // אם מחוברים לגוגל, שומר את הכסף/נצחונות/הפסדים החדשים מיד
 }
 
 // רמה שממתינה להחלפה בקרב הבא (null = אין שינוי)
@@ -6677,6 +6723,7 @@ function resetGame() {
   if (pendingEnemyLevel !== null) {
     switchEnemy(pendingEnemyLevel);
     pendingEnemyLevel = null;
+    saveCloudState();   // ההתקדמות ברמה נשמרת בענן מיד (אם מחוברים)
   }
   [[player, 'player', -1.7, 1], [enemy, 'enemy', 1.7, -1]].forEach(([f, who, x0]) => {
     f.hp = f.maxHp;
@@ -8903,6 +8950,7 @@ function upgradeCharacter(name, stat) {
   lv[stat] = level + 1;
   updateMoneyUI();
   if (name === selectedCharacterName) refreshPlayerCombatStats();
+  saveCloudState();
   return true;
 }
 
@@ -8977,6 +9025,7 @@ function switchPlayerCharacter(name) {
   }
   updateHealthUI(player, 'player');
   updateLoadoutUI();
+  saveCloudState();
 }
 
 function cycleCharacter(dir) {
@@ -8994,6 +9043,7 @@ function switchPlayerWeapon(name) {
   addWeaponProp(player, name);
   if (uiScreen === 'lobby') player.forceWeaponVisible = true;
   updateLoadoutUI();
+  saveCloudState();
 }
 
 function cycleWeapon(dir) {
@@ -9043,6 +9093,75 @@ function flashCantAfford(btn) {
   btn.classList.add('shake');
 }
 
+// ============================================================================
+//  ענן: שמירה/טעינה ב-Firestore — אופציונלי לגמרי
+//
+//  בלי להתחבר, המשחק עובד בדיוק כמו קודם - הכל רק בזיכרון, נעלם ברענון.
+//  מתחברים עם גוגל → טוענים מסמך שמור אם יש (players/{uid} ב-Firestore),
+//  או יוצרים אחד חדש עם המצב הנוכחי אם זו הפעם הראשונה. אחרי זה, כל שינוי
+//  משמעותי (קנייה, שדרוג, החלפת דמות/נשק, עליית רמה, סיום קרב) גם נשמר -
+//  ראה קריאות saveCloudState() בפונקציות האלה למעלה.
+// ============================================================================
+let cloudUser = null;
+
+function buildCloudState() {
+  return {
+    money, inventory: [...inventory], characterLevels,
+    selectedCharacterName, selectedWeaponName, enemyLevel, wins, losses,
+    displayName: cloudUser?.displayName || '',
+    updatedAt: serverTimestamp(),
+  };
+}
+
+// שקטה בכוונה (רק console.error, לא הודעה למשתמש) - אם השמירה נכשלת
+// (למשל בלי אינטרנט לרגע), המשחק ממשיך לעבוד מקומית כרגיל.
+async function saveCloudState() {
+  if (!cloudUser) return;
+  try { await setDoc(doc(db, 'players', cloudUser.uid), buildCloudState()); }
+  catch (e) { console.error('שמירה בענן נכשלה:', e); }
+}
+
+// מחילה מסמך שמור על המצב הנוכחי. switchPlayerCharacter/switchPlayerWeapon/
+// switchEnemy כבר יודעות לפרק ולבנות מחדש את המודל התלת-מימדי - לא צריך
+// שום קוד רינדור חדש כאן, רק לקרוא להן עם הערכים השמורים.
+function applyCloudState(data) {
+  if (data.money != null) money = data.money;
+  (data.inventory || []).forEach((id) => inventory.add(id));
+  if (data.characterLevels) Object.assign(characterLevels, data.characterLevels);
+  if (data.wins != null) wins = data.wins;
+  if (data.losses != null) losses = data.losses;
+  updateMoneyUI();
+  if (data.selectedCharacterName && CHARACTER_CFGS[data.selectedCharacterName]) switchPlayerCharacter(data.selectedCharacterName);
+  if (data.selectedWeaponName && WEAPON_CFGS[data.selectedWeaponName]) switchPlayerWeapon(data.selectedWeaponName);
+  if (data.enemyLevel != null) switchEnemy(data.enemyLevel);
+  updateLoadoutUI();
+}
+
+async function signInWithGoogle() {
+  try { await signInWithPopup(auth, googleProvider); }
+  catch (e) { console.error('התחברות עם גוגל נכשלה:', e); }
+}
+
+function signOutOfGoogle() { signOut(auth); }
+
+const cloudSignInBtnEl = document.getElementById('cloudSignInBtn');
+function updateCloudUI() {
+  cloudSignInBtnEl.textContent = cloudUser
+    ? ('👋 ' + (cloudUser.displayName || 'מחובר') + ' — התנתק')
+    : '🔵 התחבר עם גוגל (שומר התקדמות)';
+}
+
+onAuthStateChanged(auth, async (user) => {
+  cloudUser = user;
+  updateCloudUI();
+  if (!user) return;
+  try {
+    const snap = await getDoc(doc(db, 'players', user.uid));
+    if (snap.exists()) applyCloudState(snap.data());
+    else await saveCloudState();   // שחקן חדש - שומר את מצב ברירת המחדל כמסמך ראשון
+  } catch (e) { console.error('טעינה מהענן נכשלה:', e); }
+});
+
 function buyItem(btn) {
   const { key, name } = btn.dataset;
   const price = +btn.dataset.price;
@@ -9057,6 +9176,7 @@ function buyItem(btn) {
   if (key === 'characters' || key === 'weapons') updateLoadoutUI();
   // אוכל/משקה/מגן שנקנה מצטרף מיד ללוט (גם אם קונים באמצע רצף קרבות)
   if (key === 'food' || key === 'drinks' || key === 'shields') renderLootBar();
+  saveCloudState();
 }
 
 // ---------- שדרוגים ----------
@@ -9542,6 +9662,7 @@ document.getElementById('startFightBtn').addEventListener('click', startSelected
 document.getElementById('modePrevBtn').addEventListener('click', () => cycleBattleMode(-1));
 document.getElementById('modeNextBtn').addEventListener('click', () => cycleBattleMode(1));
 document.getElementById('openShopBtn').addEventListener('click', () => { showScreen('shop'); renderShopCategory('characters'); });
+cloudSignInBtnEl.addEventListener('click', () => { cloudUser ? signOutOfGoogle() : signInWithGoogle(); });
 document.getElementById('bossFightBtn').addEventListener('click', () => startBossFight(selectedBossIndex));
 document.getElementById('bossPrevBtn').addEventListener('click', () => cycleBossChoice(-1));
 document.getElementById('bossNextBtn').addEventListener('click', () => cycleBossChoice(1));
