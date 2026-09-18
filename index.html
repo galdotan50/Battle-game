@@ -788,7 +788,7 @@
 </div>
 <div id="label">🥊 סווארק מול בו - שלב חיים ונזק</div>
 <div id="controls">
-  <b>←</b> <b>→</b> לזוז &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> חסימה &nbsp;·&nbsp; <b>רווח</b> קפיצה
+  <span id="moveKeyLegend"><b>←</b> <b>→</b> לזוז</span> &nbsp;·&nbsp; <b>A</b> אגרוף &nbsp;·&nbsp; <b>S</b> בעיטה &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> חסימה &nbsp;·&nbsp; <b>רווח</b> קפיצה
 </div>
 
 <div id="lootStack">
@@ -6732,6 +6732,7 @@ const shopGridEl = document.getElementById('shopGrid');
 const hpRowEl = document.getElementById('hpRow');
 const controlsEl = document.getElementById('controls');
 const labelEl = document.getElementById('label');
+const moveKeyLegendEl = document.getElementById('moveKeyLegend');
 
 // מיקום המצלמה הרגיל בזירה - נשמר כאן כדי שאפשר לחזור אליו אחרי הלובי.
 const BATTLE_CAM = { pos: V(0, 3.9, 8.0), look: V(0, 1.45, 0) };
@@ -8080,6 +8081,12 @@ function buildTeamFighter(name, x, facing, hp, team) {
   f.team = team;
   f.teamName = name;
   f.koPermanent = false;
+  // תנועה חופשית דו-ממדית (x+z, לא רק x) - ראה ההערה המלאה למעלה על
+  // "תנועה חופשית + סיבוב". z מתחיל 0 (אותה שורה פתיחה בדיוק כמו קודם),
+  // yaw הוא זווית הפנייה הרציפה - מתחילה באותה זווית "3/4 למצלמה" כמו
+  // ה-facing*STANCE_YAW הישן, כדי שהמראה ההתחלתי יהיה זהה לגמרי.
+  f.z = 0;
+  f.yaw = facing * STANCE_YAW;
   return f;
 }
 
@@ -8092,25 +8099,41 @@ function disposeTeamFighter(f) {
 }
 
 // היעד הקרוב ביותר מהצד השני שעדיין לא נפל לצמיתות - null אם הצד השני נגמר.
+// מרחק אמיתי במישור x/z (לא רק על ציר X) - כדי שאפשר יהיה להתקרב ולהילחם
+// בכל אחד, לא רק במי שנמצא בדיוק מול השחקן על אותו קו.
 function nearestOpponent(f, fighters) {
   let best = null, bestDist = Infinity;
   for (const o of fighters) {
     if (o.team === f.team || o.koPermanent) continue;
-    const d = Math.abs(o.x - f.x);
+    const dx = o.x - f.x, dz = o.z - f.z;
+    const d = Math.hypot(dx, dz);
     if (d < bestDist) { bestDist = d; best = o; }
   }
   return best;
 }
 
-// בדיוק updateEnemy הרגיל, רק שהיעד הוא nearestOpponent במקום היריב הקבוע.
+// בדיוק updateEnemy הרגיל, רק שהיעד הוא nearestOpponent במקום היריב הקבוע,
+// ותנועה/פנייה הן דו-ממדיות (x+z) - אותו עיקרון פנייה בדיוק כמו היריב
+// בסומו (updateSumo): מסתובבים לכיוון היעד בכל פריים (yaw רציף, לא ±1
+// בינארי), ומתקדמים/נסוגים לפי mv=±1 ביחס לכיוון שאליו כבר פונים -
+// כדי שאפשר יהיה באמת להתקרב ולהילחם בכל יריב, לא רק במי שמול השחקן.
 function updateTeamFighter(f, fighters, dt) {
   if (f.down || f.staggerT > 0 || f.koPermanent) { f.mv = 0; f.blocking = false; return; }
   const target = nearestOpponent(f, fighters);
   if (!target) { f.mv = 0; return; }
-  const dist = Math.abs(target.x - f.x);
+  const dx = target.x - f.x, dz = target.z - f.z;
+  const dist = Math.hypot(dx, dz);
   f.cool -= dt;
   f.think -= dt;
   f.blockTimer -= dt;
+
+  if (dist > 0.001) {
+    const targetYaw = Math.atan2(dx, dz);
+    let yawDiff = targetYaw - f.yaw;
+    while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
+    while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
+    f.yaw += Math.sign(yawDiff) * Math.min(Math.abs(yawDiff), EXPLORE_TURN_SPEED * dt);
+  }
 
   if (f.action) { f.mv = 0; f.blocking = false; return; }
 
@@ -8131,49 +8154,88 @@ function updateTeamFighter(f, fighters, dt) {
     const r = Math.random();
     f.mode = dist > 2.3 ? 'approach' : dist < 1.25 ? 'retreat' : r < 0.45 ? 'approach' : r < 0.75 ? 'retreat' : 'wait';
   }
-  const toward = Math.sign(target.x - f.x);
-  f.mv = f.mode === 'approach' ? toward : f.mode === 'retreat' ? -toward : 0;
+  f.mv = f.mode === 'approach' ? 1 : f.mode === 'retreat' ? -1 : 0;
 }
 
-// בדיוק moveFighter הרגיל, רק שהחסימה מפני מעבר-דרך-היריב עברה
-// ל-resolveTeamOverlaps (כי כאן יש הרבה יותר משני לוחמים).
+// שליטת השחקן בקרב קבוצות - בדיוק כמו updatePlayer הרגיל (אותו קלט
+// למכות/חסימה/קפיצה), רק שהתנועה עצמה עברה לסגנון "הרפתקה/סומו": חצים
+// שמאלה/ימינה מסובבים אותך (yaw רציף), חץ למעלה/למטה מתקדם/נסוג לפי
+// הכיוון שאתה כבר פונה אליו - כדי שתוכל ממש ללכת ולהתקרב לכל יריב שתרצה,
+// לא רק לזוז שמאלה-ימינה על קו אחד.
+function updateTeamPlayerControl(f, dt) {
+  if (f.down || f.staggerT > 0) { f.mv = 0; f.blocking = false; return; }
+  f.blocking = !!KEYS.KeyD && !f.action;
+  if (!f.action && !f.blocking) {
+    if (KEYS.KeyA) startAction(f, 'punch');
+    else if (KEYS.KeyS) startAction(f, 'kick');
+    else if (KEYS.KeyW) startAction(f, 'stone');
+  }
+  if (!f.action) {
+    if (KEYS.ArrowLeft) f.yaw += EXPLORE_TURN_SPEED * dt;
+    if (KEYS.ArrowRight) f.yaw -= EXPLORE_TURN_SPEED * dt;
+  }
+  f.mv = f.action ? 0 : ((KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0));
+  if (jumpRequested) { jumpRequested = false; startJump(f); }
+}
+
+// תנועה חופשית דו-ממדית (x+z) - בדיוק כמו updateSumo מזיז: mv (±1) הוא
+// התקדמות/נסיגה ביחס לזווית הפנייה הנוכחית (yaw), לא תזוזה על ציר קבוע.
+// ההדף (knockVelX/Z) עבר מסקלר יחיד (כמו בזירה הרגילה) לוקטור דו-ממדי -
+// בדיוק כמו שכבר עובד בסומו - כי עכשיו הדחיפה יכולה להגיע מכל כיוון.
 function moveTeamFighter(f, dt) {
   const boost = (f.speedMult || 1) * (1 + (f.speedBonus || 0) * 0.10);
   const speed = (f.blocking ? BLOCK_SPEED : WALK_SPEED) * boost;
-  let dx = f.mv * speed * dt;
-  if (f.knockVel) {
-    dx += f.knockVel * dt;
-    const drop = Math.sign(f.knockVel) * KNOCK_FRICTION * dt;
-    f.knockVel = Math.abs(drop) < Math.abs(f.knockVel) ? f.knockVel - drop : 0;
+  let dx = 0, dz = 0;
+  if (f.mv !== 0) {
+    dx = Math.sin(f.yaw) * f.mv * speed * dt;
+    dz = Math.cos(f.yaw) * f.mv * speed * dt;
   }
-  let nx = f.x + dx;
-  nx = Math.max(-TEAM_EDGE, Math.min(TEAM_EDGE, nx));
-  if (Math.abs(nx - f.x) < 1e-5) f.mv = 0;
-  f.x = nx;
+  if (f.knockVelX || f.knockVelZ) {
+    dx += f.knockVelX * dt;
+    dz += f.knockVelZ * dt;
+    const kSpeed = Math.hypot(f.knockVelX, f.knockVelZ);
+    const drop = KNOCK_FRICTION * dt;
+    if (drop >= kSpeed) { f.knockVelX = 0; f.knockVelZ = 0; }
+    else { const s = (kSpeed - drop) / kSpeed; f.knockVelX *= s; f.knockVelZ *= s; }
+  }
+  let nx = Math.max(-TEAM_EDGE, Math.min(TEAM_EDGE, f.x + dx));
+  let nz = Math.max(-TEAM_EDGE, Math.min(TEAM_EDGE, f.z + dz));
+  if (Math.abs(nx - f.x) < 1e-5 && Math.abs(nz - f.z) < 1e-5) f.mv = 0;
+  f.x = nx; f.z = nz;
   f.group.position.x = battleAnchorX + nx;
-  if (f.mv !== 0) f.phase += dt * 8.5 * (f.mv * f.facing > 0 ? 1 : -1);
+  f.group.position.z = battleAnchorZ + nz;
+  f.group.rotation.y = f.yaw;
+  if (f.mv !== 0) f.phase += dt * 8.5 * f.mv;
 }
 
-// המקבילה הכללית ל-MIN_GAP: אחרי שכולם זזו, ממיינים לפי x ומרחיקים כל
-// זוג שכן קרוב מדי - פעמיים (הלוך ושוב) כדי שהתיקון יתייצב גם כשכמה
-// לוחמים נדחסים יחד בו-זמנית. לוחמים שנפלו לצמיתות לא נספרים בכלל -
-// אין טעם "לדחוף" מישהו ששוכב על הרצפה.
+// המקבילה הכללית ל-MIN_GAP, בשני צירים: אחרי שכולם זזו, בודקים כל זוג
+// לוחמים ומרחיקים אחד מהשני לאורך הקו האמיתי ביניהם (לא רק על ציר X) -
+// פעמיים (הלוך ושוב) כדי שהתיקון יתייצב גם כשכמה לוחמים נדחסים יחד
+// בו-זמנית. לוחמים שנפלו לצמיתות לא נספרים בכלל - אין טעם "לדחוף" מישהו
+// ששוכב על הרצפה.
 function resolveTeamOverlaps(fighters) {
   const active = fighters.filter((f) => !f.koPermanent);
-  active.sort((a, b) => a.x - b.x);
   for (let pass = 0; pass < 2; pass++) {
-    for (let i = 1; i < active.length; i++) {
-      const gap = active[i].x - active[i - 1].x;
-      if (gap < MIN_GAP) {
-        const push = (MIN_GAP - gap) / 2;
-        active[i - 1].x -= push;
-        active[i].x += push;
+    for (let i = 0; i < active.length; i++) {
+      for (let j = i + 1; j < active.length; j++) {
+        const a = active[i], b = active[j];
+        const dx = b.x - a.x, dz = b.z - a.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist >= MIN_GAP) continue;
+        const push = (MIN_GAP - dist) / 2;
+        // אם שני לוחמים באמת עומדים בדיוק באותה נקודה (dist=0, אין כיוון
+        // אמיתי לדחוף לפיו) - דוחפים אותם על ציר X כברירת מחדל בטוחה.
+        const nx = dist > 0.0001 ? dx / dist : 1, nz = dist > 0.0001 ? dz / dist : 0;
+        a.x -= nx * push; a.z -= nz * push;
+        b.x += nx * push; b.z += nz * push;
       }
     }
   }
   active.forEach((f) => {
     f.x = Math.max(-TEAM_EDGE, Math.min(TEAM_EDGE, f.x));
+    f.z = Math.max(-TEAM_EDGE, Math.min(TEAM_EDGE, f.z));
     f.group.position.x = battleAnchorX + f.x;
+    f.group.position.z = battleAnchorZ + f.z;
   });
 }
 
@@ -8187,7 +8249,10 @@ function tickTeamCombat(attacker, fighters) {
   if (u < cfg.hitAt) return;
 
   const defender = nearestOpponent(attacker, fighters);
-  if (!defender || Math.abs(attacker.x - defender.x) > cfg.range) return;
+  if (!defender) return;
+  const ddx = defender.x - attacker.x, ddz = defender.z - attacker.z;
+  const hitDist = Math.hypot(ddx, ddz);
+  if (hitDist > cfg.range) return;
 
   attacker.hitDone = true;
   if (defender.down) return;
@@ -8202,13 +8267,17 @@ function tickTeamCombat(attacker, fighters) {
   flashHit();
   renderTeamHpUI();
 
-  const pushDir = Math.sign(defender.x - attacker.x) || attacker.facing;
-  defender.knockVel = pushDir * cfg.knock;
+  // כיוון ההדף/נפילה - וקטור יחידה אמיתי במישור x/z (לא רק ±1 על ציר X),
+  // כי עכשיו התוקף יכול להיות בכל כיוון סביב הנפגע.
+  const pushDist = hitDist || 0.0001;
+  const pushX = ddx / pushDist, pushZ = ddz / pushDist;
+  defender.knockVelX = pushX * cfg.knock;
+  defender.knockVelZ = pushZ * cfg.knock;
   defender.staggerT = Math.max(defender.staggerT, cfg.stagger);
   if (cfg.fall) {
     defender.down = true;
     defender.downT = 0;
-    defender.fallDirX = pushDir; defender.fallDirZ = 0;
+    defender.fallDirX = pushX; defender.fallDirZ = pushZ;
     defender.fallBaseYaw = defender.group.rotation.y;
     defender.action = null;
     defender.actionT = 0;
@@ -8218,7 +8287,7 @@ function tickTeamCombat(attacker, fighters) {
     defender.koPermanent = true;
     defender.down = true;
     defender.downT = 0;
-    defender.fallDirX = pushDir; defender.fallDirZ = 0;
+    defender.fallDirX = pushX; defender.fallDirZ = pushZ;
     defender.fallBaseYaw = defender.group.rotation.y;
     checkTeamBattleEnd();
   }
@@ -8280,13 +8349,16 @@ function enterTeamBattle() {
   player.hp = player.maxHp;
   player.group.visible = true;
   player.x = -TEAM_SPACING;
+  player.z = 0;
   player.facing = 1;
+  player.yaw = player.facing * STANCE_YAW;
   player.group.position.set(battleAnchorX + player.x, GROUND_Y, battleAnchorZ);
-  player.group.rotation.y = player.facing * STANCE_YAW;
+  player.group.rotation.y = player.yaw;
   player.action = null; player.actionT = 0; player.hitDone = false;
   player.blocking = false; player.blockAmt = 0; player.mv = 0;
-  player.knockVel = 0; player.staggerT = 0; player.down = false; player.downT = 0;
-  player.fallDirX = 0; player.fallDirZ = -1; player.fallBaseYaw = player.facing * STANCE_YAW;
+  player.knockVel = 0; player.knockVelX = 0; player.knockVelZ = 0;
+  player.staggerT = 0; player.down = false; player.downT = 0;
+  player.fallDirX = 0; player.fallDirZ = -1; player.fallBaseYaw = player.yaw;
   player.jumping = false; player.jumpY = 0; player.jumpVel = 0;
   teamFighters.push(player);
 
@@ -8301,6 +8373,9 @@ function enterTeamBattle() {
   enemy.group.visible = false;
   renderTeamHpUI();
   labelEl.textContent = '🥊 קרב קבוצות - 2 נגד ' + enemyCount;
+  // תנועה חופשית - חצים מסובבים/מתקדמים כמו בהרפתקה/סומו, לא רק "לזוז"
+  // על קו. הטקסט חוזר לברירת המחדל ביציאה (exitTeamBattle).
+  if (moveKeyLegendEl) moveKeyLegendEl.innerHTML = '<b>↑</b><b>↓</b> להתקדם/לסגת · <b>←</b><b>→</b> לפנות';
   camera.position.copy(TEAM_BATTLE_CAM.pos);
   camera.lookAt(TEAM_BATTLE_CAM.look);
 }
@@ -8313,20 +8388,23 @@ function exitTeamBattle() {
   // ממשיכה להטות אותו לשכיבה גם בלובי, כי שום דבר לא איפס את זה. מאפסים
   // הכל בדיוק כמו resetGame עושה בתחילת קרב רגיל חדש.
   player.facing = 1;
+  player.z = 0;
   player.down = false; player.downT = 0; player.koPermanent = false;
-  player.staggerT = 0; player.knockVel = 0;
+  player.staggerT = 0; player.knockVel = 0; player.knockVelX = 0; player.knockVelZ = 0;
   player.group.position.set(player.x, GROUND_Y, 0);
   // setFromAxisAngle (לא rotation.y=...) - ה-Euler שומר x/z ישנים מהטיית
   // הנפילה (שהוגדרה ישירות על quaternion), אז rotation.y לבד משאיר שארית.
   player.group.quaternion.setFromAxisAngle(_axisY, player.facing * STANCE_YAW);
   document.getElementById('teamResultOverlay').classList.remove('show');
+  // מחזירים את מקרא המקלדת לברירת המחדל ("לזוז") - ראה enterTeamBattle.
+  if (moveKeyLegendEl) moveKeyLegendEl.innerHTML = '<b>←</b> <b>→</b> לזוז';
 }
 
 function updateTeamBattle(dt, t) {
   teamFighters.forEach((f) => tickFallState(f, dt));
   if (!teamBattleOver) {
     teamFighters.forEach((f) => {
-      if (f === player) updatePlayer(f, dt);
+      if (f === player) updateTeamPlayerControl(f, dt);
       else updateTeamFighter(f, teamFighters, dt);
     });
   } else {
@@ -8335,23 +8413,12 @@ function updateTeamBattle(dt, t) {
   teamFighters.forEach((f) => tickAction(f, dt));
   teamFighters.forEach((f) => tickJump(f, dt));
   teamFighters.forEach((f) => { f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16)); });
+  // הפנייה (yaw) כבר מטופלת בשוטף בתוך updateTeamPlayerControl/updateTeamFighter
+  // למעלה (כל אחד מסתובב לכיוון היריב הכי קרוב אליו, או לפי חיצי השחקן) -
+  // moveTeamFighter מיישמת גם את התזוזה וגם את הסיבוב (rotation.y=f.yaw)
+  // יחד, אז אין צורך יותר במעבר נפרד שמחליף facing אחרי התזוזה.
   teamFighters.forEach((f) => moveTeamFighter(f, dt));
   resolveTeamOverlaps(teamFighters);
-  // כל לוחם (כולל השחקן) פונה תמיד ליריב הכי קרוב אליו - כדי שאם מישהו
-  // "מתחלף מקום" על הקו ומסתובב מאחורי מישהו, אפשר יהיה גם להסתובב
-  // ולהכות אותו, לא להישאר קפוא בפנייה המקורית. ייחודי לקרב קבוצות - שם
-  // הסדר על הקו באמת יכול להתחלף עם כמה לוחמים; בזירה הרגילה/בסומו זה
-  // לא רלוונטי (יריב יחיד קבוע / כיוון חופשי משלך).
-  teamFighters.forEach((f) => {
-    if (f.down || f.koPermanent) return;
-    const target = nearestOpponent(f, teamFighters);
-    if (!target) return;
-    const dir = Math.sign(target.x - f.x);
-    if (dir !== 0 && dir !== f.facing) {
-      f.facing = dir;
-      f.group.rotation.y = f.facing * STANCE_YAW;
-    }
-  });
   if (!teamBattleOver) teamFighters.forEach((f) => tickTeamCombat(f, teamFighters));
   teamFighters.forEach((f) => poseFighter(f, t, dt));
 }
