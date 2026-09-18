@@ -79,6 +79,19 @@
   את הסצנה עם Playwright + Chromium (מותקנים בסביבה). כל הבאגים בדמויות נמצאו
   ככה, לא מקריאת הקוד.
 - **אל תטען שמשהו עובד בלי לבדוק.** תרנדר, תסתכל, ורק אז תגיד.
+- **ספריות מרובות-קבצים (כמו Firebase) דורשות esbuild, לא רק route
+  אחד לקובץ.** three.js הוא קובץ CDN יחיד - `page.route` פשוט מספיק כדי
+  להחליף אותו בעותק מקומי (`npm install three` + route אחד). Firebase
+  מורכב מכמה קבצי CDN (`firebase-app.js`/`firebase-auth.js`/
+  `firebase-firestore.js`) שכולם **חייבים לחלוק את אותו מופע פנימי**
+  של `@firebase/app` (אחרת מתקבל `Component auth has not been
+  registered yet`) - `npm install firebase` לבד לא מספיק, כי בנייה
+  נפרדת של כל קובץ (3 קריאות `esbuild --bundle` נפרדות) מכפילה את
+  ה-registry הפנימי בכל קובץ בנפרד. הפתרון: קריאת `esbuild` **אחת**
+  עם שלוש נקודות-כניסה ו-`--splitting --format=esm --outdir=...` -
+  זה מייצר קובץ chunk משותף אחד שכל שלוש נקודות הכניסה מייבאות ממנו,
+  בדיוק כמו הבנייה האמיתית שגוגל מפרסמת ל-CDN. ה-chunk גם צריך route
+  נפרד משלו (הדפדפן מבקש אותו בנפרד, לפי import יחסי).
 
 ---
 
@@ -436,13 +449,13 @@ hemisphere) והוגברו אור-מפתח/צל אמיתי, כדי שהגוף ל
    בנפרד (מוריד את `index.html` מקלאוד ראן, שומר/טוען נתונים ישירות
    מול פיירסטור). שני השירותים חיים באותו פרויקט Google Cloud רק
    מטעמי נוחות ניהולית, לא כי הם תלויים זה בזה.
-3. **Firebase (Auth + Firestore) - תשתית מוכנה, אבל האינטגרציה בקוד
-   עדיין לא נכתבה (נכון ל-2026-09-18):** אותו פרויקט `gals-battle-game`
-   (Firebase חובר אליו, לא נוצר פרויקט נפרד). Google Sign-In מופעל
-   ב-Authentication, Firestore נוצר (מסד `(default)`, מיקום `nam5`) עם
-   חוק אבטחה: כל שחקן קורא/כותב רק למסמך `players/{uid}` שלו (`request.
-   auth.uid == userId`). כתובת קלאוד ראן רשומה כ-domain מורשה
-   ב-Authentication. **קוד ההגדרה (לא סודי, בטוח להטמיע):**
+3. **Firebase (Auth + Firestore) - קיים ופעיל בקוד (הושלם ב-2026-09-18):**
+   אותו פרויקט `gals-battle-game` (Firebase חובר אליו, לא נוצר פרויקט
+   נפרד). Google Sign-In מופעל ב-Authentication, Firestore קיים (מסד
+   `(default)`, מיקום `nam5`) עם חוק אבטחה: כל שחקן קורא/כותב רק למסמך
+   `players/{uid}` שלו (`request.auth.uid == userId`). כתובת קלאוד ראן
+   רשומה כ-domain מורשה ב-Authentication. **קוד ההגדרה (לא סודי, מוטמע
+   ב-`index.html` בפועל):**
    ```js
    const firebaseConfig = {
      apiKey: "AIzaSyDQdlhNciuQatOhXY14gVfRA2osZX67CGk",
@@ -453,18 +466,34 @@ hemisphere) והוגברו אור-מפתח/צל אמיתי, כדי שהגוף ל
      appId: "1:82960354590:web:9cde9d49ad8803902ecd0f"
    };
    ```
-   **התכנון שאושר עם האבא (עוד לא ממומש):** מסמך `players/{uid}` שומר
-   בדיוק את מצב השחקן (כסף, `inventory`, `characterLevels`,
-   `selectedCharacterName`/`selectedWeaponName`, `enemyLevel`,
-   נצחונות/הפסדים, **וגם** דמויות/נשקים שנוצרו ב"בנייה עצמית"/"בניית
-   נשק" - כל מה שיש כרגע רק בזיכרון ונעלם ברענון). התחברות **אופציונלית**
-   (אפשר לשחק מיד בלי להתחבר, בדיוק כמו היום) - כפתור "התחבר עם גוגל"
-   בלובי. בלי שרת משלנו שמאמת כתיבות - Firestore Security Rules הן
-   ההגנה היחידה (בהסכמת האבא: זה מספיק למשחק משפחתי, לא חסין-רמאות
-   נגד מי שפותח devtools בכוונה). שימוש מ-`index.html` דרך ה-CDN של
-   Firebase (`https://www.gstatic.com/firebasejs/.../firebase-app.js`
-   וכו', ES modules - **לא** `import ... from "firebase/app"` שדורש
-   npm/bundler), כדי לא לשבור את אילוץ "קובץ אחד, בלי build".
+   **מה שומר בפועל (`saveCloudState`/`applyCloudState`/`buildCloudState`
+   ב-`index.html`):** כסף, `inventory`, `characterLevels`,
+   `selectedCharacterName`/`selectedWeaponName`, `enemyLevel`, ו-`wins`/
+   `losses` (חדשים - נספרים רק מול סולם האויבים הרגיל `ENEMY_LEVELS`,
+   לא סומו/קרב קבוצות/בוסים/הרפתקה, שיש להם כבר תגמול נפרד משלהם).
+   **לא כולל עדיין** דמויות/נשקים שנוצרו ב"בנייה עצמית"/"בניית נשק"
+   באיוונט (הוחלט מפורשות לדחות לשלב נפרד בעתיד - ראה `פיתוח משחק.md`
+   ל-2026-09-18). כפתור **"🔵 התחבר עם גוגל"** בפינה הימנית-עליונה של
+   הלובי (`cloudSignInBtn`) - התחברות **אופציונלית לגמרי**, בלי להתחבר
+   המשחק עובד בדיוק כמו קודם (הכל רק בזיכרון). מתחברים
+   (`onAuthStateChanged`) → טוען מסמך שמור אם יש, או יוצר אחד חדש עם
+   המצב הנוכחי אם זה שחקן ראשון. `saveCloudState()` נקרא אחרי כל שינוי
+   משמעותי (קנייה ב-`buyItem`, שדרוג ב-`upgradeCharacter`, החלפת
+   דמות/נשק, עליית רמה ב-`resetGame`, וסיום כל קרב ב-`endGame`). בלי
+   שרת משלנו שמאמת כתיבות - Firestore Security Rules הן ההגנה היחידה
+   (בהסכמת האבא: מספיק למשחק משפחתי, לא חסין-רמאות נגד מי שפותח
+   devtools בכוונה). ה-SDK נטען ב-`index.html` דרך ה-CDN של Firebase
+   (importmap עם `firebase/app`/`firebase/auth`/`firebase/firestore`
+   מצביעים ל-`https://www.gstatic.com/firebasejs/10.14.1/...`, ES
+   modules אמיתיים - לא npm/bundler), כדי לא לשבור את אילוץ "קובץ אחד,
+   בלי build". **נבדק ברינדור** (three.js+Firebase הותקנו מקומית
+   ואוגדו עם esbuild כקבצי ESM עצמאיים, כי unpkg/gstatic חסומים ברשת
+   הפיתוח - ראה "לקחים שנקנו בדם" למטה): לובי עולה נקי עם כפתור
+   ההתחברות, אפס שגיאות קונסול, קנייה אמיתית של שחקן-אורח עדיין מורידה
+   כסף/מוסיפה למלאי, ומכה אמיתית עדיין גורמת נזק אמיתי - בדיוק כמו
+   לפני השינוי. **לא נבדק כאן** (ולא ניתן להיבדק בסביבת הפיתוח): זרימת
+   ההתחברות האמיתית מול גוגל (דורשת חשבון גוגל אמיתי ודפדפן אמיתי) -
+   צריך בדיקה ידנית של המשתמש בדפדפן אמיתי.
 
 ## גיט
 
