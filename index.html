@@ -897,6 +897,7 @@
   <button class="bigBtn" id="worldIslandBtn">🏝️ האי האבוד</button>
   <button class="bigBtn" id="worldCaveBtn">💎 מערת הקריסטל</button>
   <button class="bigBtn" id="worldLavaBtn">🌋 מכתש הלבה</button>
+  <button class="bigBtn" id="worldForestBtn">🧟 יער הזומבים</button>
   <button id="adventureBackBtn">⬅ חזרה ללובי</button>
 </div>
 
@@ -1614,6 +1615,105 @@ const lavaTreasureRing = [];
     boulder.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
     lavaGroup.add(boulder);
     lavaTreasureRing.push(boulder);
+  }
+}
+
+// ============================================================================
+//  הרפתקה — יער הזומבים
+//
+//  עולם רביעי, אותה שיטה בדיוק כמו שלושת הקודמים (offset רחוק בעולם -
+//  כאן X שלילי, כדי להשלים את ארבעת הכיוונים סביב הזירה: מערה=Z שלילי,
+//  אי=X חיובי, לבה=Z חיובי, יער=X שלילי). "יער אפל מלא זומבים" - קרקע
+//  ירוקה-כהה, עצים רבים (גזע+עלווה, צורות פרימיטיביות בדיוק כמו הרי הלבה),
+//  ערפל ירקרק-כהה לתחושה מפחידה, אוצר מוסתר ומפלצות-זומבי.
+// ============================================================================
+const FOREST_OFFSET = new THREE.Vector3(-300, 0, 0);
+const FOREST_RADIUS = 150;   // באותו סדר גודל משלושת העולמות הקודמים (140-168)
+const forestGroup = new THREE.Group();
+forestGroup.position.copy(FOREST_OFFSET);
+scene.add(forestGroup);
+
+const forestGround = new THREE.Mesh(
+  new THREE.CircleGeometry(FOREST_RADIUS, 48),
+  new THREE.MeshStandardMaterial({ color: 0x1c2814, roughness: 1 }));
+forestGround.rotation.x = -Math.PI / 2;
+forestGround.receiveShadow = true;
+forestGroup.add(forestGround);
+
+// תאורה ירקרקה עמומה ומפחידה - לא לבן נעים כמו הזירה.
+forestGroup.add(new THREE.AmbientLight(0x2a4a2a, 0.45));
+const forestMoon = new THREE.PointLight(0x9fd8a8, 1.1, 60);
+forestMoon.position.set(0, 20, 0);
+forestGroup.add(forestMoon);
+
+// ---------- עצים מפוזרים באקראי ----------
+// אותה שיטת פיזור אקראי בדיוק כמו אשכולות הקריסטל במערה - גזע גליל חום
+// + 2-3 חרוטי עלווה ירוקים-כהים מוערמים, בכמויות/גדלים משתנים.
+const FOREST_TRUNK_MAT = new THREE.MeshStandardMaterial({ color: 0x3a2a18, roughness: 0.9 });
+const FOREST_LEAF_COLORS = [0x14320f, 0x1c3f14, 0x0f2a12];
+for (let i = 0; i < 140; i++) {
+  const ang = Math.random() * Math.PI * 2;
+  const dist = 3 + Math.random() * (FOREST_RADIUS - 5);
+  const tree = new THREE.Group();
+  const trunkH = 1.6 + Math.random() * 1.2;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.24, trunkH, 7), FOREST_TRUNK_MAT);
+  trunk.position.y = trunkH / 2;
+  trunk.castShadow = true;
+  tree.add(trunk);
+  const leafColor = FOREST_LEAF_COLORS[i % FOREST_LEAF_COLORS.length];
+  const leafMat = new THREE.MeshStandardMaterial({ color: leafColor, roughness: 0.85 });
+  const tiers = 2 + Math.floor(Math.random() * 2);
+  for (let k = 0; k < tiers; k++) {
+    const r = 1.3 - k * 0.32 + Math.random() * 0.15;
+    const h = 1.5 - k * 0.25;
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), leafMat);
+    cone.position.y = trunkH + k * 0.9 + h / 2 - 0.3;
+    cone.castShadow = true;
+    tree.add(cone);
+  }
+  tree.position.set(Math.cos(ang) * dist, 0, Math.sin(ang) * dist);
+  tree.rotation.y = Math.random() * Math.PI * 2;
+  forestGroup.add(tree);
+}
+
+// ---------- אוצר מוסתר ----------
+const FOREST_TREASURE_POS = { x: 55, z: -60 };
+const FOREST_TREASURE_REWARD = 450;
+let forestTreasureChest;
+const forestTreasureRing = [];
+{
+  const chestWoodMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 0.8 });
+  const chestGoldMat = new THREE.MeshStandardMaterial({ color: 0xd9b23c, roughness: 0.3, metalness: 0.7 });
+  const treasureChest = new THREE.Group();
+  const chestBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.35), chestWoodMat);
+  chestBase.position.y = 0.15;
+  treasureChest.add(chestBase);
+  const chestLid = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 0.5, 12, 1, false, 0, Math.PI), chestWoodMat);
+  chestLid.rotation.z = Math.PI / 2;
+  chestLid.position.set(0, 0.3, 0);
+  treasureChest.add(chestLid);
+  const chestBand = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.37), chestGoldMat);
+  chestBand.position.y = 0.15;
+  treasureChest.add(chestBand);
+  const chestGlow = new THREE.PointLight(0xffe9a8, 0.7, 2.5);
+  chestGlow.position.y = 0.4;
+  treasureChest.add(chestGlow);
+  treasureChest.position.set(FOREST_TREASURE_POS.x, 0, FOREST_TREASURE_POS.z);
+  forestGroup.add(treasureChest);
+  forestTreasureChest = treasureChest;
+
+  // הסתרה אמיתית - טבעת גזעי עץ צפופים סביב התיבה חוסמת קו-ראייה מכל
+  // כיוון חוץ מפתח אחד צר (אותה טכניקה בדיוק כמו שלושת העולמות הקודמים).
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) continue;
+    const ang = (i / 8) * Math.PI * 2;
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 2.2, 7), FOREST_TRUNK_MAT);
+    trunk.position.set(
+      FOREST_TREASURE_POS.x + Math.cos(ang) * 1.8, 1.1,
+      FOREST_TREASURE_POS.z + Math.sin(ang) * 1.8);
+    forestGroup.add(trunk);
+    forestTreasureRing.push(trunk);
   }
 }
 
@@ -6527,6 +6627,14 @@ function endGame(winnerWho) {
     lavaFightWasWin = true;
     playAgainBtn.style.display = 'none';
     lobbyBtnEl.textContent = '🗺️ חזרה למכתש';
+  } else if (win && isForestFight) {
+    // אותו עיקרון בדיוק כמו מפלצת מערה/אי/לבה, רק ביער הזומבים.
+    money += forestMonsters[activeForestMonsterIndex].reward;
+    updateMoneyUI();
+    gameOverTitleEl.textContent = '🏆 ניצחת את הזומבי!';
+    forestFightWasWin = true;
+    playAgainBtn.style.display = 'none';
+    lobbyBtnEl.textContent = '🗺️ חזרה ליער';
   } else if (win) {
     money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
     updateMoneyUI();
@@ -6552,6 +6660,11 @@ function endGame(winnerWho) {
     gameOverTitleEl.textContent = '❌ הפסד למפלצת';
     playAgainBtn.textContent = '⚔️ קרב שוב';
     lobbyBtnEl.textContent = '🗺️ חזרה למכתש';
+  } else if (isForestFight) {
+    forestFightWasWin = false;
+    gameOverTitleEl.textContent = '❌ הפסד לזומבי';
+    playAgainBtn.textContent = '⚔️ קרב שוב';
+    lobbyBtnEl.textContent = '🗺️ חזרה ליער';
   } else {
     gameOverTitleEl.textContent = isBossFight ? '❌ הפסד לבוס' : '❌ הפסד';
   }
@@ -6642,6 +6755,7 @@ function showScreen(name) {
   const wasInCave = uiScreen === 'crystalCave';
   const wasInIsland = uiScreen === 'lostIsland';
   const wasInLava = uiScreen === 'lavaCrater';
+  const wasInForest = uiScreen === 'zombieForest';
   const wasInSumo = uiScreen === 'sumo';
   const wasInTeamBattle = uiScreen === 'teamBattle';
   uiScreen = name;
@@ -6652,13 +6766,14 @@ function showScreen(name) {
   adventureEl.classList.toggle('show', name === 'adventure');
   lootSelectEl.classList.toggle('show', name === 'lootSelect');
   if (name === 'lootSelect') renderLootSelectScreen();
-  caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater');
+  caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater' || name === 'zombieForest');
   sumoHudEl.classList.toggle('show', name === 'sumo');
   teamSizeEl.classList.toggle('show', name === 'teamSize');
   teamHpRowEl.classList.toggle('show', name === 'teamBattle');
   if (wasInCave && name !== 'crystalCave') exitCave();
   if (wasInIsland && name !== 'lostIsland') exitIsland();
   if (wasInLava && name !== 'lavaCrater') exitLava();
+  if (wasInForest && name !== 'zombieForest') exitForest();
   if (wasInSumo && name !== 'sumo') exitSumo();
   if (wasInTeamBattle && name !== 'teamBattle') exitTeamBattle();
   const inBattle = name === 'battle';
@@ -6724,6 +6839,11 @@ function showScreen(name) {
     enemy.group.visible = false;
     if (previewFighter) previewFighter.group.visible = false;
     if (!wasInLava) enterLava();
+  } else if (name === 'zombieForest') {
+    // הרפתקה - יער הזומבים. אותו עיקרון בדיוק כמו שלושת העולמות הקודמים.
+    enemy.group.visible = false;
+    if (previewFighter) previewFighter.group.visible = false;
+    if (!wasInForest) enterForest();
   } else if (name === 'sumo') {
     // קרב סומו - מסתירים את ה-enemy הרגיל של הזירה (הוא לא חלק ממשחק הסומו
     // בכלל, ראה enterSumo שבונה יריב נפרד).
@@ -7553,6 +7673,246 @@ function updateLavaExplorer(dt, t) {
   if (updateMonsterChase(lavaMonsters, p.x, p.z, dt, t, startLavaMonsterFight)) return;
 }
 
+// ============================================================================
+//  הרפתקה — יער הזומבים: הליכה חופשית + מפלצות-זומבי
+//
+//  אותו מנגנון בדיוק כמו שלושת העולמות הקודמים (שוכפל מאותה סיבה - לא
+//  לגעת בקוד שכבר עובד ואומת).
+// ============================================================================
+let forestExplorerYaw = 0;
+let forestTreasureFound = false;
+let savedForestFog = null, savedForestBackground = null;
+let forestReturnState = null;
+
+// שלושה זומבים - עור ירקרק חולני, בגדים קרועים (tornHem), עיניים זוהרות
+// מפחידות (glowEyes) - כל אלה כבר קיימים בבונה הדמויות (נבנו בשביל אויבי
+// ההרפתקה/הרמות הקודמים), אין צורך בשום יכולת חדשה. כוח/מהירות נמוכים כמו
+// שאר שומרי ההרפתקה, כדי שיהיה הוגן.
+const ZOMBIE1_CFG = {
+  power: 6, speed: 4,
+  skin: 0x4a6b3a, skinTex: true,
+  hair: 0x1a2412, hairTex: true, hairStyle: 'short',
+  eyeColor: 0x8aff4a, glowEyes: true,
+  ears: 'round',
+  tornHem: true, topHem: 0.30,
+  top: 0x394a30, pants: 0x2c3a26,
+};
+const ZOMBIE2_CFG = {
+  power: 6, speed: 4,
+  skin: 0x5a7a4a, skinTex: true,
+  hair: 0x141c10, hairTex: true, hairStyle: 'spiky',
+  eyeColor: 0xb0ff6a, glowEyes: true,
+  ears: 'pointed',
+  tornHem: true, topHem: 0.30,
+  top: 0x3a4c34, pants: 0x24301e,
+};
+const ZOMBIE3_CFG = {
+  power: 6, speed: 5,
+  skin: 0x3f5a35, skinTex: true,
+  hair: 0x0e150c, hairTex: true, hairStyle: 'short',
+  eyeColor: 0x7aff8a, glowEyes: true,
+  ears: 'round',
+  top: null, pants: 0x2a3822,
+};
+const FOREST_MONSTER_DEFS = [
+  { name: 'זומבי היער', cfg: ZOMBIE1_CFG, hp: 130, pos: { x: -75, z: 55 }, reward: 0 },
+  { name: 'זומבי היער', cfg: ZOMBIE2_CFG, hp: 130, pos: { x: 40, z: 95 }, reward: 0 },
+  { name: 'זומבי היער', cfg: ZOMBIE3_CFG, hp: 130, pos: { x: -30, z: -100 }, reward: 0 },
+];
+let forestMonsters = [];
+let isForestFight = false;
+let activeForestMonsterIndex = -1;
+let forestFightWasWin = false;
+
+function spawnForestMonsters(defs) {
+  forestMonsters.forEach((m) => {
+    forestGroup.remove(m.fighter.group);
+    m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  });
+  forestMonsters = defs.map((d) => {
+    const f = makeFighter(d.cfg, 0, 1, d.hp);
+    scene.remove(f.group);
+    forestGroup.add(f.group);
+    f.group.position.set(d.pos.x, 0, d.pos.z);
+    return { name: d.name, pos: { x: d.pos.x, z: d.pos.z }, hp: d.hp, cfg: d.cfg, reward: d.reward, alive: true, fighter: f };
+  });
+}
+
+function avoidLiveForestMonsters() {
+  for (const m of forestMonsters) {
+    if (!m.alive) continue;
+    const dx = player.group.position.x - m.pos.x, dz = player.group.position.z - m.pos.z;
+    const dist = Math.hypot(dx, dz);
+    // ראה ההערה המלאה ב-avoidLiveMonsters
+    const safe = MONSTER_SIGHT_RANGE + 3;
+    if (dist < safe) {
+      const nx = dist > 0.001 ? dx / dist : 0, nz = dist > 0.001 ? dz / dist : 1;
+      player.group.position.x += nx * (safe - dist);
+      player.group.position.z += nz * (safe - dist);
+    }
+  }
+}
+
+function updateForestBattleCamera() {
+  const wx = battleAnchorX + FOREST_OFFSET.x, wz = battleAnchorZ + FOREST_OFFSET.z, wy = FOREST_OFFSET.y;
+  camera.position.set(wx, wy + CAVE_BATTLE_CAM_Y, wz + BATTLE_CAM.pos.z);
+  camera.lookAt(wx, wy + CAVE_BATTLE_LOOK_Y, wz);
+}
+
+// זהה ל-startCaveMonsterFight/startIslandMonsterFight/startLavaMonsterFight,
+// רק על forestGroup/FOREST_OFFSET - ראה startCaveMonsterFight להסבר המלא.
+function startForestMonsterFight(m) {
+  isForestFight = true;
+  activeForestMonsterIndex = forestMonsters.indexOf(m);
+  forestReturnState = { x: player.group.position.x, z: player.group.position.z, yaw: forestExplorerYaw };
+  m.fighter.group.visible = false;
+
+  const oldFacing = enemy.facing;
+  if (enemy.group.parent) enemy.group.parent.remove(enemy.group);
+  enemy.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  enemy = makeFighter(m.cfg, 0, oldFacing, m.hp);
+  scene.remove(enemy.group);
+  forestGroup.add(enemy.group);
+  enemy.group.position.y = 0;
+  addStoneProp(enemy);
+  hpNameEnemyEl.textContent = '🧟 ' + m.name;
+  labelEl.textContent = '🥊 ' + selectedCharacterName + ' מול ' + m.name;
+
+  battleAnchorX = m.pos.x;
+  battleAnchorZ = m.pos.z;
+  resetGame();
+  player.group.rotation.y = player.facing * STANCE_YAW;   // ראה ההערה המלאה ב-startCaveMonsterFight
+  updateForestBattleCamera();
+
+  caveHudEl.classList.remove('show');
+  hpRowEl.style.display = '';
+  controlsEl.style.display = '';
+  labelEl.style.display = '';
+  lootStackEl.style.display = '';
+  renderLootBar();
+  updateBuffRow();
+}
+
+// זהה ל-returnToCave/returnToIsland/returnToLava, רק על יער הזומבים - ראה returnToCave.
+function returnToForest() {
+  if (activeForestMonsterIndex >= 0) {
+    const m = forestMonsters[activeForestMonsterIndex];
+    if (m) {
+      if (forestFightWasWin) {
+        m.alive = false;
+        forestGroup.remove(m.fighter.group);
+        m.fighter.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+      } else {
+        m.fighter.group.visible = true;
+      }
+    }
+  }
+  switchEnemy(enemyLevel);
+  isForestFight = false;
+  activeForestMonsterIndex = -1;
+  battleAnchorX = 0;
+  battleAnchorZ = 0;
+  resetGame();
+
+  hpRowEl.style.display = 'none';
+  controlsEl.style.display = 'none';
+  labelEl.style.display = 'none';
+  lootStackEl.style.display = 'none';
+  caveHudEl.classList.add('show');
+  enemy.group.visible = false;
+
+  if (forestReturnState) {
+    player.group.position.set(forestReturnState.x, 0, forestReturnState.z);
+    forestExplorerYaw = forestReturnState.yaw;
+    forestReturnState = null;
+  }
+  avoidLiveForestMonsters();
+  player.group.rotation.y = forestExplorerYaw + EXPLORE_FRONT_OFFSET;
+  updateForestExplorerCamera();
+}
+
+function enterForest() {
+  caveInstructionsEl.textContent = '↑ להליכה · ← → לפנייה · תיזהר מהזומבים, ותחפש את האוצר!';
+  scene.remove(player.group);
+  forestGroup.add(player.group);
+  if (forestReturnState) {
+    player.group.position.set(forestReturnState.x, 0, forestReturnState.z);
+    forestExplorerYaw = forestReturnState.yaw;
+    forestReturnState = null;
+    avoidLiveForestMonsters();
+  } else {
+    player.group.position.set(0, 0, FOREST_RADIUS - 3);
+    forestExplorerYaw = Math.PI;
+    forestTreasureFound = false;
+    relocateTreasure(FOREST_TREASURE_POS, forestTreasureChest, forestTreasureRing, 50, 140);
+    spawnForestMonsters(FOREST_MONSTER_DEFS);
+  }
+  player.group.rotation.y = forestExplorerYaw + EXPLORE_FRONT_OFFSET;
+  player.group.visible = true;
+  player.action = null;
+  player.blocking = false;
+  player.blockAmt = 0;
+  player.mv = 0;
+  savedForestFog = scene.fog;
+  savedForestBackground = scene.background;
+  // ערפל ירקרק-כהה קרוב יחסית - יער אפל, לא רוצים לראות עד הסוף, בשונה
+  // מהעולמות הפתוחים הקודמים.
+  scene.fog = new THREE.Fog(0x0d1a10, 12, 95);
+  scene.background = new THREE.Color(0x0a120a);
+  updateForestExplorerCamera();
+}
+
+function exitForest() {
+  forestGroup.remove(player.group);
+  scene.add(player.group);
+  player.group.position.set(player.x, GROUND_Y, 0);
+  player.group.rotation.y = player.facing * STANCE_YAW;
+  if (savedForestFog) scene.fog = savedForestFog;
+  if (savedForestBackground) scene.background = savedForestBackground;
+  document.getElementById('treasureFoundOverlay').classList.remove('show');
+}
+
+function updateForestExplorerCamera() {
+  const p = player.group.position;
+  const wx = p.x + FOREST_OFFSET.x, wy = p.y + FOREST_OFFSET.y, wz = p.z + FOREST_OFFSET.z;
+  const camDist = 3.0, camHeight = 2.0;
+  camera.position.set(
+    wx - Math.sin(forestExplorerYaw) * camDist,
+    wy + camHeight,
+    wz - Math.cos(forestExplorerYaw) * camDist);
+  camera.lookAt(wx, wy + 1.0, wz);
+}
+
+function updateForestExplorer(dt, t) {
+  if (KEYS.ArrowLeft) forestExplorerYaw += EXPLORE_TURN_SPEED * dt;
+  if (KEYS.ArrowRight) forestExplorerYaw -= EXPLORE_TURN_SPEED * dt;
+  const moveDir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
+  const p = player.group.position;
+  if (moveDir !== 0) {
+    let nx = p.x + Math.sin(forestExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    let nz = p.z + Math.cos(forestExplorerYaw) * EXPLORE_SPEED * dt * moveDir;
+    const dist = Math.hypot(nx, nz), outerLimit = FOREST_RADIUS - 0.6;
+    if (dist > outerLimit) { const s = outerLimit / dist; nx *= s; nz *= s; }
+    p.x = nx; p.z = nz;
+  }
+  player.group.rotation.y = forestExplorerYaw + EXPLORE_FRONT_OFFSET;
+  updateForestExplorerCamera();
+
+  player.mv = moveDir;
+  if (moveDir !== 0) player.phase += dt * 8.5 * moveDir;
+  poseFighter(player, t, dt);
+
+  if (!forestTreasureFound) {
+    const dx = p.x - FOREST_TREASURE_POS.x, dz = p.z - FOREST_TREASURE_POS.z;
+    if (Math.hypot(dx, dz) < 0.9) {
+      forestTreasureFound = true;
+      onTreasureFound(FOREST_TREASURE_REWARD);
+    }
+  }
+
+  if (updateMonsterChase(forestMonsters, p.x, p.z, dt, t, startForestMonsterFight)) return;
+}
+
 function updateExplorerCamera() {
   // player.group הוא ילד של caveGroup - המיקום שלו יחסי למערה, לא לעולם.
   // המצלמה צריכה מיקום עולם אמיתי, אחרת היא נשארת ליד הזירה (CAVE_OFFSET).
@@ -7644,6 +8004,7 @@ document.getElementById('adventureBackBtn').addEventListener('click', () => show
 document.getElementById('worldCaveBtn').addEventListener('click', () => showScreen('crystalCave'));
 document.getElementById('worldIslandBtn').addEventListener('click', () => showScreen('lostIsland'));
 document.getElementById('worldLavaBtn').addEventListener('click', () => showScreen('lavaCrater'));
+document.getElementById('worldForestBtn').addEventListener('click', () => showScreen('zombieForest'));
 document.getElementById('caveExitBtn').addEventListener('click', () => showScreen('adventure'));
 document.getElementById('treasureContinueBtn').addEventListener('click', () => {
   document.getElementById('treasureFoundOverlay').classList.remove('show');
@@ -9104,6 +9465,7 @@ lobbyBtnEl.addEventListener('click', () => {
   if (isCaveFight) { returnToCave(); return; }
   if (isIslandFight) { returnToIsland(); return; }
   if (isLavaFight) { returnToLava(); return; }
+  if (isForestFight) { returnToForest(); return; }
   // אם באים מקרב בוס - מחזירים את האויב הרגיל של הרמה הנוכחית לפני
   // שחוזרים ללובי, כי `enemy` הוחלף זמנית לבוס ב-startBossFight.
   if (isBossFight) { switchEnemy(enemyLevel); isBossFight = false; }
@@ -9156,7 +9518,8 @@ function animate() {
   const inBattleMode = uiScreen === 'battle' ||
     (uiScreen === 'crystalCave' && isCaveFight) ||
     (uiScreen === 'lostIsland' && isIslandFight) ||
-    (uiScreen === 'lavaCrater' && isLavaFight);
+    (uiScreen === 'lavaCrater' && isLavaFight) ||
+    (uiScreen === 'zombieForest' && isForestFight);
 
   if (gameOver || !inBattleMode) {
     player.mv = 0; enemy.mv = 0;
@@ -9188,6 +9551,8 @@ function animate() {
     updateIslandExplorer(dt, t);
   } else if (uiScreen === 'lavaCrater' && !isLavaFight) {
     updateLavaExplorer(dt, t);
+  } else if (uiScreen === 'zombieForest' && !isForestFight) {
+    updateForestExplorer(dt, t);
   } else if (uiScreen === 'sumo') {
     updateSumo(dt, t);
   } else if (uiScreen === 'teamBattle') {
@@ -9307,6 +9672,13 @@ window.game = {
   get lavaMonsters() { return lavaMonsters; },
   get isLavaFight() { return isLavaFight; },
   startLavaMonsterFight, returnToLava, LAVA_MONSTER_DEFS,
+  FOREST_TREASURE_POS, FOREST_TREASURE_REWARD, FOREST_OFFSET, FOREST_RADIUS,
+  get forestTreasureFound() { return forestTreasureFound; },
+  get forestExplorerYaw() { return forestExplorerYaw; },
+  set forestExplorerYaw(v) { forestExplorerYaw = v; },
+  get forestMonsters() { return forestMonsters; },
+  get isForestFight() { return isForestFight; },
+  startForestMonsterFight, returnToForest, FOREST_MONSTER_DEFS,
 };
 </script>
 </body>
