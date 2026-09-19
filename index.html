@@ -352,7 +352,7 @@
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -364,8 +364,8 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show { display: flex; }
   #teamSizeOverlay .bigBtn { font-size: 1.2rem; padding: 18px 46px; margin: 10px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
   #teamSizeOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #teamSizeBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
@@ -712,14 +712,15 @@
   #settingsBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
 
   /* מסך הגיפט - רשימת שחקנים/פרופיל/שיתוף, כל תוכן דינמי לתוך #giftContent
-     (אותו רעיון כמו #shopGrid - קונטיינר אחד, JS מחליף מה שבפנים) */
-  #giftContent { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 480px; width: 100%; }
-  #giftContent .bigBtn { font-size: 1.05rem; padding: 12px 30px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.35); background: #ffcf4d; color: #1a1a1a; width: 100%; max-width: 340px; }
-  #giftContent .bigBtn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); cursor: default; box-shadow: none; }
-  #giftContent .bigBtn.secondary { background: rgba(255,255,255,0.12); color: #fff; }
-  #giftContent input { font-size: 1.05rem; padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.35); background: rgba(0,0,0,0.35); color: #fff; width: 100%; max-width: 300px; box-sizing: border-box; text-align: center; }
-  #giftContent .itemStat { opacity: 0.9; }
-  #giftBackBtn { margin-top: 16px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
+     (אותו רעיון כמו #shopGrid - קונטיינר אחד, JS מחליף מה שבפנים).
+     #friendsContent חולק בדיוק אותה עיצוב - מסך דומה, אותו רעיון. */
+  #giftContent, #friendsContent { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 480px; width: 100%; }
+  #giftContent .bigBtn, #friendsContent .bigBtn { font-size: 1.05rem; padding: 12px 30px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.35); background: #ffcf4d; color: #1a1a1a; width: 100%; max-width: 340px; }
+  #giftContent .bigBtn:disabled, #friendsContent .bigBtn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); cursor: default; box-shadow: none; }
+  #giftContent .bigBtn.secondary, #friendsContent .bigBtn.secondary { background: rgba(255,255,255,0.12); color: #fff; }
+  #giftContent input, #friendsContent input { font-size: 1.05rem; padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.35); background: rgba(0,0,0,0.35); color: #fff; width: 100%; max-width: 300px; box-sizing: border-box; text-align: center; }
+  #giftContent .itemStat, #friendsContent .itemStat { opacity: 0.9; }
+  #giftBackBtn, #friendsBackBtn { margin-top: 16px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
 
   /* ---------- שליטה במגע (טלפון) ----------
      display: none כברירת מחדל תמיד. רק ה-JS שרץ אם המכשיר תומך במגע
@@ -936,7 +937,7 @@
   <button class="bigBtn" id="languageToggleBtn"></button>
   <button class="bigBtn secondary" id="openGiftBtn" data-i18n-he="🎁 גיפט" data-i18n-en="🎁 Gift">🎁 גיפט</button>
   <button class="bigBtn" disabled data-i18n-he="👤 משתמש חדש — 🚧 בקרוב" data-i18n-en="👤 New user — 🚧 Coming soon">👤 משתמש חדש — 🚧 בקרוב</button>
-  <button class="bigBtn" disabled data-i18n-he="👥 חברים — 🚧 בקרוב" data-i18n-en="👥 Friends — 🚧 Coming soon">👥 חברים — 🚧 בקרוב</button>
+  <button class="bigBtn secondary" id="openFriendsBtn" data-i18n-he="👥 חברים" data-i18n-en="👥 Friends">👥 חברים</button>
   <button id="settingsBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby">⬅ חזרה ללובי</button>
 </div>
 
@@ -944,6 +945,12 @@
   <div class="screenTitle" data-i18n-he="🎁 גיפט" data-i18n-en="🎁 Gift">🎁 גיפט</div>
   <div id="giftContent"></div>
   <button id="giftBackBtn" data-i18n-he="⬅ חזרה להגדרות" data-i18n-en="⬅ Back to settings">⬅ חזרה להגדרות</button>
+</div>
+
+<div id="friendsOverlay">
+  <div class="screenTitle" data-i18n-he="👥 חברים" data-i18n-en="👥 Friends">👥 חברים</div>
+  <div id="friendsContent"></div>
+  <button id="friendsBackBtn" data-i18n-he="⬅ חזרה להגדרות" data-i18n-en="⬅ Back to settings">⬅ חזרה להגדרות</button>
 </div>
 
 <div id="adventureOverlay">
@@ -1070,7 +1077,7 @@ import * as THREE from 'three';
 // ההגנה האמיתית היא חוקי האבטחה של Firestore, לא הסתרת הקוד הזה.
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, getDocs, addDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDQdlhNciuQatOhXY14gVfRA2osZX67CGk",
@@ -6988,6 +6995,7 @@ const adventureEl = document.getElementById('adventureOverlay');
 const lootSelectEl = document.getElementById('lootSelectOverlay');
 const settingsEl = document.getElementById('settingsOverlay');
 const giftEl = document.getElementById('giftOverlay');
+const friendsEl = document.getElementById('friendsOverlay');
 const caveHudEl = document.getElementById('caveHud');
 const caveInstructionsEl = document.getElementById('caveInstructions');
 const sumoHudEl = document.getElementById('sumoHud');
@@ -7035,6 +7043,7 @@ function showScreen(name) {
   if (name === 'lootSelect') renderLootSelectScreen();
   settingsEl.classList.toggle('show', name === 'settings');
   giftEl.classList.toggle('show', name === 'gift');
+  friendsEl.classList.toggle('show', name === 'friends');
   caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater' || name === 'zombieForest');
   sumoHudEl.classList.toggle('show', name === 'sumo');
   teamSizeEl.classList.toggle('show', name === 'teamSize');
@@ -9568,28 +9577,32 @@ function openGiftScreen() {
   renderGiftScreen();
 }
 
-function renderUsernameForm() {
+// כללית - משמשת גם את מסך הגיפט וגם את מסך החברים (שניהם צריכים שם
+// משתמש). מקבלת את היעד (giftContentEl/friendsContentEl) ואת פונקציית
+// ה"סיימתי" כדי לא לשכפל את הטופס פעמיים - querySelector יחסי ל-targetEl
+// (לא document.getElementById הגלובלי) כדי ששני המסכים לא יתנגשו על אותו מזהה.
+function renderUsernameForm(targetEl, onDone) {
   const isFirstTime = !myUsername;
-  giftContentEl.innerHTML =
+  targetEl.innerHTML =
     `<div class="itemStat">${isFirstTime
       ? T('קודם בחר שם משתמש - זה מה שחברים יראו, לא השם האמיתי שלך מגוגל.', 'First pick a username - this is what friends will see, not your real Google name.')
       : T('שנה את שם המשתמש שלך:', 'Change your username:')}</div>` +
-    `<input id="giftUsernameInput" maxlength="16" placeholder="${T('שם משתמש', 'Username')}" value="${myUsername || ''}">` +
-    `<button class="bigBtn" id="giftUsernameSaveBtn">${T('✅ שמור', '✅ Save')}</button>` +
-    (isFirstTime ? '' : `<button class="bigBtn secondary" id="giftUsernameCancelBtn">${T('ביטול', 'Cancel')}</button>`);
-  document.getElementById('giftUsernameSaveBtn').addEventListener('click', async () => {
-    const val = document.getElementById('giftUsernameInput').value.trim();
+    `<input class="usernameInput" maxlength="16" placeholder="${T('שם משתמש', 'Username')}" value="${myUsername || ''}">` +
+    `<button class="bigBtn usernameSaveBtn">${T('✅ שמור', '✅ Save')}</button>` +
+    (isFirstTime ? '' : `<button class="bigBtn secondary usernameCancelBtn">${T('ביטול', 'Cancel')}</button>`);
+  targetEl.querySelector('.usernameSaveBtn').addEventListener('click', async () => {
+    const val = targetEl.querySelector('.usernameInput').value.trim();
     if (!val) return;
     myUsername = val;
     editingUsername = false;
     updateCloudUI();
     await saveCloudState();
-    renderGiftScreen();
+    onDone();
   });
   if (!isFirstTime) {
-    document.getElementById('giftUsernameCancelBtn').addEventListener('click', () => {
+    targetEl.querySelector('.usernameCancelBtn').addEventListener('click', () => {
       editingUsername = false;
-      renderGiftScreen();
+      onDone();
     });
   }
 }
@@ -9602,7 +9615,7 @@ async function renderGiftScreen() {
     document.getElementById('giftSignInBtn').addEventListener('click', signInWithGoogle);
     return;
   }
-  if (!myUsername || editingUsername) { renderUsernameForm(); return; }
+  if (!myUsername || editingUsername) { renderUsernameForm(giftContentEl, renderGiftScreen); return; }
   if (giftMode === 'profile') { renderGiftProfile(); return; }
   if (giftMode === 'share') { renderGiftShare(); return; }
   // ⚠️ תוקן 2026-09-19: אבא ובן התבלבלו כי שום מקום לא הראה "מה שם המשתמש
@@ -9739,6 +9752,137 @@ async function checkIncomingGifts() {
 
 document.getElementById('openGiftBtn').addEventListener('click', openGiftScreen);
 document.getElementById('giftBackBtn').addEventListener('click', () => showScreen('settings'));
+
+// ============================================================================
+//  חברים - בקשת חברות לפי שם משתמש, אישור/דחייה, ורשימת חברים מאושרים.
+//  נפרד לגמרי מהגיפט (בקשת המשתמש: "שני מסכים נפרדים") - גיפט ממשיך
+//  להראות את כל השחקנים החתומים; חברים הוא ערוץ פרטי יותר - כדי "לראות"
+//  חבר צריך קודם שהוא יאשר בקשה, לא כל שחקן חתום נחשף אוטומטית.
+//
+//  ⚠️ החלטה טכנית (עם אבא, לפי הכלל הקבוע) - שני תת-אוספי Firestore
+//  חדשים, אותו דפוס בדיוק כמו incomingGifts:
+//  - players/{uid}/friendRequests/{fromUid} - בקשה ממתינה. מזהה המסמך
+//    הוא ה-uid של השולח (לא מזהה אקראי) - כך כלל האבטחה יכול לוודא זהות
+//    רק לפי הנתיב, בלי לבדוק resource.data בכלל.
+//  - players/{uid}/friends/{friendUid} - חברות מאושרת. כל צד שומר עותק
+//    משלו (לא אוסף משותף אחד) - כשמאשרים בקשה, כותבים גם לעצמנו וגם
+//    ל"חבר" (מסמך עם מזהה = ה-uid שלנו, בתת-האוסף שלו) - מותר כי כלל
+//    האבטחה מרשה למישהו להוסיף את עצמו (ולא מישהו אחר) לרשימת החברים
+//    של כל אחד, בדיוק כמו incomingGifts.
+// ============================================================================
+
+const friendsContentEl = document.getElementById('friendsContent');
+
+function openFriendsScreen() {
+  showScreen('friends');
+  editingUsername = false;
+  renderFriendsScreen();
+}
+
+async function renderFriendsScreen() {
+  if (!cloudUser) {
+    friendsContentEl.innerHTML =
+      `<div class="itemStat">${T('צריך להתחבר עם גוגל כדי להשתמש בחברים.', 'You need to sign in with Google to use friends.')}</div>` +
+      `<button class="bigBtn" id="friendsSignInBtn">${T('🔵 התחבר עם גוגל', '🔵 Sign in with Google')}</button>`;
+    document.getElementById('friendsSignInBtn').addEventListener('click', signInWithGoogle);
+    return;
+  }
+  if (!myUsername || editingUsername) { renderUsernameForm(friendsContentEl, renderFriendsScreen); return; }
+
+  friendsContentEl.innerHTML = `<div class="itemStat">${T('⏳ טוען...', '⏳ Loading...')}</div>`;
+  let requests = [], friends = [];
+  try {
+    const [reqSnap, friendSnap] = await Promise.all([
+      getDocs(collection(db, 'players', cloudUser.uid, 'friendRequests')),
+      getDocs(collection(db, 'players', cloudUser.uid, 'friends')),
+    ]);
+    requests = reqSnap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+    friends = friendSnap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+  } catch (e) {
+    console.error('טעינת חברים נכשלה:', e);
+    friendsContentEl.innerHTML = `<div class="itemStat">${T('שגיאה בטעינת החברים.', 'Error loading friends.')}</div>`;
+    return;
+  }
+
+  let html = `<div class="itemStat">${T('אתה', 'You')}: 👤 ${myUsername}</div>` +
+    `<input class="friendAddInput" maxlength="16" placeholder="${T('שם משתמש של חבר', "Friend's username")}">` +
+    `<button class="bigBtn friendAddBtn">${T('➕ שלח בקשת חברות', '➕ Send friend request')}</button>` +
+    `<div class="friendAddMsg itemStat"></div>`;
+
+  if (requests.length > 0) {
+    html += `<div class="itemStat" style="margin-top:10px; font-weight:bold;">${T('בקשות חברות ממתינות', 'Pending friend requests')}</div>`;
+    requests.forEach((r) => {
+      html += `<div class="itemStat">👤 ${r.fromUsername} ` +
+        `<button class="bigBtn secondary friendAcceptBtn" data-uid="${r.uid}" data-username="${r.fromUsername}" style="font-size:0.8em; padding:4px 12px; margin-inline-start:8px;">${T('✅ אשר', '✅ Accept')}</button>` +
+        `<button class="bigBtn secondary friendDeclineBtn" data-uid="${r.uid}" style="font-size:0.8em; padding:4px 12px; margin-inline-start:6px;">${T('❌ דחה', '❌ Decline')}</button></div>`;
+    });
+  }
+
+  html += `<div class="itemStat" style="margin-top:10px; font-weight:bold;">${T('החברים שלך', 'Your friends')}</div>`;
+  html += friends.length === 0
+    ? `<div class="itemStat">${T('עוד אין לך חברים.', "You don't have any friends yet.")}</div>`
+    : friends.map((f) => `<div class="itemStat">👤 ${f.username}</div>`).join('');
+
+  friendsContentEl.innerHTML = html;
+
+  friendsContentEl.querySelector('.friendAddBtn').addEventListener('click', async () => {
+    const inputEl = friendsContentEl.querySelector('.friendAddInput');
+    const msgEl = friendsContentEl.querySelector('.friendAddMsg');
+    const val = inputEl.value.trim();
+    if (!val) return;
+    if (val === myUsername) { msgEl.textContent = T('אי אפשר להוסיף את עצמך.', "You can't add yourself."); return; }
+    msgEl.textContent = T('⏳ מחפש...', '⏳ Looking...');
+    const ok = await sendFriendRequest(val);
+    msgEl.textContent = ok
+      ? T('✅ בקשה נשלחה!', '✅ Request sent!')
+      : T('לא נמצא שחקן עם השם הזה.', 'No player found with that username.');
+  });
+  friendsContentEl.querySelectorAll('.friendAcceptBtn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      await acceptFriendRequest(btn.dataset.uid, btn.dataset.username);
+      renderFriendsScreen();
+    });
+  });
+  friendsContentEl.querySelectorAll('.friendDeclineBtn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try { await deleteDoc(doc(db, 'players', cloudUser.uid, 'friendRequests', btn.dataset.uid)); }
+      catch (e) { console.error('דחיית בקשת חברות נכשלה:', e); }
+      renderFriendsScreen();
+    });
+  });
+}
+
+// מחפשת שחקן לפי שם המשתמש המדויק שלו ושולחת לו בקשת חברות - מזהה
+// המסמך הוא ה-uid שלנו, כדי שכלל האבטחה יוכל לוודא זהות בלי resource.data.
+async function sendFriendRequest(targetUsername) {
+  try {
+    const q = query(collection(db, 'players'), where('username', '==', targetUsername));
+    const snap = await getDocs(q);
+    if (snap.empty) return false;
+    const targetUid = snap.docs[0].id;
+    if (targetUid === cloudUser.uid) return false;
+    await setDoc(doc(db, 'players', targetUid, 'friendRequests', cloudUser.uid), {
+      fromUsername: myUsername, createdAt: serverTimestamp(),
+    });
+    return true;
+  } catch (e) { console.error('שליחת בקשת חברות נכשלה:', e); return false; }
+}
+
+// מאשרת בקשה: כותבת עותק חברות אצל שנינו (אצלי - הרגיל; אצל השולח -
+// מותר כי כלל האבטחה מרשה למישהו להוסיף את עצמו לרשימת חברים של אחר),
+// ומוחקת את הבקשה מהתיבה שלי.
+async function acceptFriendRequest(fromUid, fromUsername) {
+  try {
+    await setDoc(doc(db, 'players', cloudUser.uid, 'friends', fromUid), { username: fromUsername, since: serverTimestamp() });
+    await setDoc(doc(db, 'players', fromUid, 'friends', cloudUser.uid), { username: myUsername, since: serverTimestamp() });
+    await deleteDoc(doc(db, 'players', cloudUser.uid, 'friendRequests', fromUid));
+  } catch (e) { console.error('אישור בקשת חברות נכשל:', e); }
+}
+
+document.getElementById('openFriendsBtn').addEventListener('click', openFriendsScreen);
+document.getElementById('friendsBackBtn').addEventListener('click', () => showScreen('settings'));
 
 function buyItem(btn) {
   const { key, name } = btn.dataset;
@@ -10508,6 +10652,7 @@ window.game = {
   get lastCloudUid() { return lastCloudUid; }, set lastCloudUid(v) { lastCloudUid = v; },
   get selectedCharacterName() { return selectedCharacterName; },
   get selectedWeaponName() { return selectedWeaponName; },
+  openFriendsScreen, renderFriendsScreen, sendFriendRequest, acceptFriendRequest,
 };
 </script>
 </body>
