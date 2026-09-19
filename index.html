@@ -9482,6 +9482,7 @@ function applyCloudState(data) {
   if (data.losses != null) losses = data.losses;
   if (data.username) myUsername = data.username;
   updateMoneyUI();
+  updateCloudUI();   // מרענן את "🎁 שם-משתמש" ליד כפתור ההתחברות אם החשבון כבר שמר שם
   if (data.selectedCharacterName && CHARACTER_CFGS[data.selectedCharacterName]) switchPlayerCharacter(data.selectedCharacterName);
   if (data.selectedWeaponName && WEAPON_CFGS[data.selectedWeaponName]) switchPlayerWeapon(data.selectedWeaponName);
   if (data.enemyLevel != null) switchEnemy(data.enemyLevel);
@@ -9498,7 +9499,9 @@ function signOutOfGoogle() { signOut(auth); }
 const cloudSignInBtnEl = document.getElementById('cloudSignInBtn');
 function updateCloudUI() {
   cloudSignInBtnEl.textContent = cloudUser
-    ? ('👋 ' + (cloudUser.displayName || T('מחובר', 'Signed in')) + T(' — התנתק', ' — Sign out'))
+    ? ('👋 ' + (cloudUser.displayName || T('מחובר', 'Signed in')) +
+       (myUsername ? (' · 🎁 ' + myUsername) : '') +   // שם המשתמש לגיפטים, כדי שאף אחד לא יתבלבל שוב לגבי מה השם שלו
+       T(' — התנתק', ' — Sign out'))
     : T('🔵 התחבר עם גוגל (שומר התקדמות)', '🔵 Sign in with Google (saves progress)');
 }
 
@@ -9544,11 +9547,51 @@ const giftContentEl = document.getElementById('giftContent');
 let giftMode = 'list';         // 'list' | 'profile' | 'share'
 let giftViewingUid = null;
 let giftViewingData = null;
+// דגל נפרד (לא giftMode) כדי ש"שנה שם" יעבוד גם ממסך הרשימה וגם יחזור
+// אליה בסוף - בלי לסבך את giftMode עם עוד מצב.
+let editingUsername = false;
+
+// מאזין אחד קבוע (event delegation) במקום לצרף מאזין בכל רינדור - כי
+// "שנה שם" מופיע בתוך myUsernameHeader שמוטמע בכמה מצבי-תצוגה שונים
+// (טעינה/שגיאה/ריק/מלא) בתוך renderGiftScreen.
+giftContentEl.addEventListener('click', (e) => {
+  if (e.target.id === 'giftEditUsernameBtn') {
+    editingUsername = true;
+    renderGiftScreen();
+  }
+});
 
 function openGiftScreen() {
   showScreen('gift');
   giftMode = 'list';
+  editingUsername = false;
   renderGiftScreen();
+}
+
+function renderUsernameForm() {
+  const isFirstTime = !myUsername;
+  giftContentEl.innerHTML =
+    `<div class="itemStat">${isFirstTime
+      ? T('קודם בחר שם משתמש - זה מה שחברים יראו, לא השם האמיתי שלך מגוגל.', 'First pick a username - this is what friends will see, not your real Google name.')
+      : T('שנה את שם המשתמש שלך:', 'Change your username:')}</div>` +
+    `<input id="giftUsernameInput" maxlength="16" placeholder="${T('שם משתמש', 'Username')}" value="${myUsername || ''}">` +
+    `<button class="bigBtn" id="giftUsernameSaveBtn">${T('✅ שמור', '✅ Save')}</button>` +
+    (isFirstTime ? '' : `<button class="bigBtn secondary" id="giftUsernameCancelBtn">${T('ביטול', 'Cancel')}</button>`);
+  document.getElementById('giftUsernameSaveBtn').addEventListener('click', async () => {
+    const val = document.getElementById('giftUsernameInput').value.trim();
+    if (!val) return;
+    myUsername = val;
+    editingUsername = false;
+    updateCloudUI();
+    await saveCloudState();
+    renderGiftScreen();
+  });
+  if (!isFirstTime) {
+    document.getElementById('giftUsernameCancelBtn').addEventListener('click', () => {
+      editingUsername = false;
+      renderGiftScreen();
+    });
+  }
 }
 
 async function renderGiftScreen() {
@@ -9559,23 +9602,16 @@ async function renderGiftScreen() {
     document.getElementById('giftSignInBtn').addEventListener('click', signInWithGoogle);
     return;
   }
-  if (!myUsername) {
-    giftContentEl.innerHTML =
-      `<div class="itemStat">${T('קודם בחר שם משתמש - זה מה שחברים יראו, לא השם האמיתי שלך מגוגל.', 'First pick a username - this is what friends will see, not your real Google name.')}</div>` +
-      `<input id="giftUsernameInput" maxlength="16" placeholder="${T('שם משתמש', 'Username')}">` +
-      `<button class="bigBtn" id="giftUsernameSaveBtn">${T('✅ שמור', '✅ Save')}</button>`;
-    document.getElementById('giftUsernameSaveBtn').addEventListener('click', async () => {
-      const val = document.getElementById('giftUsernameInput').value.trim();
-      if (!val) return;
-      myUsername = val;
-      await saveCloudState();
-      renderGiftScreen();
-    });
-    return;
-  }
+  if (!myUsername || editingUsername) { renderUsernameForm(); return; }
   if (giftMode === 'profile') { renderGiftProfile(); return; }
   if (giftMode === 'share') { renderGiftShare(); return; }
-  giftContentEl.innerHTML = `<div class="itemStat">${T('⏳ טוען שחקנים...', '⏳ Loading players...')}</div>`;
+  // ⚠️ תוקן 2026-09-19: אבא ובן התבלבלו כי שום מקום לא הראה "מה שם המשתמש
+  // שלי" - הרשימה תמיד מסננת את עצמכם החוצה, אז בלי השורה הזו אין שום
+  // דרך לדעת איזה שם מהרשימה של החבר הוא "אתם". `myUsernameHeader` מוצג
+  // בקבוע למעלה בכל מצבי מסך הרשימה (טעינה/שגיאה/ריק/מלא).
+  const myUsernameHeader = `<div class="itemStat">${T('אתה', 'You')}: 👤 ${myUsername} ` +
+    `<button id="giftEditUsernameBtn" style="font-size:0.75em; padding:2px 8px; margin-inline-start:6px;">${T('✏️ שנה שם', '✏️ Change name')}</button></div>`;
+  giftContentEl.innerHTML = myUsernameHeader + `<div class="itemStat">${T('⏳ טוען שחקנים...', '⏳ Loading players...')}</div>`;
   let players = [];
   try {
     const snap = await getDocs(collection(db, 'players'));
@@ -9584,14 +9620,14 @@ async function renderGiftScreen() {
       .map((d) => ({ uid: d.id, ...d.data() }));
   } catch (e) {
     console.error('טעינת רשימת שחקנים נכשלה:', e);
-    giftContentEl.innerHTML = `<div class="itemStat">${T('שגיאה בטעינת השחקנים.', 'Error loading players.')}</div>`;
+    giftContentEl.innerHTML = myUsernameHeader + `<div class="itemStat">${T('שגיאה בטעינת השחקנים.', 'Error loading players.')}</div>`;
     return;
   }
   if (players.length === 0) {
-    giftContentEl.innerHTML = `<div class="itemStat">${T('עוד אין שחקנים אחרים עם שם משתמש.', 'No other players with a username yet.')}</div>`;
+    giftContentEl.innerHTML = myUsernameHeader + `<div class="itemStat">${T('עוד אין שחקנים אחרים עם שם משתמש.', 'No other players with a username yet.')}</div>`;
     return;
   }
-  giftContentEl.innerHTML = players.map((p) =>
+  giftContentEl.innerHTML = myUsernameHeader + players.map((p) =>
     `<button class="bigBtn secondary giftPlayerBtn" data-uid="${p.uid}">👤 ${p.username}</button>`
   ).join('');
   giftContentEl.querySelectorAll('.giftPlayerBtn').forEach((btn) => {
@@ -10462,7 +10498,7 @@ window.game = {
   get forestMonsters() { return forestMonsters; },
   get isForestFight() { return isForestFight; },
   startForestMonsterFight, returnToForest, FOREST_MONSTER_DEFS,
-  openGiftScreen, renderGiftScreen, sendGift, checkIncomingGifts, GIFT_KINDS,
+  openGiftScreen, renderGiftScreen, sendGift, checkIncomingGifts, GIFT_KINDS, updateCloudUI,
   get cloudUser() { return cloudUser; }, set cloudUser(v) { cloudUser = v; },   // לבדיקות בלבד - עוקף את התחברות גוגל האמיתית
   get myUsername() { return myUsername; }, set myUsername(v) { myUsername = v; },
   get giftMode() { return giftMode; }, set giftMode(v) { giftMode = v; },
