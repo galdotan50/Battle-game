@@ -352,7 +352,7 @@
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -364,8 +364,8 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show { display: flex; }
   #teamSizeOverlay .bigBtn { font-size: 1.2rem; padding: 18px 46px; margin: 10px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
   #teamSizeOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #teamSizeBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
@@ -711,6 +711,16 @@
   #settingsOverlay .bigBtn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); cursor: default; box-shadow: none; }
   #settingsBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
 
+  /* מסך הגיפט - רשימת שחקנים/פרופיל/שיתוף, כל תוכן דינמי לתוך #giftContent
+     (אותו רעיון כמו #shopGrid - קונטיינר אחד, JS מחליף מה שבפנים) */
+  #giftContent { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 480px; width: 100%; }
+  #giftContent .bigBtn { font-size: 1.05rem; padding: 12px 30px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.35); background: #ffcf4d; color: #1a1a1a; width: 100%; max-width: 340px; }
+  #giftContent .bigBtn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); cursor: default; box-shadow: none; }
+  #giftContent .bigBtn.secondary { background: rgba(255,255,255,0.12); color: #fff; }
+  #giftContent input { font-size: 1.05rem; padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.35); background: rgba(0,0,0,0.35); color: #fff; width: 100%; max-width: 300px; box-sizing: border-box; text-align: center; }
+  #giftContent .itemStat { opacity: 0.9; }
+  #giftBackBtn { margin-top: 16px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
+
   /* ---------- שליטה במגע (טלפון) ----------
      display: none כברירת מחדל תמיד. רק ה-JS שרץ אם המכשיר תומך במגע
      (isTouchDevice) פותח אותם - במחשב עם עכבר האלמנטים האלה נשארים
@@ -924,10 +934,16 @@
 <div id="settingsOverlay">
   <div class="screenTitle" data-i18n-he="⚙️ הגדרות" data-i18n-en="⚙️ Settings">⚙️ הגדרות</div>
   <button class="bigBtn" id="languageToggleBtn"></button>
-  <button class="bigBtn" disabled data-i18n-he="🎁 גיפט — 🚧 בקרוב" data-i18n-en="🎁 Gift — 🚧 Coming soon">🎁 גיפט — 🚧 בקרוב</button>
+  <button class="bigBtn secondary" id="openGiftBtn" data-i18n-he="🎁 גיפט" data-i18n-en="🎁 Gift">🎁 גיפט</button>
   <button class="bigBtn" disabled data-i18n-he="👤 משתמש חדש — 🚧 בקרוב" data-i18n-en="👤 New user — 🚧 Coming soon">👤 משתמש חדש — 🚧 בקרוב</button>
   <button class="bigBtn" disabled data-i18n-he="👥 חברים — 🚧 בקרוב" data-i18n-en="👥 Friends — 🚧 Coming soon">👥 חברים — 🚧 בקרוב</button>
   <button id="settingsBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby">⬅ חזרה ללובי</button>
+</div>
+
+<div id="giftOverlay">
+  <div class="screenTitle" data-i18n-he="🎁 גיפט" data-i18n-en="🎁 Gift">🎁 גיפט</div>
+  <div id="giftContent"></div>
+  <button id="giftBackBtn" data-i18n-he="⬅ חזרה להגדרות" data-i18n-en="⬅ Back to settings">⬅ חזרה להגדרות</button>
 </div>
 
 <div id="adventureOverlay">
@@ -1054,7 +1070,7 @@ import * as THREE from 'three';
 // ההגנה האמיתית היא חוקי האבטחה של Firestore, לא הסתרת הקוד הזה.
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDQdlhNciuQatOhXY14gVfRA2osZX67CGk",
@@ -6971,6 +6987,7 @@ const weaponCreateEl = document.getElementById('weaponCreateOverlay');
 const adventureEl = document.getElementById('adventureOverlay');
 const lootSelectEl = document.getElementById('lootSelectOverlay');
 const settingsEl = document.getElementById('settingsOverlay');
+const giftEl = document.getElementById('giftOverlay');
 const caveHudEl = document.getElementById('caveHud');
 const caveInstructionsEl = document.getElementById('caveInstructions');
 const sumoHudEl = document.getElementById('sumoHud');
@@ -7017,6 +7034,7 @@ function showScreen(name) {
   lootSelectEl.classList.toggle('show', name === 'lootSelect');
   if (name === 'lootSelect') renderLootSelectScreen();
   settingsEl.classList.toggle('show', name === 'settings');
+  giftEl.classList.toggle('show', name === 'gift');
   caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater' || name === 'zombieForest');
   sumoHudEl.classList.toggle('show', name === 'sumo');
   teamSizeEl.classList.toggle('show', name === 'teamSize');
@@ -9405,11 +9423,15 @@ function flashCantAfford(btn) {
 //  ראה קריאות saveCloudState() בפונקציות האלה למעלה.
 // ============================================================================
 let cloudUser = null;
+// שם משתמש שבוחר השחקן בעצמו (לא השם האמיתי מגוגל) - מוצג לשחקנים אחרים
+// במסך הגיפט (ראה למטה). נשמר על אותו מסמך players/{uid}, לא בנפרד.
+let myUsername = '';
 
 function buildCloudState() {
   return {
     money, inventory: [...inventory], characterLevels,
     selectedCharacterName, selectedWeaponName, enemyLevel, wins, losses,
+    username: myUsername,
     displayName: cloudUser?.displayName || '',
     updatedAt: serverTimestamp(),
   };
@@ -9432,6 +9454,7 @@ function applyCloudState(data) {
   if (data.characterLevels) Object.assign(characterLevels, data.characterLevels);
   if (data.wins != null) wins = data.wins;
   if (data.losses != null) losses = data.losses;
+  if (data.username) myUsername = data.username;
   updateMoneyUI();
   if (data.selectedCharacterName && CHARACTER_CFGS[data.selectedCharacterName]) switchPlayerCharacter(data.selectedCharacterName);
   if (data.selectedWeaponName && WEAPON_CFGS[data.selectedWeaponName]) switchPlayerWeapon(data.selectedWeaponName);
@@ -9461,8 +9484,194 @@ onAuthStateChanged(auth, async (user) => {
     const snap = await getDoc(doc(db, 'players', user.uid));
     if (snap.exists()) applyCloudState(snap.data());
     else await saveCloudState();   // שחקן חדש - שומר את מצב ברירת המחדל כמסמך ראשון
+    await checkIncomingGifts();    // מתנות שחברים שלחו בזמן שלא היינו מחוברים
   } catch (e) { console.error('טעינה מהענן נכשלה:', e); }
 });
+
+// ============================================================================
+//  גיפט - שיתוף דמות/נשק/אוכל/משקה/מגן שברשותך עם שחקן אחר (game-spec.md
+//  לא מדבר על זה - זו בקשה חדשה של המשתמש, ראה פיתוח משחק.md ל-2026-09-19).
+//
+//  ⚠️ החלטה טכנית שנעשתה **יחד עם האבא** (לפי הכלל הקבוע למעלה בקובץ):
+//  בלי שרת אמיתי (Cloud Functions/Blaze) - רק כללי Firestore. המשמעות:
+//  - "שיתוף" הוא שני כתיבות נפרדות מהדפדפן של השולח (מוסיפים "מתנה
+//    ממתינה" אצל החבר, ואז מורידים את הפריט מאצלנו) - **לא אטומי**.
+//    ילד שפותח devtools יכול תיאורטית לדלג על ההורדה ולשכפל לעצמו.
+//    האבא אישר שזה מקובל למשחק בין חברים (אותו סיכון שכבר קיים בכל
+//    המשחק - אין "שרת שופט", רק כללי Firestore).
+//  - כן נאכף בכלל האבטחה: **אי אפשר לשתף פריט שאין לך** (הכלל בודק,
+//    עם get(), שהפריט קיים במלאי שלך *ברגע יצירת המתנה* - זה סוגר את
+//    הפרצה הקלה יותר: מתנות-חינם-משום-מקום).
+//  - שם משתמש (לא השם האמיתי מגוגל) הוא מה שמוצג לשחקנים אחרים -
+//    ההגנה על הפרטיות שביקש האבא.
+// ============================================================================
+
+const GIFT_KINDS = ['characters', 'weapons', 'food', 'drinks', 'shields'];
+const GIFT_KIND_ICON = { characters: '👤', weapons: '⚔️', food: '🍎', drinks: '🥤', shields: '🛡️' };
+
+const giftContentEl = document.getElementById('giftContent');
+let giftMode = 'list';         // 'list' | 'profile' | 'share'
+let giftViewingUid = null;
+let giftViewingData = null;
+
+function openGiftScreen() {
+  showScreen('gift');
+  giftMode = 'list';
+  renderGiftScreen();
+}
+
+async function renderGiftScreen() {
+  if (!cloudUser) {
+    giftContentEl.innerHTML =
+      `<div class="itemStat">${T('צריך להתחבר עם גוגל כדי להשתמש בגיפטים.', 'You need to sign in with Google to use gifts.')}</div>` +
+      `<button class="bigBtn" id="giftSignInBtn">${T('🔵 התחבר עם גוגל', '🔵 Sign in with Google')}</button>`;
+    document.getElementById('giftSignInBtn').addEventListener('click', signInWithGoogle);
+    return;
+  }
+  if (!myUsername) {
+    giftContentEl.innerHTML =
+      `<div class="itemStat">${T('קודם בחר שם משתמש - זה מה שחברים יראו, לא השם האמיתי שלך מגוגל.', 'First pick a username - this is what friends will see, not your real Google name.')}</div>` +
+      `<input id="giftUsernameInput" maxlength="16" placeholder="${T('שם משתמש', 'Username')}">` +
+      `<button class="bigBtn" id="giftUsernameSaveBtn">${T('✅ שמור', '✅ Save')}</button>`;
+    document.getElementById('giftUsernameSaveBtn').addEventListener('click', async () => {
+      const val = document.getElementById('giftUsernameInput').value.trim();
+      if (!val) return;
+      myUsername = val;
+      await saveCloudState();
+      renderGiftScreen();
+    });
+    return;
+  }
+  if (giftMode === 'profile') { renderGiftProfile(); return; }
+  if (giftMode === 'share') { renderGiftShare(); return; }
+  giftContentEl.innerHTML = `<div class="itemStat">${T('⏳ טוען שחקנים...', '⏳ Loading players...')}</div>`;
+  let players = [];
+  try {
+    const snap = await getDocs(collection(db, 'players'));
+    players = snap.docs
+      .filter((d) => d.id !== cloudUser.uid && d.data().username)
+      .map((d) => ({ uid: d.id, ...d.data() }));
+  } catch (e) {
+    console.error('טעינת רשימת שחקנים נכשלה:', e);
+    giftContentEl.innerHTML = `<div class="itemStat">${T('שגיאה בטעינת השחקנים.', 'Error loading players.')}</div>`;
+    return;
+  }
+  if (players.length === 0) {
+    giftContentEl.innerHTML = `<div class="itemStat">${T('עוד אין שחקנים אחרים עם שם משתמש.', 'No other players with a username yet.')}</div>`;
+    return;
+  }
+  giftContentEl.innerHTML = players.map((p) =>
+    `<button class="bigBtn secondary giftPlayerBtn" data-uid="${p.uid}">👤 ${p.username}</button>`
+  ).join('');
+  giftContentEl.querySelectorAll('.giftPlayerBtn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      giftViewingData = players.find((p) => p.uid === btn.dataset.uid);
+      giftViewingUid = btn.dataset.uid;
+      giftMode = 'profile';
+      renderGiftScreen();
+    });
+  });
+}
+
+function giftInventoryRows(inv) {
+  return GIFT_KINDS.map((kind) => {
+    const items = (inv || []).filter((id) => id.startsWith(kind + ':')).map((id) => trName(id.slice(kind.length + 1)));
+    if (items.length === 0) return '';
+    return `<div class="itemStat">${GIFT_KIND_ICON[kind]} ${items.join(', ')}</div>`;
+  }).join('');
+}
+
+function renderGiftProfile() {
+  const p = giftViewingData;
+  giftContentEl.innerHTML =
+    `<div style="font-size:1.3rem; font-weight:bold;">👤 ${p.username}</div>` +
+    `<div class="itemStat">💰 ${p.money ?? 0}₪</div>` +
+    giftInventoryRows(p.inventory) +
+    `<button class="bigBtn" id="giftOpenShareBtn">🎁 ${T('שתף פריט שלי', 'Share one of my items')}</button>` +
+    `<button class="bigBtn secondary" id="giftBackToListBtn">⬅ ${T('חזרה לרשימה', 'Back to list')}</button>`;
+  document.getElementById('giftOpenShareBtn').addEventListener('click', () => { giftMode = 'share'; renderGiftScreen(); });
+  document.getElementById('giftBackToListBtn').addEventListener('click', () => { giftMode = 'list'; renderGiftScreen(); });
+}
+
+function renderGiftShare() {
+  const p = giftViewingData;
+  let html = `<div class="itemStat">${T('בחר מה לשלוח ל-', 'Choose what to send to ')}${p.username}:</div>`;
+  let hasAny = false;
+  GIFT_KINDS.forEach((kind) => {
+    const names = [...inventory].filter((id) => id.startsWith(kind + ':')).map((id) => id.slice(kind.length + 1));
+    if (names.length === 0) return;
+    hasAny = true;
+    names.forEach((name) => {
+      // אסור להישאר בלי אף דמות/נשק בכלל - אבל אוכל/משקה/מגן אפשר לשתף הכל
+      const wouldEmpty = (kind === 'characters' && ownedCharacterNames().length <= 1) ||
+                         (kind === 'weapons' && ownedWeaponNames().length <= 1);
+      html += `<button class="bigBtn secondary giftItemBtn" data-kind="${kind}" data-name="${name}" ${wouldEmpty ? 'disabled' : ''}>` +
+        `${GIFT_KIND_ICON[kind]} ${trName(name)}${wouldEmpty ? ' (' + T('היחיד שלך', 'your only one') + ')' : ''}</button>`;
+    });
+  });
+  if (!hasAny) html += `<div class="itemStat">${T('אין לך שום דבר לשתף כרגע.', "You don't have anything to share right now.")}</div>`;
+  html += `<button class="bigBtn secondary" id="giftShareBackBtn">⬅ ${T('ביטול', 'Cancel')}</button>`;
+  giftContentEl.innerHTML = html;
+  giftContentEl.querySelectorAll('.giftItemBtn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      const ok = await sendGift(btn.dataset.kind, btn.dataset.name, giftViewingUid, p.username);
+      if (ok) {
+        showShieldToast(T('🎁 נשלח ל-', '🎁 Sent to ') + p.username + '!');
+        giftMode = 'profile';
+        renderGiftScreen();
+      } else {
+        flashCantAfford(btn);
+        btn.disabled = false;
+      }
+    });
+  });
+  document.getElementById('giftShareBackBtn').addEventListener('click', () => { giftMode = 'profile'; renderGiftScreen(); });
+}
+
+// שולחת מתנה: קודם כותבים אצל החבר (בזמן שהפריט עדיין קיים אצלנו - כלל
+// האבטחה בודק את זה ברגע הזה), ורק אז מורידים מעצמנו. אם זו הדמות/הנשק
+// שמצוידים כרגע - עוברים אוטומטית לדמות/נשק אחר לפני ההורדה.
+async function sendGift(kind, itemName, toUid, toUsername) {
+  const id = kind + ':' + itemName;
+  if (!cloudUser || !inventory.has(id)) return false;
+  try {
+    await addDoc(collection(db, 'players', toUid, 'incomingGifts'), {
+      kind, itemName,
+      fromUid: cloudUser.uid,
+      fromUsername: myUsername,
+      createdAt: serverTimestamp(),
+    });
+  } catch (e) { console.error('שליחת מתנה נכשלה:', e); return false; }
+  if (kind === 'characters' && selectedCharacterName === itemName) cycleCharacter(1);
+  if (kind === 'weapons' && selectedWeaponName === itemName) cycleWeapon(1);
+  inventory.delete(id);
+  saveCloudState();
+  return true;
+}
+
+// נקראת בכל התחברות - מוסיפה למלאי כל מתנה שחיכתה בתיבה, ומנקה אותה.
+async function checkIncomingGifts() {
+  if (!cloudUser) return;
+  let snap;
+  try { snap = await getDocs(collection(db, 'players', cloudUser.uid, 'incomingGifts')); }
+  catch (e) { console.error('בדיקת מתנות נכנסות נכשלה:', e); return; }
+  if (snap.empty) return;
+  const received = [];
+  for (const d of snap.docs) {
+    const g = d.data();
+    inventory.add(g.kind + ':' + g.itemName);
+    received.push(g);
+    try { await deleteDoc(d.ref); } catch (e) { console.error('מחיקת מתנה שטופלה נכשלה:', e); }
+  }
+  updateLoadoutUI();
+  saveCloudState();
+  const names = received.map((g) => trName(g.itemName) + ' (' + T('מ-', 'from ') + g.fromUsername + ')').join(', ');
+  showShieldToast(T('🎁 קיבלת מתנה! ', '🎁 You got a gift! ') + names);
+}
+
+document.getElementById('openGiftBtn').addEventListener('click', openGiftScreen);
+document.getElementById('giftBackBtn').addEventListener('click', () => showScreen('settings'));
 
 function buyItem(btn) {
   const { key, name } = btn.dataset;
@@ -10222,6 +10431,12 @@ window.game = {
   get forestMonsters() { return forestMonsters; },
   get isForestFight() { return isForestFight; },
   startForestMonsterFight, returnToForest, FOREST_MONSTER_DEFS,
+  openGiftScreen, renderGiftScreen, sendGift, checkIncomingGifts, GIFT_KINDS,
+  get cloudUser() { return cloudUser; }, set cloudUser(v) { cloudUser = v; },   // לבדיקות בלבד - עוקף את התחברות גוגל האמיתית
+  get myUsername() { return myUsername; }, set myUsername(v) { myUsername = v; },
+  get giftMode() { return giftMode; }, set giftMode(v) { giftMode = v; },
+  get giftViewingUid() { return giftViewingUid; }, set giftViewingUid(v) { giftViewingUid = v; },
+  get giftViewingData() { return giftViewingData; }, set giftViewingData(v) { giftViewingData = v; },
 };
 </script>
 </body>
