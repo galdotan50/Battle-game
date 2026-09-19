@@ -5449,6 +5449,33 @@ const ZARKON_CFG = {
   boots: null,
 };
 
+// דראקו (רמה 13, האחרון) - אויב שהעיצוב שלו נבחר לגמרי על ידי (בקשת
+// המשתמש: "אתה תבחר איך הוא נראה"). השם "דראקו" הוא גם המילה הלטינית
+// ל"דרקון" - אז נבחר כיוון דרקון-לוחם קלאסי, לא חוזר על אף אחד מהאויבים
+// הקיימים (לונג כבר "רובוט-דרקון סיני" בצהוב עם כובע וניבים - דראקו כאן
+// כהה, מפחיד, בלי כובע, עם כנפיים אמיתיות שלונג לא קיבל). עור ירוק-שחור
+// קשקשי, עיניים אש זוהרות, חוטם דרקון עם ניבים ארוכים (כמו לונג, גוונים
+// אחרים לגמרי), קרניים גדולות, כנפיים גדולות וכהות, זנב ארוך, וטפרים.
+const DRACO_CFG = {
+  power: 11.8, speed: 9.5,
+  skin: 0x14241a,  skinTex: true,
+  bald: true,
+  eyeColor: 0xff4a1a,
+  glowEyes: true,
+  ears: 'pointed',
+  snout: true,
+  snoutJawColor: 0xd8cfa0,
+  longFangs: true,
+  backHorns: true, hornScale: 1.4, hornColor: 0x1a1210,
+  wings: true, wingScale: 1.1, wingColor: 0x0d1a10,
+  catTail: true, catFurColor: 0x14241a, tailLength: 1.6,
+  claws: true, clawColor: 0x0d0d0d,
+  top: null,
+  pants: null,
+  boxers: 0x0d1712,
+  boots: null,
+};
+
 // רשימת האויבים לפי רמות. `enemy` הוא let (כמו player) כדי שאפשר יהיה
 // להחליף אותו בין קרבות - ראה switchEnemy למטה.
 const ENEMY_LEVELS = [
@@ -5464,6 +5491,7 @@ const ENEMY_LEVELS = [
   { name: 'לוסטר',     cfg: LUSTER_CFG,    hp: 440 },
   { name: 'מגרון',     cfg: MAGRON_CFG,    hp: 500 },
   { name: 'זרקון',     cfg: ZARKON_CFG,    hp: 570 },
+  { name: 'דראקו',     cfg: DRACO_CFG,     hp: 650 },
 ];
 let enemyLevel = 0;
 let enemy = makeFighter(ENEMY_LEVELS[0].cfg, 1.7, -1, ENEMY_LEVELS[0].hp);
