@@ -352,7 +352,7 @@
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -364,8 +364,8 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show { display: flex; }
   #teamSizeOverlay .bigBtn { font-size: 1.2rem; padding: 18px 46px; margin: 10px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
   #teamSizeOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #teamSizeBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
@@ -694,6 +694,22 @@
     cursor: pointer;
     z-index: 60;
   }
+  /* כפתור ההגדרות - בצד השני של כפתור ההתחברות, אותו סגנון בדיוק */
+  #settingsBtn {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    background: rgba(0,0,0,0.55);
+    border: 2px solid rgba(255,255,255,0.35);
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 60;
+  }
+  #settingsOverlay .bigBtn { font-size: 1.15rem; padding: 16px 40px; margin: 8px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
+  #settingsOverlay .bigBtn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); cursor: default; box-shadow: none; }
+  #settingsBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
 
   /* ---------- שליטה במגע (טלפון) ----------
      display: none כברירת מחדל תמיד. רק ה-JS שרץ אם המכשיר תומך במגע
@@ -874,6 +890,7 @@
 </div>
 
 <div id="lobbyOverlay">
+  <button id="settingsBtn">⚙️</button>
   <button id="cloudSignInBtn" class="cloudSignInBtn">🔵 התחבר עם גוגל (שומר התקדמות)</button>
   <div class="eventBanner">🎉 איוונט מיוחד! 30% הנחה בחנות!</div>
   <div id="loadoutRow">
@@ -891,7 +908,7 @@
     <button class="bigBtn" id="startFightBtn">⚔️ קרב רגיל</button>
     <button id="modeNextBtn" class="cycleBtn">▶</button>
   </div>
-  <button class="bigBtn secondary" id="openShopBtn">🛒 חנות</button>
+  <button class="bigBtn secondary" id="openShopBtn" data-i18n-he="🛒 חנות" data-i18n-en="🛒 Shop">🛒 חנות</button>
   <button class="bigBtn secondary eventOnly" id="openCreateBtn">🎨 בנייה עצמית</button>
   <button class="bigBtn secondary eventOnly" id="openWeaponCreateBtn">🔨 בניית נשק</button>
   <div id="bossRow" class="eventOnly">
@@ -900,8 +917,17 @@
     <button id="bossNextBtn" class="cycleBtn">▶</button>
   </div>
   <button class="bigBtn secondary eventOnly" id="bossFightBtn">👹 קרב בוס</button>
-  <button class="bigBtn secondary" id="openAdventureBtn">🗺️ הרפתקה</button>
-  <button class="bigBtn secondary" id="openLootSelectBtn">🎒 ציוד לקרב</button>
+  <button class="bigBtn secondary" id="openAdventureBtn" data-i18n-he="🗺️ הרפתקה" data-i18n-en="🗺️ Adventure">🗺️ הרפתקה</button>
+  <button class="bigBtn secondary" id="openLootSelectBtn" data-i18n-he="🎒 ציוד לקרב" data-i18n-en="🎒 Battle gear">🎒 ציוד לקרב</button>
+</div>
+
+<div id="settingsOverlay">
+  <div class="screenTitle" data-i18n-he="⚙️ הגדרות" data-i18n-en="⚙️ Settings">⚙️ הגדרות</div>
+  <button class="bigBtn" id="languageToggleBtn"></button>
+  <button class="bigBtn" disabled data-i18n-he="🎁 גיפט — 🚧 בקרוב" data-i18n-en="🎁 Gift — 🚧 Coming soon">🎁 גיפט — 🚧 בקרוב</button>
+  <button class="bigBtn" disabled data-i18n-he="👤 משתמש חדש — 🚧 בקרוב" data-i18n-en="👤 New user — 🚧 Coming soon">👤 משתמש חדש — 🚧 בקרוב</button>
+  <button class="bigBtn" disabled data-i18n-he="👥 חברים — 🚧 בקרוב" data-i18n-en="👥 Friends — 🚧 Coming soon">👥 חברים — 🚧 בקרוב</button>
+  <button id="settingsBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby">⬅ חזרה ללובי</button>
 </div>
 
 <div id="adventureOverlay">
@@ -934,19 +960,19 @@
 
 <div id="shopOverlay">
   <div class="eventBanner">🎉 איוונט מיוחד! 30% הנחה!</div>
-  <div class="screenTitle">🛒 חנות</div>
+  <div class="screenTitle" data-i18n-he="🛒 חנות" data-i18n-en="🛒 Shop">🛒 חנות</div>
   <div id="shopTabs"></div>
   <div id="shopGrid"></div>
-  <button id="backLobbyBtn">⬅ חזרה ללובי</button>
+  <button id="backLobbyBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby">⬅ חזרה ללובי</button>
 </div>
 
 <div id="lootSelectOverlay">
-  <div class="screenTitle">🎒 ציוד לקרב</div>
-  <div style="max-width:500px; text-align:center; margin-bottom:26px; opacity:0.85; font-size:1.05rem;">
+  <div class="screenTitle" data-i18n-he="🎒 ציוד לקרב" data-i18n-en="🎒 Battle gear">🎒 ציוד לקרב</div>
+  <div style="max-width:500px; text-align:center; margin-bottom:26px; opacity:0.85; font-size:1.05rem;" data-i18n-he="תבחר מה לקחת איתך לקרב הבא - עד 2 מאכלים, משקה אחד ומגן אחד." data-i18n-en="Pick what to bring to your next battle - up to 2 foods, one drink and one shield.">
     תבחר מה לקחת איתך לקרב הבא - עד 2 מאכלים, משקה אחד ומגן אחד.
   </div>
   <div id="lootSelectSections"></div>
-  <button id="lootSelectBackBtn">⬅ חזרה ללובי</button>
+  <button id="lootSelectBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby">⬅ חזרה ללובי</button>
 </div>
 
 <!-- שליטה במגע לטלפון - מוצג רק אם קוד ה-JS מזהה מכשיר מגע, ורק בזמן קרב.
@@ -6942,6 +6968,7 @@ const createEl = document.getElementById('createOverlay');
 const weaponCreateEl = document.getElementById('weaponCreateOverlay');
 const adventureEl = document.getElementById('adventureOverlay');
 const lootSelectEl = document.getElementById('lootSelectOverlay');
+const settingsEl = document.getElementById('settingsOverlay');
 const caveHudEl = document.getElementById('caveHud');
 const caveInstructionsEl = document.getElementById('caveInstructions');
 const sumoHudEl = document.getElementById('sumoHud');
@@ -6987,6 +7014,7 @@ function showScreen(name) {
   adventureEl.classList.toggle('show', name === 'adventure');
   lootSelectEl.classList.toggle('show', name === 'lootSelect');
   if (name === 'lootSelect') renderLootSelectScreen();
+  settingsEl.classList.toggle('show', name === 'settings');
   caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater' || name === 'zombieForest');
   sumoHudEl.classList.toggle('show', name === 'sumo');
   teamSizeEl.classList.toggle('show', name === 'teamSize');
@@ -8682,8 +8710,44 @@ function getCharacterThumb(name) {
   return characterThumbs[name];
 }
 
+// ============================================================================
+//  שפה (עברית/אנגלית) - הגדרה שהמשתמש ביקש: "רק תרגום אחד לאנגלית", לא
+//  בורר שפות מרובות. `uiLang` הוא מצב גלובלי ('he'/'en'), נשמר ב-localStorage
+//  (לא בענן - זו העדפת מכשיר, לא התקדמות במשחק). מתורגמים: הלובי, החנות
+//  (כולל תוויות הקטגוריות ותיאורי הפריטים), ומסך ההגדרות עצמו - **לא**
+//  שמות הדמויות/נשקים/אוכל/משקאות עצמם (זה היה "העבודה הענקית" שכבר הוחלט
+//  בעבר לא לעשות - ראה `פיתוח משחק.md`), ולא מסכי ההרפתקה/סומו/קרב-קבוצות/
+//  בנייה-עצמית (נשארו בעברית בשלב הזה).
+let uiLang = localStorage.getItem('battleGameLang') || 'he';
+
+// תיאורי היכולות של המגנים/המשקה המיוחד הם משפטים חופשיים (לא נוסחה כמו
+// "כוח X/10"), אז הם מתורגמים מילה-במילה בטבלה נפרדת, לא ברגקס כללי.
+const SHIELD_ABILITY_EN = {
+  'הגנה בסיסית': 'Basic defense',
+  'הגנה טובה יותר': 'Better defense',
+  'הגנה חזקה': 'Strong defense',
+  'הגנה חזקה מאוד': 'Very strong defense',
+  'יורה ברק כשנשק פוגע בו': 'Shoots lightning when hit by a weapon',
+  'הנשק נדבק והאויב נמשך אליו': 'The weapon sticks and pulls the enemy in',
+  'יורה בחזרה ומשכפל את הנשק': 'Shoots it back and duplicates the weapon',
+  'מחזיר, משכפל ומגיע עם אבן חדה': 'Returns it, duplicates it, and comes with a sharp stone',
+  'משקה מיוחד וחזק': 'Special, powerful drink',
+};
+// תוויות "כוח X/10"/"נזק X"/"מרפא X" הן נוסחתיות - מספיק להחליף את המילה
+// עצמה, המספר/היחידה נשארים כמו שהם. "חינם"/סטטוסים אחרים דרך הטבלה למעלה.
+function trStat(s) {
+  if (uiLang !== 'en') return s;
+  if (SHIELD_ABILITY_EN[s]) return SHIELD_ABILITY_EN[s];
+  if (s === 'חינם') return 'Free';
+  return s
+    .replace('כוח', 'Power')
+    .replace('מהירות', 'Speed')
+    .replace('נזק', 'Damage')
+    .replace('מרפא', 'Heals');
+}
+
 const SHOP_DATA = {
-  characters: { label: '👤 דמויות', rows: [
+  characters: { label: '👤 דמויות', labelEn: '👤 Characters', rows: [
     ['סווארק', 'כוח 5/10', 'מהירות 5/10', 'חינם'],
     ["ג'ני", 'כוח 6.5/10', 'מהירות 8/10', '50₪'],
     ['ברייק', 'כוח 7.8/10', 'מהירות 10/10', '120₪'],
@@ -8701,7 +8765,7 @@ const SHOP_DATA = {
     ['סינזר', 'כוח 15/10', 'מהירות 15/10', '200₪'],
     ['פראנק', 'כוח 15/10', 'מהירות 15/10', '200₪'],
   ]},
-  weapons: { label: '⚔️ נשקים', rows: [
+  weapons: { label: '⚔️ נשקים', labelEn: '⚔️ Weapons', rows: [
     ['אבן חדה', 'נזק 7', 'חינם'],
     ['גרזן', 'נזק 15', '30₪'],
     ['פיקקס', 'נזק 22', '45₪'],
@@ -8713,7 +8777,7 @@ const SHOP_DATA = {
     ['קטאנה', 'נזק 150', '500₪'],
     ['רובה', 'נזק 210', '1000₪'],
   ]},
-  shields: { label: '🛡️ מגנים', rows: [
+  shields: { label: '🛡️ מגנים', labelEn: '🛡️ Shields', rows: [
     ['אבן קצת גדולה אבל שבירה', 'הגנה בסיסית', 'חינם'],
     ['מגן עץ', 'הגנה בסיסית', '20₪'],
     ['מגן אבן', 'הגנה טובה יותר', '50₪'],
@@ -8725,7 +8789,7 @@ const SHOP_DATA = {
     ['מגן טיטניום משכפל', 'יורה בחזרה ומשכפל את הנשק', '500₪'],
     ['מגן טיטניום בלתי נראה', 'מחזיר, משכפל ומגיע עם אבן חדה', '600₪'],
   ]},
-  food: { label: '🍎 אוכל', rows: [
+  food: { label: '🍎 אוכל', labelEn: '🍎 Food', rows: [
     ['תפוח', 'מרפא 3', 'חינם'],
     ['מלפפון', 'מרפא 5', '10₪'],
     ['לחם עם חמאה', 'מרפא 10', '30₪'],
@@ -8740,7 +8804,7 @@ const SHOP_DATA = {
     ['סטייק', 'מרפא 52', '473₪'],
     ['גלידה', 'מרפא 57', '550₪'],
   ]},
-  drinks: { label: '🥤 משקאות', rows: [
+  drinks: { label: '🥤 משקאות', labelEn: '🥤 Drinks', rows: [
     ['מים', '+3 כוח, +4 מהירות', 'חינם'],
     ['מיץ ענבים', '+3 כוח, +4 מהירות', '10₪'],
     ['מיץ תפוזים', '+3 כוח, +4 מהירות', '20₪'],
@@ -8754,7 +8818,7 @@ const SHOP_DATA = {
     ['פיוזטי', '+3 כוח, +4 מהירות', '97₪'],
     ['משקה אנרגיה', 'משקה מיוחד וחזק', '107₪'],
   ]},
-  upgrades: { label: '⭐ שדרוגים', rows: [] },
+  upgrades: { label: '⭐ שדרוגים', labelEn: '⭐ Upgrades', rows: [] },
 };
 
 // ============================================================================
@@ -9234,15 +9298,16 @@ function cycleWeapon(dir) {
 // אותו דפוס חצים בדיוק כמו בחירת דמות/נשק - "התחל קרב" מסתכל על הבחירה
 // הזו ומחליט לאיזה מסך להיכנס, במקום כפתור נפרד לכל סוג קרב.
 const BATTLE_MODES = [
-  { key: 'battle', label: '⚔️ קרב רגיל' },
-  { key: 'sumo', label: '🎌 קרב סומו' },
-  { key: 'team', label: '🥊 קרב קבוצות' },
+  { key: 'battle', label: '⚔️ קרב רגיל', labelEn: '⚔️ Regular battle' },
+  { key: 'sumo', label: '🎌 קרב סומו', labelEn: '🎌 Sumo battle' },
+  { key: 'team', label: '🥊 קרב קבוצות', labelEn: '🥊 Team battle' },
 ];
 let selectedModeIndex = 0;
 
 function updateModeLabel() {
   // אין תווית נפרדת - כפתור "התחל קרב" עצמו מציג את המצב הנבחר.
-  document.getElementById('startFightBtn').textContent = BATTLE_MODES[selectedModeIndex].label;
+  const mode = BATTLE_MODES[selectedModeIndex];
+  document.getElementById('startFightBtn').textContent = uiLang === 'en' ? mode.labelEn : mode.label;
 }
 
 function cycleBattleMode(dir) {
@@ -9364,25 +9429,33 @@ function buyItem(btn) {
 function renderUpgradesCategory() {
   const names = ownedCharacterNames();
   if (names.length === 0) {
-    shopGridEl.innerHTML = '<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">קודם קונים דמות בקטגוריית "דמויות", ואז אפשר לשדרג אותה כאן!</div>';
+    const msg = uiLang === 'en'
+      ? 'First buy a character in the "Characters" category, then you can upgrade it here!'
+      : 'קודם קונים דמות בקטגוריית "דמויות", ואז אפשר לשדרג אותה כאן!';
+    shopGridEl.innerHTML = `<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">${msg}</div>`;
     return;
   }
   const statRow = (name, label, icon, stat) => {
     const lv = getLevels(name);
     const level = lv[stat];
     const maxed = level >= MAX_UPGRADE_LEVEL;
+    const maxLabel = uiLang === 'en' ? '🏆 Max' : '🏆 מקסימום';
+    const upgradeLabel = uiLang === 'en' ? ` Upgrade for ${upgradeCost(level)}₪` : ` שדרג ב-${upgradeCost(level)}₪`;
+    const levelLabel = uiLang === 'en' ? 'Level' : 'רמה';
     const btn = maxed
-      ? `<button class="buyBtn owned" disabled>🏆 מקסימום</button>`
-      : `<button class="buyBtn upgradeBtn" data-name="${name}" data-stat="${stat}">${icon} שדרג ב-${upgradeCost(level)}₪</button>`;
-    return `<div class="itemStat">${icon} ${label} — רמה ${level}/${MAX_UPGRADE_LEVEL}</div>${btn}`;
+      ? `<button class="buyBtn owned" disabled>${maxLabel}</button>`
+      : `<button class="buyBtn upgradeBtn" data-name="${name}" data-stat="${stat}">${icon}${upgradeLabel}</button>`;
+    return `<div class="itemStat">${icon} ${label} — ${levelLabel} ${level}/${MAX_UPGRADE_LEVEL}</div>${btn}`;
   };
   names.forEach((name) => {
     const thumb = getCharacterThumb(name);
     const media = thumb ? `<img class="itemThumb" src="${thumb}">` : '';
     const card = document.createElement('div');
     card.className = 'itemCard';
+    const powerLabel = uiLang === 'en' ? 'Power' : 'כוח';
+    const speedLabel = uiLang === 'en' ? 'Speed' : 'מהירות';
     card.innerHTML = media + `<div class="itemName">${name}</div>` +
-      statRow(name, 'כוח', '💪', 'power') + statRow(name, 'מהירות', '⚡', 'speed');
+      statRow(name, powerLabel, '💪', 'power') + statRow(name, speedLabel, '⚡', 'speed');
     shopGridEl.appendChild(card);
   });
   shopGridEl.querySelectorAll('.upgradeBtn').forEach((btn) => {
@@ -9406,7 +9479,8 @@ function renderShopCategory(key) {
   // לא רק על הבחירה בלובי.
   const rows = SHOP_DATA[key].rows.filter(([name]) => !CUSTOM_CHARACTER_NAMES.has(name) || eventActive);
   if (rows.length === 0) {
-    shopGridEl.innerHTML = '<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">🚧 עוד לא הוחלט מה יהיה כאן - בקרוב!</div>';
+    const emptyMsg = uiLang === 'en' ? "🚧 Not decided yet - coming soon!" : '🚧 עוד לא הוחלט מה יהיה כאן - בקרוב!';
+    shopGridEl.innerHTML = `<div style="opacity:0.75; font-size:1.1rem; grid-column: 1 / -1; text-align: center;">${emptyMsg}</div>`;
     return;
   }
   rows.forEach(([name, ...stats]) => {
@@ -9421,9 +9495,10 @@ function renderShopCategory(key) {
     let media = '';
     if (key === 'characters') {
       const thumb = getCharacterThumb(name);
+      const soonLabel = uiLang === 'en' ? '🚧<br>Soon' : '🚧<br>בקרוב';
       media = thumb
         ? `<img class="itemThumb" src="${thumb}">`
-        : `<div class="itemThumb itemThumbPlaceholder">🚧<br>בקרוב</div>`;
+        : `<div class="itemThumb itemThumbPlaceholder">${soonLabel}</div>`;
     }
     // בזמן איוונט - 30% הנחה על כל פריט שלא חינם. data-price הוא המחיר
     // שבאמת יורד מהכסף (buyItem פשוט קורא אותו), כדי שההנחה תיאכף גם בקנייה.
@@ -9431,13 +9506,15 @@ function renderShopCategory(key) {
     const chargePrice = onSale ? Math.round(price * (1 - EVENT_DISCOUNT)) : price;
     const priceHtml = onSale
       ? `<span class="oldPrice">${price}₪</span> 🎉${chargePrice}₪`
-      : priceStr;
+      : trStat(priceStr);
+    const ownedLabel = uiLang === 'en' ? '✅ Yours' : '✅ שלך';
+    const buyLabel = uiLang === 'en' ? '💰 Buy for ' : '💰 קנה ב-';
     const buyHtml = owned
-      ? `<button class="buyBtn owned" disabled>✅ שלך</button>`
-      : `<button class="buyBtn" data-key="${key}" data-name="${name}" data-price="${chargePrice}">💰 קנה ב-${priceHtml}</button>`;
+      ? `<button class="buyBtn owned" disabled>${ownedLabel}</button>`
+      : `<button class="buyBtn" data-key="${key}" data-name="${name}" data-price="${chargePrice}">${buyLabel}${priceHtml}</button>`;
 
     card.innerHTML = media + `<div class="itemName">${name}</div>` +
-      mid.map((s) => `<div class="itemStat">${s}</div>`).join('') +
+      mid.map((s) => `<div class="itemStat">${trStat(s)}</div>`).join('') +
       buyHtml;
     shopGridEl.appendChild(card);
   });
@@ -9815,14 +9892,45 @@ document.getElementById('weaponDamageSlider').addEventListener('input', (e) => {
   rebuildWeaponPreview();
 });
 
-Object.entries(SHOP_DATA).forEach(([key, { label }]) => {
+Object.entries(SHOP_DATA).forEach(([key, { label, labelEn }]) => {
   const btn = document.createElement('button');
   btn.className = 'shopTab';
   btn.dataset.key = key;
-  btn.textContent = label;
+  btn.dataset.i18nHe = label;
+  btn.dataset.i18nEn = labelEn || label;
+  btn.textContent = uiLang === 'en' ? (labelEn || label) : label;
   btn.addEventListener('click', () => renderShopCategory(key));
   shopTabsEl.appendChild(btn);
 });
+
+// ---------- שפה (⚙️ הגדרות → 🌐) ----------
+// מעדכנת כל אלמנט עם data-i18n-he/en (תוויות סטטיות), את כפתור השפה עצמו,
+// ואת המסכים הדינמיים שכבר פתוחים (חנות/כפתור מצב-קרב) כדי שהתרגום ייכנס
+// לתוקף מיד בלי לצאת וליכנס מחדש למסך.
+function applyLanguage() {
+  document.querySelectorAll('[data-i18n-he]').forEach((el) => {
+    el.textContent = uiLang === 'en' ? el.dataset.i18nEn : el.dataset.i18nHe;
+  });
+  const langBtn = document.getElementById('languageToggleBtn');
+  langBtn.textContent = uiLang === 'en'
+    ? '🌐 Language: English (click for Hebrew)'
+    : '🌐 שפה: עברית (לחץ בשביל אנגלית)';
+  [...shopTabsEl.children].forEach((btn) => {
+    btn.textContent = uiLang === 'en' ? btn.dataset.i18nEn : btn.dataset.i18nHe;
+  });
+  const activeTab = shopTabsEl.querySelector('.shopTab.active');
+  if (uiScreen === 'shop' && activeTab) renderShopCategory(activeTab.dataset.key);
+  updateModeLabel();
+}
+
+document.getElementById('settingsBtn').addEventListener('click', () => showScreen('settings'));
+document.getElementById('settingsBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('languageToggleBtn').addEventListener('click', () => {
+  uiLang = uiLang === 'en' ? 'he' : 'en';
+  localStorage.setItem('battleGameLang', uiLang);
+  applyLanguage();
+});
+applyLanguage();   // מציג את המצב הנכון כבר מהטעינה הראשונה (כולל אם uiLang נטען מ-localStorage כ-'en')
 
 lobbyBtnEl.addEventListener('click', () => {
   // אחרי קרב מפלצת הרפתקה חוזרים למערה/לאי, לא ללובי - ראה returnToCave/returnToIsland.
