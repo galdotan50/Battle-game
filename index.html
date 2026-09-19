@@ -5406,6 +5406,49 @@ const LUSTER_CFG = {
   boots: null,
 };
 
+// מגרון (רמה 11) - אויב חדש שהעיצוב שלו נבחר לגמרי על ידי (בקשת המשתמש:
+// "אתה תבחר איך הם יראו"). יצור געשי-אבן: עור שחור-אבן (סדקי לבה כתומים
+// זוהרים - cfg.glowDotsSkin, אותו מנגנון של מוקרוט אבל בגוונים הפוכים
+// לגמרי: כתום-על-שחור במקום בהיר-על-סגול, כדי שלא יראה כמו "אותה דמות").
+// קרניים וקוצי-אבן שחורים מעל הראש (cfg.backHorns/cfg.headCrystals,
+// כמו פראנק - קוצים לא-זוהרים, "אבן חדה" ולא קריסטל).
+const MAGRON_CFG = {
+  power: 10.6, speed: 8.5,
+  skin: 0x1c1a1a,
+  glowDotsSkin: true, glowDotsColor: 0xff5a1a,
+  bald: true,
+  eyeColor: 0xff5a1a,
+  glowEyes: true,
+  ears: 'pointed',
+  backHorns: true, hornColor: 0x0d0c0c,
+  mouthTeeth: { count: 5 },
+  headCrystals: true, crystalColor: 0x2a2726,
+  top: null,
+  pants: null,
+  boxers: 0x141212,
+  boots: null,
+};
+
+// זרקון (רמה 12, האחרון) - אויב שני שהעיצוב שלו גם נבחר לגמרי על ידי.
+// "רוח סערה": עור חיוור-כחלחל, שיער דוקרני לבן, עיניים בצורת ברק זוהר
+// תכלת (cfg.boltEyes - אותה יכולת בדיוק שנבנתה בשביל סינזר, כאן בגוון
+// קר לגמרי שונה מהזהב שלו), טפרים חדים, וג'קט קרוע קצר.
+const ZARKON_CFG = {
+  power: 11.2, speed: 10,
+  skin: 0xdbe6f0,  skinTex: true,
+  hair: 0xf0f4f8,  hairTex: true,
+  hairStyle: 'spiky',
+  eyeColor: 0x8fd8ff,
+  boltEyes: true, boltEyeColor: '#8fd8ff',
+  ears: 'pointed',
+  claws: true, clawColor: 0x3a4a5a,
+  jacket: 0x1a2530, jacketStripes: [],
+  jacketHem: 0.40, sleeveLen: 0.20,
+  pants: 0x141b22,
+  pantsLength: 0.30, shorts: true,
+  boots: null,
+};
+
 // רשימת האויבים לפי רמות. `enemy` הוא let (כמו player) כדי שאפשר יהיה
 // להחליף אותו בין קרבות - ראה switchEnemy למטה.
 const ENEMY_LEVELS = [
@@ -5419,6 +5462,8 @@ const ENEMY_LEVELS = [
   { name: 'קולין',     cfg: COLIN_CFG,     hp: 325 },
   { name: 'מוקרוט',    cfg: MUKROT_CFG,    hp: 380 },
   { name: 'לוסטר',     cfg: LUSTER_CFG,    hp: 440 },
+  { name: 'מגרון',     cfg: MAGRON_CFG,    hp: 500 },
+  { name: 'זרקון',     cfg: ZARKON_CFG,    hp: 570 },
 ];
 let enemyLevel = 0;
 let enemy = makeFighter(ENEMY_LEVELS[0].cfg, 1.7, -1, ENEMY_LEVELS[0].hp);
@@ -5722,6 +5767,69 @@ const LEWIN_CFG = {
   pants: null,
   boxers: null,
   boots: 0x9aa0a6,
+};
+
+// טיגרו - דמות חדשה שהמשתמש ביקש שהעיצוב שלה יהיה כולו החלטה שלי (לא
+// תיאור מהאפיון ולא מהמשתמש). לוחם-נמר: פרווה כתומה עם פסי נמר שחורים
+// על כל הגוף (cfg.mottledSkin, בדיוק אותו מנגנון שכבר קיים משימוש בסלייקי/
+// פראנק - רק בגוונים אחרים לגמרי כדי שלא יראה כמו "אותה דמות בצבע אחר"),
+// אוזני/זנב/שפמי חתול (מברטו) בגוון כתום תואם, ובטן קוביות. יקר ומהיר
+// יותר מכל 11 הדמויות המקוריות - מטרת-ביניים חדשה אחרי שקונים את כולן.
+const TIGRO_CFG = {
+  power: 9.4, speed: 10.5,
+  skin: 0xe08a3a,
+  mottledSkin: true, mottledColor2: 0x1c1712,
+  hair: 0x1c1712,  hairTex: true,
+  hairStyle: 'spiky',
+  eyeColor: 0xf2c94c,
+  ears: 'pointed',
+  catEars: true,
+  catFurColor: 0xe08a3a,
+  catTail: true,
+  tailStripeColor: 0x1c1712,
+  tailLength: 1.2,
+  whiskers: true,
+  abs: true,
+  top: null,
+  pants: null,
+  boxers: 0x1c1712,
+  boots: null,
+};
+
+// אסטרו - דמות שנייה שהעיצוב שלה נבחר לגמרי על ידי (בקשת המשתמש: "אתה
+// תבחר איך הם יראו"). "טייס-חלל": חליפה מבריקה כחולה (cfg.crystalSkin,
+// אותו חומר שנותן ללוין את מראה "חליפת הברזל" - כאן בגוון כחול שונה
+// לגמרי), כיפת זכוכית שקופה על הראש (cfg.glassDome, כמו לוין) אבל בלי
+// מסכה מתחתיה, עיניים זהובות-זוהרות, ליבת אנרגיה זהובה-כתומה בחזה
+// (cfg.chestGem) ומגפיים תואמים. הדמות הכי חזקה בחנות הרגילה (לא כולל
+// דמויות/בוסים של איוונט) - חורגת קצת מ-10/10 בכוונה, כמו שכבר קורה
+// בטבלת הכוח/מהירות (ראה game-spec.md).
+// ⚠️ שני ניסיונות קודמים נכשלו ברינדור (לא רק בקריאת קוד - שוב מוכיח את
+// "לרנדר, לא לנחש"): קודם חליפה כמעט-לבנה עם "ג'טפאק" (cfg.turtleShell,
+// ממוחזר מפראנק) שיצא ברינדור כמו בובה שטוחה עם גוש חום לא ברור על הכתף -
+// turtleShell לא מתאים בכלל למראה של ג'טפאק, הוסר לגמרי. ואז נוסתה חליפה
+// כתומה-בוהקת בלי הג'טפאק - אבל כתום עדיין *בתוך* טווח גווני העור
+// הטבעיים, אז זה פשוט נראה כמו "אדם עם עור כתום/שזוף", לא כמו חליפה בכלל
+// (בדיוק כמו שכל שאר הדמויות עם skin רגיל נראות). הפתרון שעבד: cfg.skin
+// חייב להיות צבע שלא מתפרש כעור בשום צורה (כחול, בדיוק כמו שעור כחול של
+// בו כבר קורא כ"יצור/חליפה" ולא כעור אנושי) - הכחול-הזוהר קורא כחליפת-
+// חלל מתכתית, עם זהב-כתום לניגוד (עיניים, ליבת אנרגיה, מגפיים) שבולט עליו.
+const ASTRO_CFG = {
+  power: 10.6, speed: 9.3,
+  skin: 0x2f6fe0,
+  crystalSkin: true,
+  bald: true,
+  eyeColor: 0xffe066,
+  glowEyes: true,
+  ears: 'round',
+  glassDome: true,
+  domeColor: 0xbfe8ff,
+  chestGem: true,
+  chestGemColor: 0xffb020,
+  top: null,
+  pants: null,
+  boxers: null,
+  boots: 0xffb020,
 };
 
 // סינזר - דמות איוונט (game-spec.md סעיף 14, "כוח 15/10, מהירות 15/10,
@@ -8086,6 +8194,7 @@ const CHARACTER_CFGS = {
   'סווארק': SVAROK_CFG, "ג'ני": JENNY_CFG, 'ברייק': BRAKE_CFG, 'לורד': LORD_CFG,
   'פלייטי': PLAYTY_CFG, 'ליזי': LIZZY_CFG, 'ברטו': BERTO_CFG, 'סטנבר': STANBER_CFG,
   'סלייקי': SLAIKY_CFG, 'קיטי': KITTY_CFG, 'לוין': LEWIN_CFG,
+  'טיגרו': TIGRO_CFG, 'אסטרו': ASTRO_CFG,
   'סינזר': SINZER_CFG, 'פראנק': FRANK_CFG,
 };
 
@@ -8521,6 +8630,8 @@ const SHOP_DATA = {
     ['סלייקי', 'כוח 9.2/10', 'מהירות 10/10', '300₪'],
     ['קיטי', 'כוח 9.5/10', 'מהירות 9.9/10', '370₪'],
     ['לוין', 'כוח 10/10', 'מהירות 10/10', '750₪'],
+    ['טיגרו', 'כוח 9.4/10', 'מהירות 10.5/10', '850₪'],
+    ['אסטרו', 'כוח 10.6/10', 'מהירות 9.3/10', '1000₪'],
     ['סינזר', 'כוח 15/10', 'מהירות 15/10', '200₪'],
     ['פראנק', 'כוח 15/10', 'מהירות 15/10', '200₪'],
   ]},
