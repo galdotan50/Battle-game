@@ -9427,6 +9427,32 @@ let cloudUser = null;
 // במסך הגיפט (ראה למטה). נשמר על אותו מסמך players/{uid}, לא בנפרד.
 let myUsername = '';
 
+// ⚠️ באג שנמצא ב-2026-09-19 (אבא ניסה להתנתק ולהתחבר עם חשבון גוגל אחר
+// כדי לבדוק גיפטים בין שני שחקנים באותו דפדפן): בלי המנגנון הזה, המצב
+// שנטען מהחשבון הקודם (כסף/מלאי/שם משתמש וכו') נשאר בזיכרון ולא מתאפס -
+// אז חשבון חדש "יורש" בטעות נתונים של החשבון הקודם, ומסך "בחר שם משתמש"
+// לא מופיע אם לחשבון הקודם כבר היה שם. `lastCloudUid` זוכר איזה חשבון
+// נטען לאחרונה, כדי לזהות מעבר בין חשבונות (לא רק login ראשוני).
+let lastCloudUid = null;
+
+function resetLocalPlayerStateForAccountSwitch() {
+  money = 0;
+  inventory.clear();
+  inventory.add('characters:סווארק');
+  inventory.add('weapons:אבן חדה');
+  Object.keys(characterLevels).forEach((k) => delete characterLevels[k]);
+  wins = 0;
+  losses = 0;
+  myUsername = '';
+  // switchPlayerCharacter/switchPlayerWeapon כותבות saveCloudState() בעצמן -
+  // cloudUser כבר null בשלב הזה (ראה onAuthStateChanged למטה) כדי שזה לא
+  // יכתוב בטעות מצב-איפוס לחשבון הקודם או לחשבון החדש לפני שנטען בפועל.
+  switchPlayerCharacter('סווארק');
+  switchPlayerWeapon('אבן חדה');
+  switchEnemy(0);
+  updateMoneyUI();
+}
+
 function buildCloudState() {
   return {
     money, inventory: [...inventory], characterLevels,
@@ -9477,6 +9503,11 @@ function updateCloudUI() {
 }
 
 onAuthStateChanged(auth, async (user) => {
+  if (user && lastCloudUid && user.uid !== lastCloudUid) {
+    cloudUser = null;   // חוסם כתיבות-בטעות תוך כדי האיפוס, ראה ההערה על resetLocalPlayerStateForAccountSwitch
+    resetLocalPlayerStateForAccountSwitch();
+  }
+  lastCloudUid = user ? user.uid : lastCloudUid;   // לא מתאפס ב-signOut - כדי לזהות "חשבון אחר" גם דרך signOut ביניים
   cloudUser = user;
   updateCloudUI();
   if (!user) return;
@@ -10437,6 +10468,10 @@ window.game = {
   get giftMode() { return giftMode; }, set giftMode(v) { giftMode = v; },
   get giftViewingUid() { return giftViewingUid; }, set giftViewingUid(v) { giftViewingUid = v; },
   get giftViewingData() { return giftViewingData; }, set giftViewingData(v) { giftViewingData = v; },
+  resetLocalPlayerStateForAccountSwitch,
+  get lastCloudUid() { return lastCloudUid; }, set lastCloudUid(v) { lastCloudUid = v; },
+  get selectedCharacterName() { return selectedCharacterName; },
+  get selectedWeaponName() { return selectedWeaponName; },
 };
 </script>
 </body>
