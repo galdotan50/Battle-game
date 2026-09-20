@@ -451,6 +451,45 @@
     cursor: pointer;
   }
 
+  /* ---------- "קרב מול חבר" שלב 2: HUD בזמן תנועה משותפת (זהה במבנה ל-sumoHud) ---------- */
+  #friendArenaHud {
+    display: none;
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 45;
+    text-align: center;
+  }
+  #friendArenaHud.show { display: block; }
+  #friendArenaTitle {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 8px 20px;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  #friendArenaInstructions {
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 8px 20px;
+    color: #fff;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+  }
+  #friendArenaExitBtn {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+  }
+
   #treasureFoundOverlay {
     display: none;
     position: fixed;
@@ -979,6 +1018,12 @@
 <div id="sumoHud">
   <div id="sumoInstructions" data-i18n-he="↑ להתקדם ולדחוף &nbsp;·&nbsp; ↓ אחורה &nbsp;·&nbsp; ← → לפנייה &nbsp;·&nbsp; תדחוף את היריב מחוץ לעיגול!" data-i18n-en="↑ Advance and push &nbsp;·&nbsp; ↓ Back away &nbsp;·&nbsp; ← → Turn &nbsp;·&nbsp; Push your opponent out of the circle!">↑ להתקדם ולדחוף &nbsp;·&nbsp; ↓ אחורה &nbsp;·&nbsp; ← → לפנייה &nbsp;·&nbsp; תדחוף את היריב מחוץ לעיגול!</div>
   <button id="sumoExitBtn" data-i18n-he="⬅ יציאה ללובי" data-i18n-en="⬅ Exit to lobby">⬅ יציאה ללובי</button>
+</div>
+
+<div id="friendArenaHud">
+  <div id="friendArenaTitle"></div>
+  <div id="friendArenaInstructions" data-i18n-he="← → לזוז &nbsp;·&nbsp; זה שלב 2 - רק תנועה, עדיין בלי מכות 😊" data-i18n-en="← → to move &nbsp;·&nbsp; this is step 2 - movement only, no hits yet 😊">← → לזוז &nbsp;·&nbsp; זה שלב 2 - רק תנועה, עדיין בלי מכות 😊</div>
+  <button id="friendArenaExitBtn" data-i18n-he="⬅ יציאה" data-i18n-en="⬅ Exit">⬅ יציאה</button>
 </div>
 
 <div id="treasureFoundOverlay">
@@ -7006,6 +7051,8 @@ const matchEl = document.getElementById('matchOverlay');
 const caveHudEl = document.getElementById('caveHud');
 const caveInstructionsEl = document.getElementById('caveInstructions');
 const sumoHudEl = document.getElementById('sumoHud');
+const friendArenaHudEl = document.getElementById('friendArenaHud');
+const friendArenaTitleEl = document.getElementById('friendArenaTitle');
 const teamSizeEl = document.getElementById('teamSizeOverlay');
 const teamHpRowEl = document.getElementById('teamHpRow');
 const shopTabsEl = document.getElementById('shopTabs');
@@ -7040,7 +7087,11 @@ function showScreen(name) {
   const wasInForest = uiScreen === 'zombieForest';
   const wasInSumo = uiScreen === 'sumo';
   const wasInTeamBattle = uiScreen === 'teamBattle';
-  const wasInMatch = uiScreen === 'match';
+  // 'match' (חדר ההמתנה) ו-'friendArena' (שלב 2 - תנועה משותפת) חולקים
+  // את אותו מאזין Firestore (activeMatchUnsub) - הוא ממשיך לרוץ במעבר
+  // ביניהם (בזירה הוא זה שמביא את מיקום החבר), ונסגר רק כשעוזבים את שניהם.
+  const wasInMatchFlow = uiScreen === 'match' || uiScreen === 'friendArena';
+  const wasInFriendArena = uiScreen === 'friendArena';
   uiScreen = name;
   lobbyEl.classList.toggle('show', name === 'lobby');
   shopEl.classList.toggle('show', name === 'shop');
@@ -7053,10 +7104,17 @@ function showScreen(name) {
   giftEl.classList.toggle('show', name === 'gift');
   friendsEl.classList.toggle('show', name === 'friends');
   matchEl.classList.toggle('show', name === 'match');
-  // עוזבים את מסך "קרב מול חבר" בלי ללחוץ על "ביטול" (למשל אם ילחצו
-  // בהמשך על כפתור אחר) - מפסיקים להאזין ל-Firestore כדי לא לדלוף
-  // מאזין פעיל, אבל לא מוחקים את מסמך הקרב (רק הכפתור "ביטול" עושה את זה).
-  if (wasInMatch && name !== 'match' && activeMatchUnsub) { activeMatchUnsub(); activeMatchUnsub = null; }
+  friendArenaHudEl.classList.toggle('show', name === 'friendArena');
+  // עוזבים את "קרב מול חבר" (חדר ההמתנה או הזירה) בלי ללחוץ על "ביטול" -
+  // מפסיקים להאזין ל-Firestore כדי לא לדלוף מאזין פעיל, אבל לא מוחקים
+  // את מסמך הקרב (רק כפתורי היציאה המפורשים עושים את זה).
+  if (wasInMatchFlow && name !== 'match' && name !== 'friendArena' && activeMatchUnsub) {
+    activeMatchUnsub(); activeMatchUnsub = null;
+  }
+  if (wasInFriendArena && name !== 'friendArena') {
+    if (friendPosSendTimer) { clearInterval(friendPosSendTimer); friendPosSendTimer = null; }
+    if (friendFighter) friendFighter.group.visible = false;
+  }
   caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater' || name === 'zombieForest');
   sumoHudEl.classList.toggle('show', name === 'sumo');
   teamSizeEl.classList.toggle('show', name === 'teamSize');
@@ -7148,6 +7206,17 @@ function showScreen(name) {
     player.forceWeaponVisible = false;
     if (previewFighter) previewFighter.group.visible = false;
     if (!wasInTeamBattle) enterTeamBattle();
+  } else if (name === 'friendArena') {
+    // "קרב מול חבר" שלב 2 - מסתירים את ה-enemy הרגיל של הזירה (לא חלק
+    // ממצב הזה), ומראים את player + friendFighter. שלא כמו sumo/teamBattle,
+    // friendFighter כבר נבנה על ידי enterFriendArena *לפני* הקריאה הזו -
+    // כאן רק קובעים נראות ומצלמה.
+    enemy.group.visible = false;
+    player.group.visible = true;
+    if (friendFighter) friendFighter.group.visible = true;
+    if (previewFighter) previewFighter.group.visible = false;
+    camera.position.copy(BATTLE_CAM.pos);
+    camera.lookAt(BATTLE_CAM.look);
   } else {
     enemy.group.visible = true;
     player.group.visible = true;
@@ -9930,10 +9999,9 @@ document.getElementById('openFriendsBtn').addEventListener('click', openFriendsS
 document.getElementById('friendsBackBtn').addEventListener('click', () => showScreen('settings'));
 
 // ============================================================================
-//  קרב מול חבר - שלב 1: הזמנה + "חדר המתנה" משותף שמראה שהחיבור בזמן
-//  אמת בין שני דפדפנים עובד. עדיין *בלי* קרב אמיתי (זה יגיע בשלב הבא) -
-//  המטרה של השלב הזה היא רק לוודא שהיסוד (שני דפדפנים "רואים" אחד את
-//  השני דרך אותו מסמך בענן) עובד, לפני שבונים עליו את הקרב המלא.
+//  קרב מול חבר - שלב 1 (הזמנה + "חדר המתנה" שמוכיח שהחיבור בזמן אמת
+//  עובד) + שלב 2 (רואים את הדמות של החבר זזה בזירה, עדיין בלי מכות).
+//  שלב 3 (קרב מלא) יגיע בהמשך.
 //
 //  ⚠️ החלטה טכנית (עם אבא, לפי הכלל הקבוע): לא נבנה שרת חדש - ממשיכים
 //  עם אותו דפוס שכבר קיים בגיפטים/חברים (Firestore בלבד, בלי Cloud
@@ -9943,11 +10011,28 @@ document.getElementById('friendsBackBtn').addEventListener('click', () => showSc
 //  ה-uid-ים הממוינים ומחוברים במקף-תחתון - כך ששני הצדדים מחשבים בדיוק
 //  אותו מזהה בלי לשאול אחד את השני. אותו סיכון-אמון כמו בגיפטים (בלי
 //  שרת שופט, מי שפותח devtools יכול "לרמות" - מקובל למשחק בין חברים).
+//
+//  שלב 2: אותו מסמך `matches/{matchId}` מקבל גם שדה `pos` - מפה
+//  uid → {x, mv} שכל צד כותב **רק לעצמו** (`updateDoc` עם נתיב-נקודה
+//  `pos.<uid>`, כל 100ms - לא בכל פריים, כדי לא להציף את פיירסטור
+//  בכתיבות). ה-`onSnapshot` הקיים כבר מהשלב הקודם ממשיך לרוץ (לא נפתח
+//  מאזין נוסף) - הוא זה שמביא את מיקום החבר בזמן אמת. `friendFighter`
+//  הוא דמות שלישית (לא `enemy` - כדי לא לגעת בכלל בסולם האויבים/הקרב
+//  הרגיל), נבנית לפי `selectedCharacterName` שנקרא ממסמך השחקן של החבר.
+//  התזוזה שלו על המסך לא "קופצת" למיקום החדש - `updateFriendArena`
+//  מחליקה אליו (אותו רעיון exponential smoothing שכל שאר האנימציות
+//  בפרויקט כבר משתמשות בו), כדי לטשטש עיכובי רשת קטנים.
 // ============================================================================
 
 const matchContentEl = document.getElementById('matchContent');
 let activeMatchId = null;
 let activeMatchUnsub = null;
+let activeOpponentUid = null;
+
+let friendFighter = null;
+let friendPosSendTimer = null;
+let remoteTargetX = 1.7;
+let remoteMv = 0;
 
 function computeMatchId(uidA, uidB) { return [uidA, uidB].sort().join('_'); }
 
@@ -9969,7 +10054,7 @@ async function inviteToBattle(friendUid, friendUsername) {
       fromUsername: myUsername, matchId, createdAt: serverTimestamp(),
     });
   } catch (e) { console.error('שליחת הזמנה לקרב נכשלה:', e); showShieldToast(T('שליחת ההזמנה נכשלה.', 'Sending the invite failed.')); openFriendsScreen(); return; }
-  openMatchScreen(matchId, friendUsername);
+  openMatchScreen(matchId, friendUid, friendUsername);
 }
 
 // המוזמן: מסמן את עצמו "מוכן" במסמך הקרב (updateDoc עם נתיב-נקודה,
@@ -9986,30 +10071,121 @@ async function joinBattleInvite(fromUid, fromUsername, matchId) {
     openFriendsScreen();
     return;
   }
-  openMatchScreen(matchId, fromUsername);
+  openMatchScreen(matchId, fromUid, fromUsername);
 }
 
-// חדר ההמתנה: מאזין (onSnapshot) למסמך הקרב המשותף, ומציג "מחובר!" ברגע
-// ששני ה-uid-ים מסומנים ready - זה השלב שמוכיח שהחיבור בזמן אמת עובד.
-function openMatchScreen(matchId, opponentUsername) {
+// חדר ההמתנה: מאזין (onSnapshot) למסמך הקרב המשותף. ברגע ששני ה-uid-ים
+// מסומנים ready - מציג "מחוברים!" לרגע, ואז עובר לבד לזירה (שלב 2).
+// אחרי המעבר, אותו מאזין ממשיך לרוץ ומעדכן את `remoteTargetX`/`remoteMv`
+// בכל פעם שהחבר כותב מיקום חדש - זה מה שמזיז את friendFighter בזירה.
+function openMatchScreen(matchId, opponentUid, opponentUsername) {
   if (activeMatchUnsub) { activeMatchUnsub(); activeMatchUnsub = null; }
   activeMatchId = matchId;
+  activeOpponentUid = opponentUid;
+  let enteredArena = false;
   showScreen('match');
   matchContentEl.innerHTML = `<div class="itemStat">⏳ ${T('מחכה ל-', 'Waiting for ')}${opponentUsername}...</div>`;
   activeMatchUnsub = onSnapshot(doc(db, 'matches', matchId), (snap) => {
     if (!snap.exists()) return;
     const data = snap.data();
     const bothReady = data.ready && (data.uids || []).every((u) => data.ready[u]);
-    matchContentEl.innerHTML = bothReady
-      ? `<div class="itemStat">✅ ${T('שניכם מחוברים!', 'You are both connected!')}</div>` +
-        `<div class="itemStat">👤 ${myUsername} ${T('מול', 'vs')} 👤 ${opponentUsername}</div>` +
-        `<div class="itemStat" style="opacity:0.7;">${T('הקרב עצמו יגיע בשלב הבא - זה היה רק שלב 1 😊', "The actual battle is coming in the next step - this was just step 1 😊")}</div>`
-      : `<div class="itemStat">⏳ ${T('מחכה ל-', 'Waiting for ')}${opponentUsername}...</div>`;
+    if (uiScreen === 'match') {
+      matchContentEl.innerHTML = bothReady
+        ? `<div class="itemStat">✅ ${T('שניכם מחוברים!', 'You are both connected!')}</div>` +
+          `<div class="itemStat">👤 ${myUsername} ${T('מול', 'vs')} 👤 ${opponentUsername}</div>` +
+          `<div class="itemStat" style="opacity:0.7;">${T('נכנסים לזירה...', 'Entering the arena...')}</div>`
+        : `<div class="itemStat">⏳ ${T('מחכה ל-', 'Waiting for ')}${opponentUsername}...</div>`;
+    }
+    if (bothReady && !enteredArena) {
+      enteredArena = true;
+      setTimeout(() => enterFriendArena(opponentUid, opponentUsername), 1200);
+    }
+    const remotePos = data.pos && data.pos[opponentUid];
+    if (remotePos && typeof remotePos.x === 'number') {
+      remoteTargetX = remotePos.x;
+      remoteMv = remotePos.mv || 0;
+    }
   }, (e) => { console.error('מעקב אחרי הקרב נכשל:', e); });
+}
+
+// שלב 2: בונים את friendFighter לפי הדמות שהחבר משתמש בה עכשיו (קוראים
+// את selectedCharacterName ממסמך השחקן שלו - מותר לפי כלל "כל שחקן קורא
+// את כולם"), ומתחילים לשלוח את המיקום שלנו כל 100ms.
+async function enterFriendArena(opponentUid, opponentUsername) {
+  let cfg = CHARACTER_CFGS['סווארק'];
+  try {
+    // תקרת זמן: אם החיבור איטי/תקוע, לא נשאיר את שני הילדים תקועים על
+    // "נכנסים לזירה..." לנצח - אחרי 4 שניות נכנסים בכל זאת עם דמות ברירת
+    // המחדל (סווארק), במקום לחכות בלי סוף לתשובה מפיירסטור.
+    const snap = await Promise.race([
+      getDoc(doc(db, 'players', opponentUid)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000)),
+    ]);
+    const name = snap.exists() ? snap.data().selectedCharacterName : null;
+    if (name && CHARACTER_CFGS[name]) cfg = CHARACTER_CFGS[name];
+  } catch (e) { console.error('טעינת דמות החבר נכשלה (או לקח יותר מדי זמן) - נכנסים עם דמות ברירת מחדל:', e); }
+
+  if (uiScreen !== 'match') return;   // יצאו בינתיים (לחצו "ביטול") - לא נכנסים בכל זאת
+
+  if (friendFighter) {
+    if (friendFighter.group.parent) friendFighter.group.parent.remove(friendFighter.group);
+    friendFighter.group.traverse((o) => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) o.material.dispose();
+    });
+  }
+  friendFighter = makeFighter(cfg, 1.7, -1, 100);
+  remoteTargetX = friendFighter.x;
+  remoteMv = 0;
+
+  player.x = -1.7;
+  player.facing = 1;
+  player.group.position.x = battleAnchorX + player.x;
+  player.action = null; player.actionT = 0; player.blocking = false;
+  player.knockVel = 0; player.down = false; player.staggerT = 0;
+
+  friendArenaTitleEl.textContent = '🕹️ ' + myUsername + ' ' + T('מול', 'vs') + ' ' + opponentUsername;
+
+  showScreen('friendArena');
+
+  if (friendPosSendTimer) clearInterval(friendPosSendTimer);
+  friendPosSendTimer = setInterval(() => {
+    if (!cloudUser || !activeMatchId) return;
+    updateDoc(doc(db, 'matches', activeMatchId), { [`pos.${cloudUser.uid}`]: { x: player.x, mv: player.mv } })
+      .catch((e) => console.error('שליחת מיקום נכשלה:', e));
+  }, 100);
+}
+
+// כל פריים בזירה: השחקן המקומי זז רגיל לפי החיצים (בלי מכות - A/S/W לא
+// נבדקים בכלל בשלב הזה), friendFighter מוחלק (lerp) למיקום האחרון שהתקבל
+// מהחבר - כדי שעיכובי רשת קטנים לא ייראו כ"קפיצות".
+function updateFriendArena(dt, t) {
+  player.mv = (KEYS.ArrowRight ? 1 : 0) - (KEYS.ArrowLeft ? 1 : 0);
+  moveFighter(player, friendFighter || { x: 1.7 }, dt);
+
+  if (friendFighter) {
+    friendFighter.mv = remoteMv;
+    const smoothed = friendFighter.x + (remoteTargetX - friendFighter.x) * Math.min(1, dt * 10);
+    friendFighter.x = Math.max(-EDGE, Math.min(EDGE, smoothed));
+    friendFighter.group.position.x = battleAnchorX + friendFighter.x;
+    if (friendFighter.mv !== 0) friendFighter.phase += dt * 8.5 * (friendFighter.mv * friendFighter.facing > 0 ? 1 : -1);
+  }
+
+  poseFighter(player, t, dt);
+  if (friendFighter) poseFighter(friendFighter, t, dt);
 }
 
 document.getElementById('matchLeaveBtn').addEventListener('click', () => {
   if (activeMatchUnsub) { activeMatchUnsub(); activeMatchUnsub = null; }
+  const matchId = activeMatchId;
+  activeMatchId = null;
+  if (matchId) deleteDoc(doc(db, 'matches', matchId)).catch((e) => console.error('מחיקת מסמך הקרב נכשלה:', e));
+  openFriendsScreen();
+});
+
+document.getElementById('friendArenaExitBtn').addEventListener('click', () => {
+  if (activeMatchUnsub) { activeMatchUnsub(); activeMatchUnsub = null; }
+  if (friendPosSendTimer) { clearInterval(friendPosSendTimer); friendPosSendTimer = null; }
   const matchId = activeMatchId;
   activeMatchId = null;
   if (matchId) deleteDoc(doc(db, 'matches', matchId)).catch((e) => console.error('מחיקת מסמך הקרב נכשלה:', e));
@@ -10652,6 +10828,8 @@ function animate() {
     updateSumo(dt, t);
   } else if (uiScreen === 'teamBattle') {
     updateTeamBattle(dt, t);
+  } else if (uiScreen === 'friendArena') {
+    updateFriendArena(dt, t);
   } else {
     // poseFighter חייבת לרוץ בכל מסך (לובי, חנות, מסך ניצחון/הפסד) ולא רק
     // בקרב - היא זו שמדליקה את הנשק ביד (f.forceWeaponVisible) ומריצה את
@@ -10787,6 +10965,10 @@ window.game = {
   openFriendsScreen, renderFriendsScreen, sendFriendRequest, acceptFriendRequest,
   inviteToBattle, joinBattleInvite, openMatchScreen, computeMatchId,
   get activeMatchId() { return activeMatchId; },
+  enterFriendArena, updateFriendArena,
+  get friendFighter() { return friendFighter; },
+  get remoteTargetX() { return remoteTargetX; }, set remoteTargetX(v) { remoteTargetX = v; },
+  get remoteMv() { return remoteMv; }, set remoteMv(v) { remoteMv = v; },
 };
 </script>
 </body>
