@@ -352,7 +352,7 @@
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -364,8 +364,8 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show, #matchOverlay.show { display: flex; }
   #teamSizeOverlay .bigBtn { font-size: 1.2rem; padding: 18px 46px; margin: 10px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
   #teamSizeOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #teamSizeBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
@@ -953,6 +953,12 @@
   <button id="friendsBackBtn" data-i18n-he="⬅ חזרה להגדרות" data-i18n-en="⬅ Back to settings">⬅ חזרה להגדרות</button>
 </div>
 
+<div id="matchOverlay">
+  <div class="screenTitle" data-i18n-he="⚔️ קרב מול חבר" data-i18n-en="⚔️ Battle a friend">⚔️ קרב מול חבר</div>
+  <div id="matchContent"></div>
+  <button id="matchLeaveBtn" data-i18n-he="⬅ ביטול" data-i18n-en="⬅ Cancel">⬅ ביטול</button>
+</div>
+
 <div id="adventureOverlay">
   <div class="screenTitle" data-i18n-he="🗺️ הרפתקה" data-i18n-en="🗺️ Adventure">🗺️ הרפתקה</div>
   <div style="max-width:500px; text-align:center; margin-bottom:26px; opacity:0.85; font-size:1.05rem;" data-i18n-he="בכל עולם מוסתר אוצר עם הרבה כסף - תחפש אותו!" data-i18n-en="A treasure with lots of money is hidden in every world - go find it!">
@@ -1077,7 +1083,7 @@ import * as THREE from 'three';
 // ההגנה האמיתית היא חוקי האבטחה של Firestore, לא הסתרת הקוד הזה.
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, getDocs, addDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, getDocs, addDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDQdlhNciuQatOhXY14gVfRA2osZX67CGk",
@@ -6996,6 +7002,7 @@ const lootSelectEl = document.getElementById('lootSelectOverlay');
 const settingsEl = document.getElementById('settingsOverlay');
 const giftEl = document.getElementById('giftOverlay');
 const friendsEl = document.getElementById('friendsOverlay');
+const matchEl = document.getElementById('matchOverlay');
 const caveHudEl = document.getElementById('caveHud');
 const caveInstructionsEl = document.getElementById('caveInstructions');
 const sumoHudEl = document.getElementById('sumoHud');
@@ -7033,6 +7040,7 @@ function showScreen(name) {
   const wasInForest = uiScreen === 'zombieForest';
   const wasInSumo = uiScreen === 'sumo';
   const wasInTeamBattle = uiScreen === 'teamBattle';
+  const wasInMatch = uiScreen === 'match';
   uiScreen = name;
   lobbyEl.classList.toggle('show', name === 'lobby');
   shopEl.classList.toggle('show', name === 'shop');
@@ -7044,6 +7052,11 @@ function showScreen(name) {
   settingsEl.classList.toggle('show', name === 'settings');
   giftEl.classList.toggle('show', name === 'gift');
   friendsEl.classList.toggle('show', name === 'friends');
+  matchEl.classList.toggle('show', name === 'match');
+  // עוזבים את מסך "קרב מול חבר" בלי ללחוץ על "ביטול" (למשל אם ילחצו
+  // בהמשך על כפתור אחר) - מפסיקים להאזין ל-Firestore כדי לא לדלוף
+  // מאזין פעיל, אבל לא מוחקים את מסמך הקרב (רק הכפתור "ביטול" עושה את זה).
+  if (wasInMatch && name !== 'match' && activeMatchUnsub) { activeMatchUnsub(); activeMatchUnsub = null; }
   caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater' || name === 'zombieForest');
   sumoHudEl.classList.toggle('show', name === 'sumo');
   teamSizeEl.classList.toggle('show', name === 'teamSize');
@@ -9790,14 +9803,16 @@ async function renderFriendsScreen() {
   if (!myUsername || editingUsername) { renderUsernameForm(friendsContentEl, renderFriendsScreen); return; }
 
   friendsContentEl.innerHTML = `<div class="itemStat">${T('⏳ טוען...', '⏳ Loading...')}</div>`;
-  let requests = [], friends = [];
+  let requests = [], friends = [], battleInvites = [];
   try {
-    const [reqSnap, friendSnap] = await Promise.all([
+    const [reqSnap, friendSnap, battleInviteSnap] = await Promise.all([
       getDocs(collection(db, 'players', cloudUser.uid, 'friendRequests')),
       getDocs(collection(db, 'players', cloudUser.uid, 'friends')),
+      getDocs(collection(db, 'players', cloudUser.uid, 'battleInvites')),
     ]);
     requests = reqSnap.docs.map((d) => ({ uid: d.id, ...d.data() }));
     friends = friendSnap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+    battleInvites = battleInviteSnap.docs.map((d) => ({ uid: d.id, ...d.data() }));
   } catch (e) {
     console.error('טעינת חברים נכשלה:', e);
     friendsContentEl.innerHTML = `<div class="itemStat">${T('שגיאה בטעינת החברים.', 'Error loading friends.')}</div>`;
@@ -9818,10 +9833,20 @@ async function renderFriendsScreen() {
     });
   }
 
+  if (battleInvites.length > 0) {
+    html += `<div class="itemStat" style="margin-top:10px; font-weight:bold;">${T('הזמנות לקרב', 'Battle invites')}</div>`;
+    battleInvites.forEach((inv) => {
+      html += `<div class="itemStat">🥊 ${inv.fromUsername} ${T('מזמין אותך לקרב!', 'invites you to battle!')} ` +
+        `<button class="bigBtn secondary matchJoinBtn" data-uid="${inv.uid}" data-username="${inv.fromUsername}" data-match="${inv.matchId}" style="font-size:0.8em; padding:4px 12px; margin-inline-start:8px;">${T('✅ הצטרף לקרב', '✅ Join battle')}</button>` +
+        `<button class="bigBtn secondary matchDeclineBtn" data-uid="${inv.uid}" style="font-size:0.8em; padding:4px 12px; margin-inline-start:6px;">${T('❌ דחה', '❌ Decline')}</button></div>`;
+    });
+  }
+
   html += `<div class="itemStat" style="margin-top:10px; font-weight:bold;">${T('החברים שלך', 'Your friends')}</div>`;
   html += friends.length === 0
     ? `<div class="itemStat">${T('עוד אין לך חברים.', "You don't have any friends yet.")}</div>`
-    : friends.map((f) => `<div class="itemStat">👤 ${f.username}</div>`).join('');
+    : friends.map((f) => `<div class="itemStat">👤 ${f.username} ` +
+        `<button class="bigBtn secondary matchInviteBtn" data-uid="${f.uid}" data-username="${f.username}" style="font-size:0.8em; padding:4px 12px; margin-inline-start:8px;">${T('⚔️ הזמן לקרב', '⚔️ Invite to battle')}</button></div>`).join('');
 
   friendsContentEl.innerHTML = html;
 
@@ -9849,6 +9874,26 @@ async function renderFriendsScreen() {
       btn.disabled = true;
       try { await deleteDoc(doc(db, 'players', cloudUser.uid, 'friendRequests', btn.dataset.uid)); }
       catch (e) { console.error('דחיית בקשת חברות נכשלה:', e); }
+      renderFriendsScreen();
+    });
+  });
+  friendsContentEl.querySelectorAll('.matchInviteBtn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.disabled = true;
+      inviteToBattle(btn.dataset.uid, btn.dataset.username);
+    });
+  });
+  friendsContentEl.querySelectorAll('.matchJoinBtn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.disabled = true;
+      joinBattleInvite(btn.dataset.uid, btn.dataset.username, btn.dataset.match);
+    });
+  });
+  friendsContentEl.querySelectorAll('.matchDeclineBtn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try { await deleteDoc(doc(db, 'players', cloudUser.uid, 'battleInvites', btn.dataset.uid)); }
+      catch (e) { console.error('דחיית הזמנת קרב נכשלה:', e); }
       renderFriendsScreen();
     });
   });
@@ -9883,6 +9928,93 @@ async function acceptFriendRequest(fromUid, fromUsername) {
 
 document.getElementById('openFriendsBtn').addEventListener('click', openFriendsScreen);
 document.getElementById('friendsBackBtn').addEventListener('click', () => showScreen('settings'));
+
+// ============================================================================
+//  קרב מול חבר - שלב 1: הזמנה + "חדר המתנה" משותף שמראה שהחיבור בזמן
+//  אמת בין שני דפדפנים עובד. עדיין *בלי* קרב אמיתי (זה יגיע בשלב הבא) -
+//  המטרה של השלב הזה היא רק לוודא שהיסוד (שני דפדפנים "רואים" אחד את
+//  השני דרך אותו מסמך בענן) עובד, לפני שבונים עליו את הקרב המלא.
+//
+//  ⚠️ החלטה טכנית (עם אבא, לפי הכלל הקבוע): לא נבנה שרת חדש - ממשיכים
+//  עם אותו דפוס שכבר קיים בגיפטים/חברים (Firestore בלבד, בלי Cloud
+//  Functions). כל צד כותב את המצב שלו למסמך משותף `matches/{matchId}`,
+//  והשני קורא אותו עם onSnapshot (מאזין בזמן אמת - Firestore שולח עדכון
+//  לכל מי שמאזין תוך כדי, בלי שצריך "לרענן" בעצמנו). matchId הוא שני
+//  ה-uid-ים הממוינים ומחוברים במקף-תחתון - כך ששני הצדדים מחשבים בדיוק
+//  אותו מזהה בלי לשאול אחד את השני. אותו סיכון-אמון כמו בגיפטים (בלי
+//  שרת שופט, מי שפותח devtools יכול "לרמות" - מקובל למשחק בין חברים).
+// ============================================================================
+
+const matchContentEl = document.getElementById('matchContent');
+let activeMatchId = null;
+let activeMatchUnsub = null;
+
+function computeMatchId(uidA, uidB) { return [uidA, uidB].sort().join('_'); }
+
+// המזמין: יוצר/מאפס את מסמך הקרב (targetUid עדיין לא מוכן - ready:false),
+// כותב הודעת-הזמנה בתיבה של החבר (בדיוק כמו friendRequests), ונכנס
+// בעצמו לחדר ההמתנה כדי לראות מתי החבר מצטרף.
+async function inviteToBattle(friendUid, friendUsername) {
+  if (!cloudUser) return;
+  const matchId = computeMatchId(cloudUser.uid, friendUid);
+  try {
+    await setDoc(doc(db, 'matches', matchId), {
+      uids: [cloudUser.uid, friendUid].sort(),
+      usernames: { [cloudUser.uid]: myUsername, [friendUid]: friendUsername },
+      hostUid: cloudUser.uid,
+      ready: { [cloudUser.uid]: true, [friendUid]: false },
+      createdAt: serverTimestamp(),
+    });
+    await setDoc(doc(db, 'players', friendUid, 'battleInvites', cloudUser.uid), {
+      fromUsername: myUsername, matchId, createdAt: serverTimestamp(),
+    });
+  } catch (e) { console.error('שליחת הזמנה לקרב נכשלה:', e); showShieldToast(T('שליחת ההזמנה נכשלה.', 'Sending the invite failed.')); openFriendsScreen(); return; }
+  openMatchScreen(matchId, friendUsername);
+}
+
+// המוזמן: מסמן את עצמו "מוכן" במסמך הקרב (updateDoc עם נתיב-נקודה,
+// ready.<uid>, כדי לעדכן רק את המפתח שלי בתוך המפה בלי לגעת בשל החבר),
+// מוחק את ההזמנה מהתיבה שלו, ונכנס לאותו חדר המתנה.
+async function joinBattleInvite(fromUid, fromUsername, matchId) {
+  if (!cloudUser) return;
+  try {
+    await updateDoc(doc(db, 'matches', matchId), { [`ready.${cloudUser.uid}`]: true });
+    await deleteDoc(doc(db, 'players', cloudUser.uid, 'battleInvites', fromUid));
+  } catch (e) {
+    console.error('הצטרפות לקרב נכשלה:', e);
+    showShieldToast(T('ההזמנה כבר לא בתוקף - בקש מהחבר להזמין שוב.', "The invite isn't valid anymore - ask your friend to invite you again."));
+    openFriendsScreen();
+    return;
+  }
+  openMatchScreen(matchId, fromUsername);
+}
+
+// חדר ההמתנה: מאזין (onSnapshot) למסמך הקרב המשותף, ומציג "מחובר!" ברגע
+// ששני ה-uid-ים מסומנים ready - זה השלב שמוכיח שהחיבור בזמן אמת עובד.
+function openMatchScreen(matchId, opponentUsername) {
+  if (activeMatchUnsub) { activeMatchUnsub(); activeMatchUnsub = null; }
+  activeMatchId = matchId;
+  showScreen('match');
+  matchContentEl.innerHTML = `<div class="itemStat">⏳ ${T('מחכה ל-', 'Waiting for ')}${opponentUsername}...</div>`;
+  activeMatchUnsub = onSnapshot(doc(db, 'matches', matchId), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const bothReady = data.ready && (data.uids || []).every((u) => data.ready[u]);
+    matchContentEl.innerHTML = bothReady
+      ? `<div class="itemStat">✅ ${T('שניכם מחוברים!', 'You are both connected!')}</div>` +
+        `<div class="itemStat">👤 ${myUsername} ${T('מול', 'vs')} 👤 ${opponentUsername}</div>` +
+        `<div class="itemStat" style="opacity:0.7;">${T('הקרב עצמו יגיע בשלב הבא - זה היה רק שלב 1 😊', "The actual battle is coming in the next step - this was just step 1 😊")}</div>`
+      : `<div class="itemStat">⏳ ${T('מחכה ל-', 'Waiting for ')}${opponentUsername}...</div>`;
+  }, (e) => { console.error('מעקב אחרי הקרב נכשל:', e); });
+}
+
+document.getElementById('matchLeaveBtn').addEventListener('click', () => {
+  if (activeMatchUnsub) { activeMatchUnsub(); activeMatchUnsub = null; }
+  const matchId = activeMatchId;
+  activeMatchId = null;
+  if (matchId) deleteDoc(doc(db, 'matches', matchId)).catch((e) => console.error('מחיקת מסמך הקרב נכשלה:', e));
+  openFriendsScreen();
+});
 
 function buyItem(btn) {
   const { key, name } = btn.dataset;
@@ -10653,6 +10785,8 @@ window.game = {
   get selectedCharacterName() { return selectedCharacterName; },
   get selectedWeaponName() { return selectedWeaponName; },
   openFriendsScreen, renderFriendsScreen, sendFriendRequest, acceptFriendRequest,
+  inviteToBattle, joinBattleInvite, openMatchScreen, computeMatchId,
+  get activeMatchId() { return activeMatchId; },
 };
 </script>
 </body>
