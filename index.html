@@ -7133,10 +7133,14 @@ function showScreen(name) {
   // מקרא המקלדת מוסתר לצמיתות בטלפון (ראה __hideKeyboardLegend) - אין מקלדת
   controlsEl.style.display = (showKeyboardUi && !window.__hideKeyboardLegend) ? '' : 'none';
   labelEl.style.display = showKeyboardUi ? '' : 'none';
-  // כפתורי המגע (רק בטלפון - ראה isTouchDevice) מוצגים/מוסתרים באותו כלל
-  // בדיוק כמו #controls של המקלדת. window.setTouchControlsVisible קיים
-  // רק אם המכשיר תומך במגע, ולכן לא עושה כלום במחשב.
-  if (window.setTouchControlsVisible) window.setTouchControlsVisible(inBattle);
+  // כפתורי המגע (רק בטלפון - ראה isTouchDevice) מוצגים/מוסתרים כמעט תמיד
+  // כמו #controls של המקלדת - עם תוספת אחת: גם ב-'friendArena' ("קרב מול
+  // חבר" שלב 2), כי שם התזוזה (הג'ויסטיק) היא הדרך היחידה לזוז בטלפון -
+  // בלי זה, שחקן בטלפון לא יכול לזוז בכלל (המקלדת לא קיימת אצלו).
+  // כפתורי הפעולה (אגרוף/בעיטה/וכו') יוצגו גם שם בלי נזק - הם עדיין לא
+  // עושים כלום כי אין קרב אמיתי בשלב הזה (updateFriendArena לא קורא אותם).
+  const showTouchControls = inBattle || name === 'friendArena';
+  if (window.setTouchControlsVisible) window.setTouchControlsVisible(showTouchControls);
   // הלוט מוצג רק בקרב, ונבנה מחדש בכניסה אליו כדי לכלול פריטים שנקנו
   // בחנות מאז הקרב הקודם
   lootStackEl.style.display = inBattle ? '' : 'none';
