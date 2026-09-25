@@ -10110,8 +10110,18 @@ function openMatchScreen(matchId, opponentUid, opponentUsername) {
     }
     const remotePos = data.pos && data.pos[opponentUid];
     if (remotePos && typeof remotePos.x === 'number') {
-      remoteTargetX = remotePos.x;
-      remoteMv = remotePos.mv || 0;
+      // ⚠️ לקח טכני חשוב - הבאג האמיתי שדיווח עליו הבן ("לא ניתן לזוז"):
+      // כל צד בונה את עצמו תמיד ב-x=-1.7 (facing=1, "אני תמיד בצד
+      // שמאל") ואת החבר ב-x=1.7 (facing=-1) - זו נקודת מבט אגוצנטרית,
+      // לא מערכת צירים אחת משותפת. ה-x שהחבר כותב ל-Firestore הוא
+      // *ביחס לנקודת המבט שלו* (שם הוא עצמו תמיד בצד שמאל) - אם קוראים
+      // אותו כמו שהוא, ברגע שהחבר באמת זז, הדמות-רפאים שלו "קופצת"
+      // לצד הלא-נכון אצלי (במקום ימין - שמאל, קרוב אליי מדי) וזה נועל
+      // את התזוזה שלי לגמרי (moveFighter's MIN_GAP clamp נגד ה-x
+      // ההפוך). התיקון: להפוך (מינוס) את ה-x/mv של החבר כשקוראים
+      // אותם, כדי לתרגם מנקודת המבט שלו לנקודת המבט שלי.
+      remoteTargetX = -remotePos.x;
+      remoteMv = -(remotePos.mv || 0);
     }
   }, (e) => { console.error('מעקב אחרי הקרב נכשל:', e); });
 }
