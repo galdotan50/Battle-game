@@ -1122,6 +1122,10 @@
 <script type="module">
 import * as THREE from 'three';
 
+// סימון גרסה זמני - לבדוק שהדפדפן טוען את הקוד העדכני ולא גרסה ישנה
+// שנתקעה בזיכרון (ראה "לקח טכני" ב-CLAUDE.md על הבעיה הזו).
+console.log('[GAME BUILD]', 'friend-arena-debug-2026-09-25');
+
 // ---------- ענן: Firebase (Auth + Firestore) ----------
 // אותו פרויקט Google Cloud שמריץ את קלאוד ראן (gals-battle-game) - ראה
 // CLAUDE.md סעיף "דפלוי". הקוד הזה לא סודי (בטוח שיהיה גלוי בדפדפן) -
@@ -10163,6 +10167,10 @@ async function enterFriendArena(opponentUid, opponentUsername) {
 // כל פריים בזירה: השחקן המקומי זז רגיל לפי החיצים (בלי מכות - A/S/W לא
 // נבדקים בכלל בשלב הזה), friendFighter מוחלק (lerp) למיקום האחרון שהתקבל
 // מהחבר - כדי שעיכובי רשת קטנים לא ייראו כ"קפיצות".
+// הדפסת דיבוג זמנית (תוסר אחרי שהבאג ימצא) - פעם בערך בשנייה, לא בכל
+// פריים, כדי שלא יציף את הקונסול. מטרתה: לתת למשתמש דרך פשוטה "לקרוא
+// לי" מה קורה אצלו בפועל (KEYS/מיקום), בלי צורך בצילום מסך/וידאו.
+let lastFriendArenaDebugLog = 0;
 function updateFriendArena(dt, t) {
   player.mv = (KEYS.ArrowRight ? 1 : 0) - (KEYS.ArrowLeft ? 1 : 0);
   moveFighter(player, friendFighter || { x: 1.7 }, dt);
@@ -10177,6 +10185,15 @@ function updateFriendArena(dt, t) {
 
   poseFighter(player, t, dt);
   if (friendFighter) poseFighter(friendFighter, t, dt);
+
+  if (t - lastFriendArenaDebugLog > 1) {
+    lastFriendArenaDebugLog = t;
+    console.log('[FRIEND ARENA DEBUG]',
+      'ArrowLeft=' + !!KEYS.ArrowLeft, 'ArrowRight=' + !!KEYS.ArrowRight,
+      'player.mv=' + player.mv, 'player.x=' + player.x.toFixed(3),
+      'friendFighter.x=' + (friendFighter ? friendFighter.x.toFixed(3) : 'null'),
+      'dt=' + dt.toFixed(4));
+  }
 }
 
 document.getElementById('matchLeaveBtn').addEventListener('click', () => {
