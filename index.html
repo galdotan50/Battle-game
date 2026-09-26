@@ -1022,7 +1022,7 @@
 
 <div id="friendArenaHud">
   <div id="friendArenaTitle"></div>
-  <div id="friendArenaInstructions" data-i18n-he="← → לזוז &nbsp;·&nbsp; זה שלב 2 - רק תנועה, עדיין בלי מכות 😊" data-i18n-en="← → to move &nbsp;·&nbsp; this is step 2 - movement only, no hits yet 😊">← → לזוז &nbsp;·&nbsp; זה שלב 2 - רק תנועה, עדיין בלי מכות 😊</div>
+  <div id="friendArenaInstructions" data-i18n-he="🥊 קרב אמיתי! תראה למטה את כפתורי המכות" data-i18n-en="🥊 Real battle! Check the controls below">🥊 קרב אמיתי! תראה למטה את כפתורי המכות</div>
   <button id="friendArenaExitBtn" data-i18n-he="⬅ יציאה" data-i18n-en="⬅ Exit">⬅ יציאה</button>
 </div>
 
@@ -1122,17 +1122,13 @@
 <script type="module">
 import * as THREE from 'three';
 
-// סימון גרסה זמני - לבדוק שהדפדפן טוען את הקוד העדכני ולא גרסה ישנה
-// שנתקעה בזיכרון (ראה "לקח טכני" ב-CLAUDE.md על הבעיה הזו).
-console.log('[GAME BUILD]', 'friend-arena-debug-2026-09-25');
-
 // ---------- ענן: Firebase (Auth + Firestore) ----------
 // אותו פרויקט Google Cloud שמריץ את קלאוד ראן (gals-battle-game) - ראה
 // CLAUDE.md סעיף "דפלוי". הקוד הזה לא סודי (בטוח שיהיה גלוי בדפדפן) -
 // ההגנה האמיתית היא חוקי האבטחה של Firestore, לא הסתרת הקוד הזה.
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, getDocs, addDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, getDocs, addDoc, deleteDoc, query, where, increment } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDQdlhNciuQatOhXY14gVfRA2osZX67CGk",
@@ -10041,6 +10037,12 @@ let friendFighter = null;
 let friendPosSendTimer = null;
 let remoteTargetX = 1.7;
 let remoteMv = 0;
+// שלב 3: קרב אמיתי מול חבר.
+let remoteAction = null;        // הפעולה האחרונה (punch/kick/stone) שהחבר שידר
+let remoteBlocking = false;     // האם החבר חוסם עכשיו (לפי הסנכרון האחרון)
+let friendBattleOver = false;   // מקביל ל-gameOver, אבל לקרב מול חבר בלבד
+let myFriendHp = 100;           // עוקב אחרי hp.<uid שלי> כדי לזהות ירידה = פגיעה אמיתית
+let friendArenaOpponentUsername = '';
 
 function computeMatchId(uidA, uidB) { return [uidA, uidB].sort().join('_'); }
 
@@ -10056,6 +10058,11 @@ async function inviteToBattle(friendUid, friendUsername) {
       usernames: { [cloudUser.uid]: myUsername, [friendUid]: friendUsername },
       hostUid: cloudUser.uid,
       ready: { [cloudUser.uid]: true, [friendUid]: false },
+      // שלב 3: חיים מתחילים ב-100 לשני הצדדים (בדיוק כמו player בקרב רגיל -
+      // דמות השחקן תמיד עם 100 חיים, ראה switchPlayerCharacter). נכתב כאן,
+      // הרבה לפני שהקרב באמת מתחיל בזירה, כדי שלא תהיה שום תחרות (race)
+      // מול נזק אמיתי שכבר מתחיל לזרום ברגע שנכנסים לזירה.
+      hp: { [cloudUser.uid]: 100 },
       createdAt: serverTimestamp(),
     });
     await setDoc(doc(db, 'players', friendUid, 'battleInvites', cloudUser.uid), {
@@ -10071,7 +10078,10 @@ async function inviteToBattle(friendUid, friendUsername) {
 async function joinBattleInvite(fromUid, fromUsername, matchId) {
   if (!cloudUser) return;
   try {
-    await updateDoc(doc(db, 'matches', matchId), { [`ready.${cloudUser.uid}`]: true });
+    await updateDoc(doc(db, 'matches', matchId), {
+      [`ready.${cloudUser.uid}`]: true,
+      [`hp.${cloudUser.uid}`]: 100,
+    });
     await deleteDoc(doc(db, 'players', cloudUser.uid, 'battleInvites', fromUid));
   } catch (e) {
     console.error('הצטרפות לקרב נכשלה:', e);
@@ -10123,6 +10133,15 @@ function openMatchScreen(matchId, opponentUid, opponentUsername) {
       remoteTargetX = -remotePos.x;
       remoteMv = -(remotePos.mv || 0);
     }
+
+    // שלב 3: פעולה/חסימה נוכחית של החבר (לאנימציה על friendFighter), וחיים
+    // שלי (hp.<my uid>) - שדה שרק *החבר* מוריד (כשההתקפה שלו פוגעת בי,
+    // ראה tickFriendCombat) - כשהוא יורד, זה הרגע שבו אני יודע שנפגעתי
+    // באמת, ומגיב מקומית (הבזק/צליל/הדף) בלי לחכות לשום דבר אחר.
+    remoteAction = (data.action && data.action[opponentUid]) || null;
+    remoteBlocking = !!(data.blocking && data.blocking[opponentUid]);
+
+    if (friendFighter && cloudUser) applyRemoteHp(data.hp && data.hp[cloudUser.uid]);
   }, (e) => { console.error('מעקב אחרי הקרב נכשל:', e); });
 }
 
@@ -10153,6 +10172,7 @@ async function enterFriendArena(opponentUid, opponentUsername) {
     });
   }
   friendFighter = makeFighter(cfg, 1.7, -1, 100);
+  addStoneProp(friendFighter);   // ⚔️ שלב 3: כדי שגם ל"רפאים" של החבר יהיה נשק ביד במכת W
   remoteTargetX = friendFighter.x;
   remoteMv = 0;
 
@@ -10161,67 +10181,214 @@ async function enterFriendArena(opponentUid, opponentUsername) {
   player.group.position.x = battleAnchorX + player.x;
   player.action = null; player.actionT = 0; player.blocking = false;
   player.knockVel = 0; player.down = false; player.staggerT = 0;
+  // שלב 3: איפוס חיים/מצב קרב לקראת קרב חדש. player הוא אובייקט גלובלי
+  // משותף עם כל שאר מסכי הקרב - חייבים לאפס אותו כאן בדיוק כמו resetGame.
+  player.hp = player.maxHp;
+  friendBattleOver = false;
+  myFriendHp = player.maxHp;
+  remoteAction = null;
+  remoteBlocking = false;
+  friendArenaOpponentUsername = opponentUsername;
 
   friendArenaTitleEl.textContent = '🕹️ ' + myUsername + ' ' + T('מול', 'vs') + ' ' + opponentUsername;
 
   showScreen('friendArena');
 
+  // שלב 3: קרב אמיתי - משתמשים באותו פס-חיים/מקרא-מקלדת/כותרת שכל מסך
+  // קרב אחר כבר משתמש בו (בדיוק כמו startCaveMonsterFight) - showScreen
+  // מסתיר אותם כברירת מחדל למסך 'friendArena', אז חייבים להראות אותם
+  // מפורשות אחריו.
+  hpNamePlayerEl.textContent = myUsername;
+  hpNameEnemyEl.textContent = opponentUsername;
+  updateHealthUI(player, 'player');
+  updateHealthUI(friendFighter, 'enemy');
+  labelEl.textContent = '🥊 ' + myUsername + T(' מול ', ' vs ') + opponentUsername;
+  hpRowEl.style.display = '';
+  controlsEl.style.display = '';
+  labelEl.style.display = '';
+
   if (friendPosSendTimer) clearInterval(friendPosSendTimer);
   friendPosSendTimer = setInterval(() => {
     if (!cloudUser || !activeMatchId) return;
-    updateDoc(doc(db, 'matches', activeMatchId), { [`pos.${cloudUser.uid}`]: { x: player.x, mv: player.mv } })
-      .catch((e) => console.error('שליחת מיקום נכשלה:', e));
+    updateDoc(doc(db, 'matches', activeMatchId), {
+      [`pos.${cloudUser.uid}`]: { x: player.x, mv: player.mv },
+      [`action.${cloudUser.uid}`]: player.action || null,
+      [`blocking.${cloudUser.uid}`]: !!player.blocking,
+    }).catch((e) => console.error('שליחת מיקום נכשלה:', e));
   }, 100);
 }
 
-// כל פריים בזירה: השחקן המקומי זז רגיל לפי החיצים (בלי מכות - A/S/W לא
-// נבדקים בכלל בשלב הזה), friendFighter מוחלק (lerp) למיקום האחרון שהתקבל
-// מהחבר - כדי שעיכובי רשת קטנים לא ייראו כ"קפיצות".
-// הדפסת דיבוג זמנית (תוסר אחרי שהבאג ימצא) - פעם בערך בשנייה, לא בכל
-// פריים, כדי שלא יציף את הקונסול. מטרתה: לתת למשתמש דרך פשוטה "לקרוא
-// לי" מה קורה אצלו בפועל (KEYS/מיקום), בלי צורך בצילום מסך/וידאו.
-let lastFriendArenaDebugLog = 0;
+// שלב 3: מגיב לירידה בחיים *שלי* (hp.<my uid>, מגיע מ-onSnapshot) - זה
+// הרגע שבו אני יודע שהחבר פגע בי (הוא כבר בדק blocking בצד שלו לפני
+// שהוריד את זה). myFriendHp שומר את הערך הידוע האחרון כדי לזהות ירידה
+// (לא רק לקרוא את הערך העדכני), ומגיב מקומית - הבזק/צליל/הדף/נפילה - על
+// player עצמו, בלי לחכות לשום סנכרון נוסף.
+function applyRemoteHp(myHp) {
+  if (typeof myHp !== 'number') return;
+  if (myHp < myFriendHp && !friendBattleOver) {
+    const hitBy = ATTACKS[remoteAction] ? remoteAction : 'punch';
+    const cfg = ATTACKS[hitBy];
+    playHitSound(hitBy);
+    flashHit();
+    const pushDir = Math.sign(player.x - friendFighter.x) || player.facing;
+    player.knockVel = pushDir * cfg.knock;
+    player.staggerT = Math.max(player.staggerT, cfg.stagger);
+    if (cfg.fall) {
+      player.down = true; player.downT = 0;
+      player.fallDirX = pushDir; player.fallDirZ = 0;
+      player.fallBaseYaw = player.group.rotation.y;
+      player.action = null; player.actionT = 0;
+    }
+  }
+  myFriendHp = myHp;
+  player.hp = Math.max(0, myHp);
+  updateHealthUI(player, 'player');
+  if (myFriendHp <= 0) endFriendBattle(false);
+}
+
+// שלב 3: מכה שלי (player) פוגעת ב"רפאים" של החבר (friendFighter). אני
+// אחראי לחלוטין על ההחלטה "האם המכה שלי פגעה" - מבוסס על התזמון המדויק
+// שלי ועל המיקום האחרון הידוע של החבר (remoteTargetX, בעיכוב של עד כ-100ms).
+// כשהיא פוגעת, כותבים ל-hp.<uid של החבר> עם increment - זה מה שהחבר
+// יראה כירידה בחיים *שלו* אצלו (ראה התגובה ל-hp.<my uid> ב-openMatchScreen).
+// בדיוק כמו tickTeamCombat: בלי כסף/endGame/מגן-מהלוט - זה MVP של שלב 3.
+function tickFriendCombat(dt) {
+  if (!player.action || player.hitDone) return;
+  const cfg = ATTACKS[player.action];
+  const u = player.actionT / cfg.dur;
+  if (u < cfg.hitAt) return;
+  if (Math.abs(player.x - friendFighter.x) > cfg.range) return;
+
+  player.hitDone = true;
+  if (friendFighter.down) return;
+  if (friendFighter.blocking) { playHitSound('block'); return; }
+  playHitSound(player.action);
+
+  const isWeaponHit = player.action === 'stone' && player.weaponDmg != null;
+  const base = isWeaponHit ? player.weaponDmg : cfg.dmg * (player.powerMult || 1);
+  const dmg = Math.round(base + (player.powerBonus || 0));
+
+  friendFighter.hp = Math.max(0, friendFighter.hp - dmg);
+  player.damageDealt += dmg;
+  updateHealthUI(friendFighter, 'enemy');
+  flashHit();
+
+  // הדף/נפילה - קוסמטי בלבד אצלי: המיקום של friendFighter תמיד נגזר
+  // מ-remoteTargetX (המיקום האמיתי של החבר), אבל down/staggerT כן משפיעים
+  // על התנוחה (tickFallState/poseFighter) - כך שהוא "נראה" נופל אצלי גם
+  // בלי שהתזוזה עצמה משתנה.
+  const pushDir = Math.sign(friendFighter.x - player.x) || player.facing;
+  friendFighter.staggerT = Math.max(friendFighter.staggerT, cfg.stagger);
+  if (cfg.fall) {
+    friendFighter.down = true;
+    friendFighter.downT = 0;
+    friendFighter.fallDirX = pushDir; friendFighter.fallDirZ = 0;
+    friendFighter.fallBaseYaw = friendFighter.group.rotation.y;
+    friendFighter.action = null;
+    friendFighter.actionT = 0;
+  }
+
+  if (cloudUser && activeMatchId && activeOpponentUid) {
+    updateDoc(doc(db, 'matches', activeMatchId), { [`hp.${activeOpponentUid}`]: increment(-dmg) })
+      .catch((e) => console.error('שליחת נזק נכשלה:', e));
+  }
+
+  if (friendFighter.hp <= 0) endFriendBattle(true);
+}
+
+// שלב 3: מסך ניצחון/הפסד לקרב מול חבר - משתמש באותו gameOverOverlay כמו
+// כל שאר המצבים, אבל בלי ציון (הנוסחה של computeGrade תלויה ב-enemy
+// הגלובלי, לא רלוונטי כאן) ובלי "לשחק שוב" (יציאה בלבד - כדי לשחק שוב
+// צריך הזמנה חדשה משני הצדדים, כמו בתחילת הקרב).
+function endFriendBattle(iWon) {
+  if (friendBattleOver) return;
+  friendBattleOver = true;
+  gameOverEl.classList.add('show');
+  gameOverGradeEl.textContent = '';
+  gameOverTitleEl.textContent = iWon ? T('🏆 ניצחת!', '🏆 You won!') : T('❌ הפסדת', '❌ You lost');
+  statPlayerLineEl.textContent = T(
+    '🥊 אתה: התחיל עם ' + player.maxHp + ' חיים, סיים עם ' + Math.max(0, player.hp),
+    '🥊 You: started with ' + player.maxHp + ' HP, ended with ' + Math.max(0, player.hp)
+  );
+  statEnemyLineEl.textContent = T(
+    '🥋 ' + friendArenaOpponentUsername + ': התחיל עם ' + friendFighter.maxHp + ' חיים, סיים עם ' + Math.max(0, friendFighter.hp),
+    '🥋 ' + friendArenaOpponentUsername + ': started with ' + friendFighter.maxHp + ' HP, ended with ' + Math.max(0, friendFighter.hp)
+  );
+  playAgainBtn.style.display = 'none';
+  lobbyBtnEl.textContent = T('⬅ יציאה', '⬅ Exit');
+}
+
+// כל פריים בזירה: תנועה + מכות/חסימה אמיתיות (בדיוק כמו updatePlayer
+// בקרב הרגיל), ו-friendFighter מוחלק (lerp) למיקום האחרון שהתקבל מהחבר +
+// מנגן מקומית את הפעולה (remoteAction) שהוא שידר לאחרונה, כדי שגם המכות
+// שלו יראו אצלי (בלי לחכות לתוצאה - התוצאה מגיעה רק דרך hp.<my uid>).
 function updateFriendArena(dt, t) {
-  player.mv = (KEYS.ArrowRight ? 1 : 0) - (KEYS.ArrowLeft ? 1 : 0);
+  if (friendBattleOver) {
+    poseFighter(player, t, dt);
+    if (friendFighter) poseFighter(friendFighter, t, dt);
+    return;
+  }
+
+  if (player.down || player.staggerT > 0) {
+    player.mv = 0; player.blocking = false;
+  } else {
+    player.blocking = !!KEYS.KeyD && !player.action;
+    if (!player.action && !player.blocking) {
+      if (KEYS.KeyA) startAction(player, 'punch');
+      else if (KEYS.KeyS) startAction(player, 'kick');
+      else if (KEYS.KeyW) startAction(player, 'stone');
+    }
+    player.mv = player.action ? 0 : ((KEYS.ArrowRight ? 1 : 0) - (KEYS.ArrowLeft ? 1 : 0));
+  }
+
+  if (friendFighter) friendFighter.blocking = remoteBlocking;
+
   moveFighter(player, friendFighter || { x: 1.7 }, dt);
+  tickAction(player, dt);
+  tickFallState(player, dt);
+  player.blockAmt += ((player.blocking ? 1 : 0) - player.blockAmt) * (1 - Math.exp(-dt * 16));
 
   if (friendFighter) {
-    friendFighter.mv = remoteMv;
-    const smoothed = friendFighter.x + (remoteTargetX - friendFighter.x) * Math.min(1, dt * 10);
-    friendFighter.x = Math.max(-EDGE, Math.min(EDGE, smoothed));
-    friendFighter.group.position.x = battleAnchorX + friendFighter.x;
-    if (friendFighter.mv !== 0) friendFighter.phase += dt * 8.5 * (friendFighter.mv * friendFighter.facing > 0 ? 1 : -1);
+    if (!friendFighter.down) {
+      friendFighter.mv = remoteMv;
+      const smoothed = friendFighter.x + (remoteTargetX - friendFighter.x) * Math.min(1, dt * 10);
+      friendFighter.x = Math.max(-EDGE, Math.min(EDGE, smoothed));
+      friendFighter.group.position.x = battleAnchorX + friendFighter.x;
+      if (friendFighter.mv !== 0) friendFighter.phase += dt * 8.5 * (friendFighter.mv * friendFighter.facing > 0 ? 1 : -1);
+    } else {
+      friendFighter.mv = 0;
+    }
+    if (remoteAction && !friendFighter.action && !friendFighter.down) startAction(friendFighter, remoteAction);
+    tickAction(friendFighter, dt);
+    tickFallState(friendFighter, dt);
+    friendFighter.blockAmt += ((friendFighter.blocking ? 1 : 0) - friendFighter.blockAmt) * (1 - Math.exp(-dt * 16));
+
+    tickFriendCombat(dt);
   }
 
   poseFighter(player, t, dt);
   if (friendFighter) poseFighter(friendFighter, t, dt);
-
-  if (t - lastFriendArenaDebugLog > 1) {
-    lastFriendArenaDebugLog = t;
-    console.log('[FRIEND ARENA DEBUG]',
-      'ArrowLeft=' + !!KEYS.ArrowLeft, 'ArrowRight=' + !!KEYS.ArrowRight,
-      'player.mv=' + player.mv, 'player.x=' + player.x.toFixed(3),
-      'friendFighter.x=' + (friendFighter ? friendFighter.x.toFixed(3) : 'null'),
-      'dt=' + dt.toFixed(4));
-  }
 }
 
-document.getElementById('matchLeaveBtn').addEventListener('click', () => {
-  if (activeMatchUnsub) { activeMatchUnsub(); activeMatchUnsub = null; }
-  const matchId = activeMatchId;
-  activeMatchId = null;
-  if (matchId) deleteDoc(doc(db, 'matches', matchId)).catch((e) => console.error('מחיקת מסמך הקרב נכשלה:', e));
-  openFriendsScreen();
-});
-
-document.getElementById('friendArenaExitBtn').addEventListener('click', () => {
+// יציאה מ"קרב מול חבר" (מכל שלב - חדר המתנה או זירה): מפסיקים להאזין,
+// עוצרים את שליחת המיקום, מוחקים את מסמך הקרב, וחוזרים למסך החברים.
+// showScreen('friends') (בתוך openFriendsScreen) כבר מסתיר את פס
+// החיים/מקרא המקלדת בעצמו - צריך רק לסגור כאן את gameOverOverlay,
+// שאף showScreen לא נוגע בו.
+function leaveFriendMatch() {
   if (activeMatchUnsub) { activeMatchUnsub(); activeMatchUnsub = null; }
   if (friendPosSendTimer) { clearInterval(friendPosSendTimer); friendPosSendTimer = null; }
   const matchId = activeMatchId;
   activeMatchId = null;
   if (matchId) deleteDoc(doc(db, 'matches', matchId)).catch((e) => console.error('מחיקת מסמך הקרב נכשלה:', e));
+  friendBattleOver = false;
+  gameOverEl.classList.remove('show');
   openFriendsScreen();
-});
+}
+
+document.getElementById('matchLeaveBtn').addEventListener('click', leaveFriendMatch);
+
+document.getElementById('friendArenaExitBtn').addEventListener('click', leaveFriendMatch);
 
 function buyItem(btn) {
   const { key, name } = btn.dataset;
@@ -10762,6 +10929,8 @@ document.getElementById('languageToggleBtn').addEventListener('click', () => {
 applyLanguage();   // מציג את המצב הנכון כבר מהטעינה הראשונה (כולל אם uiLang נטען מ-localStorage כ-'en')
 
 lobbyBtnEl.addEventListener('click', () => {
+  // קרב מול חבר - יוצאים למסך החברים, לא ללובי (ראה leaveFriendMatch).
+  if (friendBattleOver) { leaveFriendMatch(); return; }
   // אחרי קרב מפלצת הרפתקה חוזרים למערה/לאי, לא ללובי - ראה returnToCave/returnToIsland.
   if (isCaveFight) { returnToCave(); return; }
   if (isIslandFight) { returnToIsland(); return; }
@@ -11000,6 +11169,13 @@ window.game = {
   get friendFighter() { return friendFighter; },
   get remoteTargetX() { return remoteTargetX; }, set remoteTargetX(v) { remoteTargetX = v; },
   get remoteMv() { return remoteMv; }, set remoteMv(v) { remoteMv = v; },
+  // שלב 3: קרב אמיתי מול חבר - נחשף לבדיקה (Playwright) מאותה סיבה
+  // שהחשיפות למעלה כבר קיימות: לדמות שני צדדים בלי גישה אמיתית ל-Firestore.
+  get remoteAction() { return remoteAction; }, set remoteAction(v) { remoteAction = v; },
+  get remoteBlocking() { return remoteBlocking; }, set remoteBlocking(v) { remoteBlocking = v; },
+  get friendBattleOver() { return friendBattleOver; },
+  get myFriendHp() { return myFriendHp; }, set myFriendHp(v) { myFriendHp = v; },
+  tickFriendCombat, endFriendBattle, applyRemoteHp, leaveFriendMatch,
 };
 </script>
 </body>
