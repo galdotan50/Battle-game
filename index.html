@@ -749,6 +749,8 @@
   #settingsOverlay .bigBtn { font-size: 1.15rem; padding: 16px 40px; margin: 8px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
   #settingsOverlay .bigBtn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); cursor: default; box-shadow: none; }
   #settingsBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
+  #newUserConfirm { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 360px; margin: 6px auto; }
+  #newUserConfirm .itemStat { text-align: center; }
 
   /* מסך הגיפט - רשימת שחקנים/פרופיל/שיתוף, כל תוכן דינמי לתוך #giftContent
      (אותו רעיון כמו #shopGrid - קונטיינר אחד, JS מחליף מה שבפנים).
@@ -975,8 +977,13 @@
   <div class="screenTitle" data-i18n-he="⚙️ הגדרות" data-i18n-en="⚙️ Settings">⚙️ הגדרות</div>
   <button class="bigBtn" id="languageToggleBtn"></button>
   <button class="bigBtn secondary" id="openGiftBtn" data-i18n-he="🎁 גיפט" data-i18n-en="🎁 Gift">🎁 גיפט</button>
-  <button class="bigBtn" disabled data-i18n-he="👤 משתמש חדש — 🚧 בקרוב" data-i18n-en="👤 New user — 🚧 Coming soon">👤 משתמש חדש — 🚧 בקרוב</button>
+  <button class="bigBtn" id="newUserBtn" data-i18n-he="👤 משתמש חדש" data-i18n-en="👤 New user">👤 משתמש חדש</button>
   <button class="bigBtn secondary" id="openFriendsBtn" data-i18n-he="👥 חברים" data-i18n-en="👥 Friends">👥 חברים</button>
+  <div id="newUserConfirm" style="display:none;">
+    <div class="itemStat" data-i18n-he="😱 בטוח שאתה רוצה להתחיל מחדש? זה ימחק את כל הכסף, הדמויות והנשקים שיש לך!" data-i18n-en="😱 Are you sure you want to start over? This deletes all your money, characters and weapons!">😱 בטוח שאתה רוצה להתחיל מחדש? זה ימחק את כל הכסף, הדמויות והנשקים שיש לך!</div>
+    <button class="bigBtn" id="newUserConfirmYesBtn" data-i18n-he="✅ כן, תתחיל אותי מחדש" data-i18n-en="✅ Yes, start me over">✅ כן, תתחיל אותי מחדש</button>
+    <button class="bigBtn secondary" id="newUserConfirmNoBtn" data-i18n-he="❌ לא, בטל" data-i18n-en="❌ No, cancel">❌ לא, בטל</button>
+  </div>
   <button id="settingsBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby">⬅ חזרה ללובי</button>
 </div>
 
@@ -10919,8 +10926,24 @@ function applyLanguage() {
   updateCloudUI();
 }
 
-document.getElementById('settingsBtn').addEventListener('click', () => showScreen('settings'));
+const newUserConfirmEl = document.getElementById('newUserConfirm');
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  newUserConfirmEl.style.display = 'none';   // תמיד נכנסים למסך הגדרות נקי, בלי אישור-איפוס פתוח מפעם קודמת
+  showScreen('settings');
+});
 document.getElementById('settingsBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('newUserBtn').addEventListener('click', () => { newUserConfirmEl.style.display = 'flex'; });
+document.getElementById('newUserConfirmNoBtn').addEventListener('click', () => { newUserConfirmEl.style.display = 'none'; });
+// "משתמש חדש": מאפס את ההתקדמות של אותו חשבון (בדיוק כמו שקורה אוטומטית
+// כשמתחברים עם חשבון גוגל אחר - resetLocalPlayerStateForAccountSwitch),
+// אבל בלי לנתק את cloudUser - כדי שהאיפוס באמת יישמר בענן על החשבון
+// הנוכחי, לא רק מקומית עד לרענון הבא.
+document.getElementById('newUserConfirmYesBtn').addEventListener('click', () => {
+  newUserConfirmEl.style.display = 'none';
+  resetLocalPlayerStateForAccountSwitch();
+  saveCloudState();
+  showShieldToast(T('🔄 התחלת מחדש!', '🔄 Started fresh!'));
+});
 document.getElementById('languageToggleBtn').addEventListener('click', () => {
   uiLang = uiLang === 'en' ? 'he' : 'en';
   localStorage.setItem('battleGameLang', uiLang);
