@@ -750,6 +750,22 @@
     z-index: 60;
   }
   #settingsOverlay .bigBtn { font-size: 1.15rem; padding: 16px 40px; margin: 8px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
+  /* בוחר השפה: רשת של כפתורי דגל. הדגלים מצוירים ב-SVG ולא באמוג'י,
+     כי ב-Windows אמוג'י של דגל מופיע כשתי אותיות ("JP") ולא כדגל. */
+  #langPickerTitle { font-size: 1.1rem; font-weight: bold; margin: 6px 0 8px; }
+  #langPicker {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    max-width: 600px; margin-bottom: 14px;
+  }
+  .langOpt {
+    width: 100px; padding: 8px 4px; border-radius: 12px; cursor: pointer;
+    background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.25);
+    color: #fff; font-weight: bold; font-size: 0.95rem;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+  }
+  .langOpt:hover { background: rgba(255,255,255,0.16); }
+  .langOpt.active { border-color: #ffcf4d; background: rgba(255,207,77,0.2); box-shadow: 0 0 12px rgba(255,207,77,0.5); }
+  .langOpt svg { width: 48px; height: 32px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
   #settingsOverlay .bigBtn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); cursor: default; box-shadow: none; }
   #settingsBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
   #newUserConfirm { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 360px; margin: 6px auto; }
@@ -978,7 +994,8 @@
 
 <div id="settingsOverlay">
   <div class="screenTitle" data-i18n-he="⚙️ הגדרות" data-i18n-en="⚙️ Settings" data-i18n-es="⚙️ Configuración" data-i18n-ja="⚙️ 設定" data-i18n-fr="⚙️ Réglages" data-i18n-pt="⚙️ Configurações" data-i18n-de="⚙️ Einstellungen" data-i18n-ru="⚙️ Настройки" data-i18n-ar="⚙️ الإعدادات">⚙️ הגדרות</div>
-  <button class="bigBtn" id="languageToggleBtn"></button>
+  <div id="langPickerTitle">🌐</div>
+  <div id="langPicker"></div>
   <button class="bigBtn secondary" id="openGiftBtn" data-i18n-he="🎁 גיפט" data-i18n-en="🎁 Gift" data-i18n-es="🎁 Regalo" data-i18n-ja="🎁 ギフト" data-i18n-fr="🎁 Cadeau" data-i18n-pt="🎁 Presente" data-i18n-de="🎁 Geschenk" data-i18n-ru="🎁 Подарок" data-i18n-ar="🎁 هدية">🎁 גיפט</button>
   <button class="bigBtn" id="newUserBtn" data-i18n-he="👤 משתמש חדש" data-i18n-en="👤 New user" data-i18n-es="👤 Usuario nuevo" data-i18n-ja="👤 新しいユーザー" data-i18n-fr="👤 Nouvel utilisateur" data-i18n-pt="👤 Novo usuário" data-i18n-de="👤 Neuer Benutzer" data-i18n-ru="👤 Новый игрок" data-i18n-ar="👤 مستخدم جديد">👤 משתמש חדש</button>
   <button class="bigBtn secondary" id="openFriendsBtn" data-i18n-he="👥 חברים" data-i18n-en="👥 Friends" data-i18n-es="👥 Amigos" data-i18n-ja="👥 友だち" data-i18n-fr="👥 Amis" data-i18n-pt="👥 Amigos" data-i18n-de="👥 Freunde" data-i18n-ru="👥 Друзья" data-i18n-ar="👥 الأصدقاء">👥 חברים</button>
@@ -11367,24 +11384,7 @@ function applyLanguage() {
   document.querySelectorAll('[data-i18n-placeholder-he]').forEach((el) => {
     el.placeholder = uiLang === 'ar' ? el.dataset.i18nPlaceholderAr : uiLang === 'ru' ? el.dataset.i18nPlaceholderRu : uiLang === 'de' ? el.dataset.i18nPlaceholderDe : uiLang === 'pt' ? el.dataset.i18nPlaceholderPt : uiLang === 'fr' ? el.dataset.i18nPlaceholderFr : uiLang === 'ja' ? el.dataset.i18nPlaceholderJa : uiLang === 'es' ? el.dataset.i18nPlaceholderEs : uiLang === 'en' ? el.dataset.i18nPlaceholderEn : el.dataset.i18nPlaceholderHe;
   });
-  const langBtn = document.getElementById('languageToggleBtn');
-  langBtn.textContent = uiLang === 'ar'
-    ? '🌐 اللغة: العربية (اضغط للعبرية)'
-    : uiLang === 'ru'
-    ? '🌐 Язык: Русский (нажми для арабского)'
-    : uiLang === 'de'
-    ? '🌐 Sprache: Deutsch (klick für Russisch)'
-    : uiLang === 'pt'
-    ? '🌐 Idioma: Português do Brasil (clique para alemão)'
-    : uiLang === 'fr'
-    ? '🌐 Langue : Français (clique pour le portugais)'
-    : uiLang === 'ja'
-    ? '🌐 言語: 日本語 (おすとフランス語へ)'
-    : uiLang === 'es'
-    ? '🌐 Idioma: Español (toca para japonés)'
-    : uiLang === 'en'
-    ? '🌐 Language: English (click for Spanish)'
-    : '🌐 שפה: עברית (לחץ בשביל אנגלית)';
+  renderLangPicker();
   [...shopTabsEl.children].forEach((btn) => {
     btn.textContent = uiLang === 'ar' ? btn.dataset.i18nAr : uiLang === 'ru' ? btn.dataset.i18nRu : uiLang === 'de' ? btn.dataset.i18nDe : uiLang === 'pt' ? btn.dataset.i18nPt : uiLang === 'fr' ? btn.dataset.i18nFr : uiLang === 'ja' ? btn.dataset.i18nJa : uiLang === 'es' ? btn.dataset.i18nEs : uiLang === 'en' ? btn.dataset.i18nEn : btn.dataset.i18nHe;
   });
@@ -11421,11 +11421,39 @@ document.getElementById('newUserConfirmYesBtn').addEventListener('click', () => 
   saveCloudState();
   showShieldToast(T('🔄 התחלת מחדש!', '🔄 Started fresh!', '🔄 ¡Empezaste de nuevo!', '🔄 最初からやり直した!', '🔄 Tu recommences à zéro !', '🔄 Você começou do zero!', '🔄 Du fängst neu an!', '🔄 Ты начал заново!', '🔄 بدأت من جديد!'));
 });
-document.getElementById('languageToggleBtn').addEventListener('click', () => {
-  uiLang = uiLang === 'he' ? 'en' : uiLang === 'en' ? 'es' : uiLang === 'es' ? 'ja' : uiLang === 'ja' ? 'fr' : uiLang === 'fr' ? 'pt' : uiLang === 'pt' ? 'de' : uiLang === 'de' ? 'ru' : uiLang === 'ru' ? 'ar' : 'he';
-  localStorage.setItem('battleGameLang', uiLang);
-  applyLanguage();
-});
+// בוחר השפה (⚙️ הגדרות): כפתור לכל שפה, עם דגל ושם השפה בשפה עצמה - כך
+// כל אחד מוצא את השפה שלו גם אם הוא לא קורא את השפה שמוצגת כרגע.
+// הדגלים מצוירים ב-SVG קטן (viewBox 30x20) ולא באמוג'י, כי ב-Windows
+// אמוג'י של דגל מופיע כשתי אותיות. לערבית אין דגל של מדינה אחת (מדברים
+// בה בהרבה מדינות), אז יש לה "דגל" ירוק עם האות ع.
+const LANGS = [
+  { code: 'he', name: 'עברית', flag: '<rect width="30" height="20" fill="#fff"/><rect y="2" width="30" height="3" fill="#0038b8"/><rect y="15" width="30" height="3" fill="#0038b8"/><path d="M15 6.2 18.3 12H11.7Z M15 13.8 11.7 8H18.3Z" fill="none" stroke="#0038b8" stroke-width="0.9"/>' },
+  { code: 'en', name: 'English', flag: '<rect width="30" height="20" fill="#fff"/>' + [0,2,4,6,8,10,12].map((k) => `<rect y="${(k*20/13).toFixed(2)}" width="30" height="${(20/13).toFixed(2)}" fill="#b22234"/>`).join('') + '<rect width="13" height="10.77" fill="#3c3b6e"/>' + [[2.5,2.5],[6.5,2.5],[10.5,2.5],[4.5,5.4],[8.5,5.4],[2.5,8.3],[6.5,8.3],[10.5,8.3]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="0.8" fill="#fff"/>`).join('') },
+  { code: 'es', name: 'Español', flag: '<rect width="30" height="20" fill="#c60b1e"/><rect y="5" width="30" height="10" fill="#ffc400"/>' },
+  { code: 'ja', name: '日本語', flag: '<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#bc002d"/>' },
+  { code: 'fr', name: 'Français', flag: '<rect width="10" height="20" fill="#0055a4"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ef4135"/>' },
+  { code: 'pt', name: 'Português', flag: '<rect width="30" height="20" fill="#009c3b"/><path d="M15 2 28 10 15 18 2 10Z" fill="#ffdf00"/><circle cx="15" cy="10" r="4.6" fill="#002776"/>' },
+  { code: 'de', name: 'Deutsch', flag: '<rect width="30" height="7" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#dd0000"/><rect y="13.33" width="30" height="6.67" fill="#ffce00"/>' },
+  { code: 'ru', name: 'Русский', flag: '<rect width="30" height="7" fill="#fff"/><rect y="6.67" width="30" height="6.67" fill="#0039a6"/><rect y="13.33" width="30" height="6.67" fill="#d52b1e"/>' },
+  { code: 'ar', name: 'العربية', flag: '<rect width="30" height="20" fill="#007a3d"/><text x="15" y="14.5" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle" font-family="sans-serif">ع</text>' },
+];
+function renderLangPicker() {
+  const cur = LANGS.find((l) => l.code === uiLang) || LANGS[0];
+  document.getElementById('langPickerTitle').textContent = '🌐 ' + cur.name;
+  const box = document.getElementById('langPicker');
+  box.innerHTML = '';
+  LANGS.forEach((l) => {
+    const b = document.createElement('button');
+    b.className = 'langOpt' + (l.code === uiLang ? ' active' : '');
+    b.innerHTML = `<svg viewBox="0 0 30 20" aria-hidden="true">${l.flag}</svg><span>${l.name}</span>`;
+    b.addEventListener('click', () => {
+      uiLang = l.code;
+      localStorage.setItem('battleGameLang', uiLang);
+      applyLanguage();
+    });
+    box.appendChild(b);
+  });
+}
 applyLanguage();   // מציג את המצב הנכון כבר מהטעינה הראשונה (כולל אם uiLang נטען מ-localStorage כ-'en')
 
 lobbyBtnEl.addEventListener('click', () => {
