@@ -355,7 +355,7 @@
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -367,8 +367,8 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show, #lootSelectOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show, #matchOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show, #petsOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show, #matchOverlay.show { display: flex; }
   #teamSizeOverlay .bigBtn { font-size: 1.2rem; padding: 18px 46px; margin: 10px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
   #teamSizeOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #teamSizeBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
@@ -572,7 +572,7 @@
   }
   .shopTab:hover { background: rgba(255,255,255,0.16); }
   .shopTab.active { background: #ffcf4d; color: #1a1a1a; border-color: #ffcf4d; }
-  #shopGrid {
+  #shopGrid, #petsGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 14px;
@@ -767,6 +767,9 @@
   .langOpt.active { border-color: #ffcf4d; background: rgba(255,207,77,0.2); box-shadow: 0 0 12px rgba(255,207,77,0.5); }
   .langOpt svg { width: 48px; height: 32px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
   #settingsOverlay .bigBtn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); cursor: default; box-shadow: none; }
+  #petsBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
+  .petCard.selected { border-color: #ffcf4d; box-shadow: 0 0 14px rgba(255,207,77,0.45); }
+  .petNoneThumb { display: flex; align-items: center; justify-content: center; font-size: 3.2rem; }
   #settingsBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
   #newUserConfirm { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 360px; margin: 6px auto; }
   #newUserConfirm .itemStat { text-align: center; }
@@ -990,6 +993,7 @@
   <button class="bigBtn secondary eventOnly" id="bossFightBtn" data-i18n-he="👹 קרב בוס" data-i18n-en="👹 Boss Battle" data-i18n-es="👹 Batalla de Jefe" data-i18n-ja="👹 ボスバトル" data-i18n-fr="👹 Combat de boss" data-i18n-pt="👹 Batalha de chefão" data-i18n-de="👹 Bosskampf" data-i18n-ru="👹 Бой с боссом" data-i18n-ar="👹 معركة الزعيم" data-i18n-th="👹 สู้กับบอส" data-i18n-pl="👹 Walka z bossem" data-i18n-it="👹 Battaglia col boss" data-i18n-ro="👹 Luptă cu șeful" data-i18n-zh="👹 首领战" data-i18n-ko="👹 보스 배틀" data-i18n-hi="👹 बॉस लड़ाई" data-i18n-tr="👹 Patron Savaşı" data-i18n-nl="👹 Baasgevecht" data-i18n-sv="👹 Bosstrid">👹 קרב בוס</button>
   <button class="bigBtn secondary" id="openAdventureBtn" data-i18n-he="🗺️ הרפתקה" data-i18n-en="🗺️ Adventure" data-i18n-es="🗺️ Aventura" data-i18n-ja="🗺️ 冒険" data-i18n-fr="🗺️ Aventure" data-i18n-pt="🗺️ Aventura" data-i18n-de="🗺️ Abenteuer" data-i18n-ru="🗺️ Приключение" data-i18n-ar="🗺️ مغامرة" data-i18n-th="🗺️ ผจญภัย" data-i18n-pl="🗺️ Przygoda" data-i18n-it="🗺️ Avventura" data-i18n-ro="🗺️ Aventură" data-i18n-zh="🗺️ 冒险" data-i18n-ko="🗺️ 모험" data-i18n-hi="🗺️ रोमांच" data-i18n-tr="🗺️ Macera" data-i18n-nl="🗺️ Avontuur" data-i18n-sv="🗺️ Äventyr">🗺️ הרפתקה</button>
   <button class="bigBtn secondary" id="openLootSelectBtn" data-i18n-he="🎒 ציוד לקרב" data-i18n-en="🎒 Battle gear" data-i18n-es="🎒 Equipo de batalla" data-i18n-ja="🎒 バトルの持ち物" data-i18n-fr="🎒 Équipement de combat" data-i18n-pt="🎒 Equipamento de batalha" data-i18n-de="🎒 Kampfausrüstung" data-i18n-ru="🎒 Снаряжение" data-i18n-ar="🎒 عتاد المعركة" data-i18n-th="🎒 อุปกรณ์ต่อสู้" data-i18n-pl="🎒 Ekwipunek" data-i18n-it="🎒 Equipaggiamento" data-i18n-ro="🎒 Echipament de luptă" data-i18n-zh="🎒 战斗装备" data-i18n-ko="🎒 배틀 장비" data-i18n-hi="🎒 लड़ाई का सामान" data-i18n-tr="🎒 Savaş teçhizatı" data-i18n-nl="🎒 Gevechtsuitrusting" data-i18n-sv="🎒 Stridsutrustning">🎒 ציוד לקרב</button>
+  <button class="bigBtn secondary" id="openPetsBtn" data-i18n-he="🐾 חיות עזרה" data-i18n-en="🐾 Helper Animals" data-i18n-es="🐾 Animales ayudantes" data-i18n-ja="🐾 おたすけ動物" data-i18n-fr="🐾 Animaux alliés" data-i18n-pt="🐾 Animais ajudantes" data-i18n-de="🐾 Helfer-Tiere" data-i18n-ru="🐾 Звери-помощники" data-i18n-ar="🐾 حيوانات مساعدة" data-i18n-th="🐾 สัตว์ผู้ช่วย" data-i18n-pl="🐾 Zwierzęta pomocnicy" data-i18n-it="🐾 Animali aiutanti" data-i18n-ro="🐾 Animale ajutătoare" data-i18n-zh="🐾 助战动物" data-i18n-ko="🐾 도우미 동물" data-i18n-hi="🐾 मददगार जानवर" data-i18n-tr="🐾 Yardımcı Hayvanlar" data-i18n-nl="🐾 Helperdieren" data-i18n-sv="🐾 Hjälpdjur">🐾 חיות עזרה</button>
 </div>
 
 <div id="settingsOverlay">
@@ -1074,6 +1078,13 @@
   </div>
   <div id="lootSelectSections"></div>
   <button id="lootSelectBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby" data-i18n-es="⬅ Volver al lobby" data-i18n-ja="⬅ ロビーにもどる" data-i18n-fr="⬅ Retour à l'accueil" data-i18n-pt="⬅ Voltar ao início" data-i18n-de="⬅ Zurück zum Start" data-i18n-ru="⬅ На главную" data-i18n-ar="⬅ العودة إلى الرئيسية" data-i18n-th="⬅ กลับหน้าหลัก" data-i18n-pl="⬅ Wróć do startu" data-i18n-it="⬅ Torna all'inizio" data-i18n-ro="⬅ Înapoi acasă" data-i18n-zh="⬅ 返回主页" data-i18n-ko="⬅ 홈으로" data-i18n-hi="⬅ लॉबी पर वापस" data-i18n-tr="⬅ Lobiye dön" data-i18n-nl="⬅ Terug naar lobby" data-i18n-sv="⬅ Tillbaka till lobbyn">⬅ חזרה ללובי</button>
+</div>
+
+<div id="petsOverlay">
+  <div class="screenTitle" data-i18n-he="🐾 חיות עזרה" data-i18n-en="🐾 Helper Animals" data-i18n-es="🐾 Animales ayudantes" data-i18n-ja="🐾 おたすけ動物" data-i18n-fr="🐾 Animaux alliés" data-i18n-pt="🐾 Animais ajudantes" data-i18n-de="🐾 Helfer-Tiere" data-i18n-ru="🐾 Звери-помощники" data-i18n-ar="🐾 حيوانات مساعدة" data-i18n-th="🐾 สัตว์ผู้ช่วย" data-i18n-pl="🐾 Zwierzęta pomocnicy" data-i18n-it="🐾 Animali aiutanti" data-i18n-ro="🐾 Animale ajutătoare" data-i18n-zh="🐾 助战动物" data-i18n-ko="🐾 도우미 동물" data-i18n-hi="🐾 मददगार जानवर" data-i18n-tr="🐾 Yardımcı Hayvanlar" data-i18n-nl="🐾 Helperdieren" data-i18n-sv="🐾 Hjälpdjur">🐾 חיות עזרה</div>
+  <div style="max-width:520px; text-align:center; margin-bottom:22px; opacity:0.85; font-size:1.05rem;" data-i18n-he="קונים חיה ולוקחים אותה לקרב - היא נלחמת לידך ותוקפת את האויב!" data-i18n-en="Buy an animal and take it to battle - it fights next to you and attacks the enemy!" data-i18n-es="¡Compra un animal y llévalo a la batalla: pelea a tu lado y ataca al enemigo!" data-i18n-ja="動物を買ってバトルに連れて行こう。となりで戦って、敵をこうげきしてくれる!" data-i18n-fr="Achète un animal et emmène-le au combat : il se bat à tes côtés et attaque l'ennemi !" data-i18n-pt="Compre um animal e leve para a batalha - ele luta ao seu lado e ataca o inimigo!" data-i18n-de="Kauf ein Tier und nimm es mit in den Kampf - es kämpft neben dir und greift den Gegner an!" data-i18n-ru="Купи зверя и возьми его в бой - он сражается рядом с тобой и атакует врага!" data-i18n-ar="اشترِ حيوانًا وخذه إلى المعركة - يقاتل بجانبك ويهاجم العدو!" data-i18n-th="ซื้อสัตว์แล้วพาไปต่อสู้ - มันจะสู้ข้างคุณและโจมตีศัตรู!" data-i18n-pl="Kup zwierzę i zabierz je do walki - walczy obok ciebie i atakuje wroga!" data-i18n-it="Compra un animale e portalo in battaglia: combatte al tuo fianco e attacca il nemico!" data-i18n-ro="Cumpără un animal și ia-l în luptă - luptă lângă tine și atacă inamicul!" data-i18n-zh="买一只动物带去战斗——它会在你身边作战,攻击敌人!" data-i18n-ko="동물을 사서 배틀에 데려가세요 - 옆에서 함께 싸우고 적을 공격해요!" data-i18n-hi="एक जानवर खरीदो और लड़ाई में ले जाओ - वह तुम्हारे साथ लड़ेगा और दुश्मन पर हमला करेगा!" data-i18n-tr="Bir hayvan al ve savaşa götür - yanında savaşır ve düşmana saldırır!" data-i18n-nl="Koop een dier en neem het mee naar het gevecht - het vecht naast je en valt de vijand aan!" data-i18n-sv="Köp ett djur och ta med det i striden - det slåss bredvid dig och anfaller fienden!">קונים חיה ולוקחים אותה לקרב - היא נלחמת לידך ותוקפת את האויב!</div>
+  <div id="petsGrid"></div>
+  <button id="petsBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby" data-i18n-es="⬅ Volver al lobby" data-i18n-ja="⬅ ロビーにもどる" data-i18n-fr="⬅ Retour à l'accueil" data-i18n-pt="⬅ Voltar ao início" data-i18n-de="⬅ Zurück zum Start" data-i18n-ru="⬅ На главную" data-i18n-ar="⬅ العودة إلى الرئيسية" data-i18n-th="⬅ กลับหน้าหลัก" data-i18n-pl="⬅ Wróć do startu" data-i18n-it="⬅ Torna all'inizio" data-i18n-ro="⬅ Înapoi acasă" data-i18n-zh="⬅ 返回主页" data-i18n-ko="⬅ 홈으로" data-i18n-hi="⬅ लॉबी पर वापस" data-i18n-tr="⬅ Lobiye dön" data-i18n-nl="⬅ Terug naar lobby" data-i18n-sv="⬅ Tillbaka till lobbyn">⬅ חזרה ללובי</button>
 </div>
 
 <!-- שליטה במגע לטלפון - מוצג רק אם קוד ה-JS מזהה מכשיר מגע, ורק בזמן קרב.
@@ -7058,6 +7069,7 @@ function resetGame() {
     applyInvisibility(f);          // מחזיר שקיפות למצב הרגיל
     updateHealthUI(f, who);
   });
+  resetPetForBattle();
   // כל פריטי הלוט חוזרים - הם ירדו מהלוט של הקרב הקודם, לא מהמלאי הקבוע
   lootUsed.clear();
   renderLootBar();
@@ -7082,6 +7094,7 @@ const createEl = document.getElementById('createOverlay');
 const weaponCreateEl = document.getElementById('weaponCreateOverlay');
 const adventureEl = document.getElementById('adventureOverlay');
 const lootSelectEl = document.getElementById('lootSelectOverlay');
+const petsEl = document.getElementById('petsOverlay');
 const settingsEl = document.getElementById('settingsOverlay');
 const giftEl = document.getElementById('giftOverlay');
 const friendsEl = document.getElementById('friendsOverlay');
@@ -7138,6 +7151,8 @@ function showScreen(name) {
   adventureEl.classList.toggle('show', name === 'adventure');
   lootSelectEl.classList.toggle('show', name === 'lootSelect');
   if (name === 'lootSelect') renderLootSelectScreen();
+  petsEl.classList.toggle('show', name === 'pets');
+  if (name === 'pets') renderPetsScreen();
   settingsEl.classList.toggle('show', name === 'settings');
   giftEl.classList.toggle('show', name === 'gift');
   friendsEl.classList.toggle('show', name === 'friends');
@@ -8401,7 +8416,463 @@ function relocateTreasure(posObj, chestGroup, ringMeshes, minDist, maxDist) {
 
 document.getElementById('openAdventureBtn').addEventListener('click', () => showScreen('adventure'));
 document.getElementById('openLootSelectBtn').addEventListener('click', () => showScreen('lootSelect'));
+// ============================================================================
+//  חיות עזרה - בנייה תלת-מימדית פשוטה מצורות בסיס (כדורים/גלילים/חרוטים).
+//  כל חיה פונה לכיוון +x (כמו השחקן בתחילת קרב), ורגליה על y=0.
+//  מבנה כללי של "ארבע רגליים" עם פרמטרים לכל חיה (PET_CFGS), ובנוסף חלקים
+//  מיוחדים: שריון לצב, חדק ואוזניים גדולות לפיל, קרניים לשור, רעמה לאריה,
+//  כתמים לנמר/צ'יטה/פרה/במבי/צבוע. הנמלה היא חרק - נבנית בנפרד (3 חלקי גוף
+//  ו-6 רגליים).
+//  כל המידות במטרים של הזירה (השחקן בגובה ~1.65).
+// ============================================================================
+const PET_CFGS = [
+  // name, מחיר, נזק, כל כמה שניות מכה, emoji לכפתורים
+  { name: 'נמלה',      price: 100,  dmg: 1,  every: 3.0, emoji: '🐜', kind: 'ant', color: 0x3a1e10, scale: 1.0 },
+  { name: 'עכבר',      price: 200,  dmg: 1,  every: 2.5, emoji: '🐭',
+    h: 0.13, len: 0.24, bodyR: 0.075, color: 0x9a9aa2, belly: 0xd8d0d0, headR: 0.06, snout: 0.05, ears: 'round', earR: 0.04, earColor: 0xf0a8b8,
+    tail: { len: 0.26, r: 0.008, color: 0xe0a0b0 }, legR: 0.014, nose: 0xf07090 },
+  { name: 'צב',        price: 350,  dmg: 2,  every: 3.0, emoji: '🐢', kind: 'turtle', color: 0x6f9a3a, shell: 0x5a4020 },
+  { name: 'חתול',      price: 500,  dmg: 2,  every: 2.2, emoji: '🐱',
+    h: 0.2, len: 0.42, bodyR: 0.09, color: 0xe08a3a, belly: 0xf5e2c8, headR: 0.085, snout: 0.035, ears: 'pointy', earR: 0.04,
+    tail: { len: 0.34, r: 0.018, color: 0xe08a3a, up: true }, stripes: 0xa55a1a, legR: 0.025, nose: 0xf07a8a, whiskers: true },
+  { name: 'שועל',      price: 650,  dmg: 2,  every: 1.9, emoji: '🦊',
+    h: 0.24, len: 0.50, bodyR: 0.09, color: 0xd9621e, belly: 0xf6efe4, headR: 0.085, snout: 0.10, ears: 'pointy', earR: 0.055,
+    tail: { len: 0.40, r: 0.055, color: 0xd9621e, tip: 0xffffff, bushy: true }, legR: 0.025, legColor: 0x2a1a12, nose: 0x111111 },
+  { name: 'כלב',       price: 750,  dmg: 3,  every: 2.2, emoji: '🐶',
+    h: 0.3, len: 0.56, bodyR: 0.13, color: 0xc89858, belly: 0xf0e0c0, headR: 0.11, snout: 0.10, ears: 'floppy', earR: 0.06, earColor: 0x7a5530,
+    tail: { len: 0.24, r: 0.025, color: 0xc89858, up: true }, legR: 0.04, nose: 0x111111, tongue: true },
+  { name: 'במבי',      price: 1000, dmg: 3,  every: 2.0, emoji: '🦌',
+    h: 0.45, len: 0.55, bodyR: 0.12, color: 0xb8743a, belly: 0xf3e3c8, headR: 0.10, snout: 0.09, ears: 'big', earR: 0.07,
+    tail: { len: 0.08, r: 0.03, color: 0xf3e3c8, up: true }, spots: { color: 0xf8f0e0, n: 10, r: 0.022 }, legR: 0.026, nose: 0x111111, neck: 0.12, bigEyes: true },
+  { name: 'צבוע',      price: 1200, dmg: 4,  every: 2.2, emoji: '🐺',
+    h: 0.4, len: 0.65, bodyR: 0.15, color: 0xb59a6a, belly: 0xd8c8a0, headR: 0.12, snout: 0.11, ears: 'round', earR: 0.05, earColor: 0x4a3a2a,
+    tail: { len: 0.22, r: 0.035, color: 0x3a2e22, bushy: true }, spots: { color: 0x3a2e22, n: 14, r: 0.028 }, legR: 0.045, nose: 0x111111, slope: 0.12, mane: { color: 0x3a2e22, small: true } },
+  { name: 'פרה',       price: 1400, dmg: 4,  every: 2.4, emoji: '🐄',
+    h: 0.5, len: 1, bodyR: 0.27, color: 0xf4f4f0, belly: 0xf4f4f0, headR: 0.15, snout: 0.10, snoutColor: 0xf0a8a8, ears: 'side', earR: 0.06,
+    tail: { len: 0.45, r: 0.02, color: 0xf4f4f0, tip: 0x222222 }, spots: { color: 0x1a1a1a, n: 9, r: 0.08 }, legR: 0.07, horns: { color: 0xe8e0c8, len: 0.08 }, udder: true },
+  { name: 'זאב',       price: 1650, dmg: 5,  every: 2.0, emoji: '🐺',
+    h: 0.42, len: 0.72, bodyR: 0.15, color: 0x7a7a80, belly: 0xd8d8dc, headR: 0.12, snout: 0.13, ears: 'pointy', earR: 0.06,
+    tail: { len: 0.42, r: 0.05, color: 0x6a6a70, bushy: true }, legR: 0.042, nose: 0x111111 },
+  { name: 'שור',       price: 1900, dmg: 5,  every: 2.2, emoji: '🐂',
+    h: 0.5, len: 1.00, bodyR: 0.3, color: 0x3a2618, belly: 0x3a2618, headR: 0.17, snout: 0.10, snoutColor: 0x2a1a10, ears: 'side', earR: 0.06,
+    tail: { len: 0.50, r: 0.022, color: 0x3a2618, tip: 0x111111 }, legR: 0.08, horns: { color: 0xf8f2e0, len: 0.32, big: true }, ring: true, hump: true },
+  { name: 'פיל תינוק', price: 2500, dmg: 5,  every: 2.0, emoji: '🐘', kind: 'elephant',
+    h: 0.60, len: 0.80, bodyR: 0.26, color: 0x9aa0aa, headR: 0.21, legR: 0.08, trunk: 0.35, earR: 0.20, tail: { len: 0.2, r: 0.02, color: 0x8a909a }, baby: true },
+  { name: 'דוב',       price: 2900, dmg: 6,  every: 2.0, emoji: '🐻',
+    h: 0.42, len: 0.95, bodyR: 0.3, color: 0x5a3a22, belly: 0x5a3a22, headR: 0.17, snout: 0.09, snoutColor: 0xb89068, ears: 'round', earR: 0.06,
+    tail: { len: 0.07, r: 0.05, color: 0x5a3a22 }, legR: 0.1, nose: 0x111111, hump: true },
+  { name: 'פיל',       price: 3300, dmg: 7,  every: 2.4, emoji: '🐘', kind: 'elephant',
+    h: 1.05, len: 1.30, bodyR: 0.42, color: 0x8a909a, headR: 0.32, legR: 0.13, trunk: 0.75, earR: 0.34, tusks: true, tail: { len: 0.4, r: 0.03, color: 0x7a808a, tip: 0x333333 } },
+  { name: "צ'יטה",     price: 5200, dmg: 8,  every: 1.6, emoji: '🐆',
+    h: 0.42, len: 0.85, bodyR: 0.14, color: 0xe0b25a, belly: 0xf6ead0, headR: 0.10, snout: 0.05, ears: 'round', earR: 0.035,
+    tail: { len: 0.60, r: 0.025, color: 0xe0b25a, tip: 0x111111, curl: true }, spots: { color: 0x1a1208, n: 26, r: 0.022 }, legR: 0.035, nose: 0x111111, tearLines: true },
+  { name: 'נמר',       price: 6500, dmg: 10, every: 1.8, emoji: '🐆',
+    h: 0.38, len: 0.95, bodyR: 0.18, color: 0xe39a2e, belly: 0xf6e8c8, headR: 0.13, snout: 0.06, ears: 'round', earR: 0.04,
+    tail: { len: 0.65, r: 0.035, color: 0xd8a040, curl: true }, rosettes: { color: 0x2a1a0a, n: 20, r: 0.04 }, legR: 0.055, nose: 0xc07060 },
+  { name: 'אריה',      price: 8000, dmg: 12, every: 1.8, emoji: '🦁',
+    h: 0.45, len: 1.05, bodyR: 0.22, color: 0xd4a050, belly: 0xe8c890, headR: 0.15, snout: 0.07, ears: 'round', earR: 0.045,
+    tail: { len: 0.70, r: 0.03, color: 0xd4a050, tip: 0x5a3010, tipBig: true, curl: true }, legR: 0.08, nose: 0x5a3a2a, mane: { color: 0x8a4a18 } },
+];
+
+// tone: מכפיל בהירות לכל הצבעים. בזירה האור העליון חזק מאוד (keyLight 2.6)
+// וגוונים בינוניים נשטפים כמעט ללבן (אותו לקח כמו הז'קט של פלייטי) - לכן
+// בקרב בונים את החיה עם tone<1, ובתמונות של המסך (תאורה רכה) עם 1.
+function buildPet(cfg, tone = 1) {
+  const g = new THREE.Group();
+  const matCache = {};
+  const M = (c, extra) => {
+    const k = c + (extra ? JSON.stringify(extra) : '');
+    return matCache[k] || (matCache[k] = new THREE.MeshStandardMaterial(Object.assign({ color: new THREE.Color(c).multiplyScalar(tone), roughness: 0.85 }, extra || {})));
+  };
+  const add = (geo, mat, x, y, z, parent) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z); m.castShadow = true;
+    (parent || g).add(m); return m;
+  };
+  const sphere = (r, sx, sy, sz) => { const s = new THREE.SphereGeometry(r, 18, 14); s.scale(sx || 1, sy || 1, sz || 1); return s; };
+  const eyes = (hx, hy, hr, big) => {
+    const er = hr * (big ? 0.26 : 0.17);
+    for (const z of [-1, 1]) {
+      add(sphere(er), M(0xffffff), hx + hr * 0.62, hy + hr * 0.28, z * hr * 0.48);
+      add(sphere(er * 0.6), M(0x111111), hx + hr * 0.62 + er * 0.55, hy + hr * 0.3, z * hr * 0.5);
+    }
+  };
+
+  if (cfg.kind === 'ant') {
+    // נמלה "מצוירת" - גדולה מהמציאות כדי שיהיה אפשר לראות אותה בזירה.
+    const s = cfg.scale, c = M(cfg.color, { roughness: 0.4 });
+    add(sphere(0.07 * s, 1.4, 1, 1), c, -0.12 * s, 0.09 * s, 0);        // בטן
+    add(sphere(0.045 * s, 1.3, 0.9, 0.9), c, 0, 0.09 * s, 0);           // חזה
+    add(sphere(0.05 * s), c, 0.1 * s, 0.11 * s, 0);                      // ראש
+    eyes(0.1 * s, 0.11 * s, 0.05 * s, true);
+    for (const z of [-1, 1]) {
+      for (let i = 0; i < 3; i++) {
+        const leg = add(new THREE.CylinderGeometry(0.008 * s, 0.008 * s, 0.16 * s, 6), c, (-0.04 + i * 0.04) * s, 0.05 * s, z * 0.06 * s);
+        leg.rotation.x = z * 0.9; leg.rotation.z = (i - 1) * 0.5;
+      }
+      const ant = add(new THREE.CylinderGeometry(0.005 * s, 0.005 * s, 0.12 * s, 6), c, 0.15 * s, 0.18 * s, z * 0.03 * s);
+      ant.rotation.z = -0.7; ant.rotation.x = z * 0.4;
+    }
+    return g;
+  }
+
+  if (cfg.kind === 'turtle') {
+    const shell = add(new THREE.SphereGeometry(0.2, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), M(cfg.shell), 0, 0.06, 0);
+    shell.scale.set(1.2, 0.8, 1);
+    // משושים על השריון
+    for (let i = 0; i < 7; i++) {
+      const a = i * Math.PI * 2 / 6, r = i === 6 ? 0 : 0.12;
+      const hex = add(new THREE.CylinderGeometry(0.05, 0.05, 0.01, 6), M(0x7a5a30), Math.cos(a) * r * 1.2, 0.06 + (i === 6 ? 0.16 : 0.12), Math.sin(a) * r);
+      hex.lookAt(hex.position.x * 3, 0.9, hex.position.z * 3); hex.rotateX(Math.PI / 2);
+    }
+    add(new THREE.CylinderGeometry(0.235, 0.24, 0.03, 20), M(cfg.color), 0, 0.06, 0).scale.set(1.2, 1, 1);
+    add(sphere(0.07, 1.2, 1, 1), M(cfg.color), 0.29, 0.1, 0);
+    eyes(0.3, 0.1, 0.07, false);
+    for (const [x, z] of [[0.15, 0.17], [0.15, -0.17], [-0.15, 0.17], [-0.15, -0.17]])
+      add(sphere(0.05, 1, 0.9, 1), M(cfg.color), x, 0.04, z);
+    add(new THREE.ConeGeometry(0.03, 0.08, 8), M(cfg.color), -0.29, 0.06, 0).rotation.z = Math.PI / 2;
+    return g;
+  }
+
+  const H = cfg.h, L = cfg.len, R = cfg.bodyR;
+  const body = M(cfg.color);
+  const bodyY = H;                                   // מרכז הגוף בגובה הרגליים
+  const hx = L / 2 + cfg.headR * 0.55;               // ראש קדימה
+  const hy = bodyY + R * 0.6 + (cfg.neck || 0) + (cfg.kind === 'elephant' ? R * 0.2 : 0);
+
+  // גוף - אליפסה מוארכת
+  const bodyMesh = add(sphere(1, L / 2, R, R * 0.95), body, 0, bodyY, 0);
+  if (cfg.slope) bodyMesh.rotation.z = cfg.slope;   // צבוע: גב משופע (קדמי גבוה)
+  if (cfg.belly && cfg.belly !== cfg.color) add(sphere(1, L * 0.4, R * 0.55, R * 0.8), M(cfg.belly), 0.02, bodyY - R * 0.5, 0);
+  if (cfg.hump) add(sphere(R * 0.75, 1.2, 0.8, 1), body, L * 0.22, bodyY + R * 0.55, 0);
+  if (cfg.udder) add(sphere(0.07, 1, 0.8, 1), M(0xf0a8a8), -L * 0.18, bodyY - R * 0.95, 0);
+
+  // צוואר (במבי) - גליל בין הגוף לראש
+  if (cfg.neck) {
+    const nk = add(new THREE.CylinderGeometry(cfg.headR * 0.45, R * 0.55, cfg.neck + R, 10), body, L / 2 - R * 0.2, bodyY + (cfg.neck + R) / 2, 0);
+    nk.rotation.z = -0.35;
+  }
+
+  // רגליים - ארבעה גלילים מהגוף עד הרצפה
+  const legC = M(cfg.legColor || cfg.color);
+  const legX = L / 2 - Math.max(cfg.legR * 2, L * 0.12), legZ = R * 0.55;
+  for (const x of [legX, -legX]) for (const z of [legZ, -legZ]) {
+    const legLen = bodyY - (cfg.slope && x < 0 ? L * 0.06 : 0);
+    add(new THREE.CylinderGeometry(cfg.legR, cfg.legR * 0.9, legLen, 10), legC, x, legLen / 2, z);
+    if (cfg.kind === 'elephant') add(new THREE.CylinderGeometry(cfg.legR * 1.1, cfg.legR * 1.15, 0.04, 12), M(0xd8d0c0), x, 0.02, z);
+  }
+
+  // ראש
+  const headC = cfg.kind === 'elephant' ? body : body;
+  add(sphere(cfg.headR, 1.05, 1, 0.95), headC, hx, hy, 0);
+  eyes(hx, hy, cfg.headR, cfg.bigEyes || cfg.baby);
+
+  if (cfg.kind === 'elephant') {
+    // חדק: שרשרת כדורים שיורדת ומתעקלת קדימה
+    const n = 10;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, r = cfg.headR * (0.32 - 0.14 * t);
+      const x = hx + cfg.headR * 0.8 + Math.sin(t * 1.3) * cfg.trunk * 0.35;
+      const y = hy - cfg.headR * 0.2 - t * cfg.trunk * 0.95 + Math.max(0, t - 0.8) * cfg.trunk * 0.9;
+      add(sphere(r), body, x, y, 0);
+    }
+    // אוזניים גדולות ושטוחות
+    for (const z of [-1, 1]) {
+      const ear = add(new THREE.CircleGeometry(cfg.earR, 20), M(cfg.color, { side: THREE.DoubleSide }), hx - cfg.headR * 0.35, hy - cfg.headR * 0.05, z * cfg.headR * 0.9);
+      ear.rotation.y = z * 0.35; ear.scale.set(0.85, 1.05, 1);
+      const inner = add(new THREE.CircleGeometry(cfg.earR * 0.7, 20), M(0xc8a0a8, { side: THREE.DoubleSide }), hx - cfg.headR * 0.33, hy - cfg.headR * 0.05, z * (cfg.headR * 0.9 + 0.005));
+      inner.rotation.y = z * 0.35; inner.scale.set(0.85, 1.05, 1);
+    }
+    if (cfg.tusks) for (const z of [-1, 1]) {
+      const t = add(new THREE.ConeGeometry(0.035, 0.28, 10), M(0xf8f4e8), hx + cfg.headR * 0.85, hy - cfg.headR * 0.6, z * cfg.headR * 0.35);
+      t.rotation.z = -Math.PI / 2 - 0.5;
+    }
+  } else {
+    // חוטם
+    const sc = M(cfg.snoutColor || cfg.belly || cfg.color);
+    const sn = add(sphere(cfg.headR * 0.55, 1 + cfg.snout / cfg.headR, 0.75, 0.85), sc, hx + cfg.headR * 0.6 + cfg.snout * 0.35, hy - cfg.headR * 0.25, 0);
+    if (cfg.nose) add(sphere(cfg.headR * 0.14), M(cfg.nose), hx + cfg.headR * 0.6 + cfg.snout * 0.35 + cfg.headR * 0.55 * (1 + cfg.snout / cfg.headR), hy - cfg.headR * 0.12, 0);
+    if (cfg.ring) {
+      const ring = add(new THREE.TorusGeometry(cfg.headR * 0.18, cfg.headR * 0.03, 8, 20), M(0xd8c060, { metalness: 0.8, roughness: 0.3 }), sn.position.x + cfg.headR * 0.55, hy - cfg.headR * 0.5, 0);
+      ring.rotation.y = Math.PI / 2;
+    }
+    if (cfg.tongue) add(sphere(cfg.headR * 0.18, 1.3, 0.4, 1), M(0xe0506a), sn.position.x + cfg.headR * 0.3, hy - cfg.headR * 0.55, 0);
+    if (cfg.whiskers) for (const z of [-1, 1]) for (const k of [-1, 1]) {
+      const w = add(new THREE.CylinderGeometry(0.002, 0.002, cfg.headR * 1.2, 4), M(0xffffff), sn.position.x + cfg.headR * 0.2, hy - cfg.headR * 0.25 + k * 0.01, z * cfg.headR * 0.55);
+      w.rotation.x = Math.PI / 2; w.rotation.y = k * 0.2;
+    }
+    if (cfg.tearLines) for (const z of [-1, 1]) {
+      const tl = add(new THREE.CylinderGeometry(0.006, 0.006, cfg.headR * 0.6, 5), M(0x111111), hx + cfg.headR * 0.85, hy - cfg.headR * 0.05, z * cfg.headR * 0.42);
+      tl.rotation.z = 0.5;
+    }
+    // אוזניים
+    const earC = M(cfg.earColor || cfg.color);
+    for (const z of [-1, 1]) {
+      const ex = hx - cfg.headR * 0.1, ey = hy + cfg.headR * 0.75, ez = z * cfg.headR * 0.55;
+      if (cfg.ears === 'pointy') { const e = add(new THREE.ConeGeometry(cfg.earR * 0.7, cfg.earR * 1.8, 8), earC, ex, ey + cfg.earR * 0.4, ez); e.rotation.x = z * 0.25; }
+      else if (cfg.ears === 'round') add(sphere(cfg.earR, 1, 1, 0.5), earC, ex, ey, ez);
+      else if (cfg.ears === 'big') { const e = add(sphere(cfg.earR, 0.6, 1.4, 0.35), earC, ex - cfg.headR * 0.1, ey + cfg.earR * 0.3, ez * 1.4); e.rotation.x = z * 0.9; }
+      else if (cfg.ears === 'floppy') { const e = add(sphere(cfg.earR, 0.6, 1.5, 0.4), earC, hx - cfg.headR * 0.1, hy + cfg.headR * 0.1, z * cfg.headR * 0.95); e.rotation.x = z * 0.25; }
+      else if (cfg.ears === 'side') { const e = add(sphere(cfg.earR, 1.6, 0.6, 0.6), earC, hx - cfg.headR * 0.2, hy + cfg.headR * 0.35, z * cfg.headR * 1.05); e.rotation.y = z * 0.8; }
+    }
+    if (cfg.horns) for (const z of [-1, 1]) {
+      const hn = add(new THREE.ConeGeometry(cfg.headR * (cfg.horns.big ? 0.22 : 0.14), cfg.horns.len, 10), M(cfg.horns.color), hx - cfg.headR * 0.05, hy + cfg.headR * 0.85, z * (cfg.headR * 0.55 + cfg.horns.len * 0.35));
+      hn.rotation.x = z * (cfg.horns.big ? 1.1 : 0.4);
+      if (cfg.horns.big) hn.rotation.z = -0.4;
+    }
+  }
+
+  // רעמה (אריה) - טבעת כדורים סביב הראש; small = רעמת גב קצרה (צבוע)
+  if (cfg.mane) {
+    const mc = M(cfg.mane.color);
+    if (cfg.mane.small) {
+      for (let i = 0; i < 6; i++) add(sphere(R * 0.22), mc, L * 0.35 - i * L * 0.08, bodyY + R * 0.95, 0);
+    } else {
+      for (const [k, rr] of [[18, 1.25], [12, 0.8]]) for (let i = 0; i < k; i++) {
+        const a = i / k * Math.PI * 2;
+        add(sphere(cfg.headR * 0.5), mc, hx - cfg.headR * 0.45, hy + Math.sin(a) * cfg.headR * rr, Math.cos(a) * cfg.headR * rr);
+      }
+      add(sphere(cfg.headR * 1.5, 0.8, 1.1, 1.1), mc, hx - cfg.headR * 0.9, hy - cfg.headR * 0.3, 0);
+      add(sphere(cfg.headR, 1.05, 1, 0.95), body, hx, hy, 0);   // הפנים מעל הרעמה
+      eyes(hx, hy, cfg.headR, false);
+      const sn = add(sphere(cfg.headR * 0.55, 1 + cfg.snout / cfg.headR, 0.75, 0.85), M(cfg.belly), hx + cfg.headR * 0.6 + cfg.snout * 0.35, hy - cfg.headR * 0.25, 0);
+      add(sphere(cfg.headR * 0.14), M(cfg.nose), sn.position.x + cfg.headR * 0.5, hy - cfg.headR * 0.12, 0);
+    }
+  }
+
+  // כתמים / רוזטות / פסים על הגוף - כדורים שטוחים קטנים על פני האליפסה.
+  // מיקום מחושב על פני השטח (לא ניחוש): נקודה על אליפסואיד בזוויות קבועות.
+  const onBody = (u, v, lift) => {
+    // u: לאורך הגוף (-1..1), v: זווית סביב (0 = למעלה)
+    const x = u * L / 2 * 0.85, ang = v;
+    const k = Math.sqrt(Math.max(0, 1 - (x / (L / 2)) ** 2));
+    return [x, bodyY + Math.cos(ang) * R * k * lift, Math.sin(ang) * R * 0.95 * k * lift];
+  };
+  let seed = cfg.name.length * 7 + 3;
+  const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  const dots = cfg.spots || cfg.rosettes;
+  if (dots) {
+    for (let i = 0; i < dots.n; i++) {
+      const u = rnd() * 1.8 - 0.9, v = (rnd() * 2 - 1) * 1.9;
+      const [x, y, z] = onBody(u, v, 1.0);
+      const d = cfg.rosettes
+        ? add(new THREE.TorusGeometry(dots.r * 0.75, dots.r * 0.25, 6, 14), M(dots.color), x, y, z)
+        : add(sphere(dots.r, 1, 1, 0.35), M(dots.color), x, y, z);
+      d.lookAt(x * 2, y + (y - bodyY) * 3, z * 3 + (z >= 0 ? 0.001 : -0.001));
+    }
+  }
+  if (cfg.stripes) for (let i = 0; i < 5; i++) {
+    const x = L * 0.3 - i * L * 0.14;
+    const k = Math.sqrt(1 - (x / (L / 2)) ** 2);
+    const st = add(new THREE.TorusGeometry(R * k * 1.0, R * 0.09, 6, 20, Math.PI), M(cfg.stripes), x, bodyY, 0);
+    st.rotation.y = Math.PI / 2; st.scale.set(0.95, 1, 1);
+  }
+
+  // זנב - שרשרת קטעים מאחור (curl = מתעקל למעלה בקצה)
+  if (cfg.tail) {
+    const t = cfg.tail, n = 8, tc = M(t.color), pts = [];
+    for (let i = 0; i <= n; i++) {
+      const s = i / n;
+      const x = -L / 2 * 0.9 - s * t.len * 0.8;
+      const y = bodyY + R * 0.3 + (t.up ? s * t.len * 0.7 : -s * t.len * 0.5 + (t.curl ? s * s * t.len * 0.9 : 0));
+      pts.push(new THREE.Vector3(x, y, 0));
+    }
+    const curve = new THREE.CatmullRomCurve3(pts);
+    add(new THREE.TubeGeometry(curve, 24, t.r, 8), tc, 0, 0, 0);
+    const end = pts[n];
+    // זנב פרוותי (שועל/זאב/צבוע): אליפסה עבה לאורך הזנב
+    if (t.bushy) {
+      const mid = curve.getPoint(0.6), tan = curve.getTangent(0.6);
+      const bush = add(sphere(1, t.len * 0.42, t.r * 1.5, t.r * 1.5), tc, mid.x, mid.y, 0);
+      bush.rotation.z = Math.atan2(tan.y, tan.x);
+    }
+    if (t.tip) add(sphere(t.tipBig ? t.r * 2.3 : (t.bushy ? t.r * 1.2 : t.r * 1.3)), M(t.tip), end.x, end.y, 0);
+  }
+  return g;
+}
+
+// ---------- חיית העזרה בקרב ----------
+// החיה היא אובייקט תלת-מימדי פשוט (לא לוחם עם שלד) שחי ליד השחקן. יש לה
+// מחזור קבוע: מחכה ליד השחקן (idle) → כל cfg.every שניות קופצת אל האויב
+// (lunge) → פוגעת בו פעם אחת (petHit) → חוזרת (back). היא מופיעה רק
+// בקרבות שעוברים דרך tickCombat עם enemy (זירה רגילה, בוסים, מפלצות
+// הרפתקה) - לא בסומו/קרב קבוצות/קרב מול חבר.
+// חיות קטנות עומדות מול השחקן (קרוב למצלמה), וגדולות מאחוריו - כדי שפיל
+// לא יסתיר את הקרב.
+const PET_BY_NAME = Object.fromEntries(PET_CFGS.map((c) => [c.name, c]));
+let selectedPetName = null;          // null = בלי חיה
+let petGroup = null, petCfg = null;
+const petState = { x: -1.7, phase: 'idle', cool: 0, dir: 1 };
+const PET_LUNGE_SPEED = 4.5, PET_BACK_SPEED = 3.2;
+// הערה: three מחשבת צבעים במרחב "לינארי" - מכפיל 0.5 כאן מכהה רק בערך
+// ב-25% במראה. בנוסף, שני זרקורי התקרה של הזירה (SpotLight 420) מאירים
+// בדיוק את הגב של החיה (שפונה למעלה, כמו הרצפה) - לכן צריך הכהיה חזקה.
+// 0.28 עדיין יצא כמעט לבן ברינדור; 0.12 נבדק ונראה נכון.
+const PET_ARENA_TONE = 0.12;
+// חצי מאורך החיה - כדי שבזינוק היא תעצור עם הראש מול האויב, לא בתוכו
+const petHalfLen = (c) => c.kind === 'ant' ? 0.16 : c.kind === 'turtle' ? 0.36 : c.len / 2 + (c.headR || 0) * 1.5;
+const petIsSmall = (c) => c.kind === 'ant' || c.kind === 'turtle' || (c.h || 0) < 0.35;
+
+function switchPet(name) {
+  if (petGroup) {
+    if (petGroup.parent) petGroup.parent.remove(petGroup);
+    petGroup.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    petGroup = null;
+  }
+  petCfg = (name && PET_BY_NAME[name] && inventory.has('pets:' + name)) ? PET_BY_NAME[name] : null;
+  selectedPetName = petCfg ? name : null;
+  if (petCfg) {
+    petGroup = buildPet(petCfg, PET_ARENA_TONE);
+    petGroup.visible = false;
+    scene.add(petGroup);
+  }
+  resetPetForBattle();
+}
+
+function resetPetForBattle() {
+  petState.x = petCfg ? player.x - (petIsSmall(petCfg) ? 0.15 : 0.2 + petHalfLen(petCfg) * 0.7) * player.facing : player.x;
+  petState.phase = 'idle';
+  petState.dir = player.facing;
+  // המכה הראשונה מגיעה קצת יותר מהר מהמחזור הרגיל, כדי שיראו מיד שהחיה עוזרת
+  petState.cool = petCfg ? petCfg.every * 0.6 : 0;
+}
+
+function petHit() {
+  if (gameOver || enemy.down || enemy.hp <= 0) return;
+  const dmg = petCfg.dmg;
+  enemy.hp = Math.max(0, enemy.hp - dmg);
+  player.damageDealt += dmg;            // נספר לכסף בדיוק כמו מכה של השחקן
+  updateHealthUI(enemy, 'enemy');
+  playHitSound('punch');
+  enemy.staggerT = Math.max(enemy.staggerT, 0.12);
+  if (enemy.hp <= 0) endGame('player');
+}
+
+function updatePet(dt, t, show, canAttack) {
+  if (!petGroup) return;
+  petGroup.visible = show;
+  if (!show) return;
+  // בהרפתקה הלוחמים חיים בתוך קבוצת העולם (לא ישירות ב-scene) - החיה
+  // עוברת לאותו הורה, כדי שהמיקום שלה יהיה באותה מערכת צירים.
+  const parent = player.group.parent || scene;
+  if (petGroup.parent !== parent) parent.add(petGroup);
+
+  const f = player.facing;
+  // חיות גדולות עומדות קצת מאחורי השחקן (לא ממש מאחוריו), כדי לא להסתיר אותו
+  const homeX = player.x - (petIsSmall(petCfg) ? 0.15 : 0.2 + petHalfLen(petCfg) * 0.7) * f;
+  const targetX = enemy.x - (0.25 + petHalfLen(petCfg)) * f;
+  let hop = 0;
+  if (petState.phase === 'idle') {
+    petState.x += (homeX - petState.x) * (1 - Math.exp(-dt * 6));
+    petState.dir = f;
+    if (canAttack) petState.cool -= dt;
+    if (canAttack && petState.cool <= 0 && !enemy.down && enemy.hp > 0) petState.phase = 'lunge';
+  } else {
+    const goal = petState.phase === 'lunge' ? targetX : homeX;
+    const speed = petState.phase === 'lunge' ? PET_LUNGE_SPEED : PET_BACK_SPEED;
+    const d = goal - petState.x;
+    const step = Math.sign(d) * Math.min(Math.abs(d), speed * dt);
+    petState.x += step;
+    if (Math.abs(d) > 0.01) petState.dir = Math.sign(d);
+    hop = Math.abs(Math.sin(t * 16)) * Math.min(0.12, (petCfg.h || 0.2) * 0.25);
+    if (Math.abs(goal - petState.x) < 0.02) {
+      if (petState.phase === 'lunge') { if (canAttack) petHit(); petState.phase = 'back'; }
+      else { petState.phase = 'idle'; petState.cool = petCfg.every; }
+    }
+  }
+  // נשימה קטנה במנוחה, כדי שהחיה לא תיראה כמו פסל
+  const breathe = petState.phase === 'idle' ? Math.sin(t * 3) * 0.004 : 0;
+  petGroup.position.set(
+    battleAnchorX + petState.x,
+    player.group.position.y + hop + breathe,
+    battleAnchorZ + (petIsSmall(petCfg) ? 0.75 : -0.9));
+  petGroup.rotation.y = petState.dir > 0 ? 0 : Math.PI;
+}
+
+// תמונה קטנה לכל חיה במסך "חיות עזרה" - סצנה נפרדת לגמרי (לא הזירה),
+// באותה שיטה כמו captureCharacterThumb: מקטינים את הקנבס לרגע, מרנדרים,
+// ומחזירים את הכל כמו שהיה.
+const petThumbs = {};
+function getPetThumb(cfg) {
+  if (petThumbs[cfg.name]) return petThumbs[cfg.name];
+  const sc = new THREE.Scene();
+  sc.background = new THREE.Color(0x2a3450);
+  sc.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.3));
+  const light = new THREE.DirectionalLight(0xffffff, 1.6); light.position.set(3, 5, 4); sc.add(light);
+  const p = buildPet(cfg); p.rotation.y = -0.6; sc.add(p);
+  const box = new THREE.Box3().setFromObject(p);
+  const ctr = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3()).length();
+  const cam = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
+  cam.position.set(ctr.x, ctr.y + size * 0.35, ctr.z + size * 1.9); cam.lookAt(ctr);
+  const prevSize = new THREE.Vector2(); renderer.getSize(prevSize);
+  renderer.setSize(THUMB_SIZE, THUMB_SIZE, false);
+  renderer.render(sc, cam);
+  petThumbs[cfg.name] = renderer.domElement.toDataURL('image/png');
+  renderer.setSize(prevSize.x, prevSize.y, false);
+  p.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+  return petThumbs[cfg.name];
+}
+
+const petsGridEl = document.getElementById('petsGrid');
+function renderPetsScreen() {
+  petsGridEl.innerHTML = '';
+  const selectLabel = T('בחר', 'Select', 'Elegir', '選ぶ', 'Choisir', 'Escolher', 'Wählen', 'Выбрать', 'اختر', 'เลือก', 'Wybierz', 'Scegli', 'Alege', '选择', '선택', 'चुनो', 'Seç', 'Kiezen', 'Välj');
+  const selectedLabel = T('✅ נבחר', '✅ Selected', '✅ Seleccionado', '✅ 選んだ', '✅ Choisi', '✅ Escolhido', '✅ Gewählt', '✅ Выбрано', '✅ تم الاختيار', '✅ เลือกแล้ว', '✅ Wybrano', '✅ Scelto', '✅ Ales', '✅ 已选', '✅ 선택됨', '✅ चुना गया', '✅ Seçildi', '✅ Gekozen', '✅ Vald');
+  const buyLabel = T('💰 קנה ב-', '💰 Buy for ', '💰 Comprar por ', '💰 買う ', '💰 Acheter pour ', '💰 Comprar por ', '💰 Kaufen für ', '💰 Купить за ', '💰 اشترِ بـ ', '💰 ซื้อ ', '💰 Kup za ', '💰 Compra per ', '💰 Cumpără cu ', '💰 购买 ', '💰 구매 ', '💰 खरीदो ', '💰 Satın al: ', '💰 Koop voor ', '💰 Köp för ');
+  const secLabel = T(' שנ׳', 's', 's', '秒', 's', 's', 's', ' сек', ' ث', ' วิ', 's', 's', 's', '秒', '초', ' सेकंड', 'sn', 's', 's');
+  const noneLabel = T('🚫 בלי חיה', '🚫 No animal', '🚫 Sin animal', '🚫 動物なし', '🚫 Pas d\'animal', '🚫 Sem animal', '🚫 Kein Tier', '🚫 Без зверя', '🚫 بدون حيوان', '🚫 ไม่มีสัตว์', '🚫 Bez zwierzęcia', '🚫 Nessun animale', '🚫 Fără animal', '🚫 不带动物', '🚫 동물 없음', '🚫 कोई जानवर नहीं', '🚫 Hayvan yok', '🚫 Geen dier', '🚫 Inget djur');
+
+  // כרטיס "בלי חיה" - תמיד ראשון
+  const none = document.createElement('div');
+  none.className = 'itemCard petCard' + (selectedPetName ? '' : ' selected');
+  none.innerHTML = '<div class="itemThumb petNoneThumb">🚫</div>' +
+    '<div class="itemName">' + noneLabel + '</div>' +
+    (selectedPetName ? '<button class="buyBtn" data-pet="">' + selectLabel + '</button>'
+                     : '<button class="buyBtn owned" disabled>' + selectedLabel + '</button>');
+  petsGridEl.appendChild(none);
+
+  PET_CFGS.forEach((cfg) => {
+    const owned = inventory.has('pets:' + cfg.name);
+    const selected = selectedPetName === cfg.name;
+    // בזמן איוונט - אותה הנחה כמו בחנות (EVENT_DISCOUNT)
+    const onSale = eventActive;
+    const price = onSale ? Math.round(cfg.price * (1 - EVENT_DISCOUNT)) : cfg.price;
+    const priceHtml = onSale ? '<span class="oldPrice">' + cfg.price + '₪</span> 🎉' + price + '₪' : price + '₪';
+    const card = document.createElement('div');
+    card.className = 'itemCard petCard' + (selected ? ' selected' : '');
+    const btn = !owned
+      ? '<button class="buyBtn" data-buy="' + cfg.name + '" data-price="' + price + '">' + buyLabel + priceHtml + '</button>'
+      : selected
+        ? '<button class="buyBtn owned" disabled>' + selectedLabel + '</button>'
+        : '<button class="buyBtn" data-pet="' + cfg.name + '">' + selectLabel + '</button>';
+    card.innerHTML = '<img class="itemThumb" src="' + getPetThumb(cfg) + '">' +
+      '<div class="itemName">' + cfg.emoji + ' ' + trName(cfg.name) + '</div>' +
+      '<div class="itemStat">' + trStat('נזק ' + cfg.dmg) + ' · ⏱️ ' + cfg.every + secLabel + '</div>' + btn;
+    petsGridEl.appendChild(card);
+  });
+  petsGridEl.querySelectorAll('[data-buy]').forEach((b) => b.addEventListener('click', () => buyPet(b)));
+  petsGridEl.querySelectorAll('[data-pet]').forEach((b) => b.addEventListener('click', () => {
+    switchPet(b.dataset.pet || null);
+    saveCloudState();
+    renderPetsScreen();
+  }));
+}
+
+function buyPet(btn) {
+  const name = btn.dataset.buy, price = +btn.dataset.price;
+  if (inventory.has('pets:' + name)) return;
+  if (money < price) { flashCantAfford(btn); return; }
+  money -= price;
+  inventory.add('pets:' + name);
+  updateMoneyUI();
+  switchPet(name);          // חיה שנקנתה עכשיו נבחרת מיד לקרב הבא
+  saveCloudState();
+  renderPetsScreen();
+}
+
 document.getElementById('lootSelectBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('openPetsBtn').addEventListener('click', () => showScreen('pets'));
+document.getElementById('petsBackBtn').addEventListener('click', () => showScreen('lobby'));
 document.getElementById('adventureBackBtn').addEventListener('click', () => showScreen('lobby'));
 document.getElementById('worldCaveBtn').addEventListener('click', () => showScreen('crystalCave'));
 document.getElementById('worldIslandBtn').addEventListener('click', () => showScreen('lostIsland'));
@@ -9121,6 +9592,24 @@ const NAME_EN = {
   'מיץ מלפפונים חמוצים': 'Pickle Juice', 'מיץ תפוחים': 'Apple Juice',
   'קולה': 'Cola', 'קולה זירו': 'Diet Cola', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Energy Drink',
+  // חיות עזרה
+  'נמלה': 'Ant',
+  'עכבר': 'Mouse',
+  'צב': 'Turtle',
+  'חתול': 'Cat',
+  'שועל': 'Fox',
+  'כלב': 'Dog',
+  'במבי': 'Bambi',
+  'צבוע': 'Hyena',
+  'פרה': 'Cow',
+  'זאב': 'Wolf',
+  'שור': 'Bull',
+  'פיל תינוק': 'Baby Elephant',
+  'דוב': 'Bear',
+  'פיל': 'Elephant',
+  "צ'יטה": 'Cheetah',
+  'נמר': 'Leopard',
+  'אריה': 'Lion',
 };
 const NAME_ES = {
   // דמויות - שמות פרטיים, נשארים כמו באנגלית
@@ -9162,6 +9651,24 @@ const NAME_ES = {
   'מיץ מלפפונים חמוצים': 'Jugo de Pepinillos', 'מיץ תפוחים': 'Jugo de Manzana',
   'קולה': 'Cola', 'קולה זירו': 'Cola Light', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Bebida Energética',
+  // חיות עזרה
+  'נמלה': 'Hormiga',
+  'עכבר': 'Ratón',
+  'צב': 'Tortuga',
+  'חתול': 'Gato',
+  'שועל': 'Zorro',
+  'כלב': 'Perro',
+  'במבי': 'Bambi',
+  'צבוע': 'Hiena',
+  'פרה': 'Vaca',
+  'זאב': 'Lobo',
+  'שור': 'Toro',
+  'פיל תינוק': 'Elefante bebé',
+  'דוב': 'Oso',
+  'פיל': 'Elefante',
+  "צ'יטה": 'Guepardo',
+  'נמר': 'Leopardo',
+  'אריה': 'León',
 };
 // יפנית: שמות פרטיים (דמויות/אויבים/בוסים) כתובים בקטקנה - איך שהם נשמעים,
 // כמו שיפנים כותבים שמות זרים. שמות תיאוריים (נשקים/אוכל/...) מתורגמים באמת.
@@ -9205,6 +9712,24 @@ const NAME_JA = {
   'מיץ מלפפונים חמוצים': 'ピクルスジュース', 'מיץ תפוחים': 'りんごジュース',
   'קולה': 'コーラ', 'קולה זירו': 'コーラゼロ', 'פיוזטי': 'フューズティー',
   'משקה אנרגיה': 'エナジードリンク',
+  // חיות עזרה
+  'נמלה': 'アリ',
+  'עכבר': 'ネズミ',
+  'צב': 'カメ',
+  'חתול': 'ネコ',
+  'שועל': 'キツネ',
+  'כלב': 'イヌ',
+  'במבי': 'バンビ',
+  'צבוע': 'ハイエナ',
+  'פרה': 'ウシ',
+  'זאב': 'オオカミ',
+  'שור': '雄牛',
+  'פיל תינוק': '子ゾウ',
+  'דוב': 'クマ',
+  'פיל': 'ゾウ',
+  "צ'יטה": 'チーター',
+  'נמר': 'ヒョウ',
+  'אריה': 'ライオン',
 };
 // צרפתית: שמות פרטיים (דמויות/אויבים/בוסים) זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_FR = {
@@ -9247,6 +9772,24 @@ const NAME_FR = {
   'מיץ מלפפונים חמוצים': 'Jus de Cornichons', 'מיץ תפוחים': 'Jus de Pomme',
   'קולה': 'Cola', 'קולה זירו': 'Cola Zéro', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Boisson Énergisante',
+  // חיות עזרה
+  'נמלה': 'Fourmi',
+  'עכבר': 'Souris',
+  'צב': 'Tortue',
+  'חתול': 'Chat',
+  'שועל': 'Renard',
+  'כלב': 'Chien',
+  'במבי': 'Bambi',
+  'צבוע': 'Hyène',
+  'פרה': 'Vache',
+  'זאב': 'Loup',
+  'שור': 'Taureau',
+  'פיל תינוק': 'Bébé éléphant',
+  'דוב': 'Ours',
+  'פיל': 'Éléphant',
+  "צ'יטה": 'Guépard',
+  'נמר': 'Léopard',
+  'אריה': 'Lion',
 };
 // פורטוגזית (ברזיל): שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_PT = {
@@ -9289,6 +9832,24 @@ const NAME_PT = {
   'מיץ מלפפונים חמוצים': 'Suco de Picles', 'מיץ תפוחים': 'Suco de Maçã',
   'קולה': 'Refrigerante de Cola', 'קולה זירו': 'Cola Zero', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Energético',
+  // חיות עזרה
+  'נמלה': 'Formiga',
+  'עכבר': 'Rato',
+  'צב': 'Tartaruga',
+  'חתול': 'Gato',
+  'שועל': 'Raposa',
+  'כלב': 'Cachorro',
+  'במבי': 'Bambi',
+  'צבוע': 'Hiena',
+  'פרה': 'Vaca',
+  'זאב': 'Lobo',
+  'שור': 'Touro',
+  'פיל תינוק': 'Filhote de elefante',
+  'דוב': 'Urso',
+  'פיל': 'Elefante',
+  "צ'יטה": 'Guepardo',
+  'נמר': 'Leopardo',
+  'אריה': 'Leão',
 };
 // גרמנית: שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_DE = {
@@ -9331,6 +9892,24 @@ const NAME_DE = {
   'מיץ מלפפונים חמוצים': 'Gurkenwasser', 'מיץ תפוחים': 'Apfelsaft',
   'קולה': 'Cola', 'קולה זירו': 'Cola Zero', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Energydrink',
+  // חיות עזרה
+  'נמלה': 'Ameise',
+  'עכבר': 'Maus',
+  'צב': 'Schildkröte',
+  'חתול': 'Katze',
+  'שועל': 'Fuchs',
+  'כלב': 'Hund',
+  'במבי': 'Bambi',
+  'צבוע': 'Hyäne',
+  'פרה': 'Kuh',
+  'זאב': 'Wolf',
+  'שור': 'Stier',
+  'פיל תינוק': 'Elefantenbaby',
+  'דוב': 'Bär',
+  'פיל': 'Elefant',
+  "צ'יטה": 'Gepard',
+  'נמר': 'Leopard',
+  'אריה': 'Löwe',
 };
 // רוסית: שמות פרטיים כתובים באותיות רוסיות (קירילית) - איך שהם נשמעים,
 // כמו שרוסים כותבים שמות זרים. שמות תיאוריים מתורגמים באמת.
@@ -9374,6 +9953,24 @@ const NAME_RU = {
   'מיץ מלפפונים חמוצים': 'Огуречный рассол', 'מיץ תפוחים': 'Яблочный сок',
   'קולה': 'Кола', 'קולה זירו': 'Кола Зеро', 'פיוזטי': 'Фьюз Ти',
   'משקה אנרגיה': 'Энергетик',
+  // חיות עזרה
+  'נמלה': 'Муравей',
+  'עכבר': 'Мышь',
+  'צב': 'Черепаха',
+  'חתול': 'Кошка',
+  'שועל': 'Лиса',
+  'כלב': 'Собака',
+  'במבי': 'Бэмби',
+  'צבוע': 'Гиена',
+  'פרה': 'Корова',
+  'זאב': 'Волк',
+  'שור': 'Бык',
+  'פיל תינוק': 'Слонёнок',
+  'דוב': 'Медведь',
+  'פיל': 'Слон',
+  "צ'יטה": 'Гепард',
+  'נמר': 'Леопард',
+  'אריה': 'Лев',
 };
 // ערבית: שמות פרטיים כתובים באותיות ערביות - איך שהם נשמעים (כמו ביפנית
 // וברוסית). שמות תיאוריים מתורגמים באמת.
@@ -9417,6 +10014,24 @@ const NAME_AR = {
   'מיץ מלפפונים חמוצים': 'عصير مخلل', 'מיץ תפוחים': 'عصير تفاح',
   'קולה': 'كولا', 'קולה זירו': 'كولا زيرو', 'פיוזטי': 'فيوز تي',
   'משקה אנרגיה': 'مشروب طاقة',
+  // חיות עזרה
+  'נמלה': 'نملة',
+  'עכבר': 'فأر',
+  'צב': 'سلحفاة',
+  'חתול': 'قطة',
+  'שועל': 'ثعلب',
+  'כלב': 'كلب',
+  'במבי': 'بامبي',
+  'צבוע': 'ضبع',
+  'פרה': 'بقرة',
+  'זאב': 'ذئب',
+  'שור': 'ثور',
+  'פיל תינוק': 'فيل صغير',
+  'דוב': 'دب',
+  'פיל': 'فيل',
+  "צ'יטה": 'فهد',
+  'נמר': 'نمر',
+  'אריה': 'أسد',
 };
 // תאילנדית: שמות פרטיים כתובים באותיות תאילנדיות - איך שהם נשמעים (כמו
 // ביפנית, ברוסית ובערבית). שמות תיאוריים מתורגמים באמת.
@@ -9460,6 +10075,24 @@ const NAME_TH = {
   'מיץ מלפפונים חמוצים': 'น้ำแตงกวาดอง', 'מיץ תפוחים': 'น้ำแอปเปิล',
   'קולה': 'โคล่า', 'קולה זירו': 'โคล่าซีโร่', 'פיוזטי': 'ฟิวซ์ที',
   'משקה אנרגיה': 'เครื่องดื่มชูกำลัง',
+  // חיות עזרה
+  'נמלה': 'มด',
+  'עכבר': 'หนู',
+  'צב': 'เต่า',
+  'חתול': 'แมว',
+  'שועל': 'จิ้งจอก',
+  'כלב': 'หมา',
+  'במבי': 'แบมบี้',
+  'צבוע': 'ไฮยีนา',
+  'פרה': 'วัว',
+  'זאב': 'หมาป่า',
+  'שור': 'กระทิง',
+  'פיל תינוק': 'ลูกช้าง',
+  'דוב': 'หมี',
+  'פיל': 'ช้าง',
+  "צ'יטה": 'ชีตาห์',
+  'נמר': 'เสือดาว',
+  'אריה': 'สิงโต',
 };
 // פולנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_PL = {
@@ -9502,6 +10135,24 @@ const NAME_PL = {
   'מיץ מלפפונים חמוצים': 'Sok z Ogórków Kiszonych', 'מיץ תפוחים': 'Sok Jabłkowy',
   'קולה': 'Cola', 'קולה זירו': 'Cola Zero', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Napój Energetyczny',
+  // חיות עזרה
+  'נמלה': 'Mrówka',
+  'עכבר': 'Mysz',
+  'צב': 'Żółw',
+  'חתול': 'Kot',
+  'שועל': 'Lis',
+  'כלב': 'Pies',
+  'במבי': 'Bambi',
+  'צבוע': 'Hiena',
+  'פרה': 'Krowa',
+  'זאב': 'Wilk',
+  'שור': 'Byk',
+  'פיל תינוק': 'Słoniątko',
+  'דוב': 'Niedźwiedź',
+  'פיל': 'Słoń',
+  "צ'יטה": 'Gepard',
+  'נמר': 'Lampart',
+  'אריה': 'Lew',
 };
 // איטלקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_IT = {
@@ -9544,6 +10195,24 @@ const NAME_IT = {
   'מיץ מלפפונים חמוצים': 'Succo di Cetriolini', 'מיץ תפוחים': 'Succo di Mela',
   'קולה': 'Cola', 'קולה זירו': 'Cola Zero', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Bevanda Energetica',
+  // חיות עזרה
+  'נמלה': 'Formica',
+  'עכבר': 'Topo',
+  'צב': 'Tartaruga',
+  'חתול': 'Gatto',
+  'שועל': 'Volpe',
+  'כלב': 'Cane',
+  'במבי': 'Bambi',
+  'צבוע': 'Iena',
+  'פרה': 'Mucca',
+  'זאב': 'Lupo',
+  'שור': 'Toro',
+  'פיל תינוק': 'Elefantino',
+  'דוב': 'Orso',
+  'פיל': 'Elefante',
+  "צ'יטה": 'Ghepardo',
+  'נמר': 'Leopardo',
+  'אריה': 'Leone',
 };
 // רומנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_RO = {
@@ -9586,6 +10255,24 @@ const NAME_RO = {
   'מיץ מלפפונים חמוצים': 'Zeamă de Murături', 'מיץ תפוחים': 'Suc de Mere',
   'קולה': 'Cola', 'קולה זירו': 'Cola Zero', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Băutură Energizantă',
+  // חיות עזרה
+  'נמלה': 'Furnică',
+  'עכבר': 'Șoarece',
+  'צב': 'Broască țestoasă',
+  'חתול': 'Pisică',
+  'שועל': 'Vulpe',
+  'כלב': 'Câine',
+  'במבי': 'Bambi',
+  'צבוע': 'Hienă',
+  'פרה': 'Vacă',
+  'זאב': 'Lup',
+  'שור': 'Taur',
+  'פיל תינוק': 'Pui de elefant',
+  'דוב': 'Urs',
+  'פיל': 'Elefant',
+  "צ'יטה": 'Ghepard',
+  'נמר': 'Leopard',
+  'אריה': 'Leu',
 };
 // סינית (פשוטה): שמות פרטיים כתובים בסימנים סיניים לפי הצליל (כמו שסינים
 // כותבים שמות זרים), כמו ביפנית/רוסית/ערבית/תאילנדית. תיאוריים מתורגמים.
@@ -9629,6 +10316,24 @@ const NAME_ZH = {
   'מיץ מלפפונים חמוצים': '酸黄瓜汁', 'מיץ תפוחים': '苹果汁',
   'קולה': '可乐', 'קולה זירו': '零度可乐', 'פיוזטי': '冰茶',
   'משקה אנרגיה': '能量饮料',
+  // חיות עזרה
+  'נמלה': '蚂蚁',
+  'עכבר': '老鼠',
+  'צב': '乌龟',
+  'חתול': '猫',
+  'שועל': '狐狸',
+  'כלב': '狗',
+  'במבי': '小鹿斑比',
+  'צבוע': '鬣狗',
+  'פרה': '奶牛',
+  'זאב': '狼',
+  'שור': '公牛',
+  'פיל תינוק': '小象',
+  'דוב': '熊',
+  'פיל': '大象',
+  "צ'יטה": '猎豹',
+  'נמר': '豹',
+  'אריה': '狮子',
 };
 // קוריאנית: שמות פרטיים כתובים באותיות קוריאניות (הנגול) לפי הצליל, כמו
 // ביפנית/רוסית/ערבית/תאילנדית/סינית. שמות תיאוריים מתורגמים באמת.
@@ -9672,6 +10377,24 @@ const NAME_KO = {
   'מיץ מלפפונים חמוצים': '피클 주스', 'מיץ תפוחים': '사과 주스',
   'קולה': '콜라', 'קולה זירו': '제로 콜라', 'פיוזטי': '퓨즈티',
   'משקה אנרגיה': '에너지 음료',
+  // חיות עזרה
+  'נמלה': '개미',
+  'עכבר': '쥐',
+  'צב': '거북이',
+  'חתול': '고양이',
+  'שועל': '여우',
+  'כלב': '개',
+  'במבי': '밤비',
+  'צבוע': '하이에나',
+  'פרה': '젖소',
+  'זאב': '늑대',
+  'שור': '황소',
+  'פיל תינוק': '아기 코끼리',
+  'דוב': '곰',
+  'פיל': '코끼리',
+  "צ'יטה": '치타',
+  'נמר': '표범',
+  'אריה': '사자',
 };
 // הודית: שמות פרטיים כתובים באותיות דוונאגרי לפי הצליל, כמו ביפנית/רוסית/
 // ערבית/תאילנדית/סינית/קוריאנית. שמות תיאוריים מתורגמים באמת.
@@ -9715,6 +10438,24 @@ const NAME_HI = {
   'מיץ מלפפונים חמוצים': 'अचार वाले खीरे का रस', 'מיץ תפוחים': 'सेब का रस',
   'קולה': 'कोला', 'קולה זירו': 'ज़ीरो कोला', 'פיוזטי': 'फ़्यूज़ टी',
   'משקה אנרגיה': 'एनर्जी ड्रिंक',
+  // חיות עזרה
+  'נמלה': 'चींटी',
+  'עכבר': 'चूहा',
+  'צב': 'कछुआ',
+  'חתול': 'बिल्ली',
+  'שועל': 'लोमड़ी',
+  'כלב': 'कुत्ता',
+  'במבי': 'बाम्बी',
+  'צבוע': 'लकड़बग्घा',
+  'פרה': 'गाय',
+  'זאב': 'भेड़िया',
+  'שור': 'सांड',
+  'פיל תינוק': 'हाथी का बच्चा',
+  'דוב': 'भालू',
+  'פיל': 'हाथी',
+  "צ'יטה": 'चीता',
+  'נמר': 'तेंदुआ',
+  'אריה': 'शेर',
 };
 // טורקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות, כמו ספרדית/צרפתית),
 // שמות תיאוריים מתורגמים באמת.
@@ -9758,6 +10499,24 @@ const NAME_TR = {
   'מיץ מלפפונים חמוצים': 'Turşu Suyu', 'מיץ תפוחים': 'Elma Suyu',
   'קולה': 'Kola', 'קולה זירו': 'Diyet Kola', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Enerji İçeceği',
+  // חיות עזרה
+  'נמלה': 'Karınca',
+  'עכבר': 'Fare',
+  'צב': 'Kaplumbağa',
+  'חתול': 'Kedi',
+  'שועל': 'Tilki',
+  'כלב': 'Köpek',
+  'במבי': 'Bambi',
+  'צבוע': 'Sırtlan',
+  'פרה': 'İnek',
+  'זאב': 'Kurt',
+  'שור': 'Boğa',
+  'פיל תינוק': 'Yavru fil',
+  'דוב': 'Ayı',
+  'פיל': 'Fil',
+  "צ'יטה": 'Çita',
+  'נמר': 'Leopar',
+  'אריה': 'Aslan',
 };
 // הולנדית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_NL = {
@@ -9800,6 +10559,24 @@ const NAME_NL = {
   'מיץ מלפפונים חמוצים': 'Augurkensap', 'מיץ תפוחים': 'Appelsap',
   'קולה': 'Cola', 'קולה זירו': 'Cola Zero', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Energiedrank',
+  // חיות עזרה
+  'נמלה': 'Mier',
+  'עכבר': 'Muis',
+  'צב': 'Schildpad',
+  'חתול': 'Kat',
+  'שועל': 'Vos',
+  'כלב': 'Hond',
+  'במבי': 'Bambi',
+  'צבוע': 'Hyena',
+  'פרה': 'Koe',
+  'זאב': 'Wolf',
+  'שור': 'Stier',
+  'פיל תינוק': 'Babyolifant',
+  'דוב': 'Beer',
+  'פיל': 'Olifant',
+  "צ'יטה": 'Jachtluipaard',
+  'נמר': 'Luipaard',
+  'אריה': 'Leeuw',
 };
 // שוודית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_SV = {
@@ -9842,6 +10619,24 @@ const NAME_SV = {
   'מיץ מלפפונים חמוצים': 'Saltgurksjuice', 'מיץ תפוחים': 'Äppeljuice',
   'קולה': 'Cola', 'קולה זירו': 'Cola Zero', 'פיוזטי': 'Fuze Tea',
   'משקה אנרגיה': 'Energidryck',
+  // חיות עזרה
+  'נמלה': 'Myra',
+  'עכבר': 'Mus',
+  'צב': 'Sköldpadda',
+  'חתול': 'Katt',
+  'שועל': 'Räv',
+  'כלב': 'Hund',
+  'במבי': 'Bambi',
+  'צבוע': 'Hyena',
+  'פרה': 'Ko',
+  'זאב': 'Varg',
+  'שור': 'Tjur',
+  'פיל תינוק': 'Elefantunge',
+  'דוב': 'Björn',
+  'פיל': 'Elefant',
+  "צ'יטה": 'Gepard',
+  'נמר': 'Leopard',
+  'אריה': 'Lejon',
 };
 function trName(name) {
   if (uiLang === 'sv') return NAME_SV[name] ?? name;
@@ -10661,6 +11456,7 @@ function resetLocalPlayerStateForAccountSwitch() {
   switchPlayerCharacter('סווארק');
   switchPlayerWeapon('אבן חדה');
   switchEnemy(0);
+  switchPet(null);
   updateMoneyUI();
 }
 
@@ -10668,6 +11464,7 @@ function buildCloudState() {
   return {
     money, inventory: [...inventory], characterLevels,
     selectedCharacterName, selectedWeaponName, enemyLevel, wins, losses,
+    selectedPetName,
     username: myUsername,
     displayName: cloudUser?.displayName || '',
     updatedAt: serverTimestamp(),
@@ -10697,6 +11494,7 @@ function applyCloudState(data) {
   if (data.selectedCharacterName && CHARACTER_CFGS[data.selectedCharacterName]) switchPlayerCharacter(data.selectedCharacterName);
   if (data.selectedWeaponName && WEAPON_CFGS[data.selectedWeaponName]) switchPlayerWeapon(data.selectedWeaponName);
   if (data.enemyLevel != null) switchEnemy(data.enemyLevel);
+  switchPet(data.selectedPetName || null);
   updateLoadoutUI();
 }
 
@@ -12246,6 +13044,9 @@ function animate() {
     poseFighter(enemy, t, dt);
   }
 
+  // חיית העזרה (אם נבחרה) - ראה updatePet
+  updatePet(dt, t, inBattleMode, !gameOver);
+
   // גלים חזקים באי האבוד - מעוותים את גובה הים לפי שתי גלי-סינוס חופפות.
   // מחושב רק כשבאמת רואים את האי (חוסך עבודה על ~3600 קודקודים בכל
   // פריים כשלא צריך). תדירות הגל הוקטנה (חלוקה ב-~4.5) יחד עם הגדלת
@@ -12290,6 +13091,7 @@ animate();
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
+  PET_CFGS, switchPet, buildPet, get selectedPetName() { return selectedPetName; }, get petGroup() { return petGroup; }, petState, renderPetsScreen,
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
   renderShopCategory, getCharacterThumb, SVAROK_CFG, JENNY_CFG, BRAKE_CFG, LORD_CFG, PLAYTY_CFG, LIZZY_CFG, BERTO_CFG, STANBER_CFG, SLAIKY_CFG, KITTY_CFG, LEWIN_CFG, SINZER_CFG, FRANK_CFG, KRAGOR_CFG, PROKENT_CFG, CHARES_CFG, inventory,
   BOSS_LEVELS, startBossFight, get isBossFight() { return isBossFight; },
