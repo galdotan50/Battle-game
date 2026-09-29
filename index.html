@@ -752,7 +752,7 @@
   #settingsOverlay .bigBtn { font-size: 1.15rem; padding: 16px 40px; margin: 8px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
   /* בוחר השפה: רשת של כפתורי דגל. הדגלים מצוירים ב-SVG ולא באמוג'י,
      כי ב-Windows אמוג'י של דגל מופיע כשתי אותיות ("JP") ולא כדגל. */
-  #langPickerTitle { font-size: 1.1rem; font-weight: bold; margin: 6px 0 8px; }
+  #langPicker.collapsed { display: none; }
   #langPicker {
     display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
     max-width: 800px; margin-bottom: 14px;   /* 8 כפתורים בשורה (8×92 + 7×8 רווח = 792) - 31 דגלים = 8+8+8+7 */
@@ -998,8 +998,8 @@
 
 <div id="settingsOverlay">
   <div class="screenTitle" data-i18n-he="⚙️ הגדרות" data-i18n-en="⚙️ Settings" data-i18n-es="⚙️ Configuración" data-i18n-ja="⚙️ 設定" data-i18n-fr="⚙️ Réglages" data-i18n-pt="⚙️ Configurações" data-i18n-de="⚙️ Einstellungen" data-i18n-ru="⚙️ Настройки" data-i18n-ar="⚙️ الإعدادات" data-i18n-th="⚙️ ตั้งค่า" data-i18n-pl="⚙️ Ustawienia" data-i18n-it="⚙️ Impostazioni" data-i18n-ro="⚙️ Setări" data-i18n-zh="⚙️ 设置" data-i18n-ko="⚙️ 설정" data-i18n-hi="⚙️ सेटिंग्स" data-i18n-tr="⚙️ Ayarlar" data-i18n-nl="⚙️ Instellingen" data-i18n-sv="⚙️ Inställningar" data-i18n-uk="⚙️ Налаштування" data-i18n-cs="⚙️ Nastavení" data-i18n-hu="⚙️ Beállítások" data-i18n-el="⚙️ Ρυθμίσεις" data-i18n-bg="⚙️ Настройки" data-i18n-sr="⚙️ Подешавања" data-i18n-hr="⚙️ Postavke" data-i18n-sk="⚙️ Nastavenia" data-i18n-sq="⚙️ Cilësimet" data-i18n-sl="⚙️ Nastavitve" data-i18n-gd="⚙️ Roghainnean" data-i18n-ptpt="⚙️ Definições">⚙️ הגדרות</div>
-  <div id="langPickerTitle">🌐</div>
-  <div id="langPicker"></div>
+  <button class="bigBtn secondary" id="langChooseBtn">🌐</button>
+  <div id="langPicker" class="collapsed"></div>
   <button class="bigBtn secondary" id="openGiftBtn" data-i18n-he="🎁 גיפט" data-i18n-en="🎁 Gift" data-i18n-es="🎁 Regalo" data-i18n-ja="🎁 ギフト" data-i18n-fr="🎁 Cadeau" data-i18n-pt="🎁 Presente" data-i18n-de="🎁 Geschenk" data-i18n-ru="🎁 Подарок" data-i18n-ar="🎁 هدية" data-i18n-th="🎁 ของขวัญ" data-i18n-pl="🎁 Prezent" data-i18n-it="🎁 Regalo" data-i18n-ro="🎁 Cadou" data-i18n-zh="🎁 礼物" data-i18n-ko="🎁 선물" data-i18n-hi="🎁 गिफ़्ट" data-i18n-tr="🎁 Hediye" data-i18n-nl="🎁 Cadeau" data-i18n-sv="🎁 Present" data-i18n-uk="🎁 Подарунок" data-i18n-cs="🎁 Dárek" data-i18n-hu="🎁 Ajándék" data-i18n-el="🎁 Δώρο" data-i18n-bg="🎁 Подарък" data-i18n-sr="🎁 Поклон" data-i18n-hr="🎁 Dar" data-i18n-sk="🎁 Darček" data-i18n-sq="🎁 Dhuratë" data-i18n-sl="🎁 Darilo" data-i18n-gd="🎁 Tiodhlac" data-i18n-ptpt="🎁 Presente">🎁 גיפט</button>
   <button class="bigBtn" id="newUserBtn" data-i18n-he="👤 משתמש חדש" data-i18n-en="👤 New user" data-i18n-es="👤 Usuario nuevo" data-i18n-ja="👤 新しいユーザー" data-i18n-fr="👤 Nouvel utilisateur" data-i18n-pt="👤 Novo usuário" data-i18n-de="👤 Neuer Benutzer" data-i18n-ru="👤 Новый игрок" data-i18n-ar="👤 مستخدم جديد" data-i18n-th="👤 ผู้ใช้ใหม่" data-i18n-pl="👤 Nowy gracz" data-i18n-it="👤 Nuovo utente" data-i18n-ro="👤 Utilizator nou" data-i18n-zh="👤 新用户" data-i18n-ko="👤 새 사용자" data-i18n-hi="👤 नया यूज़र" data-i18n-tr="👤 Yeni kullanıcı" data-i18n-nl="👤 Nieuwe gebruiker" data-i18n-sv="👤 Ny användare" data-i18n-uk="👤 Новий користувач" data-i18n-cs="👤 Nový uživatel" data-i18n-hu="👤 Új felhasználó" data-i18n-el="👤 Νέος χρήστης" data-i18n-bg="👤 Нов потребител" data-i18n-sr="👤 Нови корисник" data-i18n-hr="👤 Novi korisnik" data-i18n-sk="👤 Nový používateľ" data-i18n-sq="👤 Përdorues i ri" data-i18n-sl="👤 Nov uporabnik" data-i18n-gd="👤 Cleachdaiche ùr" data-i18n-ptpt="👤 Novo utilizador">👤 משתמש חדש</button>
   <button class="bigBtn secondary" id="openFriendsBtn" data-i18n-he="👥 חברים" data-i18n-en="👥 Friends" data-i18n-es="👥 Amigos" data-i18n-ja="👥 友だち" data-i18n-fr="👥 Amis" data-i18n-pt="👥 Amigos" data-i18n-de="👥 Freunde" data-i18n-ru="👥 Друзья" data-i18n-ar="👥 الأصدقاء" data-i18n-th="👥 เพื่อน" data-i18n-pl="👥 Znajomi" data-i18n-it="👥 Amici" data-i18n-ro="👥 Prieteni" data-i18n-zh="👥 朋友" data-i18n-ko="👥 친구" data-i18n-hi="👥 दोस्त" data-i18n-tr="👥 Arkadaşlar" data-i18n-nl="👥 Vrienden" data-i18n-sv="👥 Vänner" data-i18n-uk="👥 Друзі" data-i18n-cs="👥 Kamarádi" data-i18n-hu="👥 Barátok" data-i18n-el="👥 Φίλοι" data-i18n-bg="👥 Приятели" data-i18n-sr="👥 Пријатељи" data-i18n-hr="👥 Prijatelji" data-i18n-sk="👥 Kamaráti" data-i18n-sq="👥 Miqtë" data-i18n-sl="👥 Prijatelji" data-i18n-gd="👥 Caraidean" data-i18n-ptpt="👥 Amigos">👥 חברים</button>
@@ -7155,6 +7155,7 @@ function showScreen(name) {
   petsEl.classList.toggle('show', name === 'pets');
   if (name === 'pets') renderPetsScreen();
   settingsEl.classList.toggle('show', name === 'settings');
+  if (name === 'settings') document.getElementById('langPicker').classList.add('collapsed');   // בכל כניסה להגדרות הדגלים סגורים
   giftEl.classList.toggle('show', name === 'gift');
   friendsEl.classList.toggle('show', name === 'friends');
   matchEl.classList.toggle('show', name === 'match');
@@ -13790,7 +13791,7 @@ const LANGS = [
 ];
 function renderLangPicker() {
   const cur = LANGS.find((l) => l.code === uiLang) || LANGS[0];
-  document.getElementById('langPickerTitle').textContent = '🌐 ' + cur.name;
+  document.getElementById('langChooseBtn').textContent = T('🌐 בחירת שפה', '🌐 Choose language', '🌐 Elegir idioma', '🌐 言語をえらぶ', '🌐 Choisir la langue', '🌐 Escolher idioma', '🌐 Sprache wählen', '🌐 Выбрать язык', '🌐 اختيار اللغة', '🌐 เลือกภาษา', '🌐 Wybierz język', '🌐 Scegli la lingua', '🌐 Alege limba', '🌐 选择语言', '🌐 언어 선택', '🌐 भाषा चुनो', '🌐 Dil seç', '🌐 Kies taal', '🌐 Välj språk', '🌐 Вибрати мову', '🌐 Vybrat jazyk', '🌐 Nyelv választása', '🌐 Επιλογή γλώσσας', '🌐 Избери език', '🌐 Изабери језик', '🌐 Odaberi jezik', '🌐 Vybrať jazyk', '🌐 Zgjidh gjuhën', '🌐 Izberi jezik', '🌐 Tagh cànan', '🌐 Escolher idioma') + ' · ' + cur.name;
   const box = document.getElementById('langPicker');
   box.innerHTML = '';
   LANGS.forEach((l) => {
@@ -13801,10 +13802,13 @@ function renderLangPicker() {
       uiLang = l.code;
       localStorage.setItem('battleGameLang', uiLang);
       applyLanguage();
+      box.classList.add('collapsed');   // אחרי הבחירה הדגלים נסגרים שוב
     });
     box.appendChild(b);
   });
 }
+// כפתור "בחירת שפה" פותח/סוגר את רשת הדגלים (2026-09-29, בקשת הבן) - כברירת מחדל סגורה
+document.getElementById('langChooseBtn').addEventListener('click', () => document.getElementById('langPicker').classList.toggle('collapsed'));
 applyLanguage();   // מציג את המצב הנכון כבר מהטעינה הראשונה (כולל אם uiLang נטען מ-localStorage כ-'en')
 
 lobbyBtnEl.addEventListener('click', () => {
