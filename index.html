@@ -5259,6 +5259,160 @@ const WEAPON_CFGS = {
       return g;
     },
   },
+
+  // ===== 10 נשקים מתקדמים (2026-09-29, בקשת המשתמש; העיצוב נבחר על ידי) - נבנים רק מאותם עזרי-נשק =====
+  // מיולניר - פטיש-מלחמה: ידית עץ וראש קובייה כבד מפלדה כהה עם טבעת זהב.
+  'מיולניר': {
+    dmg: 250, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.30, 0.014, 0x5a3a20, woodGrainTex));
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.08, 0.08),
+        new THREE.MeshStandardMaterial({ color: 0x4a5058, roughness: 0.4, metalness: 0.7, map: metalScratchTex('#ffffff') }));
+      head.position.y = 0.32; head.castShadow = true; g.add(head);
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.02, 10),
+        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.7 }));
+      band.position.y = 0.26; g.add(band);
+      return g;
+    },
+  },
+  // מרלין - מטה קסמים: מקל סגול כהה עם כדור סגול זוהר וטבעת זהב.
+  'מרלין': {
+    dmg: 300, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.32, 0.012, 0x3a2a4a, woodGrainTex));
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12),
+        new THREE.MeshStandardMaterial({ color: 0x7a20d0, emissive: 0xa040ff, emissiveIntensity: 1.6, roughness: 0.3 }));
+      orb.position.y = 0.36; g.add(orb);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.006, 8, 20),
+        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.7 }));
+      ring.position.y = 0.33; ring.rotation.x = Math.PI / 2; g.add(ring);
+      return g;
+    },
+  },
+  // ברסרק - גרזן קרב כפול: ידית עץ וטריז פלדה משני הצדדים.
+  'ברסרק': {
+    dmg: 360, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.34, 0.013, WOOD, woodGrainTex));
+      g.add(weaponWedge(0.20, 0.15, 0.085, 0x6a7078));
+      const w2 = weaponWedge(0.20, 0.15, 0.085, 0x6a7078);
+      w2.rotation.y = Math.PI; g.add(w2);
+      return g;
+    },
+  },
+  // אינפרנו - חרב אש: להב כתום-אדום זוהר, מגן זהב וידית אדומה כהה.
+  'אינפרנו': {
+    dmg: 430, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.09, 0.013, 0x4a1010, leatherTex));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.014, 0.024),
+        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.7 }));
+      guard.position.y = 0.09; g.add(guard);
+      const blade = weaponBlade(0.09, 0.38, 0.05, 0xff5a1a, 0.18);
+      blade.material.emissive.set(0xff3000); blade.material.emissiveIntensity = 1.3;
+      g.add(blade);
+      return g;
+    },
+  },
+  // גלייסייר - חרב קרח: להב תכלת זוהר, מגן כסוף.
+  'גלייסייר': {
+    dmg: 510, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.09, 0.013, 0x1a3a5a, leatherTex));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.014, 0.024),
+        new THREE.MeshStandardMaterial({ color: 0xc8d4dc, roughness: 0.3, metalness: 0.8 }));
+      guard.position.y = 0.09; g.add(guard);
+      const blade = weaponBlade(0.09, 0.40, 0.055, 0x4ab8f0, 0.15);
+      blade.material.emissive.set(0x1a80d0); blade.material.emissiveIntensity = 0.9;
+      g.add(blade);
+      return g;
+    },
+  },
+  // ריפר - מגל: ידית ארוכה כהה ולהב מעוקל (שני קטעים) שיוצא הצידה.
+  'ריפר': {
+    dmg: 600, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.52, 0.012, 0x2a1c14, woodGrainTex));
+      const b1 = weaponBlade(0, 0.17, 0.045, 0x3a4048, 0.3);
+      b1.rotation.z = -Math.PI / 2; b1.position.set(0, 0.52, 0); g.add(b1);
+      const b2 = weaponBlade(0, 0.10, 0.032, 0x3a4048, 0.1);
+      b2.rotation.z = -Math.PI / 2 - 0.9; b2.position.set(0.17, 0.52, 0); g.add(b2);
+      return g;
+    },
+  },
+  // גונגניר - חנית זהב: ידית וחוד זהובים, ושני להבים קטנים בצדדים.
+  'גונגניר': {
+    dmg: 700, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.44, 0.010, 0x9a7412, metalScratchTex));
+      const tip = weaponSpike(0.16, 0.022, 0xd9a010);
+      tip.material.emissive.set(0x805000); tip.material.emissiveIntensity = 0.6;
+      tip.position.y = 0.44; g.add(tip);
+      [-1.0, 1.0].forEach((ang) => {
+        const sp = weaponSpike(0.06, 0.010, 0xd9a010, ang);
+        sp.position.y = 0.42; g.add(sp);
+      });
+      return g;
+    },
+  },
+  // שייד - פגיון צל: להב שחור-סגול קצר עם זוהר סגול.
+  'שייד': {
+    dmg: 800, gripOffset: 0.04,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.06, 0.014, 0x111114, leatherTex));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.012, 0.02),
+        new THREE.MeshStandardMaterial({ color: 0x2a2a30, roughness: 0.4, metalness: 0.7 }));
+      guard.position.y = 0.06; g.add(guard);
+      const blade = weaponBlade(0.06, 0.17, 0.038, 0x2a1a3a, 0.12);
+      blade.material.emissive.set(0x6a20c0); blade.material.emissiveIntensity = 0.9;
+      g.add(blade);
+      return g;
+    },
+  },
+  // פלזמה - חרב אנרגיה: ידית מתכת וקרן תכלת זוהרת עם הילה שקופה.
+  'פלזמה': {
+    dmg: 900, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.10, 0.014, 0x22262c, metalScratchTex));
+      const emitter = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.018, 0.02, 10),
+        new THREE.MeshStandardMaterial({ color: 0x888e96, roughness: 0.3, metalness: 0.8 }));
+      emitter.position.y = 0.105; g.add(emitter);
+      const core = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.38, 10),
+        new THREE.MeshBasicMaterial({ color: 0xbaf8ff }));
+      core.position.y = 0.30; g.add(core);
+      const halo = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.39, 12),
+        new THREE.MeshBasicMaterial({ color: 0x20d0ff, transparent: true, opacity: 0.45 }));
+      halo.position.y = 0.30; g.add(halo);
+      return g;
+    },
+  },
+  // נובה - חרב הקוסמוס: להב סגול-חלל זוהר ארוך, מגן זהב עם אבן לבנה זוהרת.
+  'נובה': {
+    dmg: 1000, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.10, 0.013, 0x14092a, leatherTex));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.016, 0.026),
+        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.7 }));
+      guard.position.y = 0.10; g.add(guard);
+      const gem = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 10),
+        new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.5 }));
+      gem.position.y = 0.12; g.add(gem);
+      const blade = weaponBlade(0.11, 0.46, 0.06, 0x4a2a9a, 0.15);
+      blade.material.emissive.set(0x8a4aff); blade.material.emissiveIntensity = 1.1;
+      g.add(blade);
+      return g;
+    },
+  },
 };
 
 function addWeaponProp(f, name) {
@@ -10123,6 +10277,16 @@ function T(he, en, es, ja, fr, pt, de, ru, ar, th, pl, it, ro, zh, ko, hi, tr, n
 // נשאר תמיד המפתח הפנימי (inventory/CHARACTER_CFGS/וכו') כדי לא לשבור
 // שמירות קיימות - זה תרגום-תצוגה בלבד.
 const NAME_EN = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -10202,6 +10366,16 @@ const NAME_EN = {
   'אריה': 'Lion',
 };
 const NAME_ES = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -10283,6 +10457,16 @@ const NAME_ES = {
 // יפנית: שמות פרטיים (דמויות/אויבים/בוסים) כתובים בקטקנה - איך שהם נשמעים,
 // כמו שיפנים כותבים שמות זרים. שמות תיאוריים (נשקים/אוכל/...) מתורגמים באמת.
 const NAME_JA = {
+  "מיולניר": "ミョルニル",
+  "מרלין": "マーリン",
+  "ברסרק": "バーサーカー",
+  "אינפרנו": "インフェルノ",
+  "גלייסייר": "グレイシャー",
+  "ריפר": "リーパー",
+  "גונגניר": "グングニル",
+  "שייד": "シェイド",
+  "פלזמה": "プラズマ",
+  "נובה": "ノヴァ",
   "טנק": "タンク",
   "פרוסט": "フロスト",
   "אמבר": "エンバー",
@@ -10363,6 +10547,16 @@ const NAME_JA = {
 };
 // צרפתית: שמות פרטיים (דמויות/אויבים/בוסים) זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_FR = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -10443,6 +10637,16 @@ const NAME_FR = {
 };
 // פורטוגזית (ברזיל): שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_PT = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -10523,6 +10727,16 @@ const NAME_PT = {
 };
 // גרמנית: שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_DE = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -10604,6 +10818,16 @@ const NAME_DE = {
 // רוסית: שמות פרטיים כתובים באותיות רוסיות (קירילית) - איך שהם נשמעים,
 // כמו שרוסים כותבים שמות זרים. שמות תיאוריים מתורגמים באמת.
 const NAME_RU = {
+  "מיולניר": "Мьёльнир",
+  "מרלין": "Мерлин",
+  "ברסרק": "Берсерк",
+  "אינפרנו": "Инферно",
+  "גלייסייר": "Глейшер",
+  "ריפר": "Рипер",
+  "גונגניר": "Гунгнир",
+  "שייד": "Шейд",
+  "פלזמה": "Плазма",
+  "נובה": "Нова",
   "טנק": "Танк",
   "פרוסט": "Фрост",
   "אמבר": "Эмбер",
@@ -10685,6 +10909,16 @@ const NAME_RU = {
 // ערבית: שמות פרטיים כתובים באותיות ערביות - איך שהם נשמעים (כמו ביפנית
 // וברוסית). שמות תיאוריים מתורגמים באמת.
 const NAME_AR = {
+  "מיולניר": "ميولنير",
+  "מרלין": "ميرلين",
+  "ברסרק": "بيرسيرك",
+  "אינפרנו": "إنفرنو",
+  "גלייסייר": "غلاسير",
+  "ריפר": "ريبر",
+  "גונגניר": "غونغنير",
+  "שייד": "شيد",
+  "פלזמה": "بلازما",
+  "נובה": "نوفا",
   "טנק": "تانك",
   "פרוסט": "فروست",
   "אמבר": "إمبر",
@@ -10766,6 +11000,16 @@ const NAME_AR = {
 // תאילנדית: שמות פרטיים כתובים באותיות תאילנדיות - איך שהם נשמעים (כמו
 // ביפנית, ברוסית ובערבית). שמות תיאוריים מתורגמים באמת.
 const NAME_TH = {
+  "מיולניר": "มโยลเนียร์",
+  "מרלין": "เมอร์ลิน",
+  "ברסרק": "เบอร์เซิร์ก",
+  "אינפרנו": "อินเฟอร์โน",
+  "גלייסייר": "เกลเซียร์",
+  "ריפר": "รีปเปอร์",
+  "גונגניר": "กุงนีร์",
+  "שייד": "เชด",
+  "פלזמה": "พลาสมา",
+  "נובה": "โนวา",
   "טנק": "แท็งก์",
   "פרוסט": "ฟรอสต์",
   "אמבר": "เอมเบอร์",
@@ -10846,6 +11090,16 @@ const NAME_TH = {
 };
 // פולנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_PL = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -10926,6 +11180,16 @@ const NAME_PL = {
 };
 // איטלקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_IT = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -11006,6 +11270,16 @@ const NAME_IT = {
 };
 // רומנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_RO = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -11087,6 +11361,16 @@ const NAME_RO = {
 // סינית (פשוטה): שמות פרטיים כתובים בסימנים סיניים לפי הצליל (כמו שסינים
 // כותבים שמות זרים), כמו ביפנית/רוסית/ערבית/תאילנדית. תיאוריים מתורגמים.
 const NAME_ZH = {
+  "מיולניר": "姆乔尔尼尔",
+  "מרלין": "梅林",
+  "ברסרק": "狂战士",
+  "אינפרנו": "炼狱",
+  "גלייסייר": "冰川",
+  "ריפר": "收割者",
+  "גונגניר": "冈格尼尔",
+  "שייד": "幽影",
+  "פלזמה": "等离子",
+  "נובה": "新星",
   "טנק": "坦克",
   "פרוסט": "弗洛斯特",
   "אמבר": "恩伯",
@@ -11168,6 +11452,16 @@ const NAME_ZH = {
 // קוריאנית: שמות פרטיים כתובים באותיות קוריאניות (הנגול) לפי הצליל, כמו
 // ביפנית/רוסית/ערבית/תאילנדית/סינית. שמות תיאוריים מתורגמים באמת.
 const NAME_KO = {
+  "מיולניר": "묠니르",
+  "מרלין": "멀린",
+  "ברסרק": "버서커",
+  "אינפרנו": "인페르노",
+  "גלייסייר": "글레이셔",
+  "ריפר": "리퍼",
+  "גונגניר": "궁니르",
+  "שייד": "셰이드",
+  "פלזמה": "플라즈마",
+  "נובה": "노바",
   "טנק": "탱크",
   "פרוסט": "프로스트",
   "אמבר": "엠버",
@@ -11249,6 +11543,16 @@ const NAME_KO = {
 // הודית: שמות פרטיים כתובים באותיות דוונאגרי לפי הצליל, כמו ביפנית/רוסית/
 // ערבית/תאילנדית/סינית/קוריאנית. שמות תיאוריים מתורגמים באמת.
 const NAME_HI = {
+  "מיולניר": "म्योल्नीर",
+  "מרלין": "मर्लिन",
+  "ברסרק": "बर्सर्कर",
+  "אינפרנו": "इन्फर्नो",
+  "גלייסייר": "ग्लेशियर",
+  "ריפר": "रीपर",
+  "גונגניר": "गुंगनीर",
+  "שייד": "शेड",
+  "פלזמה": "प्लाज़्मा",
+  "נובה": "नोवा",
   "טנק": "टैंक",
   "פרוסט": "फ्रॉस्ट",
   "אמבר": "एम्बर",
@@ -11330,6 +11634,16 @@ const NAME_HI = {
 // טורקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות, כמו ספרדית/צרפתית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_TR = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -11410,6 +11724,16 @@ const NAME_TR = {
 };
 // הולנדית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_NL = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -11490,6 +11814,16 @@ const NAME_NL = {
 };
 // שוודית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_SV = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -11570,6 +11904,16 @@ const NAME_SV = {
 };
 // אוקראינית: שמות פרטיים בקירילית (כמו ברוסית, באיות אוקראיני), תיאוריים מתורגמים.
 const NAME_UK = {
+  "מיולניר": "Мйольнір",
+  "מרלין": "Мерлін",
+  "ברסרק": "Берсерк",
+  "אינפרנו": "Інферно",
+  "גלייסייר": "Глейшер",
+  "ריפר": "Ріпер",
+  "גונגניר": "Гунгнір",
+  "שייד": "Шейд",
+  "פלזמה": "Плазма",
+  "נובה": "Нова",
   "טנק": "Танк",
   "פרוסט": "Фрост",
   "אמבר": "Ембер",
@@ -11637,6 +11981,16 @@ const NAME_UK = {
 };
 // צ'כית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_CS = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -11704,6 +12058,16 @@ const NAME_CS = {
 };
 // הונגרית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HU = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -11772,6 +12136,16 @@ const NAME_HU = {
 // יוונית: שמות פרטיים באותיות יווניות לפי הצליל (כמו הקירילית ברוסית/אוקראינית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_EL = {
+  "מיולניר": "Μιόλνιρ",
+  "מרלין": "Μέρλιν",
+  "ברסרק": "Μπερσέρκερ",
+  "אינפרנו": "Ίνφερνο",
+  "גלייסייר": "Γκλέισιερ",
+  "ריפר": "Ρίπερ",
+  "גונגניר": "Γκούνγκνιρ",
+  "שייד": "Σέιντ",
+  "פלזמה": "Πλάσμα",
+  "נובה": "Νόβα",
   "טנק": "Τανκ",
   "פרוסט": "Φροστ",
   "אמבר": "Έμπερ",
@@ -11839,6 +12213,16 @@ const NAME_EL = {
 };
 // בולגרית: שמות פרטיים בקירילית (כמו ברוסית/אוקראינית, באיות בולגרי), תיאוריים מתורגמים.
 const NAME_BG = {
+  "מיולניר": "Мьолнир",
+  "מרלין": "Мерлин",
+  "ברסרק": "Берсерк",
+  "אינפרנו": "Инферно",
+  "גלייסייר": "Глейшър",
+  "ריפר": "Рийпър",
+  "גונגניר": "Гунгнир",
+  "שייד": "Шейд",
+  "פלזמה": "Плазма",
+  "נובה": "Нова",
   "טנק": "Танк",
   "פרוסט": "Фрост",
   "אמבר": "Ембър",
@@ -11906,6 +12290,16 @@ const NAME_BG = {
 };
 // סרבית (קירילית - הכתב הרשמי): שמות פרטיים לפי הצליל, תיאוריים מתורגמים.
 const NAME_SR = {
+  "מיולניר": "Мјолнир",
+  "מרלין": "Мерлин",
+  "ברסרק": "Берсерк",
+  "אינפרנו": "Инферно",
+  "גלייסייר": "Глејшер",
+  "ריפר": "Рипер",
+  "גונגניר": "Гунгнир",
+  "שייד": "Шејд",
+  "פלזמה": "Плазма",
+  "נובה": "Нова",
   "טנק": "Танк",
   "פרוסט": "Фрост",
   "אמבר": "Ембер",
@@ -11973,6 +12367,16 @@ const NAME_SR = {
 };
 // קרואטית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HR = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12040,6 +12444,16 @@ const NAME_HR = {
 };
 // סלובקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SK = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12107,6 +12521,16 @@ const NAME_SK = {
 };
 // אלבנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SQ = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12174,6 +12598,16 @@ const NAME_SQ = {
 };
 // סלובנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SL = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12242,6 +12676,16 @@ const NAME_SL = {
 // גאלית סקוטית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים (מחרוזות עם
 // אפוסטרוף - שנפוץ מאוד בגאלית - כתובות במירכאות כפולות).
 const NAME_GD = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12310,6 +12754,16 @@ const NAME_GD = {
 // פורטוגזית של פורטוגל: כמו הברזילאית, עם המילים של פורטוגל - Sumo (מיץ, בברזיל
 // Suco), Gelado (גלידה, בברזיל Sorvete), Cão (כלב, בברזיל Cachorro), Tosta, Cereais.
 const NAME_PTPT = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12377,6 +12831,16 @@ const NAME_PTPT = {
 };
 // אמהרית: שמות פרטיים בכתב געז לפי הצליל, שמות תיאוריים מתורגמים.
 const NAME_AM = {
+  "מיולניר": "ሚዮልኒር",
+  "מרלין": "መርሊን",
+  "ברסרק": "በርሰርከር",
+  "אינפרנו": "ኢንፈርኖ",
+  "גלייסייר": "ግሌሺየር",
+  "ריפר": "ሪፐር",
+  "גונגניר": "ጉንግኒር",
+  "שייד": "ሼድ",
+  "פלזמה": "ፕላዝማ",
+  "נובה": "ኖቫ",
   "טנק": "ታንክ",
   "פרוסט": "ፍሮስት",
   "אמבר": "ኤምበር",
@@ -12444,6 +12908,16 @@ const NAME_AM = {
 };
 // פינית: שמות פרטיים נשארים כמו באנגלית, שמות תיאוריים מתורגמים.
 const NAME_FI = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12511,6 +12985,16 @@ const NAME_FI = {
 };
 // נורווגית (בוקמול): שמות פרטיים כמו באנגלית, תיאוריים מתורגמים.
 const NAME_NO = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12577,6 +13061,16 @@ const NAME_NO = {
   'דוב': 'Bjørn', 'פיל': 'Elefant', "צ'יטה": 'Gepard', 'נמר': 'Leopard', 'אריה': 'Løve',
 };
 const NAME_GSW = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12697,6 +13191,16 @@ const NAME_GSW = {
   "אריה": "Löi",
 };
 const NAME_VI = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12817,6 +13321,16 @@ const NAME_VI = {
   "אריה": "Sư tử",
 };
 const NAME_ID = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -12937,6 +13451,16 @@ const NAME_ID = {
   "אריה": "Singa",
 };
 const NAME_ET = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -13057,6 +13581,16 @@ const NAME_ET = {
   "אריה": "Lõvi",
 };
 const NAME_IS = {
+  "מיולניר": "Mjolnir",
+  "מרלין": "Merlin",
+  "ברסרק": "Berserker",
+  "אינפרנו": "Inferno",
+  "גלייסייר": "Glacier",
+  "ריפר": "Reaper",
+  "גונגניר": "Gungnir",
+  "שייד": "Shade",
+  "פלזמה": "Plasma",
+  "נובה": "Nova",
   "טנק": "Tank",
   "פרוסט": "Frost",
   "אמבר": "Ember",
@@ -13177,6 +13711,16 @@ const NAME_IS = {
   "אריה": "Ljón",
 };
 const NAME_FA = {
+  "מיולניר": "میولنیر",
+  "מרלין": "مرلین",
+  "ברסרק": "برسرک",
+  "אינפרנו": "اینفرنو",
+  "גלייסייר": "گلیشر",
+  "ריפר": "ریپر",
+  "גונגניר": "گونگنیر",
+  "שייד": "شید",
+  "פלזמה": "پلاسما",
+  "נובה": "نوا",
   "טנק": "تانک",
   "פרוסט": "فراست",
   "אמבר": "امبر",
@@ -13734,6 +14278,16 @@ const SHOP_DATA = {
     ['חרב', 'נזק 100', '1500₪'],
     ['קטאנה', 'נזק 150', '2500₪'],
     ['רובה', 'נזק 210', '5000₪'],
+    ['מיולניר', 'נזק 250', '6000₪'],
+    ['מרלין', 'נזק 300', '7500₪'],
+    ['ברסרק', 'נזק 360', '9000₪'],
+    ['אינפרנו', 'נזק 430', '11000₪'],
+    ['גלייסייר', 'נזק 510', '13000₪'],
+    ['ריפר', 'נזק 600', '15500₪'],
+    ['גונגניר', 'נזק 700', '18000₪'],
+    ['שייד', 'נזק 800', '21000₪'],
+    ['פלזמה', 'נזק 900', '24000₪'],
+    ['נובה', 'נזק 1000', '30000₪'],
   ]},
   shields: { label: '🛡️ מגנים', labelEn: '🛡️ Shields', labelEs: '🛡️ Escudos', labelJa: '🛡️ たて', labelFr: '🛡️ Boucliers', labelPt: '🛡️ Escudos', labelDe: '🛡️ Schilde', labelRu: '🛡️ Щиты', labelAr: '🛡️ الدروع', labelTh: '🛡️ โล่', labelPl: '🛡️ Tarcze', labelIt: '🛡️ Scudi', labelRo: '🛡️ Scuturi', labelZh: '🛡️ 盾牌', labelKo: '🛡️ 방패', labelHi: '🛡️ ढालें', labelTr: '🛡️ Kalkanlar', labelNl: '🛡️ Schilden', labelSv: '🛡️ Sköldar', labelUk: '🛡️ Щити', labelCs: '🛡️ Štíty', labelHu: '🛡️ Pajzsok', labelEl: '🛡️ Ασπίδες', labelBg: '🛡️ Щитове', labelSr: '🛡️ Штитови', labelHr: '🛡️ Štitovi', labelSk: '🛡️ Štíty', labelSq: '🛡️ Mburoja', labelSl: '🛡️ Ščiti', labelGd: '🛡️ Sgiathan', labelPtpt: '🛡️ Escudos', labelAm: '🛡️ ጋሻዎች', labelFi: '🛡️ Kilvet', labelNo: '🛡️ Skjold', labelGsw: '🛡️ Schilder', labelVi: '🛡️ Khiên', labelId: '🛡️ Perisai', labelEt: '🛡️ Kilbid', labelIs: '🛡️ Skildir', labelFa: '🛡️ سپرها', rows: [
     ['אבן קצת גדולה אבל שבירה', 'הגנה בסיסית', 'חינם'],
