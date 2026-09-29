@@ -7345,7 +7345,16 @@ function tickCombat(attacker, defender, who, otherWho) {
 // 1₪ לכל נקודת נזק, אבל לא יותר מ-MAX_MONEY_PER_GAME בקרב אחד - בלי התקרה
 // קרב יחיד יכול לתת המון כסף (עד 75, כל החיים של בו), וזה מרוקן מתוכן
 // את הרעיון של "לנצח כמה פעמים כדי לחסוך".
-const MAX_MONEY_PER_GAME = 30;   // 2026-09-29: ירד מ-52 ל-30 - "תעשה את המשחק קשה יותר"
+// 2026-09-29 (בקשת המשתמש): "בכל קרב יקבלו עד 500 כסף, אבל אפשר גם פחות - תלוי איך היית בקרב". הכסף בקרב רגיל
+// (ניצחון *או* הפסד) הוא עכשיו לפי הביצועים - אותה נוסחת נקודות של הציון (computeGradePoints): נזק שגרמת,
+// נזק שקיבלת וכמה חיים נשארו. 500 = ניצחון כמעט בלי לקבל מכות; ניצחון "בקושי" ~300; הפסד קרוב ~50, הפסד גדול 0.
+const MAX_MONEY_PER_GAME = 500;
+const MONEY_POINTS_FLOOR = 0, MONEY_POINTS_FULL = 180;   // 0 נקודות ומטה: 0₪. מ-180 ומעלה: הסכום המלא
+function fightMoney(win) {
+  const pts = computeGradePoints(win);
+  const frac = Math.max(0, Math.min(1, (pts - MONEY_POINTS_FLOOR) / (MONEY_POINTS_FULL - MONEY_POINTS_FLOOR)));
+  return Math.round(MAX_MONEY_PER_GAME * frac);
+}
 let money = 0;
 // נצחונות/הפסדים - רק על סולם האויבים הרגיל (ENEMY_LEVELS), לא סומו/קרב
 // קבוצות/בוסים/הרפתקה - לאלה יש כבר מנגנוני תגמול נפרדים משלהם.
@@ -7394,11 +7403,14 @@ function updateBattleLabel() {
 // אבל לא נוסחה מדויקת - זו נוסחה שעוצבה כאן. אחוזים מתוך ה-hp המקסימלי
 // (לא מספרי נזק גולמיים), כדי שקרב מול אויב עם הרבה יותר hp (כמו לוסטר,
 // 440) לא ייתן ציון מנופח אוטומטית לעומת קרב מול אויב חלש.
-function computeGrade(win) {
+function computeGradePoints(win) {
   const dmgDealtPct = Math.min(100, (player.damageDealt / enemy.maxHp) * 100);
   const dmgReceivedPct = Math.min(100, (enemy.damageDealt / player.maxHp) * 100);
   const hpRemainPct = Math.max(0, player.hp / player.maxHp) * 100;
-  const points = dmgDealtPct - dmgReceivedPct * 0.5 + hpRemainPct * 0.5 + (win ? 60 : -20);
+  return dmgDealtPct - dmgReceivedPct * 0.5 + hpRemainPct * 0.5 + (win ? 60 : -20);
+}
+function computeGrade(win) {
+  const points = computeGradePoints(win);
   if (points >= 180) return 'SSS';
   if (points >= 140) return 'SS';
   if (points >= 100) return 'S';
@@ -7484,8 +7496,10 @@ function endGame(winnerWho) {
     playAgainBtn.style.display = 'none';
     lobbyBtnEl.textContent = T('🗺️ חזרה ליער', '🗺️ Back to the forest', '🗺️ Volver al bosque', '🗺️ 森にもどる', '🗺️ Retour à la forêt', '🗺️ Voltar para a floresta', '🗺️ Zurück zum Wald', '🗺️ Назад в лес', '🗺️ العودة إلى الغابة', '🗺️ กลับไปที่ป่า', '🗺️ Wróć do lasu', '🗺️ Torna alla foresta', '🗺️ Înapoi în pădure', '🗺️ 回到森林', '🗺️ 숲으로 돌아가기', '🗺️ जंगल में वापस', '🗺️ Ormana dön', '🗺️ Terug naar het bos', '🗺️ Tillbaka till skogen', '🗺️ Назад до лісу', '🗺️ Zpět do lesa', '🗺️ Vissza az erdőbe', '🗺️ Πίσω στο δάσος', '🗺️ Обратно в гората', '🗺️ Назад у шуму', '🗺️ Natrag u šumu', '🗺️ Späť do lesa', '🗺️ Kthehu në pyll', '🗺️ Nazaj v gozd', '🗺️ Air ais dhan choille', '🗺️ Voltar à floresta', '🗺️ ወደ ጫካው ተመለስ', '🗺️ Takaisin metsään', '🗺️ Tilbake til skogen', '🗺️ Zrugg in Wald', '🗺️ Quay lại khu rừng', '🗺️ Kembali ke hutan', '🗺️ Tagasi metsa', '🗺️ Aftur í skóginn', '🗺️ بازگشت به جنگل');
   } else if (win) {
-    money += Math.min(player.damageDealt, MAX_MONEY_PER_GAME);
+    const earned = fightMoney(true);
+    money += earned;
     updateMoneyUI();
+    gameOverGradeEl.textContent += ' · 💰 +' + earned;
     wins++;
     const isLast = enemyLevel >= ENEMY_LEVELS.length - 1;
     gameOverTitleEl.textContent = isLast
@@ -7516,7 +7530,13 @@ function endGame(winnerWho) {
     lobbyBtnEl.textContent = T('🗺️ חזרה ליער', '🗺️ Back to the forest', '🗺️ Volver al bosque', '🗺️ 森にもどる', '🗺️ Retour à la forêt', '🗺️ Voltar para a floresta', '🗺️ Zurück zum Wald', '🗺️ Назад в лес', '🗺️ العودة إلى الغابة', '🗺️ กลับไปที่ป่า', '🗺️ Wróć do lasu', '🗺️ Torna alla foresta', '🗺️ Înapoi în pădure', '🗺️ 回到森林', '🗺️ 숲으로 돌아가기', '🗺️ जंगल में वापस', '🗺️ Ormana dön', '🗺️ Terug naar het bos', '🗺️ Tillbaka till skogen', '🗺️ Назад до лісу', '🗺️ Zpět do lesa', '🗺️ Vissza az erdőbe', '🗺️ Πίσω στο δάσος', '🗺️ Обратно в гората', '🗺️ Назад у шуму', '🗺️ Natrag u šumu', '🗺️ Späť do lesa', '🗺️ Kthehu në pyll', '🗺️ Nazaj v gozd', '🗺️ Air ais dhan choille', '🗺️ Voltar à floresta', '🗺️ ወደ ጫካው ተመለስ', '🗺️ Takaisin metsään', '🗺️ Tilbake til skogen', '🗺️ Zrugg in Wald', '🗺️ Quay lại khu rừng', '🗺️ Kembali ke hutan', '🗺️ Tagasi metsa', '🗺️ Aftur í skóginn', '🗺️ بازگشت به جنگل');
   } else {
     gameOverTitleEl.textContent = isBossFight ? T('❌ הפסד לבוס', '❌ Lost to the boss', '❌ Perdiste contra el jefe', '❌ ボスに負けた', '❌ Perdu contre le boss', '❌ Perdeu para o chefão', '❌ Gegen den Boss verloren', '❌ Проигрыш боссу', '❌ خسرت أمام الزعيم', '❌ แพ้บอส', '❌ Przegrana z bossem', '❌ Sconfitto dal boss', '❌ Ai pierdut cu șeful', '❌ 输给了首领', '❌ 보스에게 졌어요', '❌ बॉस से हार गए', '❌ Patrona yenildin', '❌ Verloren van de baas', '❌ Förlorade mot bossen', '❌ Програш босу', '❌ Prohra s bossem', '❌ Vesztettél a főellenséggel szemben', '❌ Έχασες από το αφεντικό', '❌ Загуба от боса', '❌ Изгубио си од шефа', '❌ Izgubio si od šefa', '❌ Prehra s bossom', '❌ Humbe nga shefi', '❌ Izgubil si proti šefu', '❌ Chaill thu ris a\' cheannard', '❌ Perdeste contra o chefe', '❌ በአለቃው ተሸነፍክ', '❌ Hävisit pomolle', '❌ Tapte mot sjefen', '❌ Gäge de Bos verlore', '❌ Thua trùm', '❌ Kalah dari bos', '❌ Kaotasid ülemusele', '❌ Tapaðir fyrir yfirmanninum', '❌ از رئیس باختی') : T('❌ הפסד', '❌ Defeat', '❌ Derrota', '❌ 負け', '❌ Défaite', '❌ Derrota', '❌ Niederlage', '❌ Поражение', '❌ هزيمة', '❌ แพ้', '❌ Porażka', '❌ Sconfitta', '❌ Înfrângere', '❌ 失败', '❌ 패배', '❌ हार', '❌ Yenilgi', '❌ Verloren', '❌ Förlust', '❌ Поразка', '❌ Prohra', '❌ Vereség', '❌ Ήττα', '❌ Загуба', '❌ Пораз', '❌ Poraz', '❌ Prehra', '❌ Humbje', '❌ Poraz', '❌ Call', '❌ Derrota', '❌ ሽንፈት', '❌ Tappio', '❌ Nederlag', '❌ Niederlag', '❌ Thất bại', '❌ Kekalahan', '❌ Kaotus', '❌ Ósigur', '❌ شکست');
-    if (!isBossFight) losses++;   // הפסד לבוס לא נספר - בוסים מחוץ לסולם הרגיל
+    if (!isBossFight) {
+      losses++;   // הפסד לבוס לא נספר - בוסים מחוץ לסולם הרגיל
+      const earned = fightMoney(false);   // גם בהפסד מקבלים לפי הביצועים (בדרך כלל מעט או כלום)
+      money += earned;
+      updateMoneyUI();
+      gameOverGradeEl.textContent += ' · 💰 +' + earned;
+    }
   }
   saveCloudState();   // אם מחוברים לגוגל, שומר את הכסף/נצחונות/הפסדים החדשים מיד
 }
