@@ -5594,6 +5594,25 @@ function addWeaponProp(f, name) {
 // בו (ה-AI) תמיד נלחם עם האבן החדה בלבד - לא מושפע מקניות בחנות של השחקן.
 function addStoneProp(f) { addWeaponProp(f, 'אבן חדה'); }
 
+// אויבי סולם הרמות (ENEMY_LEVELS) נלחמים בנשק שמתחזק ככל שהרמה גבוהה יותר
+// (בקשת המשתמש, 2026-09-29): רמה 1 = אבן חדה, ובכל רמה נשק חזק יותר מרשימת
+// הנשקים של החנות (ממוין לפי נזק, בלי נשקי "בנייה עצמית"). המראה הוא של הנשק
+// האמיתי, אבל הנזק מחושב בנפרד (ENEMY_WEAPON_DMG_*), כי נזק החנות (עד 2500)
+// היה הורג שחקן עם 100-400 חיים במכה אחת. אחרי הכפלה ב-ENEMY_DMG_MULT (1.5)
+// מכת נשק של האויב בסוף הסולם היא ~180.
+const ENEMY_WEAPON_DMG_START = 7, ENEMY_WEAPON_DMG_PER_LEVEL = 3.5;
+function enemyWeaponNameFor(levelIdx) {
+  if (levelIdx <= 0) return 'אבן חדה';
+  const names = Object.keys(WEAPON_CFGS).filter((n) => !CUSTOM_WEAPON_NAMES.has(n))
+    .sort((x, y) => WEAPON_CFGS[x].dmg - WEAPON_CFGS[y].dmg);
+  const last = Math.max(1, ENEMY_LEVELS.length - 1);
+  return names[Math.min(names.length - 1, Math.round(levelIdx * (names.length - 1) / last))];
+}
+function addEnemyWeapon(f, levelIdx) {
+  addWeaponProp(f, enemyWeaponNameFor(levelIdx));
+  f.weaponDmg = Math.round(ENEMY_WEAPON_DMG_START + levelIdx * ENEMY_WEAPON_DMG_PER_LEVEL);
+}
+
 // ---------- שני הלוחמים ----------
 
 // סווארק - גופייה לבנה, ג'ינס עם חגורה, מגפי עור, תלתלים חומים, תחבושות על האגרופים
@@ -7846,7 +7865,7 @@ function switchEnemy(levelIdx) {
   });
 
   enemy = makeFighter(lvl.cfg, oldX, oldFacing, lvl.hp);
-  addStoneProp(enemy);
+  addEnemyWeapon(enemy, enemyLevel);
   enemy.group.visible = wasVisible;
   hpNameEnemyEl.textContent = trName(lvl.name);
   updateHealthUI(enemy, 'enemy');
