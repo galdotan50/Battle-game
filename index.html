@@ -9939,10 +9939,12 @@ document.getElementById('sumoLobbyBtn').addEventListener('click', () => showScre
 document.getElementById('sumoPlayAgainBtn').addEventListener('click', enterSumo);
 document.getElementById('teamSizeBackBtn').addEventListener('click', () => showScreen('lobby'));
 document.getElementById('teamSize2Btn').addEventListener('click', () => {
+  ffaMode = false;
   pendingTeamEnemyCount = 2;
   showScreen('teamBattle');
 });
 document.getElementById('teamSize4Btn').addEventListener('click', () => {
+  ffaMode = false;
   pendingTeamEnemyCount = 4;
   showScreen('teamBattle');
 });
@@ -10006,6 +10008,10 @@ const TEAM_BATTLE_CAM = { pos: V(0, 4.6, 10.4), look: V(0, 1.45, 0) };   // מצ
 let teamFighters = [];
 let teamBattleOver = false;
 let pendingTeamEnemyCount = 2;
+let ffaMode = false;             // true = 'כולם על כולם': 10 לוחמים, לכל אחד 'קבוצה' משלו
+const heEn = (he, en) => (uiLang === 'he' ? he : en);   // 'כולם על כולם' מתורגם רק לעברית ואנגלית (שאר השפות: אנגלית)
+const FFA_COUNT = 10, FFA_RADIUS = 2.6, FFA_REWARD = 300;
+const FFA_BATTLE_CAM = { pos: V(0, 6.4, 11.6), look: V(0, 0.9, 0) };
 
 // בוחרת count שמות דמות אקראיים ושונים מתוך CHARACTER_CFGS, בלי לחזור על
 // exclude (השם של הדמות שהשחקן עצמו משחק בה - כדי לא לראות "עותק" של עצמך).
@@ -10238,6 +10244,13 @@ function tickTeamCombat(attacker, fighters) {
 
 function checkTeamBattleEnd() {
   if (teamBattleOver) return;
+  if (ffaMode) {
+    // כולם על כולם: מפסידים כשנופלים, מנצחים כשכל האחרים נפלו
+    const playerAlive = !player.koPermanent;
+    const othersAlive = teamFighters.some((f) => f !== player && !f.koPermanent);
+    if (!playerAlive || !othersAlive) { teamBattleOver = true; endTeamBattle(playerAlive); }
+    return;
+  }
   const alive0 = teamFighters.some((f) => f.team === 0 && !f.koPermanent);
   const alive1 = teamFighters.some((f) => f.team === 1 && !f.koPermanent);
   if (!alive0 || !alive1) {
@@ -10247,6 +10260,14 @@ function checkTeamBattleEnd() {
 }
 
 function endTeamBattle(win) {
+  if (ffaMode) {
+    const left = teamFighters.filter((f) => !f.koPermanent).length;
+    let t = win ? heEn('🏆 ניצחת! אתה האחרון שנשאר!', '🏆 You won! Last one standing!') : heEn('💀 נפלת... נשארו עוד ' + (left) + ' לוחמים', '💀 You are out... ' + left + ' fighters left');
+    if (win) { money += FFA_REWARD; updateMoneyUI(); t += ' (💰 +' + FFA_REWARD + '₪)'; }
+    document.getElementById('teamResultTitle').textContent = t;
+    document.getElementById('teamResultOverlay').classList.add('show');
+    return;
+  }
   let title = win ? T('🏆 הקבוצה שלך ניצחה!', '🏆 Your team won!', '🏆 ¡Tu equipo ganó!', '🏆 きみのチームの勝ち!', '🏆 Ton équipe a gagné !', '🏆 Seu time venceu!', '🏆 Dein Team hat gewonnen!', '🏆 Твоя команда победила!', '🏆 فريقك فاز!', '🏆 ทีมของคุณชนะ!', '🏆 Twoja drużyna wygrała!', '🏆 La tua squadra ha vinto!', '🏆 Echipa ta a câștigat!', '🏆 你的队伍赢了!', '🏆 우리 팀이 이겼어요!', '🏆 तुम्हारी टीम जीत गई!', '🏆 Takımın kazandı!', '🏆 Je team heeft gewonnen!', '🏆 Ditt lag vann!', '🏆 Твоя команда перемогла!', '🏆 Tvůj tým vyhrál!', '🏆 A csapatod nyert!', '🏆 Η ομάδα σου κέρδισε!', '🏆 Отборът ти спечели!', '🏆 Твој тим је победио!', '🏆 Tvoj tim je pobijedio!', '🏆 Tvoj tím vyhral!', '🏆 Ekipi yt fitoi!', '🏆 Tvoja ekipa je zmagala!', '🏆 Bhuannaich an sgioba agad!', '🏆 A tua equipa ganhou!', '🏆 ቡድንህ አሸነፈ!', '🏆 Joukkueesi voitti!', '🏆 Laget ditt vant!', '🏆 Dis Team het gwunne!', '🏆 Đội của bạn đã thắng!', '🏆 Timmu menang!', '🏆 Sinu meeskond võitis!', '🏆 Liðið þitt vann!', '🏆 تیم تو برنده شد!') : T('❌ הקבוצה שלך הפסידה...', '❌ Your team lost...', '❌ Tu equipo perdió...', '❌ きみのチームの負け...', '❌ Ton équipe a perdu...', '❌ Seu time perdeu...', '❌ Dein Team hat verloren...', '❌ Твоя команда проиграла...', '❌ فريقك خسر...', '❌ ทีมของคุณแพ้...', '❌ Twoja drużyna przegrała...', '❌ La tua squadra ha perso...', '❌ Echipa ta a pierdut...', '❌ 你的队伍输了...', '❌ 우리 팀이 졌어요...', '❌ तुम्हारी टीम हार गई...', '❌ Takımın kaybetti...', '❌ Je team heeft verloren...', '❌ Ditt lag förlorade...', '❌ Твоя команда програла...', '❌ Tvůj tým prohrál...', '❌ A csapatod vesztett...', '❌ Η ομάδα σου έχασε...', '❌ Отборът ти загуби...', '❌ Твој тим је изгубио...', '❌ Tvoj tim je izgubio...', '❌ Tvoj tím prehral...', '❌ Ekipi yt humbi...', '❌ Tvoja ekipa je izgubila...', '❌ Chaill an sgioba agad...', '❌ A tua equipa perdeu...', '❌ ቡድንህ ተሸነፈ...', '❌ Joukkueesi hävisi...', '❌ Laget ditt tapte...', '❌ Dis Team het verlore...', '❌ Đội của bạn đã thua...', '❌ Timmu kalah...', '❌ Sinu meeskond kaotas...', '❌ Liðið þitt tapaði...', '❌ تیم تو باخت...');
   if (win) {
     // תגמול קבוע כמו בבוס/מפלצת הרפתקה - עולה לפי כמות האויבים (2 נגד 4
@@ -10269,6 +10290,13 @@ function renderTeamHpUI() {
       '<div class="teamHpTrack"><div class="teamHpFill" style="width:' + pct + '%"></div></div>' +
       '</div>';
   };
+  if (ffaMode) {
+    // כולם על כולם: 10 פסים בשני טורים (5 + 5), הראשון (אתה) תמיד ראשון
+    const half = Math.ceil(teamFighters.length / 2);
+    document.getElementById('teamHpLeft').innerHTML = teamFighters.slice(0, half).map(bar).join('');
+    document.getElementById('teamHpRight').innerHTML = teamFighters.slice(half).map(bar).join('');
+    return;
+  }
   document.getElementById('teamHpLeft').innerHTML = teamFighters.filter((f) => f.team === 0).map(bar).join('');
   document.getElementById('teamHpRight').innerHTML = teamFighters.filter((f) => f.team === 1).map(bar).join('');
 }
@@ -10281,10 +10309,10 @@ function enterTeamBattle() {
   teamBattleOver = false;
   document.getElementById('teamResultOverlay').classList.remove('show');
 
-  const enemyCount = pendingTeamEnemyCount;
-  const names = pickRandomTeamCharacters(1 + enemyCount, [selectedCharacterName]);
-  const allyName = names[0];
-  const enemyNames = names.slice(1);
+  const enemyCount = ffaMode ? FFA_COUNT - 1 : pendingTeamEnemyCount;
+  const names = pickRandomTeamCharacters(ffaMode ? FFA_COUNT - 1 : 1 + enemyCount, [selectedCharacterName]);
+  const allyName = ffaMode ? null : names[0];
+  const enemyNames = ffaMode ? names : names.slice(1);
 
   player.team = 0;
   player.teamName = selectedCharacterName;
@@ -10305,6 +10333,24 @@ function enterTeamBattle() {
   player.jumping = false; player.jumpY = 0; player.jumpVel = 0;
   teamFighters.push(player);
 
+  if (ffaMode) {
+    // עיגול של 10: אתה בקדמת המסך (מול המצלמה), כולם פונים למרכז, וכל אחד "קבוצה" בפני עצמו
+    const place = (f, i) => {
+      const a = (Math.PI * 2 * i) / FFA_COUNT;
+      f.x = Math.sin(a) * FFA_RADIUS; f.z = Math.cos(a) * FFA_RADIUS;
+      f.yaw = Math.atan2(-f.x, -f.z);
+      f.group.position.set(battleAnchorX + f.x, GROUND_Y, battleAnchorZ + f.z);
+      f.group.rotation.y = f.yaw;
+      f.fallBaseYaw = f.yaw;
+    };
+    player.team = 0;
+    place(player, 0);
+    enemyNames.forEach((name, i) => {
+      const ef = buildTeamFighter(name, 0, 1, 80, i + 1);
+      place(ef, i + 1);
+      teamFighters.push(ef);
+    });
+  } else {
   const ally = buildTeamFighter(allyName, -TEAM_SPACING * 2, 1, 70, 0);
   teamFighters.push(ally);
 
@@ -10312,6 +10358,7 @@ function enterTeamBattle() {
     const ef = buildTeamFighter(name, TEAM_SPACING * (i + 1), -1, 70, 1);
     teamFighters.push(ef);
   });
+  }
 
   enemy.group.visible = false;
   renderTeamHpUI();
@@ -10319,11 +10366,14 @@ function enterTeamBattle() {
   // תנועה חופשית - חצים מסובבים/מתקדמים כמו בהרפתקה/סומו, לא רק "לזוז"
   // על קו. הטקסט חוזר לברירת המחדל ביציאה (exitTeamBattle).
   if (moveKeyLegendEl) moveKeyLegendEl.innerHTML = T('<b>↑</b><b>↓</b> להתקדם/לסגת · <b>←</b><b>→</b> לפנות', '<b>↑</b><b>↓</b> Advance/retreat · <b>←</b><b>→</b> Turn', '<b>↑</b><b>↓</b> Avanzar/retroceder · <b>←</b><b>→</b> Girar', '<b>↑</b><b>↓</b> 前進/後退 · <b>←</b><b>→</b> 回る', '<b>↑</b><b>↓</b> Avancer/reculer · <b>←</b><b>→</b> Tourner', '<b>↑</b><b>↓</b> Avançar/recuar · <b>←</b><b>→</b> Virar', '<b>↑</b><b>↓</b> Vor/zurück · <b>←</b><b>→</b> Drehen', '<b>↑</b><b>↓</b> Вперёд/назад · <b>←</b><b>→</b> Повернуть', '<b>↑</b><b>↓</b> تقدّم/تراجع · <b>←</b><b>→</b> استدر', '<b>↑</b><b>↓</b> เดินหน้า/ถอย · <b>←</b><b>→</b> หมุน', '<b>↑</b><b>↓</b> Naprzód/wstecz · <b>←</b><b>→</b> Obróć się', '<b>↑</b><b>↓</b> Avanti/indietro · <b>←</b><b>→</b> Girati', '<b>↑</b><b>↓</b> Înainte/înapoi · <b>←</b><b>→</b> Întoarce-te', '<b>↑</b><b>↓</b> 前进/后退 · <b>←</b><b>→</b> 转身', '<b>↑</b><b>↓</b> 앞으로/뒤로 · <b>←</b><b>→</b> 돌기', '<b>↑</b><b>↓</b> आगे/पीछे · <b>←</b><b>→</b> मुड़ो', '<b>↑</b><b>↓</b> İleri/geri · <b>←</b><b>→</b> Dön', '<b>↑</b><b>↓</b> Vooruit/achteruit · <b>←</b><b>→</b> Draaien', '<b>↑</b><b>↓</b> Framåt/bakåt · <b>←</b><b>→</b> Vänd', '<b>↑</b><b>↓</b> Вперед/назад · <b>←</b><b>→</b> Повернути', '<b>↑</b><b>↓</b> Dopředu/dozadu · <b>←</b><b>→</b> Otočit', '<b>↑</b><b>↓</b> Előre/hátra · <b>←</b><b>→</b> Fordulás', '<b>↑</b><b>↓</b> Μπροστά/πίσω · <b>←</b><b>→</b> Γύρνα', '<b>↑</b><b>↓</b> Напред/назад · <b>←</b><b>→</b> Завий', '<b>↑</b><b>↓</b> Напред/назад · <b>←</b><b>→</b> Окрени се', '<b>↑</b><b>↓</b> Naprijed/natrag · <b>←</b><b>→</b> Okreni se', '<b>↑</b><b>↓</b> Dopredu/dozadu · <b>←</b><b>→</b> Otoč sa', '<b>↑</b><b>↓</b> Para/prapa · <b>←</b><b>→</b> Kthehu', '<b>↑</b><b>↓</b> Naprej/nazaj · <b>←</b><b>→</b> Obrni se', '<b>↑</b><b>↓</b> Air adhart/air ais · <b>←</b><b>→</b> Tionndaidh', '<b>↑</b><b>↓</b> Avançar/recuar · <b>←</b><b>→</b> Rodar', '<b>↑</b><b>↓</b> ወደፊት/ወደኋላ · <b>←</b><b>→</b> ዙር', '<b>↑</b><b>↓</b> Eteen/taakse · <b>←</b><b>→</b> Käänny', '<b>↑</b><b>↓</b> Frem/tilbake · <b>←</b><b>→</b> Sving', '<b>↑</b><b>↓</b> Vor/zrugg · <b>←</b><b>→</b> Drähe', '<b>↑</b><b>↓</b> Tiến/lùi · <b>←</b><b>→</b> Quay', '<b>↑</b><b>↓</b> Maju/mundur · <b>←</b><b>→</b> Belok', '<b>↑</b><b>↓</b> Edasi/tagasi · <b>←</b><b>→</b> Pööra', '<b>↑</b><b>↓</b> Áfram/afturábak · <b>←</b><b>→</b> Snúa', '<b>↑</b><b>↓</b> جلو/عقب · <b>←</b><b>→</b> بچرخ');
-  camera.position.copy(TEAM_BATTLE_CAM.pos);
-  camera.lookAt(TEAM_BATTLE_CAM.look);
+  if (ffaMode) labelEl.textContent = heEn('💥 כולם על כולם - ' + FFA_COUNT + ' לוחמים', '💥 Free-for-all - ' + FFA_COUNT + ' fighters');
+  const cam = ffaMode ? FFA_BATTLE_CAM : TEAM_BATTLE_CAM;
+  camera.position.copy(cam.pos);
+  camera.lookAt(cam.look);
 }
 
 function exitTeamBattle() {
+  ffaMode = false;
   teamFighters.forEach((f) => { if (f !== player) disposeTeamFighter(f); });
   teamFighters = [];
   // באג אמיתי שהמשתמש דיווח עליו: אם השחקן נופל לצמיתות (koPermanent) בקרב
@@ -19965,12 +20015,16 @@ const BATTLE_MODES = [
   { key: 'battle', label: '⚔️ קרב רגיל', labelEn: '⚔️ Regular battle', labelEs: '⚔️ Batalla normal', labelJa: '⚔️ ふつうのバトル', labelFr: '⚔️ Combat normal', labelPt: '⚔️ Batalha normal', labelDe: '⚔️ Normaler Kampf', labelRu: '⚔️ Обычный бой', labelAr: '⚔️ معركة عادية', labelTh: '⚔️ ต่อสู้ปกติ', labelPl: '⚔️ Zwykła walka', labelIt: '⚔️ Battaglia normale', labelRo: '⚔️ Luptă normală', labelZh: '⚔️ 普通战斗', labelKo: '⚔️ 일반 배틀', labelHi: '⚔️ सामान्य लड़ाई', labelTr: '⚔️ Normal savaş', labelNl: '⚔️ Normaal gevecht', labelSv: '⚔️ Vanlig strid', labelUk: '⚔️ Звичайний бій', labelCs: '⚔️ Normální boj', labelHu: '⚔️ Normál harc', labelEl: '⚔️ Κανονική μάχη', labelBg: '⚔️ Обикновена битка', labelSr: '⚔️ Обична борба', labelHr: '⚔️ Obična borba', labelSk: '⚔️ Normálny boj', labelSq: '⚔️ Betejë e zakonshme', labelSl: '⚔️ Navaden boj', labelGd: '⚔️ Blàr àbhaisteach', labelPtpt: '⚔️ Batalha normal', labelAm: '⚔️ መደበኛ ውጊያ', labelFi: '⚔️ Tavallinen taistelu', labelNo: '⚔️ Vanlig kamp', labelGsw: '⚔️ Normale Kampf', labelVi: '⚔️ Trận thường', labelId: '⚔️ Pertarungan biasa', labelEt: '⚔️ Tavaline lahing', labelIs: '⚔️ Venjulegur bardagi', labelFa: '⚔️ نبرد عادی' },
   { key: 'sumo', label: '🎌 קרב סומו', labelEn: '🎌 Sumo battle', labelEs: '🎌 Batalla de sumo', labelJa: '🎌 すもうバトル', labelFr: '🎌 Combat de sumo', labelPt: '🎌 Batalha de sumô', labelDe: '🎌 Sumokampf', labelRu: '🎌 Бой сумо', labelAr: '🎌 معركة سومو', labelTh: '🎌 ต่อสู้ซูโม่', labelPl: '🎌 Walka sumo', labelIt: '🎌 Battaglia di sumo', labelRo: '🎌 Luptă de sumo', labelZh: '🎌 相扑战', labelKo: '🎌 스모 배틀', labelHi: '🎌 सूमो लड़ाई', labelTr: '🎌 Sumo savaşı', labelNl: '🎌 Sumogevecht', labelSv: '🎌 Sumostrid', labelUk: '🎌 Бій сумо', labelCs: '🎌 Sumo', labelHu: '🎌 Szumó', labelEl: '🎌 Σούμο', labelBg: '🎌 Сумо', labelSr: '🎌 Сумо', labelHr: '🎌 Sumo', labelSk: '🎌 Sumo', labelSq: '🎌 Sumo', labelSl: '🎌 Sumo', labelGd: '🎌 Sumo', labelPtpt: '🎌 Sumo', labelAm: '🎌 የሱሞ ውጊያ', labelFi: '🎌 Sumotaistelu', labelNo: '🎌 Sumokamp', labelGsw: '🎌 Sumokampf', labelVi: '🎌 Đấu sumo', labelId: '🎌 Pertarungan sumo', labelEt: '🎌 Sumolahing', labelIs: '🎌 Súmóbardagi', labelFa: '🎌 نبرد سومو' },
   { key: 'team', label: '🥊 קרב קבוצות', labelEn: '🥊 Team battle', labelEs: '🥊 Batalla de equipos', labelJa: '🥊 チームバトル', labelFr: '🥊 Combat d\'équipes', labelPt: '🥊 Batalha em equipe', labelDe: '🥊 Teamkampf', labelRu: '🥊 Командный бой', labelAr: '🥊 معركة الفرق', labelTh: '🥊 ต่อสู้แบบทีม', labelPl: '🥊 Walka drużyn', labelIt: '🥊 Battaglia a squadre', labelRo: '🥊 Luptă pe echipe', labelZh: '🥊 团队战', labelKo: '🥊 팀 배틀', labelHi: '🥊 टीम लड़ाई', labelTr: '🥊 Takım savaşı', labelNl: '🥊 Teamgevecht', labelSv: '🥊 Lagstrid', labelUk: '🥊 Командний бій', labelCs: '🥊 Týmový boj', labelHu: '🥊 Csapatharc', labelEl: '🥊 Ομαδική μάχη', labelBg: '🥊 Отборна битка', labelSr: '🥊 Тимска борба', labelHr: '🥊 Timska borba', labelSk: '🥊 Tímový boj', labelSq: '🥊 Betejë ekipore', labelSl: '🥊 Ekipni boj', labelGd: '🥊 Blàr sgioba', labelPtpt: '🥊 Batalha de equipas', labelAm: '🥊 የቡድን ውጊያ', labelFi: '🥊 Joukkuetaistelu', labelNo: '🥊 Lagkamp', labelGsw: '🥊 Teamkampf', labelVi: '🥊 Đấu đội', labelId: '🥊 Pertarungan tim', labelEt: '🥊 Meeskonnavõitlus', labelIs: '🥊 Liðabardagi', labelFa: '🥊 نبرد تیمی' },
+  // כולם על כולם (2026-09-29, בקשת המשתמש): 10 לוחמים, כל אחד נגד כל השאר, האחרון שנשאר מנצח. שאר השפות מקבלות אנגלית.
+  { key: 'ffa', label: '💥 כולם על כולם', labelEn: '💥 Free-for-all', labelEs: '💥 Todos contra todos', labelFr: '💥 Chacun pour soi', labelDe: '💥 Jeder gegen jeden', labelPt: '💥 Todos contra todos', labelRu: '💥 Все против всех', labelAr: '💥 الكل ضد الكل', labelJa: '💥 全員バトル', labelZh: '💥 大乱斗' },
 ];
 let selectedModeIndex = 0;
 
 function updateModeLabel() {
   // אין תווית נפרדת - כפתור "התחל קרב" עצמו מציג את המצב הנבחר.
-  const mode = BATTLE_MODES[selectedModeIndex];
+  const rawMode = BATTLE_MODES[selectedModeIndex];
+  // שפה בלי תרגום למצב הזה (כרגע 'כולם על כולם') מקבלת את התווית באנגלית
+  const mode = new Proxy(rawMode, { get: (o, k) => (o[k] === undefined && typeof k === 'string' && k.startsWith('label')) ? o.labelEn : o[k] });
   document.getElementById('startFightBtn').textContent = T(mode.label, mode.labelEn, mode.labelEs, mode.labelJa, mode.labelFr, mode.labelPt, mode.labelDe, mode.labelRu, mode.labelAr, mode.labelTh, mode.labelPl, mode.labelIt, mode.labelRo, mode.labelZh, mode.labelKo, mode.labelHi, mode.labelTr, mode.labelNl, mode.labelSv, mode.labelUk, mode.labelCs, mode.labelHu, mode.labelEl, mode.labelBg, mode.labelSr, mode.labelHr, mode.labelSk, mode.labelSq, mode.labelSl, mode.labelGd, mode.labelPtpt, mode.labelAm, mode.labelFi, mode.labelNo, mode.labelGsw, mode.labelVi, mode.labelId, mode.labelEt, mode.labelIs, mode.labelFa);
 }
 
@@ -19983,6 +20037,9 @@ function startSelectedBattle() {
   const mode = BATTLE_MODES[selectedModeIndex].key;
   if (mode === 'sumo') {
     showScreen('sumo');
+  } else if (mode === 'ffa') {
+    ffaMode = true;
+    showScreen('teamBattle');
   } else if (mode === 'team') {
     // צריך לבחור קודם 2 נגד 2 / 2 נגד 4 - showScreen('teamBattle') בפועל
     // קורה רק אחרי הבחירה (ראה teamSize2Btn/teamSize4Btn).
