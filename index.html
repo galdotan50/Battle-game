@@ -5413,6 +5413,169 @@ const WEAPON_CFGS = {
       return g;
     },
   },
+
+  // ===== סבב שני: עוד 10 נשקים (2026-09-29) =====
+  // אקסקליבר - חרב זהב ארוכה: מגן זהב עם אבן כחולה זוהרת ולהב בוהק.
+  'אקסקליבר': {
+    dmg: 1100, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.10, 0.013, 0x2a1a10, leatherTex));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.016, 0.026),
+        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.7 }));
+      guard.position.y = 0.10; g.add(guard);
+      const gem = new THREE.Mesh(new THREE.SphereGeometry(0.02, 12, 10),
+        new THREE.MeshStandardMaterial({ color: 0x2060ff, emissive: 0x2a70ff, emissiveIntensity: 1.4 }));
+      gem.position.y = 0.125; g.add(gem);
+      const blade = weaponBlade(0.11, 0.50, 0.055, 0xdfe8f0, 0.2);
+      blade.material.emissive.set(0x5599dd); blade.material.emissiveIntensity = 0.5;
+      g.add(blade);
+      return g;
+    },
+  },
+  // מורנינגסטאר - אלת קוצים: כדור פלדה עם קוצים מסביב, על ידית עץ.
+  'מורנינגסטאר': {
+    dmg: 1250, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.30, 0.014, 0x5a3a20, woodGrainTex));
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.05, 14, 12),
+        new THREE.MeshStandardMaterial({ color: 0x555a62, roughness: 0.4, metalness: 0.7, map: metalScratchTex('#ffffff') }));
+      ball.position.y = 0.35; ball.castShadow = true; g.add(ball);
+      [[0, 0], [Math.PI / 2, 0], [-Math.PI / 2, 0], [0, Math.PI / 2], [0, -Math.PI / 2], [Math.PI, 0]].forEach(([rx, rz]) => {
+        const sp = weaponSpike(0.06, 0.014, 0x9aa0a8);
+        sp.rotation.set(rx, 0, rz);
+        sp.position.y = 0.35; g.add(sp);
+      });
+      const up = weaponSpike(0.07, 0.015, 0x9aa0a8); up.position.y = 0.39; g.add(up);
+      return g;
+    },
+  },
+  // טווינבלייד - חרב כפולה: להב בכל קצה של ידית ארוכה.
+  'טווינבלייד': {
+    dmg: 1400, gripOffset: 0.12,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.36, 0.013, 0x22262c, leatherTex));
+      g.add(weaponBlade(0.36, 0.20, 0.04, BRIGHT_STEEL, 0.15));
+      const b2 = weaponBlade(0, 0.20, 0.04, BRIGHT_STEEL, 0.15);
+      b2.rotation.z = Math.PI; g.add(b2);
+      return g;
+    },
+  },
+  // סימיטר - חרב מעוקלת: להב רחב שמתעקל בקצה, מגן כחול-כסף.
+  'סימיטר': {
+    dmg: 1550, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.10, 0.012, 0x1a2a4a, leatherTex));
+      const guard = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.012, 10),
+        new THREE.MeshStandardMaterial({ color: 0xc8d4dc, roughness: 0.3, metalness: 0.8 }));
+      guard.position.y = 0.10; g.add(guard);
+      g.add(weaponBlade(0.10, 0.22, 0.05, 0xaad8f0, 0.9));
+      const tip = weaponBlade(0, 0.16, 0.045, 0xaad8f0, 0.2);
+      tip.position.y = 0.32; tip.rotation.z = -0.4; g.add(tip);
+      return g;
+    },
+  },
+  // הלברד - כידון-גרזן: ידית ארוכה, ראש גרזן וחוד למעלה.
+  'הלברד': {
+    dmg: 1700, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.52, 0.013, WOOD, woodGrainTex));
+      g.add(weaponWedge(0.36, 0.16, 0.09, 0x7a8088));
+      const top = weaponSpike(0.14, 0.02, BRIGHT_STEEL); top.position.y = 0.52; g.add(top);
+      const back = weaponSpike(0.07, 0.012, 0x7a8088, Math.PI / 2 + 0.2); back.position.y = 0.42; back.rotation.y = Math.PI; g.add(back);
+      return g;
+    },
+  },
+  // קריסטליס - מטה קריסטל: שלושה גבישים סגולים זוהרים על ידית כהה.
+  'קריסטליס': {
+    dmg: 1850, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.34, 0.012, 0x2a1a3a, woodGrainTex));
+      [[-0.30, 0.15], [0, 0.22], [0.30, 0.15]].forEach(([ang, len]) => {
+        const c = weaponSpike(len, 0.024, 0xa060ff, ang);
+        c.material.emissive.set(0x8040ff); c.material.emissiveIntensity = 1.2;
+        c.position.y = 0.33; g.add(c);
+      });
+      return g;
+    },
+  },
+  // זאוס - חנית ברק: ידית זהב וברק צהוב זוהר מזוגזג בקצה.
+  'זאוס': {
+    dmg: 2000, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.40, 0.011, 0x9a7412, metalScratchTex));
+      const bolt = new THREE.MeshBasicMaterial({ color: 0xffee40 });
+      [[0.00, 0.44, 0.5], [0.025, 0.51, -0.5], [-0.005, 0.58, 0.5]].forEach(([x, y, rot]) => {
+        const seg = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.10, 0.02), bolt);
+        seg.position.set(x, y, 0); seg.rotation.z = rot; g.add(seg);
+      });
+      const tip = weaponSpike(0.08, 0.014, 0xffee40);
+      tip.material.emissive.set(0xffcc00); tip.material.emissiveIntensity = 1.5;
+      tip.position.set(0.02, 0.62, 0); g.add(tip);
+      return g;
+    },
+  },
+  // דרגונפנג - חרב שן-דרקון: להב אדום כהה משונן עם קוצים בצדדים.
+  'דרגונפנג': {
+    dmg: 2200, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.10, 0.013, 0x1a0a0a, leatherTex));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, 0.026),
+        new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.4, metalness: 0.7 }));
+      guard.position.y = 0.10; g.add(guard);
+      [-1, 1].forEach((sd) => { const h = weaponSpike(0.05, 0.012, 0x2a2a2a, sd * 0.9); h.position.set(sd * 0.05, 0.105, 0); g.add(h); });
+      const blade = weaponBlade(0.11, 0.42, 0.065, 0x8a1010, 0.12);
+      blade.material.emissive.set(0x601000); blade.material.emissiveIntensity = 0.9;
+      g.add(blade);
+      [-1, 1].forEach((sd) => [0.22, 0.32].forEach((y) => {
+        const sp = weaponSpike(0.05, 0.012, 0xb02020, sd * 1.1); sp.position.set(sd * 0.026, y, 0); g.add(sp);
+      }));
+      return g;
+    },
+  },
+  // וויד - מגל החלל: ידית שחורה, כדור סגול זוהר ולהב סגול גדול ומעוקל.
+  'וויד': {
+    dmg: 2350, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.54, 0.012, 0x0c0a10, woodGrainTex));
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(0.028, 12, 10),
+        new THREE.MeshStandardMaterial({ color: 0x3a0a6a, emissive: 0x9030ff, emissiveIntensity: 1.5 }));
+      orb.position.y = 0.57; g.add(orb);
+      const b1 = weaponBlade(0, 0.20, 0.05, 0x2a1050, 0.3);
+      b1.rotation.z = -Math.PI / 2; b1.position.set(0, 0.52, 0);
+      b1.material.emissive.set(0x6a20c0); b1.material.emissiveIntensity = 0.9; g.add(b1);
+      const b2 = weaponBlade(0, 0.12, 0.036, 0x2a1050, 0.1);
+      b2.rotation.z = -Math.PI / 2 - 0.9; b2.position.set(0.20, 0.52, 0);
+      b2.material.emissive.set(0x6a20c0); b2.material.emissiveIntensity = 0.9; g.add(b2);
+      return g;
+    },
+  },
+  // אינפיניטי - חרב הנצח: להב לבן זוהר ארוך, מגן זהב וטבעת אנרגיה תכולה.
+  'אינפיניטי': {
+    dmg: 2500, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.10, 0.013, 0x14092a, leatherTex));
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.018, 0.028),
+        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.25, metalness: 0.8 }));
+      guard.position.y = 0.10; g.add(guard);
+      const blade = weaponBlade(0.11, 0.56, 0.06, 0xffffff, 0.12);
+      blade.material.emissive.set(0xbbeeff); blade.material.emissiveIntensity = 1.2;
+      g.add(blade);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.006, 8, 24),
+        new THREE.MeshBasicMaterial({ color: 0x40e8ff }));
+      ring.position.y = 0.36; ring.rotation.x = Math.PI / 2; g.add(ring);
+      return g;
+    },
+  },
 };
 
 function addWeaponProp(f, name) {
@@ -10755,6 +10918,16 @@ function T(he, en, es, ja, fr, pt, de, ru, ar, th, pl, it, ro, zh, ko, hi, tr, n
 // נשאר תמיד המפתח הפנימי (inventory/CHARACTER_CFGS/וכו') כדי לא לשבור
 // שמירות קיימות - זה תרגום-תצוגה בלבד.
 const NAME_EN = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -10904,6 +11077,16 @@ const NAME_EN = {
   'אריה': 'Lion',
 };
 const NAME_ES = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -11055,6 +11238,16 @@ const NAME_ES = {
 // יפנית: שמות פרטיים (דמויות/אויבים/בוסים) כתובים בקטקנה - איך שהם נשמעים,
 // כמו שיפנים כותבים שמות זרים. שמות תיאוריים (נשקים/אוכל/...) מתורגמים באמת.
 const NAME_JA = {
+  "אקסקליבר": "エクスカリバー",
+  "מורנינגסטאר": "モーニングスター",
+  "טווינבלייד": "ツインブレード",
+  "סימיטר": "シミター",
+  "הלברד": "ハルバード",
+  "קריסטליס": "クリスタリス",
+  "זאוס": "ゼウス",
+  "דרגונפנג": "ドラゴンファング",
+  "וויד": "ヴォイド",
+  "אינפיניטי": "インフィニティ",
   "גלדיוס": "グラディウス",
   "רדבירד": "レッドビアード",
   "קנג'י": "ケンジ",
@@ -11205,6 +11398,16 @@ const NAME_JA = {
 };
 // צרפתית: שמות פרטיים (דמויות/אויבים/בוסים) זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_FR = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -11355,6 +11558,16 @@ const NAME_FR = {
 };
 // פורטוגזית (ברזיל): שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_PT = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -11505,6 +11718,16 @@ const NAME_PT = {
 };
 // גרמנית: שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_DE = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -11656,6 +11879,16 @@ const NAME_DE = {
 // רוסית: שמות פרטיים כתובים באותיות רוסיות (קירילית) - איך שהם נשמעים,
 // כמו שרוסים כותבים שמות זרים. שמות תיאוריים מתורגמים באמת.
 const NAME_RU = {
+  "אקסקליבר": "Экскалибур",
+  "מורנינגסטאר": "Морнингстар",
+  "טווינבלייד": "Твинблейд",
+  "סימיטר": "Скимитар",
+  "הלברד": "Алебарда",
+  "קריסטליס": "Кристалис",
+  "זאוס": "Зевс",
+  "דרגונפנג": "Драгонфэнг",
+  "וויד": "Войд",
+  "אינפיניטי": "Инфинити",
   "גלדיוס": "Гладиус",
   "רדבירד": "Рэдберд",
   "קנג'י": "Кэндзи",
@@ -11807,6 +12040,16 @@ const NAME_RU = {
 // ערבית: שמות פרטיים כתובים באותיות ערביות - איך שהם נשמעים (כמו ביפנית
 // וברוסית). שמות תיאוריים מתורגמים באמת.
 const NAME_AR = {
+  "אקסקליבר": "إكسكاليبر",
+  "מורנינגסטאר": "مورنينغستار",
+  "טווינבלייד": "توينبليد",
+  "סימיטר": "سيميتار",
+  "הלברד": "هالبرد",
+  "קריסטליס": "كريستاليس",
+  "זאוס": "زيوس",
+  "דרגונפנג": "دراغونفانغ",
+  "וויד": "فويد",
+  "אינפיניטי": "إنفينيتي",
   "גלדיוס": "غلاديوس",
   "רדבירד": "ريدبيرد",
   "קנג'י": "كينجي",
@@ -11958,6 +12201,16 @@ const NAME_AR = {
 // תאילנדית: שמות פרטיים כתובים באותיות תאילנדיות - איך שהם נשמעים (כמו
 // ביפנית, ברוסית ובערבית). שמות תיאוריים מתורגמים באמת.
 const NAME_TH = {
+  "אקסקליבר": "เอกซ์คาลิเบอร์",
+  "מורנינגסטאר": "มอร์นิงสตาร์",
+  "טווינבלייד": "ทวินเบลด",
+  "סימיטר": "ซิมิตาร์",
+  "הלברד": "ฮัลเบิร์ด",
+  "קריסטליס": "คริสทาลิส",
+  "זאוס": "ซุส",
+  "דרגונפנג": "ดราก้อนแฟง",
+  "וויד": "วอยด์",
+  "אינפיניטי": "อินฟินิตี้",
   "גלדיוס": "กลาดิอุส",
   "רדבירד": "เรดเบิร์ด",
   "קנג'י": "เค็นจิ",
@@ -12108,6 +12361,16 @@ const NAME_TH = {
 };
 // פולנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_PL = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -12258,6 +12521,16 @@ const NAME_PL = {
 };
 // איטלקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_IT = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -12408,6 +12681,16 @@ const NAME_IT = {
 };
 // רומנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_RO = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -12559,6 +12842,16 @@ const NAME_RO = {
 // סינית (פשוטה): שמות פרטיים כתובים בסימנים סיניים לפי הצליל (כמו שסינים
 // כותבים שמות זרים), כמו ביפנית/רוסית/ערבית/תאילנדית. תיאוריים מתורגמים.
 const NAME_ZH = {
+  "אקסקליבר": "王者之剑",
+  "מורנינגסטאר": "晨星",
+  "טווינבלייד": "双刃剑",
+  "סימיטר": "弯刀",
+  "הלברד": "战戟",
+  "קריסטליס": "水晶",
+  "זאוס": "宙斯",
+  "דרגונפנג": "龙牙",
+  "וויד": "虚空",
+  "אינפיניטי": "无限",
   "גלדיוס": "格拉迪乌斯",
   "רדבירד": "红胡子",
   "קנג'י": "健二",
@@ -12710,6 +13003,16 @@ const NAME_ZH = {
 // קוריאנית: שמות פרטיים כתובים באותיות קוריאניות (הנגול) לפי הצליל, כמו
 // ביפנית/רוסית/ערבית/תאילנדית/סינית. שמות תיאוריים מתורגמים באמת.
 const NAME_KO = {
+  "אקסקליבר": "엑스칼리버",
+  "מורנינגסטאר": "모닝스타",
+  "טווינבלייד": "트윈블레이드",
+  "סימיטר": "시미터",
+  "הלברד": "할버드",
+  "קריסטליס": "크리스탈리스",
+  "זאוס": "제우스",
+  "דרגונפנג": "드래곤팽",
+  "וויד": "보이드",
+  "אינפיניטי": "인피니티",
   "גלדיוס": "글라디우스",
   "רדבירד": "레드비어드",
   "קנג'י": "켄지",
@@ -12861,6 +13164,16 @@ const NAME_KO = {
 // הודית: שמות פרטיים כתובים באותיות דוונאגרי לפי הצליל, כמו ביפנית/רוסית/
 // ערבית/תאילנדית/סינית/קוריאנית. שמות תיאוריים מתורגמים באמת.
 const NAME_HI = {
+  "אקסקליבר": "एक्सकैलिबर",
+  "מורנינגסטאר": "मॉर्निंगस्टार",
+  "טווינבלייד": "ट्विनब्लेड",
+  "סימיטר": "सिमिटर",
+  "הלברד": "हैलबर्ड",
+  "קריסטליס": "क्रिस्टलिस",
+  "זאוס": "ज़ीउस",
+  "דרגונפנג": "ड्रैगनफ़ैंग",
+  "וויד": "वॉयड",
+  "אינפיניטי": "इन्फिनिटी",
   "גלדיוס": "ग्लैडियस",
   "רדבירד": "रेडबियर्ड",
   "קנג'י": "केंजी",
@@ -13012,6 +13325,16 @@ const NAME_HI = {
 // טורקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות, כמו ספרדית/צרפתית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_TR = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -13162,6 +13485,16 @@ const NAME_TR = {
 };
 // הולנדית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_NL = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -13312,6 +13645,16 @@ const NAME_NL = {
 };
 // שוודית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_SV = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -13462,6 +13805,16 @@ const NAME_SV = {
 };
 // אוקראינית: שמות פרטיים בקירילית (כמו ברוסית, באיות אוקראיני), תיאוריים מתורגמים.
 const NAME_UK = {
+  "אקסקליבר": "Екскалібур",
+  "מורנינגסטאר": "Морнінгстар",
+  "טווינבלייד": "Твінблейд",
+  "סימיטר": "Скімітар",
+  "הלברד": "Алебарда",
+  "קריסטליס": "Кристаліс",
+  "זאוס": "Зевс",
+  "דרגונפנג": "Драгонфенг",
+  "וויד": "Войд",
+  "אינפיניטי": "Інфініті",
   "גלדיוס": "Гладіус",
   "רדבירד": "Редберд",
   "קנג'י": "Кенджі",
@@ -13599,6 +13952,16 @@ const NAME_UK = {
 };
 // צ'כית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_CS = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -13736,6 +14099,16 @@ const NAME_CS = {
 };
 // הונגרית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HU = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -13874,6 +14247,16 @@ const NAME_HU = {
 // יוונית: שמות פרטיים באותיות יווניות לפי הצליל (כמו הקירילית ברוסית/אוקראינית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_EL = {
+  "אקסקליבר": "Εξκάλιμπερ",
+  "מורנינגסטאר": "Μόρνινγκσταρ",
+  "טווינבלייד": "Τουίνμπλεϊντ",
+  "סימיטר": "Σκίμιταρ",
+  "הלברד": "Αλαβάρδα",
+  "קריסטליס": "Κρίσταλις",
+  "זאוס": "Δίας",
+  "דרגונפנג": "Ντράγκονφανγκ",
+  "וויד": "Βόιντ",
+  "אינפיניטי": "Ίνφινιτι",
   "גלדיוס": "Γκλάντιους",
   "רדבירד": "Ρεντμπίρντ",
   "קנג'י": "Κένζι",
@@ -14011,6 +14394,16 @@ const NAME_EL = {
 };
 // בולגרית: שמות פרטיים בקירילית (כמו ברוסית/אוקראינית, באיות בולגרי), תיאוריים מתורגמים.
 const NAME_BG = {
+  "אקסקליבר": "Екскалибур",
+  "מורנינגסטאר": "Морнингстар",
+  "טווינבלייד": "Туинблейд",
+  "סימיטר": "Симитар",
+  "הלברד": "Алебарда",
+  "קריסטליס": "Кристалис",
+  "זאוס": "Зевс",
+  "דרגונפנג": "Драгънфанг",
+  "וויד": "Войд",
+  "אינפיניטי": "Инфинити",
   "גלדיוס": "Гладиус",
   "רדבירד": "Редбърд",
   "קנג'י": "Кенджи",
@@ -14148,6 +14541,16 @@ const NAME_BG = {
 };
 // סרבית (קירילית - הכתב הרשמי): שמות פרטיים לפי הצליל, תיאוריים מתורגמים.
 const NAME_SR = {
+  "אקסקליבר": "Екскалибур",
+  "מורנינגסטאר": "Морнингстар",
+  "טווינבלייד": "Твинблејд",
+  "סימיטר": "Симитар",
+  "הלברד": "Алебарда",
+  "קריסטליס": "Кристалис",
+  "זאוס": "Зевс",
+  "דרגונפנג": "Драгонфенг",
+  "וויד": "Војд",
+  "אינפיניטי": "Инфинити",
   "גלדיוס": "Гладијус",
   "רדבירד": "Редберд",
   "קנג'י": "Кенџи",
@@ -14285,6 +14688,16 @@ const NAME_SR = {
 };
 // קרואטית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HR = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -14422,6 +14835,16 @@ const NAME_HR = {
 };
 // סלובקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SK = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -14559,6 +14982,16 @@ const NAME_SK = {
 };
 // אלבנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SQ = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -14696,6 +15129,16 @@ const NAME_SQ = {
 };
 // סלובנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SL = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -14834,6 +15277,16 @@ const NAME_SL = {
 // גאלית סקוטית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים (מחרוזות עם
 // אפוסטרוף - שנפוץ מאוד בגאלית - כתובות במירכאות כפולות).
 const NAME_GD = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -14972,6 +15425,16 @@ const NAME_GD = {
 // פורטוגזית של פורטוגל: כמו הברזילאית, עם המילים של פורטוגל - Sumo (מיץ, בברזיל
 // Suco), Gelado (גלידה, בברזיל Sorvete), Cão (כלב, בברזיל Cachorro), Tosta, Cereais.
 const NAME_PTPT = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -15109,6 +15572,16 @@ const NAME_PTPT = {
 };
 // אמהרית: שמות פרטיים בכתב געז לפי הצליל, שמות תיאוריים מתורגמים.
 const NAME_AM = {
+  "אקסקליבר": "ኤክስካሊበር",
+  "מורנינגסטאר": "ሞርኒንግስታር",
+  "טווינבלייד": "ትዊንብሌድ",
+  "סימיטר": "ሲሚታር",
+  "הלברד": "ሃልበርድ",
+  "קריסטליס": "ክሪስታሊስ",
+  "זאוס": "ዜኡስ",
+  "דרגונפנג": "ድራጎንፋንግ",
+  "וויד": "ቮይድ",
+  "אינפיניטי": "ኢንፊኒቲ",
   "גלדיוס": "ግላዲየስ",
   "רדבירד": "ሬድቤርድ",
   "קנג'י": "ኬንጂ",
@@ -15246,6 +15719,16 @@ const NAME_AM = {
 };
 // פינית: שמות פרטיים נשארים כמו באנגלית, שמות תיאוריים מתורגמים.
 const NAME_FI = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -15383,6 +15866,16 @@ const NAME_FI = {
 };
 // נורווגית (בוקמול): שמות פרטיים כמו באנגלית, תיאוריים מתורגמים.
 const NAME_NO = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -15519,6 +16012,16 @@ const NAME_NO = {
   'דוב': 'Bjørn', 'פיל': 'Elefant', "צ'יטה": 'Gepard', 'נמר': 'Leopard', 'אריה': 'Løve',
 };
 const NAME_GSW = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -15709,6 +16212,16 @@ const NAME_GSW = {
   "אריה": "Löi",
 };
 const NAME_VI = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -15899,6 +16412,16 @@ const NAME_VI = {
   "אריה": "Sư tử",
 };
 const NAME_ID = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -16089,6 +16612,16 @@ const NAME_ID = {
   "אריה": "Singa",
 };
 const NAME_ET = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -16279,6 +16812,16 @@ const NAME_ET = {
   "אריה": "Lõvi",
 };
 const NAME_IS = {
+  "אקסקליבר": "Excalibur",
+  "מורנינגסטאר": "Morningstar",
+  "טווינבלייד": "Twinblade",
+  "סימיטר": "Scimitar",
+  "הלברד": "Halberd",
+  "קריסטליס": "Crystalis",
+  "זאוס": "Zeus",
+  "דרגונפנג": "Dragonfang",
+  "וויד": "Void",
+  "אינפיניטי": "Infinity",
   "גלדיוס": "Gladius",
   "רדבירד": "Redbeard",
   "קנג'י": "Kenji",
@@ -16469,6 +17012,16 @@ const NAME_IS = {
   "אריה": "Ljón",
 };
 const NAME_FA = {
+  "אקסקליבר": "اکسکالیبر",
+  "מורנינגסטאר": "مورنینگ‌استار",
+  "טווינבלייד": "توین‌بلید",
+  "סימיטר": "شمشیر خمیده",
+  "הלברד": "هالبرد",
+  "קריסטליס": "کریستالیس",
+  "זאוס": "زئوس",
+  "דרגונפנג": "دراگون‌فنگ",
+  "וויד": "وُید",
+  "אינפיניטי": "اینفینیتی",
   "גלדיוס": "گلادیوس",
   "רדבירד": "ردبرد",
   "קנג'י": "کنجی",
@@ -17116,6 +17669,16 @@ const SHOP_DATA = {
     ['שייד', 'נזק 800', '21000₪'],
     ['פלזמה', 'נזק 900', '24000₪'],
     ['נובה', 'נזק 1000', '30000₪'],
+    ['אקסקליבר', 'נזק 1100', '33000₪'],
+    ['מורנינגסטאר', 'נזק 1250', '37000₪'],
+    ['טווינבלייד', 'נזק 1400', '41000₪'],
+    ['סימיטר', 'נזק 1550', '46000₪'],
+    ['הלברד', 'נזק 1700', '52000₪'],
+    ['קריסטליס', 'נזק 1850', '58000₪'],
+    ['זאוס', 'נזק 2000', '65000₪'],
+    ['דרגונפנג', 'נזק 2200', '73000₪'],
+    ['וויד', 'נזק 2350', '82000₪'],
+    ['אינפיניטי', 'נזק 2500', '95000₪'],
   ]},
   shields: { label: '🛡️ מגנים', labelEn: '🛡️ Shields', labelEs: '🛡️ Escudos', labelJa: '🛡️ たて', labelFr: '🛡️ Boucliers', labelPt: '🛡️ Escudos', labelDe: '🛡️ Schilde', labelRu: '🛡️ Щиты', labelAr: '🛡️ الدروع', labelTh: '🛡️ โล่', labelPl: '🛡️ Tarcze', labelIt: '🛡️ Scudi', labelRo: '🛡️ Scuturi', labelZh: '🛡️ 盾牌', labelKo: '🛡️ 방패', labelHi: '🛡️ ढालें', labelTr: '🛡️ Kalkanlar', labelNl: '🛡️ Schilden', labelSv: '🛡️ Sköldar', labelUk: '🛡️ Щити', labelCs: '🛡️ Štíty', labelHu: '🛡️ Pajzsok', labelEl: '🛡️ Ασπίδες', labelBg: '🛡️ Щитове', labelSr: '🛡️ Штитови', labelHr: '🛡️ Štitovi', labelSk: '🛡️ Štíty', labelSq: '🛡️ Mburoja', labelSl: '🛡️ Ščiti', labelGd: '🛡️ Sgiathan', labelPtpt: '🛡️ Escudos', labelAm: '🛡️ ጋሻዎች', labelFi: '🛡️ Kilvet', labelNo: '🛡️ Skjold', labelGsw: '🛡️ Schilder', labelVi: '🛡️ Khiên', labelId: '🛡️ Perisai', labelEt: '🛡️ Kilbid', labelIs: '🛡️ Skildir', labelFa: '🛡️ سپرها', rows: [
     ['אבן קצת גדולה אבל שבירה', 'הגנה בסיסית', 'חינם'],
@@ -17531,6 +18094,8 @@ const WEAPON_ICON = {
   'כילשון': '🔱', 'סכין מחודד': '🔪', 'חרב': '⚔️', 'קטאנה': '🗡️', 'רובה': '🔫',
   'מיולניר': '🔨', 'מרלין': '🪄', 'ברסרק': '🪓', 'אינפרנו': '🔥', 'גלייסייר': '❄️',
   'ריפר': '🌙', 'גונגניר': '🔱', 'שייד': '🗡️', 'פלזמה': '⚡', 'נובה': '🌟',
+  'אקסקליבר': '🗡️', 'מורנינגסטאר': '⭐', 'טווינבלייד': '⚔️', 'סימיטר': '🌙', 'הלברד': '🪓',
+  'קריסטליס': '💎', 'זאוס': '⚡', 'דרגונפנג': '🐉', 'וויד': '🕳️', 'אינפיניטי': '♾️',
 };
 
 function removeWeaponProp(f) {
