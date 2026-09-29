@@ -355,7 +355,7 @@
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -367,8 +367,21 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show, #lootSelectOverlay.show, #petsOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show, #matchOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show, #petsOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show, #matchOverlay.show, #dailyOverlay.show { display: flex; }
+  #dailyGiftBtn { font-size: 1.4rem; padding: 18px 40px; margin: 14px 0 6px; border-radius: 18px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(180deg, #ffe27a, #ffb52e); color: #1a1a1a; box-shadow: 0 6px 20px rgba(255,190,50,0.45); }
+  #dailyGiftBtn:disabled { background: rgba(255,255,255,0.12); color: #ccc; box-shadow: none; cursor: default; }
+  #chestRow { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin: 18px 0; }
+  .chestCard { width: 150px; padding: 14px 10px; border-radius: 16px; background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.25); text-align: center; }
+  .chestCard.rare { border-color: #4da3ff; } .chestCard.legendary { border-color: #ffcf4d; box-shadow: 0 0 18px rgba(255,207,77,0.4); }
+  .chestIcon { font-size: 3rem; } .chestName { font-weight: bold; margin: 4px 0; } .chestCount { opacity: 0.85; margin-bottom: 8px; }
+  .chestCard button { background: #ffcf4d; color: #1a1a1a; border: none; border-radius: 10px; padding: 8px 16px; font-weight: bold; cursor: pointer; }
+  .chestCard button:disabled { background: rgba(255,255,255,0.15); color: #aaa; cursor: default; }
+  #dailyResult { min-height: 120px; text-align: center; font-size: 1.3rem; margin-top: 6px; }
+  #dailyResult.pop { animation: dailyPop 0.6s ease-out; }
+  #dailyResult .bigEmoji { font-size: 4.5rem; display: block; }
+  @keyframes dailyPop { 0% { transform: scale(0.3); opacity: 0; } 60% { transform: scale(1.25); opacity: 1; } 100% { transform: scale(1); } }
+  #dailyBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
   #teamSizeOverlay .bigBtn { font-size: 1.2rem; padding: 18px 46px; margin: 10px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.4); background: #ffcf4d; color: #1a1a1a; }
   #teamSizeOverlay .bigBtn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
   #teamSizeBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
@@ -993,6 +1006,7 @@
   <button class="bigBtn secondary eventOnly" id="bossFightBtn" data-i18n-he="👹 קרב בוס" data-i18n-en="👹 Boss Battle" data-i18n-es="👹 Batalla de Jefe" data-i18n-ja="👹 ボスバトル" data-i18n-fr="👹 Combat de boss" data-i18n-pt="👹 Batalha de chefão" data-i18n-de="👹 Bosskampf" data-i18n-ru="👹 Бой с боссом" data-i18n-ar="👹 معركة الزعيم" data-i18n-th="👹 สู้กับบอส" data-i18n-pl="👹 Walka z bossem" data-i18n-it="👹 Battaglia col boss" data-i18n-ro="👹 Luptă cu șeful" data-i18n-zh="👹 首领战" data-i18n-ko="👹 보스 배틀" data-i18n-hi="👹 बॉस लड़ाई" data-i18n-tr="👹 Patron Savaşı" data-i18n-nl="👹 Baasgevecht" data-i18n-sv="👹 Bosstrid" data-i18n-uk="👹 Бій з босом" data-i18n-cs="👹 Boj s bossem" data-i18n-hu="👹 Főellenség harc" data-i18n-el="👹 Μάχη με αφεντικό" data-i18n-bg="👹 Битка с бос" data-i18n-sr="👹 Борба са шефом" data-i18n-hr="👹 Borba sa šefom" data-i18n-sk="👹 Boj s bossom" data-i18n-sq="👹 Betejë me shefin" data-i18n-sl="👹 Boj s šefom" data-i18n-gd="👹 Blàr a' cheannaird" data-i18n-ptpt="👹 Batalha com o chefe" data-i18n-am="👹 የአለቃ ውጊያ" data-i18n-fi="👹 Pomotaistelu" data-i18n-no="👹 Sjefkamp" data-i18n-gsw="👹 Bosskampf" data-i18n-vi="👹 Đấu trùm" data-i18n-id="👹 Pertarungan Bos" data-i18n-et="👹 Ülemuse lahing" data-i18n-is="👹 Yfirmannsbardagi" data-i18n-fa="👹 نبرد با رئیس">👹 קרב בוס</button>
   <button class="bigBtn secondary" id="openAdventureBtn" data-i18n-he="🗺️ הרפתקה" data-i18n-en="🗺️ Adventure" data-i18n-es="🗺️ Aventura" data-i18n-ja="🗺️ 冒険" data-i18n-fr="🗺️ Aventure" data-i18n-pt="🗺️ Aventura" data-i18n-de="🗺️ Abenteuer" data-i18n-ru="🗺️ Приключение" data-i18n-ar="🗺️ مغامرة" data-i18n-th="🗺️ ผจญภัย" data-i18n-pl="🗺️ Przygoda" data-i18n-it="🗺️ Avventura" data-i18n-ro="🗺️ Aventură" data-i18n-zh="🗺️ 冒险" data-i18n-ko="🗺️ 모험" data-i18n-hi="🗺️ रोमांच" data-i18n-tr="🗺️ Macera" data-i18n-nl="🗺️ Avontuur" data-i18n-sv="🗺️ Äventyr" data-i18n-uk="🗺️ Пригода" data-i18n-cs="🗺️ Dobrodružství" data-i18n-hu="🗺️ Kaland" data-i18n-el="🗺️ Περιπέτεια" data-i18n-bg="🗺️ Приключение" data-i18n-sr="🗺️ Авантура" data-i18n-hr="🗺️ Pustolovina" data-i18n-sk="🗺️ Dobrodružstvo" data-i18n-sq="🗺️ Aventurë" data-i18n-sl="🗺️ Pustolovščina" data-i18n-gd="🗺️ Dàn-thuras" data-i18n-ptpt="🗺️ Aventura" data-i18n-am="🗺️ ጀብዱ" data-i18n-fi="🗺️ Seikkailu" data-i18n-no="🗺️ Eventyr" data-i18n-gsw="🗺️ Abentüür" data-i18n-vi="🗺️ Phiêu lưu" data-i18n-id="🗺️ Petualangan" data-i18n-et="🗺️ Seiklus" data-i18n-is="🗺️ Ævintýri" data-i18n-fa="🗺️ ماجراجویی">🗺️ הרפתקה</button>
   <button class="bigBtn secondary" id="openLootSelectBtn" data-i18n-he="🎒 ציוד לקרב" data-i18n-en="🎒 Battle gear" data-i18n-es="🎒 Equipo de batalla" data-i18n-ja="🎒 バトルの持ち物" data-i18n-fr="🎒 Équipement de combat" data-i18n-pt="🎒 Equipamento de batalha" data-i18n-de="🎒 Kampfausrüstung" data-i18n-ru="🎒 Снаряжение" data-i18n-ar="🎒 عتاد المعركة" data-i18n-th="🎒 อุปกรณ์ต่อสู้" data-i18n-pl="🎒 Ekwipunek" data-i18n-it="🎒 Equipaggiamento" data-i18n-ro="🎒 Echipament de luptă" data-i18n-zh="🎒 战斗装备" data-i18n-ko="🎒 배틀 장비" data-i18n-hi="🎒 लड़ाई का सामान" data-i18n-tr="🎒 Savaş teçhizatı" data-i18n-nl="🎒 Gevechtsuitrusting" data-i18n-sv="🎒 Stridsutrustning" data-i18n-uk="🎒 Спорядження" data-i18n-cs="🎒 Výbava do boje" data-i18n-hu="🎒 Harci felszerelés" data-i18n-el="🎒 Εξοπλισμός μάχης" data-i18n-bg="🎒 Бойна екипировка" data-i18n-sr="🎒 Опрема за борбу" data-i18n-hr="🎒 Oprema za borbu" data-i18n-sk="🎒 Výbava do boja" data-i18n-sq="🎒 Pajisje beteje" data-i18n-sl="🎒 Bojna oprema" data-i18n-gd="🎒 Uidheam blàir" data-i18n-ptpt="🎒 Equipamento de batalha" data-i18n-am="🎒 የውጊያ ዕቃዎች" data-i18n-fi="🎒 Taisteluvarusteet" data-i18n-no="🎒 Kamputstyr" data-i18n-gsw="🎒 Kampfusrüschtig" data-i18n-vi="🎒 Trang bị chiến đấu" data-i18n-id="🎒 Perlengkapan tempur" data-i18n-et="🎒 Lahingukomplekt" data-i18n-is="🎒 Bardagabúnaður" data-i18n-fa="🎒 تجهیزات نبرد">🎒 ציוד לקרב</button>
+  <button class="bigBtn secondary" id="openDailyBtn">🎁</button>
   <button class="bigBtn secondary" id="openPetsBtn" data-i18n-he="🐾 חיות עזרה" data-i18n-en="🐾 Helper Animals" data-i18n-es="🐾 Animales ayudantes" data-i18n-ja="🐾 おたすけ動物" data-i18n-fr="🐾 Animaux alliés" data-i18n-pt="🐾 Animais ajudantes" data-i18n-de="🐾 Helfer-Tiere" data-i18n-ru="🐾 Звери-помощники" data-i18n-ar="🐾 حيوانات مساعدة" data-i18n-th="🐾 สัตว์ผู้ช่วย" data-i18n-pl="🐾 Zwierzęta pomocnicy" data-i18n-it="🐾 Animali aiutanti" data-i18n-ro="🐾 Animale ajutătoare" data-i18n-zh="🐾 助战动物" data-i18n-ko="🐾 도우미 동물" data-i18n-hi="🐾 मददगार जानवर" data-i18n-tr="🐾 Yardımcı Hayvanlar" data-i18n-nl="🐾 Helperdieren" data-i18n-sv="🐾 Hjälpdjur" data-i18n-uk="🐾 Тварини-помічники" data-i18n-cs="🐾 Zvířecí pomocníci" data-i18n-hu="🐾 Segítő állatok" data-i18n-el="🐾 Ζώα βοηθοί" data-i18n-bg="🐾 Животни помощници" data-i18n-sr="🐾 Животиње помагачи" data-i18n-hr="🐾 Životinje pomagači" data-i18n-sk="🐾 Zvierací pomocníci" data-i18n-sq="🐾 Kafshë ndihmëse" data-i18n-sl="🐾 Živali pomočnice" data-i18n-gd="🐾 Beathaichean-cuideachaidh" data-i18n-ptpt="🐾 Animais ajudantes" data-i18n-am="🐾 ረዳት እንስሳት" data-i18n-fi="🐾 Apueläimet" data-i18n-no="🐾 Hjelpedyr" data-i18n-gsw="🐾 Helfer-Tier" data-i18n-vi="🐾 Thú trợ giúp" data-i18n-id="🐾 Hewan Pembantu" data-i18n-et="🐾 Abiloomad" data-i18n-is="🐾 Hjálpardýr" data-i18n-fa="🐾 حیوانات کمکی">🐾 חיות עזרה</button>
 </div>
 
@@ -1078,6 +1092,14 @@
   </div>
   <div id="lootSelectSections"></div>
   <button id="lootSelectBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby" data-i18n-es="⬅ Volver al lobby" data-i18n-ja="⬅ ロビーにもどる" data-i18n-fr="⬅ Retour à l'accueil" data-i18n-pt="⬅ Voltar ao início" data-i18n-de="⬅ Zurück zum Start" data-i18n-ru="⬅ На главную" data-i18n-ar="⬅ العودة إلى الرئيسية" data-i18n-th="⬅ กลับหน้าหลัก" data-i18n-pl="⬅ Wróć do startu" data-i18n-it="⬅ Torna all'inizio" data-i18n-ro="⬅ Înapoi acasă" data-i18n-zh="⬅ 返回主页" data-i18n-ko="⬅ 홈으로" data-i18n-hi="⬅ लॉबी पर वापस" data-i18n-tr="⬅ Lobiye dön" data-i18n-nl="⬅ Terug naar lobby" data-i18n-sv="⬅ Tillbaka till lobbyn" data-i18n-uk="⬅ На головну" data-i18n-cs="⬅ Zpět do menu" data-i18n-hu="⬅ Vissza a menübe" data-i18n-el="⬅ Πίσω στην αρχική" data-i18n-bg="⬅ Към началото" data-i18n-sr="⬅ Назад на почетну" data-i18n-hr="⬅ Natrag na početnu" data-i18n-sk="⬅ Späť do menu" data-i18n-sq="⬅ Kthehu në kryefaqe" data-i18n-sl="⬅ Nazaj na začetek" data-i18n-gd="⬅ Air ais dhachaigh" data-i18n-ptpt="⬅ Voltar ao início" data-i18n-am="⬅ ወደ መነሻ ተመለስ" data-i18n-fi="⬅ Takaisin aulaan" data-i18n-no="⬅ Tilbake til lobbyen" data-i18n-gsw="⬅ Zrugg id Lobby" data-i18n-vi="⬅ Về sảnh" data-i18n-id="⬅ Kembali ke lobi" data-i18n-et="⬅ Tagasi fuajeesse" data-i18n-is="⬅ Aftur í anddyri" data-i18n-fa="⬅ بازگشت به لابی">⬅ חזרה ללובי</button>
+</div>
+
+<div id="dailyOverlay">
+  <div class="screenTitle" id="dailyTitle">🎁</div>
+  <button id="dailyGiftBtn"></button>
+  <div id="chestRow"></div>
+  <div id="dailyResult"></div>
+  <button id="dailyBackBtn"></button>
 </div>
 
 <div id="petsOverlay">
@@ -8081,6 +8103,7 @@ const adventureEl = document.getElementById('adventureOverlay');
 const lootSelectEl = document.getElementById('lootSelectOverlay');
 const petsEl = document.getElementById('petsOverlay');
 const settingsEl = document.getElementById('settingsOverlay');
+const dailyEl = document.getElementById('dailyOverlay');
 const giftEl = document.getElementById('giftOverlay');
 const friendsEl = document.getElementById('friendsOverlay');
 const matchEl = document.getElementById('matchOverlay');
@@ -8137,6 +8160,9 @@ function showScreen(name) {
   lootSelectEl.classList.toggle('show', name === 'lootSelect');
   if (name === 'lootSelect') renderLootSelectScreen();
   petsEl.classList.toggle('show', name === 'pets');
+  dailyEl.classList.toggle('show', name === 'daily');
+  if (name === 'daily') renderDailyScreen();
+  if (name === 'lobby') updateDailyBtn();
   if (name === 'pets') renderPetsScreen();
   settingsEl.classList.toggle('show', name === 'settings');
   if (name === 'settings') document.getElementById('langPicker').classList.add('collapsed');   // בכל כניסה להגדרות הדגלים סגורים
@@ -20057,6 +20083,143 @@ function flashCantAfford(btn) {
 }
 
 // ============================================================================
+//  מתנות יומיות ותיבות (2026-09-29, בקשת המשתמש): כל יום אפשר לקחת מתנה יומית -
+//  כסף, דמות או תיבה. תיבות (רגילה/נדירה/אגדית) נפתחות ונותנות כסף, דמות, נשק,
+//  מגן, אוכל או משקה. "יום" = התאריך במחשב של השחקן (כמו האיוונט - לא שרת).
+//  התיבות והתאריך האחרון נשמרים במסמך של השחקן עצמו (כמו כסף ומלאי), ובנוסף
+//  התאריך נשמר ב-localStorage כדי ששחקן בלי חשבון לא יקבל מתנה חדשה בכל רענון.
+// ============================================================================
+const CHEST_TYPES = {
+  common:    { icon: '📦', he: 'תיבה רגילה', en: 'Common chest',
+               money: [200, 1000],  maxPrice: 20000,    w: { money: 40, food: 20, drinks: 20, shields: 10, weapons: 5,  characters: 5 } },
+  rare:      { icon: '🎁', he: 'תיבה נדירה', en: 'Rare chest',
+               money: [1000, 5000], maxPrice: 60000,    w: { money: 30, food: 15, drinks: 15, shields: 15, weapons: 15, characters: 10 } },
+  legendary: { icon: '💎', he: 'תיבה אגדית', en: 'Legendary chest',
+               money: [5000, 25000], maxPrice: Infinity, w: { money: 20, food: 10, drinks: 10, shields: 15, weapons: 20, characters: 25 } },
+};
+const DAILY_KEY = 'battleGameDailyClaim';
+let chests = { common: 0, rare: 0, legendary: 0 };
+let lastDailyClaim = '';
+const dailyBtnLobbyEl = document.getElementById('openDailyBtn');
+const CAT_EMOJI = { money: '💰', characters: '👤', weapons: '⚔️', shields: '🛡️', food: '🍎', drinks: '🥤' };
+const CAT_NAME = { money: ['כסף', 'Money'], characters: ['דמות חדשה', 'New character'], weapons: ['נשק חדש', 'New weapon'], shields: ['מגן חדש', 'New shield'], food: ['אוכל חדש', 'New food'], drinks: ['משקה חדש', 'New drink'] };
+
+function todayStr() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function dailyClaimedToday() {
+  let ls = '';
+  try { ls = localStorage.getItem(DAILY_KEY) || ''; } catch (e) {}
+  const t = todayStr();
+  return lastDailyClaim === t || ls === t;
+}
+const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+function pickWeighted(weights) {
+  const total = Object.values(weights).reduce((x, y) => x + y, 0);
+  let r = Math.random() * total;
+  for (const [k, w] of Object.entries(weights)) { if ((r -= w) < 0) return k; }
+  return Object.keys(weights)[0];
+}
+// פריטים בקטגוריה שעוד לא בבעלות השחקן, ושהמחיר שלהם (המספר לפני ₪) קטן/שווה לתקרה.
+// פריט "חינם" (סווארק, אבן חדה, מים) לא נחשב - הוא כבר של השחקן מההתחלה.
+function unownedItems(key, maxPrice) {
+  return SHOP_DATA[key].rows.filter((row) => {
+    const name = row[0];
+    if (key === 'characters' && (CUSTOM_CHARACTER_NAMES.has(name) || !CHARACTER_CFGS[name])) return false;
+    if (key === 'weapons' && !WEAPON_CFGS[name]) return false;
+    if (inventory.has(key + ':' + name)) return false;
+    const price = parseInt(String(row[row.length - 1]).replace(/[^0-9]/g, ''), 10) || 0;
+    return price > 0 && price <= maxPrice;
+  }).map((row) => row[0]);
+}
+// מפיל פרס מתיבה ומחיל אותו על השחקן. מחזיר תיאור לתצוגה.
+function rollChestReward(tier) {
+  const t = CHEST_TYPES[tier];
+  let cat = pickWeighted(t.w);
+  if (cat !== 'money') {
+    const pool = unownedItems(cat, t.maxPrice);
+    if (pool.length === 0) cat = 'money';      // כבר יש לך הכל בקטגוריה - מקבלים כסף במקום
+    else { const name = pool[Math.floor(Math.random() * pool.length)]; inventory.add(cat + ':' + name); return { cat, name }; }
+  }
+  const amount = Math.round(randInt(t.money[0], t.money[1]) / 50) * 50;
+  money += amount;
+  return { cat: 'money', amount };
+}
+function applyRewardUI(reward) {
+  updateMoneyUI();
+  if (reward.cat === 'characters' || reward.cat === 'weapons') updateLoadoutUI();
+  if (reward.cat === 'food' || reward.cat === 'drinks' || reward.cat === 'shields') renderLootBar();
+}
+function showDailyResult(html) {
+  const el = document.getElementById('dailyResult');
+  el.innerHTML = html;
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+}
+function rewardHtml(reward) {
+  const label = heEn(CAT_NAME[reward.cat][0], CAT_NAME[reward.cat][1]);
+  const what = reward.cat === 'money' ? '+' + reward.amount + '₪' : trName(reward.name);
+  return '<span class="bigEmoji">' + CAT_EMOJI[reward.cat] + '</span>' + label + '<br><b>' + what + '</b>';
+}
+function claimDailyGift() {
+  if (dailyClaimedToday()) return;
+  const t = todayStr();
+  lastDailyClaim = t;
+  try { localStorage.setItem(DAILY_KEY, t); } catch (e) {}
+  const r = Math.random();
+  let html;
+  if (r < 0.45) {
+    const amount = Math.round(randInt(200, 1500) / 50) * 50;
+    money += amount; updateMoneyUI();
+    html = rewardHtml({ cat: 'money', amount });
+  } else if (r < 0.85) {
+    const tier = pickWeighted({ common: 65, rare: 28, legendary: 7 });
+    chests[tier]++;
+    html = '<span class="bigEmoji">' + CHEST_TYPES[tier].icon + '</span>' + heEn('קיבלת ' + CHEST_TYPES[tier].he + '!', 'You got a ' + CHEST_TYPES[tier].en + '!');
+  } else {
+    const pool = unownedItems('characters', 20000);
+    if (pool.length) {
+      const name = pool[Math.floor(Math.random() * pool.length)];
+      inventory.add('characters:' + name);
+      applyRewardUI({ cat: 'characters' });
+      html = rewardHtml({ cat: 'characters', name });
+    } else { chests.rare++; html = '<span class="bigEmoji">🎁</span>' + heEn('קיבלת תיבה נדירה!', 'You got a Rare chest!'); }
+  }
+  showDailyResult('🎉 ' + heEn('המתנה היומית שלך:', 'Your daily gift:') + '<br>' + html);
+  saveCloudState();
+  renderDailyScreen(true);
+  updateDailyBtn();
+}
+function openChest(tier) {
+  if (!(chests[tier] > 0)) return;
+  chests[tier]--;
+  const reward = rollChestReward(tier);
+  applyRewardUI(reward);
+  showDailyResult(CHEST_TYPES[tier].icon + ' ' + heEn('פתחת ' + CHEST_TYPES[tier].he + ':', 'You opened a ' + CHEST_TYPES[tier].en + ':') + '<br>' + rewardHtml(reward));
+  saveCloudState();
+  renderDailyScreen(true);
+}
+function renderDailyScreen(keepResult) {
+  document.getElementById('dailyTitle').textContent = heEn('🎁 מתנות ותיבות', '🎁 Gifts & Chests');
+  const gb = document.getElementById('dailyGiftBtn');
+  const claimed = dailyClaimedToday();
+  gb.disabled = claimed;
+  gb.textContent = claimed ? heEn('✅ לקחת את המתנה של היום - חזור מחר!', "✅ Today's gift taken - come back tomorrow!") : heEn('🎁 קבל את המתנה היומית!', '🎁 Get your daily gift!');
+  document.getElementById('chestRow').innerHTML = Object.entries(CHEST_TYPES).map(([k, c]) =>
+    '<div class="chestCard ' + k + '"><div class="chestIcon">' + c.icon + '</div><div class="chestName">' + heEn(c.he, c.en) + '</div>' +
+    '<div class="chestCount">× ' + chests[k] + '</div><button data-tier="' + k + '"' + (chests[k] > 0 ? '' : ' disabled') + '>' + heEn('פתח', 'Open') + '</button></div>').join('');
+  document.getElementById('dailyBackBtn').textContent = heEn('⬅ חזרה ללובי', '⬅ Back to lobby');
+  if (!keepResult) document.getElementById('dailyResult').innerHTML = '';
+}
+function updateDailyBtn() {
+  const avail = !dailyClaimedToday();
+  dailyBtnLobbyEl.textContent = heEn('🎁 מתנות ותיבות', '🎁 Gifts & Chests') + (avail ? ' ❗' : '');
+}
+dailyBtnLobbyEl.addEventListener('click', () => showScreen('daily'));
+document.getElementById('dailyGiftBtn').addEventListener('click', claimDailyGift);
+document.getElementById('dailyBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('chestRow').addEventListener('click', (e) => { const b = e.target.closest('button[data-tier]'); if (b) openChest(b.dataset.tier); });
+updateDailyBtn();
+setInterval(updateDailyBtn, 60000);   // אם עוברים חצות בזמן שהמשחק פתוח
+
+// ============================================================================
 //  ענן: שמירה/טעינה ב-Firestore — אופציונלי לגמרי
 //
 //  בלי להתחבר, המשחק עובד בדיוק כמו קודם - הכל רק בזיכרון, נעלם ברענון.
@@ -20087,6 +20250,8 @@ function resetLocalPlayerStateForAccountSwitch() {
   wins = 0;
   losses = 0;
   myUsername = '';
+  chests = { common: 0, rare: 0, legendary: 0 };
+  lastDailyClaim = '';
   // switchPlayerCharacter/switchPlayerWeapon כותבות saveCloudState() בעצמן -
   // cloudUser כבר null בשלב הזה (ראה onAuthStateChanged למטה) כדי שזה לא
   // יכתוב בטעות מצב-איפוס לחשבון הקודם או לחשבון החדש לפני שנטען בפועל.
@@ -20102,6 +20267,7 @@ function buildCloudState() {
     money, inventory: [...inventory], characterLevels,
     selectedCharacterName, selectedWeaponName, enemyLevel, wins, losses,
     selectedPetName,
+    chests, lastDailyClaim,
     username: myUsername,
     displayName: cloudUser?.displayName || '',
     updatedAt: serverTimestamp(),
@@ -20126,6 +20292,9 @@ function applyCloudState(data) {
   if (data.wins != null) wins = data.wins;
   if (data.losses != null) losses = data.losses;
   if (data.username) myUsername = data.username;
+  if (data.chests) chests = { common: 0, rare: 0, legendary: 0, ...data.chests };
+  if (data.lastDailyClaim) lastDailyClaim = data.lastDailyClaim;
+  updateDailyBtn();
   updateMoneyUI();
   updateCloudUI();   // מרענן את "🎁 שם-משתמש" ליד כפתור ההתחברות אם החשבון כבר שמר שם
   if (data.selectedCharacterName && CHARACTER_CFGS[data.selectedCharacterName]) switchPlayerCharacter(data.selectedCharacterName);
@@ -21790,6 +21959,7 @@ window.game = {
   upgradeCharacter, getLevels, characterLevels, upgradeCost, MAX_UPGRADE_LEVEL,
   refreshPlayerCombatStats, startJump,
   SUMO_RADIUS, SUMO_OFFSET, enterSumo, exitSumo, endSumo,
+  get chests() { return chests; }, openChest, claimDailyGift, rollChestReward, dailyClaimedToday,
   BATTLE_MODES, cycleBattleMode, startSelectedBattle, get selectedModeIndex() { return selectedModeIndex; },
   get teamFighters() { return teamFighters; }, get teamBattleOver() { return teamBattleOver; },
   set pendingTeamEnemyCount(v) { pendingTeamEnemyCount = v; }, get pendingTeamEnemyCount() { return pendingTeamEnemyCount; },
