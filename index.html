@@ -7313,7 +7313,7 @@ function tickCombat(attacker, defender, who, otherWho) {
   // שים לב להיפוך: היכולת פוגעת ב*תוקף*, ולכן פס החיים שמתעדכן הוא של
   // התוקף (`who`), ואם הוא נופל מזה - המנצח הוא בעל המגן (`otherWho`).
   if (defender.guardTimer > 0) {
-    if (triggerShieldAbility(defender, attacker, dmg, who)) endGame(otherWho);
+    if (triggerShieldAbility(defender, attacker, dmg, who, otherWho)) endGame(otherWho);
     return;
   }
   defender.hp = Math.max(0, defender.hp - dmg);
@@ -9840,6 +9840,9 @@ let uiLang = localStorage.getItem('battleGameLang') || 'he';
 // תיאורי היכולות של המגנים/המשקה המיוחד הם משפטים חופשיים (לא נוסחה כמו
 // "כוח X/10"), אז הם מתורגמים מילה-במילה בטבלה נפרדת, לא ברגקס כללי.
 const SHIELD_ABILITY_EN = {
+  "מקפיא את התוקף לרגע": "Freezes the attacker for a moment",
+  "מרפא אותך כשנשק פוגע בו": "Heals you when a weapon hits it",
+  "מחזיר פי 3, מרפא ומקפיא": "Reflects triple, heals and freezes",
   'הגנה בסיסית': 'Basic defense',
   'הגנה טובה יותר': 'Better defense',
   'הגנה חזקה': 'Strong defense',
@@ -9851,6 +9854,9 @@ const SHIELD_ABILITY_EN = {
   'משקה מיוחד וחזק': 'Special, powerful drink',
 };
 const SHIELD_ABILITY_ES = {
+  "מקפיא את התוקף לרגע": "Congela al atacante un momento",
+  "מרפא אותך כשנשק פוגע בו": "Te cura cuando un arma lo golpea",
+  "מחזיר פי 3, מרפא ומקפיא": "Devuelve triple, cura y congela",
   'הגנה בסיסית': 'Defensa básica',
   'הגנה טובה יותר': 'Defensa mejor',
   'הגנה חזקה': 'Defensa fuerte',
@@ -9862,6 +9868,9 @@ const SHIELD_ABILITY_ES = {
   'משקה מיוחד וחזק': 'Bebida especial y poderosa',
 };
 const SHIELD_ABILITY_JA = {
+  "מקפיא את התוקף לרגע": "しょうげきで相手を少しこおらせる",
+  "מרפא אותך כשנשק פוגע בו": "武器が当たるとHPがかいふくする",
+  "מחזיר פי 3, מרפא ומקפיא": "3倍がえし・かいふく・こおらせる",
   'הגנה בסיסית': 'きほんのまもり',
   'הגנה טובה יותר': 'もっといいまもり',
   'הגנה חזקה': '強いまもり',
@@ -9873,6 +9882,9 @@ const SHIELD_ABILITY_JA = {
   'משקה מיוחד וחזק': '特別で強い飲み物',
 };
 const SHIELD_ABILITY_FR = {
+  "מקפיא את התוקף לרגע": "Gèle l'attaquant un instant",
+  "מרפא אותך כשנשק פוגע בו": "Te soigne quand une arme le frappe",
+  "מחזיר פי 3, מרפא ומקפיא": "Renvoie triple, soigne et gèle",
   'הגנה בסיסית': 'Défense de base',
   'הגנה טובה יותר': 'Meilleure défense',
   'הגנה חזקה': 'Défense forte',
@@ -9884,6 +9896,9 @@ const SHIELD_ABILITY_FR = {
   'משקה מיוחד וחזק': 'Boisson spéciale et puissante',
 };
 const SHIELD_ABILITY_PT = {
+  "מקפיא את התוקף לרגע": "Congela o atacante por um momento",
+  "מרפא אותך כשנשק פוגע בו": "Cura você quando uma arma o atinge",
+  "מחזיר פי 3, מרפא ומקפיא": "Devolve o triplo, cura e congela",
   'הגנה בסיסית': 'Defesa básica',
   'הגנה טובה יותר': 'Defesa melhor',
   'הגנה חזקה': 'Defesa forte',
@@ -9895,6 +9910,9 @@ const SHIELD_ABILITY_PT = {
   'משקה מיוחד וחזק': 'Bebida especial e poderosa',
 };
 const SHIELD_ABILITY_DE = {
+  "מקפיא את התוקף לרגע": "Friert den Angreifer kurz ein",
+  "מרפא אותך כשנשק פוגע בו": "Heilt dich, wenn eine Waffe trifft",
+  "מחזיר פי 3, מרפא ומקפיא": "Gibt dreifach zurück, heilt und friert ein",
   'הגנה בסיסית': 'Grundschutz',
   'הגנה טובה יותר': 'Besserer Schutz',
   'הגנה חזקה': 'Starker Schutz',
@@ -9906,6 +9924,9 @@ const SHIELD_ABILITY_DE = {
   'משקה מיוחד וחזק': 'Besonderes, starkes Getränk',
 };
 const SHIELD_ABILITY_RU = {
+  "מקפיא את התוקף לרגע": "Замораживает нападающего на миг",
+  "מרפא אותך כשנשק פוגע בו": "Лечит тебя, когда по нему бьют оружием",
+  "מחזיר פי 3, מרפא ומקפיא": "Возвращает втрое, лечит и замораживает",
   'הגנה בסיסית': 'Базовая защита',
   'הגנה טובה יותר': 'Защита получше',
   'הגנה חזקה': 'Сильная защита',
@@ -9917,6 +9938,9 @@ const SHIELD_ABILITY_RU = {
   'משקה מיוחד וחזק': 'Особый сильный напиток',
 };
 const SHIELD_ABILITY_AR = {
+  "מקפיא את התוקף לרגע": "يجمّد المهاجم للحظة",
+  "מרפא אותך כשנשק פוגע בו": "يشفيك عندما يضربه سلاح",
+  "מחזיר פי 3, מרפא ומקפיא": "يردّ ثلاثة أضعاف ويشفي ويجمّد",
   'הגנה בסיסית': 'حماية أساسية',
   'הגנה טובה יותר': 'حماية أفضل',
   'הגנה חזקה': 'حماية قوية',
@@ -9928,6 +9952,9 @@ const SHIELD_ABILITY_AR = {
   'משקה מיוחד וחזק': 'مشروب خاص وقوي',
 };
 const SHIELD_ABILITY_TH = {
+  "מקפיא את התוקף לרגע": "แช่แข็งผู้โจมตีชั่วครู่",
+  "מרפא אותך כשנשק פוגע בו": "รักษาคุณเมื่อถูกอาวุธโจมตี",
+  "מחזיר פי 3, מרפא ומקפיא": "สะท้อนสามเท่า รักษา และแช่แข็ง",
   'הגנה בסיסית': 'ป้องกันพื้นฐาน',
   'הגנה טובה יותר': 'ป้องกันได้ดีขึ้น',
   'הגנה חזקה': 'ป้องกันแข็งแรง',
@@ -9939,6 +9966,9 @@ const SHIELD_ABILITY_TH = {
   'משקה מיוחד וחזק': 'เครื่องดื่มพิเศษที่ทรงพลัง',
 };
 const SHIELD_ABILITY_PL = {
+  "מקפיא את התוקף לרגע": "Zamraża napastnika na chwilę",
+  "מרפא אותך כשנשק פוגע בו": "Leczy cię, gdy broń w niego uderzy",
+  "מחזיר פי 3, מרפא ומקפיא": "Odbija potrójnie, leczy i zamraża",
   'הגנה בסיסית': 'Podstawowa ochrona',
   'הגנה טובה יותר': 'Lepsza ochrona',
   'הגנה חזקה': 'Mocna ochrona',
@@ -9950,6 +9980,9 @@ const SHIELD_ABILITY_PL = {
   'משקה מיוחד וחזק': 'Specjalny, mocny napój',
 };
 const SHIELD_ABILITY_IT = {
+  "מקפיא את התוקף לרגע": "Congela l'attaccante per un momento",
+  "מרפא אותך כשנשק פוגע בו": "Ti cura quando un'arma lo colpisce",
+  "מחזיר פי 3, מרפא ומקפיא": "Rimanda il triplo, cura e congela",
   'הגנה בסיסית': 'Difesa base',
   'הגנה טובה יותר': 'Difesa migliore',
   'הגנה חזקה': 'Difesa forte',
@@ -9961,6 +9994,9 @@ const SHIELD_ABILITY_IT = {
   'משקה מיוחד וחזק': 'Bevanda speciale e potente',
 };
 const SHIELD_ABILITY_RO = {
+  "מקפיא את התוקף לרגע": "Îngheață atacatorul pentru o clipă",
+  "מרפא אותך כשנשק פוגע בו": "Te vindecă atunci când o armă îl lovește",
+  "מחזיר פי 3, מרפא ומקפיא": "Întoarce triplu, vindecă și îngheață",
   'הגנה בסיסית': 'Apărare de bază',
   'הגנה טובה יותר': 'Apărare mai bună',
   'הגנה חזקה': 'Apărare puternică',
@@ -9972,6 +10008,9 @@ const SHIELD_ABILITY_RO = {
   'משקה מיוחד וחזק': 'Băutură specială și puternică',
 };
 const SHIELD_ABILITY_ZH = {
+  "מקפיא את התוקף לרגע": "让攻击者短暂冰冻",
+  "מרפא אותך כשנשק פוגע בו": "被武器击中时为你治疗",
+  "מחזיר פי 3, מרפא ומקפיא": "三倍反弹、治疗并冰冻",
   'הגנה בסיסית': '基础防御',
   'הגנה טובה יותר': '更好的防御',
   'הגנה חזקה': '强力防御',
@@ -9983,6 +10022,9 @@ const SHIELD_ABILITY_ZH = {
   'משקה מיוחד וחזק': '特别强力的饮料',
 };
 const SHIELD_ABILITY_KO = {
+  "מקפיא את התוקף לרגע": "공격자를 잠깐 얼립니다",
+  "מרפא אותך כשנשק פוגע בו": "무기가 맞으면 체력을 회복합니다",
+  "מחזיר פי 3, מרפא ומקפיא": "3배로 되돌리고 회복하고 얼립니다",
   'הגנה בסיסית': '기본 방어',
   'הגנה טובה יותר': '더 좋은 방어',
   'הגנה חזקה': '강한 방어',
@@ -9994,6 +10036,9 @@ const SHIELD_ABILITY_KO = {
   'משקה מיוחד וחזק': '특별하고 강한 음료',
 };
 const SHIELD_ABILITY_HI = {
+  "מקפיא את התוקף לרגע": "हमलावर को पल भर के लिए जमा देती है",
+  "מרפא אותך כשנשק פוגע בו": "हथियार लगने पर तुम्हें ठीक करती है",
+  "מחזיר פי 3, מרפא ומקפיא": "तीन गुना लौटाती है, ठीक करती है और जमा देती है",
   'הגנה בסיסית': 'बुनियादी बचाव',
   'הגנה טובה יותר': 'बेहतर बचाव',
   'הגנה חזקה': 'मज़बूत बचाव',
@@ -10005,6 +10050,9 @@ const SHIELD_ABILITY_HI = {
   'משקה מיוחד וחזק': 'खास और ताकतवर पेय',
 };
 const SHIELD_ABILITY_TR = {
+  "מקפיא את התוקף לרגע": "Saldırganı bir an dondurur",
+  "מרפא אותך כשנשק פוגע בו": "Silah çarptığında seni iyileştirir",
+  "מחזיר פי 3, מרפא ומקפיא": "Üç katı geri yollar, iyileştirir ve dondurur",
   'הגנה בסיסית': 'Temel savunma',
   'הגנה טובה יותר': 'Daha iyi savunma',
   'הגנה חזקה': 'Güçlü savunma',
@@ -10016,6 +10064,9 @@ const SHIELD_ABILITY_TR = {
   'משקה מיוחד וחזק': 'Özel ve güçlü bir içecek',
 };
 const SHIELD_ABILITY_NL = {
+  "מקפיא את התוקף לרגע": "Bevriest de aanvaller even",
+  "מרפא אותך כשנשק פוגע בו": "Geneest je als een wapen erop slaat",
+  "מחזיר פי 3, מרפא ומקפיא": "Kaatst driedubbel terug, geneest en bevriest",
   'הגנה בסיסית': 'Basisverdediging',
   'הגנה טובה יותר': 'Betere verdediging',
   'הגנה חזקה': 'Sterke verdediging',
@@ -10027,6 +10078,9 @@ const SHIELD_ABILITY_NL = {
   'משקה מיוחד וחזק': 'Speciaal en sterk drankje',
 };
 const SHIELD_ABILITY_SV = {
+  "מקפיא את התוקף לרגע": "Fryser angriparen en stund",
+  "מרפא אותך כשנשק פוגע בו": "Läker dig när ett vapen träffar den",
+  "מחזיר פי 3, מרפא ומקפיא": "Studsar tillbaka trefaldigt, läker och fryser",
   'הגנה בסיסית': 'Grundskydd',
   'הגנה טובה יותר': 'Bättre skydd',
   'הגנה חזקה': 'Starkt skydd',
@@ -10038,6 +10092,9 @@ const SHIELD_ABILITY_SV = {
   'משקה מיוחד וחזק': 'Speciell och stark dryck',
 };
 const SHIELD_ABILITY_GSW = {
+  "מקפיא את התוקף לרגע": "Friert de Agriifer churz ii",
+  "מרפא אותך כשנשק פוגע בו": "Heilt di, wänn e Waffe drüber trifft",
+  "מחזיר פי 3, מרפא ומקפיא": "Git dreifach zrugg, heilt und friert ii",
   "הגנה בסיסית": "Grundschutz",
   "הגנה טובה יותר": "Bessere Schutz",
   "הגנה חזקה": "Starche Schutz",
@@ -10049,6 +10106,9 @@ const SHIELD_ABILITY_GSW = {
   "משקה מיוחד וחזק": "Bsunderes, starchs Getränk",
 };
 const SHIELD_ABILITY_VI = {
+  "מקפיא את התוקף לרגע": "Đóng băng kẻ tấn công trong giây lát",
+  "מרפא אותך כשנשק פוגע בו": "Hồi máu cho bạn khi vũ khí đánh trúng",
+  "מחזיר פי 3, מרפא ומקפיא": "Trả lại gấp ba, hồi máu và đóng băng",
   "הגנה בסיסית": "Phòng thủ cơ bản",
   "הגנה טובה יותר": "Phòng thủ tốt hơn",
   "הגנה חזקה": "Phòng thủ mạnh",
@@ -10060,6 +10120,9 @@ const SHIELD_ABILITY_VI = {
   "משקה מיוחד וחזק": "Đồ uống đặc biệt và mạnh",
 };
 const SHIELD_ABILITY_ID = {
+  "מקפיא את התוקף לרגע": "Membekukan penyerang sesaat",
+  "מרפא אותך כשנשק פוגע בו": "Menyembuhkanmu saat senjata mengenainya",
+  "מחזיר פי 3, מרפא ומקפיא": "Memantulkan tiga kali lipat, menyembuhkan, dan membekukan",
   "הגנה בסיסית": "Pertahanan dasar",
   "הגנה טובה יותר": "Pertahanan lebih baik",
   "הגנה חזקה": "Pertahanan kuat",
@@ -10071,6 +10134,9 @@ const SHIELD_ABILITY_ID = {
   "משקה מיוחד וחזק": "Minuman spesial dan kuat",
 };
 const SHIELD_ABILITY_ET = {
+  "מקפיא את התוקף לרגע": "Külmutab ründaja hetkeks",
+  "מרפא אותך כשנשק פוגע בו": "Ravib sind, kui relv seda tabab",
+  "מחזיר פי 3, מרפא ומקפיא": "Peegeldab kolmekordselt, ravib ja külmutab",
   "הגנה בסיסית": "Põhikaitse",
   "הגנה טובה יותר": "Parem kaitse",
   "הגנה חזקה": "Tugev kaitse",
@@ -10082,6 +10148,9 @@ const SHIELD_ABILITY_ET = {
   "משקה מיוחד וחזק": "Eriline ja võimas jook",
 };
 const SHIELD_ABILITY_IS = {
+  "מקפיא את התוקף לרגע": "Frystir árásaraðilann í smástund",
+  "מרפא אותך כשנשק פוגע בו": "Læknar þig þegar vopn hittir hann",
+  "מחזיר פי 3, מרפא ומקפיא": "Endurvarpar þrefalt, læknar og frystir",
   "הגנה בסיסית": "Grunnvörn",
   "הגנה טובה יותר": "Betri vörn",
   "הגנה חזקה": "Sterk vörn",
@@ -10093,6 +10162,9 @@ const SHIELD_ABILITY_IS = {
   "משקה מיוחד וחזק": "Sérstakur og öflugur drykkur",
 };
 const SHIELD_ABILITY_FA = {
+  "מקפיא את התוקף לרגע": "مهاجم را لحظه‌ای منجمد می‌کند",
+  "מרפא אותך כשנשק פוגע בו": "وقتی سلاح به آن می‌خورد تو را درمان می‌کند",
+  "מחזיר פי 3, מרפא ומקפיא": "سه برابر بازمی‌گرداند، درمان می‌کند و منجمد می‌کند",
   "הגנה בסיסית": "دفاع پایه",
   "הגנה טובה יותר": "دفاع بهتر",
   "הגנה חזקה": "دفاع قوی",
@@ -10104,6 +10176,9 @@ const SHIELD_ABILITY_FA = {
   "משקה מיוחד וחזק": "نوشیدنی ویژه و قدرتمند",
 };
 const SHIELD_ABILITY_NO = {
+  "מקפיא את התוקף לרגע": "Fryser angriperen et øyeblikk",
+  "מרפא אותך כשנשק פוגע בו": "Helbreder deg når et våpen treffer det",
+  "מחזיר פי 3, מרפא ומקפיא": "Sender tilbake tredobbelt, helbreder og fryser",
   'הגנה בסיסית': 'Grunnleggende forsvar',
   'הגנה טובה יותר': 'Bedre forsvar',
   'הגנה חזקה': 'Sterkt forsvar',
@@ -10115,6 +10190,9 @@ const SHIELD_ABILITY_NO = {
   'משקה מיוחד וחזק': 'Spesiell og kraftig drikke',
 };
 const SHIELD_ABILITY_FI = {
+  "מקפיא את התוקף לרגע": "Jäädyttää hyökkääjän hetkeksi",
+  "מרפא אותך כשנשק פוגע בו": "Parantaa sinut, kun ase osuu siihen",
+  "מחזיר פי 3, מרפא ומקפיא": "Palauttaa kolminkertaisena, parantaa ja jäädyttää",
   'הגנה בסיסית': 'Perussuoja',
   'הגנה טובה יותר': 'Parempi suoja',
   'הגנה חזקה': 'Vahva suoja',
@@ -10126,6 +10204,9 @@ const SHIELD_ABILITY_FI = {
   'משקה מיוחד וחזק': 'Erikoinen ja voimakas juoma',
 };
 const SHIELD_ABILITY_AM = {
+  "מקפיא את התוקף לרגע": "አጥቂውን ለአፍታ ያቀዘቅዘዋል",
+  "מרפא אותך כשנשק פוגע בו": "መሳሪያ ሲመታው ያክምሃል",
+  "מחזיר פי 3, מרפא ומקפיא": "ሦስት እጥፍ ይመልሳል፣ ያክማል እና ያቀዘቅዛል",
   'הגנה בסיסית': 'መሰረታዊ መከላከያ',
   'הגנה טובה יותר': 'የተሻለ መከላከያ',
   'הגנה חזקה': 'ጠንካራ መከላከያ',
@@ -10137,6 +10218,9 @@ const SHIELD_ABILITY_AM = {
   'משקה מיוחד וחזק': 'ልዩ እና ኃይለኛ መጠጥ',
 };
 const SHIELD_ABILITY_PTPT = {
+  "מקפיא את התוקף לרגע": "Congela o atacante por um momento",
+  "מרפא אותך כשנשק פוגע בו": "Cura-te quando uma arma o atinge",
+  "מחזיר פי 3, מרפא ומקפיא": "Devolve o triplo, cura e congela",
   'הגנה בסיסית': 'Defesa básica',
   'הגנה טובה יותר': 'Defesa melhor',
   'הגנה חזקה': 'Defesa forte',
@@ -10148,6 +10232,9 @@ const SHIELD_ABILITY_PTPT = {
   'משקה מיוחד וחזק': 'Bebida especial e poderosa',
 };
 const SHIELD_ABILITY_GD = {
+  "מקפיא את התוקף לרגע": "Reòdhaidh e an neach-ionnsaigh airson mionaid",
+  "מרפא אותך כשנשק פוגע בו": "Slànaichidh e thu nuair a bhuaileas armachd e",
+  "מחזיר פי 3, מרפא ומקפיא": "Tilgidh e air ais trì uiread, slànaichidh is reòdhaidh",
   'הגנה בסיסית': 'Dìon bunaiteach',
   'הגנה טובה יותר': 'Dìon nas fheàrr',
   'הגנה חזקה': 'Dìon làidir',
@@ -10159,6 +10246,9 @@ const SHIELD_ABILITY_GD = {
   'משקה מיוחד וחזק': 'Deoch shònraichte làidir',
 };
 const SHIELD_ABILITY_SL = {
+  "מקפיא את התוקף לרגע": "Za trenutek zamrzne napadalca",
+  "מרפא אותך כשנשק פוגע בו": "Zdravi te, ko ga zadene orožje",
+  "מחזיר פי 3, מרפא ומקפיא": "Odbije trikrat, zdravi in zamrzne",
   'הגנה בסיסית': 'Osnovna zaščita',
   'הגנה טובה יותר': 'Boljša zaščita',
   'הגנה חזקה': 'Močna zaščita',
@@ -10170,6 +10260,9 @@ const SHIELD_ABILITY_SL = {
   'משקה מיוחד וחזק': 'Posebna in močna pijača',
 };
 const SHIELD_ABILITY_SQ = {
+  "מקפיא את התוקף לרגע": "E ngrin sulmuesin për një çast",
+  "מרפא אותך כשנשק פוגע בו": "Të shëron kur e godet një armë",
+  "מחזיר פי 3, מרפא ומקפיא": "Kthen trefish, shëron dhe ngrin",
   'הגנה בסיסית': 'Mbrojtje bazë',
   'הגנה טובה יותר': 'Mbrojtje më e mirë',
   'הגנה חזקה': 'Mbrojtje e fortë',
@@ -10181,6 +10274,9 @@ const SHIELD_ABILITY_SQ = {
   'משקה מיוחד וחזק': 'Pije e veçantë dhe e fortë',
 };
 const SHIELD_ABILITY_SK = {
+  "מקפיא את התוקף לרגע": "Na chvíľu zmrazí útočníka",
+  "מרפא אותך כשנשק פוגע בו": "Lieči ťa, keď doň udrie zbraň",
+  "מחזיר פי 3, מרפא ומקפיא": "Odrazí trojnásobne, lieči a zmrazí",
   'הגנה בסיסית': 'Základná ochrana',
   'הגנה טובה יותר': 'Lepšia ochrana',
   'הגנה חזקה': 'Silná ochrana',
@@ -10192,6 +10288,9 @@ const SHIELD_ABILITY_SK = {
   'משקה מיוחד וחזק': 'Špeciálny a silný nápoj',
 };
 const SHIELD_ABILITY_HR = {
+  "מקפיא את התוקף לרגע": "Na trenutak zamrzava napadača",
+  "מרפא אותך כשנשק פוגע בו": "Liječi te kad ga oružje pogodi",
+  "מחזיר פי 3, מרפא ומקפיא": "Vraća trostruko, liječi i zamrzava",
   'הגנה בסיסית': 'Osnovna zaštita',
   'הגנה טובה יותר': 'Bolja zaštita',
   'הגנה חזקה': 'Jaka zaštita',
@@ -10203,6 +10302,9 @@ const SHIELD_ABILITY_HR = {
   'משקה מיוחד וחזק': 'Posebno i jako piće',
 };
 const SHIELD_ABILITY_SR = {
+  "מקפיא את התוקף לרגע": "Замрзава нападача на трен",
+  "מרפא אותך כשנשק פוגע בו": "Лечи те када га оружје удари",
+  "מחזיר פי 3, מרפא ומקפיא": "Враћа трострука, лечи и замрзава",
   'הגנה בסיסית': 'Основна заштита',
   'הגנה טובה יותר': 'Боља заштита',
   'הגנה חזקה': 'Јака заштита',
@@ -10214,6 +10316,9 @@ const SHIELD_ABILITY_SR = {
   'משקה מיוחד וחזק': 'Посебно и јако пиће',
 };
 const SHIELD_ABILITY_BG = {
+  "מקפיא את התוקף לרגע": "Замразява нападателя за миг",
+  "מרפא אותך כשנשק פוגע בו": "Лекува те, когато оръжие го удари",
+  "מחזיר פי 3, מרפא ומקפיא": "Връща тройно, лекува и замразява",
   'הגנה בסיסית': 'Основна защита',
   'הגנה טובה יותר': 'По-добра защита',
   'הגנה חזקה': 'Силна защита',
@@ -10225,6 +10330,9 @@ const SHIELD_ABILITY_BG = {
   'משקה מיוחד וחזק': 'Специална и силна напитка',
 };
 const SHIELD_ABILITY_EL = {
+  "מקפיא את התוקף לרגע": "Παγώνει τον επιτιθέμενο για μια στιγμή",
+  "מרפא אותך כשנשק פוגע בו": "Σε γιατρεύει όταν το χτυπά όπλο",
+  "מחזיר פי 3, מרפא ומקפיא": "Επιστρέφει τριπλά, γιατρεύει και παγώνει",
   'הגנה בסיסית': 'Βασική άμυνα',
   'הגנה טובה יותר': 'Καλύτερη άμυνα',
   'הגנה חזקה': 'Δυνατή άμυνα',
@@ -10236,6 +10344,9 @@ const SHIELD_ABILITY_EL = {
   'משקה מיוחד וחזק': 'Ειδικό και δυνατό ποτό',
 };
 const SHIELD_ABILITY_HU = {
+  "מקפיא את התוקף לרגע": "Egy pillanatra megfagyasztja a támadót",
+  "מרפא אותך כשנשק פוגע בו": "Gyógyít, amikor fegyver találja el",
+  "מחזיר פי 3, מרפא ומקפיא": "Háromszorosan visszaveri, gyógyít és fagyaszt",
   'הגנה בסיסית': 'Alap védelem',
   'הגנה טובה יותר': 'Jobb védelem',
   'הגנה חזקה': 'Erős védelem',
@@ -10247,6 +10358,9 @@ const SHIELD_ABILITY_HU = {
   'משקה מיוחד וחזק': 'Különleges, erős ital',
 };
 const SHIELD_ABILITY_CS = {
+  "מקפיא את התוקף לרגע": "Na chvíli zmrazí útočníka",
+  "מרפא אותך כשנשק פוגע בו": "Léčí tě, když do něj udeří zbraň",
+  "מחזיר פי 3, מרפא ומקפיא": "Odrazí třikrát, léčí a zmrazí",
   'הגנה בסיסית': 'Základní ochrana',
   'הגנה טובה יותר': 'Lepší ochrana',
   'הגנה חזקה': 'Silná ochrana',
@@ -10258,6 +10372,9 @@ const SHIELD_ABILITY_CS = {
   'משקה מיוחד וחזק': 'Speciální a silné pití',
 };
 const SHIELD_ABILITY_UK = {
+  "מקפיא את התוקף לרגע": "Заморожує нападника на мить",
+  "מרפא אותך כשנשק פוגע בו": "Лікує тебе, коли по ньому б'ють зброєю",
+  "מחזיר פי 3, מרפא ומקפיא": "Повертає втричі, лікує і заморожує",
   'הגנה בסיסית': 'Базовий захист',
   'הגנה טובה יותר': 'Кращий захист',
   'הגנה חזקה': 'Міцний захист',
@@ -10277,6 +10394,16 @@ function T(he, en, es, ja, fr, pt, de, ru, ar, th, pl, it, ro, zh, ko, hi, tr, n
 // נשאר תמיד המפתח הפנימי (inventory/CHARACTER_CFGS/וכו') כדי לא לשבור
 // שמירות קיימות - זה תרגום-תצוגה בלבד.
 const NAME_EN = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -10366,6 +10493,16 @@ const NAME_EN = {
   'אריה': 'Lion',
 };
 const NAME_ES = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -10457,6 +10594,16 @@ const NAME_ES = {
 // יפנית: שמות פרטיים (דמויות/אויבים/בוסים) כתובים בקטקנה - איך שהם נשמעים,
 // כמו שיפנים כותבים שמות זרים. שמות תיאוריים (נשקים/אוכל/...) מתורגמים באמת.
 const NAME_JA = {
+  "אאורום": "アウルム",
+  "פריזמה": "プリズマ",
+  "פלייר": "フレア",
+  "פרוסטבייט": "フロストバイト",
+  "ויטה": "ヴィータ",
+  "ספייק": "スパイク",
+  "סטורם": "ストーム",
+  "מגנוס": "マグヌス",
+  "קולוסוס": "コロッサス",
+  "איגיס": "イージス",
   "מיולניר": "ミョルニル",
   "מרלין": "マーリン",
   "ברסרק": "バーサーカー",
@@ -10547,6 +10694,16 @@ const NAME_JA = {
 };
 // צרפתית: שמות פרטיים (דמויות/אויבים/בוסים) זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_FR = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -10637,6 +10794,16 @@ const NAME_FR = {
 };
 // פורטוגזית (ברזיל): שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_PT = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -10727,6 +10894,16 @@ const NAME_PT = {
 };
 // גרמנית: שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_DE = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -10818,6 +10995,16 @@ const NAME_DE = {
 // רוסית: שמות פרטיים כתובים באותיות רוסיות (קירילית) - איך שהם נשמעים,
 // כמו שרוסים כותבים שמות זרים. שמות תיאוריים מתורגמים באמת.
 const NAME_RU = {
+  "אאורום": "Аурум",
+  "פריזמה": "Призма",
+  "פלייר": "Флэр",
+  "פרוסטבייט": "Фростбайт",
+  "ויטה": "Вита",
+  "ספייק": "Спайк",
+  "סטורם": "Шторм",
+  "מגנוס": "Магнус",
+  "קולוסוס": "Колосс",
+  "איגיס": "Эгида",
   "מיולניר": "Мьёльнир",
   "מרלין": "Мерлин",
   "ברסרק": "Берсерк",
@@ -10909,6 +11096,16 @@ const NAME_RU = {
 // ערבית: שמות פרטיים כתובים באותיות ערביות - איך שהם נשמעים (כמו ביפנית
 // וברוסית). שמות תיאוריים מתורגמים באמת.
 const NAME_AR = {
+  "אאורום": "أوروم",
+  "פריזמה": "بريزما",
+  "פלייר": "فلير",
+  "פרוסטבייט": "فروستبايت",
+  "ויטה": "فيتا",
+  "ספייק": "سبايك",
+  "סטורם": "ستورم",
+  "מגנוס": "ماغنوس",
+  "קולוסוס": "كولوسوس",
+  "איגיס": "إيجيس",
   "מיולניר": "ميولنير",
   "מרלין": "ميرلين",
   "ברסרק": "بيرسيرك",
@@ -11000,6 +11197,16 @@ const NAME_AR = {
 // תאילנדית: שמות פרטיים כתובים באותיות תאילנדיות - איך שהם נשמעים (כמו
 // ביפנית, ברוסית ובערבית). שמות תיאוריים מתורגמים באמת.
 const NAME_TH = {
+  "אאורום": "ออรัม",
+  "פריזמה": "พริสมา",
+  "פלייר": "แฟลร์",
+  "פרוסטבייט": "ฟรอสต์ไบต์",
+  "ויטה": "วีตา",
+  "ספייק": "สไปก์",
+  "סטורם": "สตอร์ม",
+  "מגנוס": "แมกนัส",
+  "קולוסוס": "โคลอสซัส",
+  "איגיס": "อีจิส",
   "מיולניר": "มโยลเนียร์",
   "מרלין": "เมอร์ลิน",
   "ברסרק": "เบอร์เซิร์ก",
@@ -11090,6 +11297,16 @@ const NAME_TH = {
 };
 // פולנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_PL = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -11180,6 +11397,16 @@ const NAME_PL = {
 };
 // איטלקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_IT = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -11270,6 +11497,16 @@ const NAME_IT = {
 };
 // רומנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_RO = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -11361,6 +11598,16 @@ const NAME_RO = {
 // סינית (פשוטה): שמות פרטיים כתובים בסימנים סיניים לפי הצליל (כמו שסינים
 // כותבים שמות זרים), כמו ביפנית/רוסית/ערבית/תאילנדית. תיאוריים מתורגמים.
 const NAME_ZH = {
+  "אאורום": "黄金",
+  "פריזמה": "棱镜",
+  "פלייר": "烈焰",
+  "פרוסטבייט": "霜咬",
+  "ויטה": "生命",
+  "ספייק": "尖刺",
+  "סטורם": "风暴",
+  "מגנוס": "磁力",
+  "קולוסוס": "巨像",
+  "איגיס": "神盾",
   "מיולניר": "姆乔尔尼尔",
   "מרלין": "梅林",
   "ברסרק": "狂战士",
@@ -11452,6 +11699,16 @@ const NAME_ZH = {
 // קוריאנית: שמות פרטיים כתובים באותיות קוריאניות (הנגול) לפי הצליל, כמו
 // ביפנית/רוסית/ערבית/תאילנדית/סינית. שמות תיאוריים מתורגמים באמת.
 const NAME_KO = {
+  "אאורום": "아우룸",
+  "פריזמה": "프리즈마",
+  "פלייר": "플레어",
+  "פרוסטבייט": "프로스트바이트",
+  "ויטה": "비타",
+  "ספייק": "스파이크",
+  "סטורם": "스톰",
+  "מגנוס": "마그누스",
+  "קולוסוס": "콜로서스",
+  "איגיס": "이지스",
   "מיולניר": "묠니르",
   "מרלין": "멀린",
   "ברסרק": "버서커",
@@ -11543,6 +11800,16 @@ const NAME_KO = {
 // הודית: שמות פרטיים כתובים באותיות דוונאגרי לפי הצליל, כמו ביפנית/רוסית/
 // ערבית/תאילנדית/סינית/קוריאנית. שמות תיאוריים מתורגמים באמת.
 const NAME_HI = {
+  "אאורום": "ऑरम",
+  "פריזמה": "प्रिज़्मा",
+  "פלייר": "फ्लेयर",
+  "פרוסטבייט": "फ्रॉस्टबाइट",
+  "ויטה": "वीटा",
+  "ספייק": "स्पाइक",
+  "סטורם": "स्टॉर्म",
+  "מגנוס": "मैग्नस",
+  "קולוסוס": "कोलोसस",
+  "איגיס": "एजिस",
   "מיולניר": "म्योल्नीर",
   "מרלין": "मर्लिन",
   "ברסרק": "बर्सर्कर",
@@ -11634,6 +11901,16 @@ const NAME_HI = {
 // טורקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות, כמו ספרדית/צרפתית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_TR = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -11724,6 +12001,16 @@ const NAME_TR = {
 };
 // הולנדית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_NL = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -11814,6 +12101,16 @@ const NAME_NL = {
 };
 // שוודית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_SV = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -11904,6 +12201,16 @@ const NAME_SV = {
 };
 // אוקראינית: שמות פרטיים בקירילית (כמו ברוסית, באיות אוקראיני), תיאוריים מתורגמים.
 const NAME_UK = {
+  "אאורום": "Аурум",
+  "פריזמה": "Призма",
+  "פלייר": "Флер",
+  "פרוסטבייט": "Фростбайт",
+  "ויטה": "Віта",
+  "ספייק": "Спайк",
+  "סטורם": "Шторм",
+  "מגנוס": "Магнус",
+  "קולוסוס": "Колос",
+  "איגיס": "Егіда",
   "מיולניר": "Мйольнір",
   "מרלין": "Мерлін",
   "ברסרק": "Берсерк",
@@ -11981,6 +12288,16 @@ const NAME_UK = {
 };
 // צ'כית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_CS = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -12058,6 +12375,16 @@ const NAME_CS = {
 };
 // הונגרית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HU = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -12136,6 +12463,16 @@ const NAME_HU = {
 // יוונית: שמות פרטיים באותיות יווניות לפי הצליל (כמו הקירילית ברוסית/אוקראינית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_EL = {
+  "אאורום": "Άουρουμ",
+  "פריזמה": "Πρίσμα",
+  "פלייר": "Φλερ",
+  "פרוסטבייט": "Φροστμπάιτ",
+  "ויטה": "Βίτα",
+  "ספייק": "Σπάικ",
+  "סטורם": "Στορμ",
+  "מגנוס": "Μάγκνους",
+  "קולוסוס": "Κολοσσός",
+  "איגיס": "Αιγίδα",
   "מיולניר": "Μιόλνιρ",
   "מרלין": "Μέρλιν",
   "ברסרק": "Μπερσέρκερ",
@@ -12213,6 +12550,16 @@ const NAME_EL = {
 };
 // בולגרית: שמות פרטיים בקירילית (כמו ברוסית/אוקראינית, באיות בולגרי), תיאוריים מתורגמים.
 const NAME_BG = {
+  "אאורום": "Аурум",
+  "פריזמה": "Призма",
+  "פלייר": "Флеър",
+  "פרוסטבייט": "Фростбайт",
+  "ויטה": "Вита",
+  "ספייק": "Спайк",
+  "סטורם": "Стърм",
+  "מגנוס": "Магнус",
+  "קולוסוס": "Колос",
+  "איגיס": "Егида",
   "מיולניר": "Мьолнир",
   "מרלין": "Мерлин",
   "ברסרק": "Берсерк",
@@ -12290,6 +12637,16 @@ const NAME_BG = {
 };
 // סרבית (קירילית - הכתב הרשמי): שמות פרטיים לפי הצליל, תיאוריים מתורגמים.
 const NAME_SR = {
+  "אאורום": "Аурум",
+  "פריזמה": "Призма",
+  "פלייר": "Флер",
+  "פרוסטבייט": "Фростбајт",
+  "ויטה": "Вита",
+  "ספייק": "Спајк",
+  "סטורם": "Сторм",
+  "מגנוס": "Магнус",
+  "קולוסוס": "Колос",
+  "איגיס": "Егида",
   "מיולניר": "Мјолнир",
   "מרלין": "Мерлин",
   "ברסרק": "Берсерк",
@@ -12367,6 +12724,16 @@ const NAME_SR = {
 };
 // קרואטית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HR = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -12444,6 +12811,16 @@ const NAME_HR = {
 };
 // סלובקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SK = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -12521,6 +12898,16 @@ const NAME_SK = {
 };
 // אלבנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SQ = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -12598,6 +12985,16 @@ const NAME_SQ = {
 };
 // סלובנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SL = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -12676,6 +13073,16 @@ const NAME_SL = {
 // גאלית סקוטית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים (מחרוזות עם
 // אפוסטרוף - שנפוץ מאוד בגאלית - כתובות במירכאות כפולות).
 const NAME_GD = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -12754,6 +13161,16 @@ const NAME_GD = {
 // פורטוגזית של פורטוגל: כמו הברזילאית, עם המילים של פורטוגל - Sumo (מיץ, בברזיל
 // Suco), Gelado (גלידה, בברזיל Sorvete), Cão (כלב, בברזיל Cachorro), Tosta, Cereais.
 const NAME_PTPT = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -12831,6 +13248,16 @@ const NAME_PTPT = {
 };
 // אמהרית: שמות פרטיים בכתב געז לפי הצליל, שמות תיאוריים מתורגמים.
 const NAME_AM = {
+  "אאורום": "አውረም",
+  "פריזמה": "ፕሪዝማ",
+  "פלייר": "ፍሌር",
+  "פרוסטבייט": "ፍሮስትባይት",
+  "ויטה": "ቪታ",
+  "ספייק": "ስፓይክ",
+  "סטורם": "ስቶርም",
+  "מגנוס": "ማግኑስ",
+  "קולוסוס": "ኮሎሰስ",
+  "איגיס": "ኤጂስ",
   "מיולניר": "ሚዮልኒር",
   "מרלין": "መርሊን",
   "ברסרק": "በርሰርከር",
@@ -12908,6 +13335,16 @@ const NAME_AM = {
 };
 // פינית: שמות פרטיים נשארים כמו באנגלית, שמות תיאוריים מתורגמים.
 const NAME_FI = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -12985,6 +13422,16 @@ const NAME_FI = {
 };
 // נורווגית (בוקמול): שמות פרטיים כמו באנגלית, תיאוריים מתורגמים.
 const NAME_NO = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -13061,6 +13508,16 @@ const NAME_NO = {
   'דוב': 'Bjørn', 'פיל': 'Elefant', "צ'יטה": 'Gepard', 'נמר': 'Leopard', 'אריה': 'Løve',
 };
 const NAME_GSW = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -13191,6 +13648,16 @@ const NAME_GSW = {
   "אריה": "Löi",
 };
 const NAME_VI = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -13321,6 +13788,16 @@ const NAME_VI = {
   "אריה": "Sư tử",
 };
 const NAME_ID = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -13451,6 +13928,16 @@ const NAME_ID = {
   "אריה": "Singa",
 };
 const NAME_ET = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -13581,6 +14068,16 @@ const NAME_ET = {
   "אריה": "Lõvi",
 };
 const NAME_IS = {
+  "אאורום": "Aurum",
+  "פריזמה": "Prisma",
+  "פלייר": "Flare",
+  "פרוסטבייט": "Frostbite",
+  "ויטה": "Vita",
+  "ספייק": "Spike",
+  "סטורם": "Storm",
+  "מגנוס": "Magnus",
+  "קולוסוס": "Colossus",
+  "איגיס": "Aegis",
   "מיולניר": "Mjolnir",
   "מרלין": "Merlin",
   "ברסרק": "Berserker",
@@ -13711,6 +14208,16 @@ const NAME_IS = {
   "אריה": "Ljón",
 };
 const NAME_FA = {
+  "אאורום": "اورم",
+  "פריזמה": "پریسما",
+  "פלייר": "فلر",
+  "פרוסטבייט": "فراست‌بایت",
+  "ויטה": "ویتا",
+  "ספייק": "اسپایک",
+  "סטורם": "استورم",
+  "מגנוס": "مگنوس",
+  "קולוסוס": "کولوسوس",
+  "איגיס": "ایجیس",
   "מיולניר": "میولنیر",
   "מרלין": "مرلین",
   "ברסרק": "برسرک",
@@ -14300,6 +14807,16 @@ const SHOP_DATA = {
     ['מגן פלדה עם דבק', 'הנשק נדבק והאויב נמשך אליו', '1850₪'],
     ['מגן טיטניום משכפל', 'יורה בחזרה ומשכפל את הנשק', '2500₪'],
     ['מגן טיטניום בלתי נראה', 'מחזיר, משכפל ומגיע עם אבן חדה', '3000₪'],
+    ['אאורום', 'הגנה חזקה מאוד', '4000₪'],
+    ['פריזמה', 'יורה בחזרה ומשכפל את הנשק', '5000₪'],
+    ['פלייר', 'יורה ברק כשנשק פוגע בו', '6000₪'],
+    ['פרוסטבייט', 'מקפיא את התוקף לרגע', '7500₪'],
+    ['ויטה', 'מרפא אותך כשנשק פוגע בו', '9000₪'],
+    ['ספייק', 'יורה בחזרה ומשכפל את הנשק', '11000₪'],
+    ['סטורם', 'יורה ברק כשנשק פוגע בו', '13000₪'],
+    ['מגנוס', 'הנשק נדבק והאויב נמשך אליו', '15500₪'],
+    ['קולוסוס', 'הגנה חזקה מאוד', '18000₪'],
+    ['איגיס', 'מחזיר פי 3, מרפא ומקפיא', '30000₪'],
   ]},
   food: { label: '🍎 אוכל', labelEn: '🍎 Food', labelEs: '🍎 Comida', labelJa: '🍎 食べ物', labelFr: '🍎 Nourriture', labelPt: '🍎 Comida', labelDe: '🍎 Essen', labelRu: '🍎 Еда', labelAr: '🍎 الطعام', labelTh: '🍎 อาหาร', labelPl: '🍎 Jedzenie', labelIt: '🍎 Cibo', labelRo: '🍎 Mâncare', labelZh: '🍎 食物', labelKo: '🍎 음식', labelHi: '🍎 खाना', labelTr: '🍎 Yiyecek', labelNl: '🍎 Eten', labelSv: '🍎 Mat', labelUk: '🍎 Їжа', labelCs: '🍎 Jídlo', labelHu: '🍎 Étel', labelEl: '🍎 Φαγητό', labelBg: '🍎 Храна', labelSr: '🍎 Храна', labelHr: '🍎 Hrana', labelSk: '🍎 Jedlo', labelSq: '🍎 Ushqim', labelSl: '🍎 Hrana', labelGd: '🍎 Biadh', labelPtpt: '🍎 Comida', labelAm: '🍎 ምግብ', labelFi: '🍎 Ruoka', labelNo: '🍎 Mat', labelGsw: '🍎 Ässe', labelVi: '🍎 Đồ ăn', labelId: '🍎 Makanan', labelEt: '🍎 Toit', labelIs: '🍎 Matur', labelFa: '🍎 غذا', rows: [
     ['תפוח', 'מרפא 3', 'חינם'],
@@ -14423,6 +14940,9 @@ const SHIELD_SECONDS = {
   'מגן פלדה עם דבק': 8,
   'מגן טיטניום משכפל': 9,
   'מגן טיטניום בלתי נראה': 10,
+  // 10 מגנים חדשים (2026-09-29)
+  'אאורום': 11, 'פריזמה': 12, 'פלייר': 12, 'פרוסטבייט': 13, 'ויטה': 13,
+  'ספייק': 14, 'סטורם': 14, 'מגנוס': 15, 'קולוסוס': 20, 'איגיס': 16,
 };
 
 // היכולות המיוחדות של המגנים היקרים (סעיף 9 באפיון). האפיון אומר במפורש
@@ -14437,6 +14957,16 @@ const SHIELD_ABILITY = {
   // ה"אבן חדה" כבר שייכת לשחקן מתחילת המשחק, ולכן אין מה להוסיף שם.
   // ה"בלתי נראה" מיושם כשקיפות של הדמות כל עוד המגן פעיל.
   'מגן טיטניום בלתי נראה': { kind: 'reflect', mult: 2, invisible: true },
+  // 10 מגנים חדשים: אאורום וקולוסוס הם הגנה בלבד (ארוכה), השאר עם יכולת - אותן יכולות
+  // קיימות בעוצמות שונות (ברק/דבק/החזרה), ועוד שלוש חדשות: הקפאה (freeze), ריפוי (heal), וקוסמי (cosmos = הכל).
+  'פריזמה':    { kind: 'reflect', mult: 2.5 },
+  'פלייר':     { kind: 'bolt',    bolt: 30 },
+  'פרוסטבייט': { kind: 'freeze',  freeze: 2.0 },
+  'ויטה':      { kind: 'heal',    heal: 25 },
+  'ספייק':     { kind: 'reflect', mult: 3 },
+  'סטורם':     { kind: 'bolt',    bolt: 60 },
+  'מגנוס':     { kind: 'glue',    pull: 1.0, mult: 2 },
+  'איגיס':     { kind: 'cosmos',  mult: 3, heal: 40, freeze: 1.5, invisible: true },
 };
 
 // משקה: +3 כוח ו-+4 מהירות לפי האפיון. "משקה אנרגיה" מתואר כ"מיוחד וחזק
@@ -14460,7 +14990,7 @@ const LOOT_GROUPS = [
   // "עוד מגן" אלא עושה משהו נוסף כשחוסמים איתו
   ['shields', '🛡️', (n) => {
     const ab = SHIELD_ABILITY[n];
-    const icon = ab ? ({ bolt: '⚡', glue: '🧲', reflect: '🔁' })[ab.kind] + ' ' : '';
+    const icon = ab ? ({ bolt: '⚡', glue: '🧲', reflect: '🔁', freeze: '🧊', heal: '💚', cosmos: '🌌' })[ab.kind] + ' ' : '';
     return icon + (SHIELD_SECONDS[n] ?? 3) + T(' שנ׳', 's', 's', '秒', 's', 's', 's', ' сек', ' ث', ' วิ', 's', 's', 's', '秒', '초', ' सेकंड', 'sn', 's', 's', ' с', ' s', ' mp', 'δ', ' сек', ' с', ' s', ' s', ' sek', ' s', ' diog', 's', 'ሰ', 's', 's', 's', 's', 'd', 's', 's', 'ث');
   }],
 ];
@@ -14599,7 +15129,7 @@ function showShieldToast(text) {
  * `blocked` הוא הנזק שהמכה *הייתה* עושה - המגן המשכפל מחזיר אותו כפול.
  * מחזירה true אם התוקף הובס מהיכולת עצמה.
  */
-function triggerShieldAbility(defender, attacker, blocked, attackerWho) {
+function triggerShieldAbility(defender, attacker, blocked, attackerWho, defenderWho) {
   const ab = SHIELD_ABILITY[defender.activeShield];
   if (!ab) return false;
   let back = 0, msg = '';
@@ -14612,12 +15142,22 @@ function triggerShieldAbility(defender, attacker, blocked, attackerWho) {
     const dir = defender.x > attacker.x ? 1 : -1;
     attacker.x += dir * ab.pull;
     attacker.group.position.x = attacker.x;
-    back = blocked;
+    back = Math.round(blocked * (ab.mult ?? 1));
     msg = T('🧲 נדבק ונמשך! -', '🧲 Stuck and pulled! -', '🧲 ¡Atrapado y arrastrado! -', '🧲 くっついて引きよせた! -', '🧲 Collé et attiré ! -', '🧲 Grudou e puxou! -', '🧲 Festgeklebt und herangezogen! -', '🧲 Прилип и притянут! -', '🧲 التصق وانسحب! -', '🧲 ติดแล้วดึงมา! -', '🧲 Przyklejony i przyciągnięty! -', '🧲 Incollato e tirato! -', '🧲 Lipit și tras! -', '🧲 粘住拉过来!-', '🧲 붙잡아서 끌어당김! -', '🧲 चिपका और खींचा! -', '🧲 Yapıştı ve çekildi! -', '🧲 Vastgeplakt en getrokken! -', '🧲 Fastnade och drogs! -', '🧲 Прилип і притягнувся! -', '🧲 Přilepil a přitáhl! -', '🧲 Ráragadt és behúzta! -', '🧲 Κόλλησε και τραβήχτηκε! -', '🧲 Залепи и притегли! -', '🧲 Залепио и повукао! -', '🧲 Zalijepio i povukao! -', '🧲 Prilepil a pritiahol! -', '🧲 U ngjit dhe u tërhoq! -', '🧲 Prilepilo in povleklo! -', '🧲 Steigte is air a shlaodadh! -', '🧲 Colou e puxou! -', '🧲 ተጣብቆ ጎተተ! -', '🧲 Tarttui ja veti! -', '🧲 Satt fast og dro! -', '🧲 Klebt und zoge! -', '🧲 Dính và kéo! -', '🧲 Menempel dan tertarik! -', '🧲 Jäi kinni ja tõmbas! -', '🧲 Festist og togaði! -', '🧲 چسبید و کشید! -') + back;
   } else if (ab.kind === 'reflect') {
-    back = blocked * ab.mult;
-    msg = T('🔁 הוחזר כפול! -', '🔁 Reflected double! -', '🔁 ¡Reflejado doble! -', '🔁 2倍ではね返した! -', '🔁 Renvoyé en double ! -', '🔁 Refletiu em dobro! -', '🔁 Doppelt zurückgeworfen! -', '🔁 Отражено вдвойне! -', '🔁 ارتدّ مضاعفًا! -', '🔁 สะท้อนกลับสองเท่า! -', '🔁 Odbite podwójnie! -', '🔁 Rimandato doppio! -', '🔁 Întors dublu! -', '🔁 双倍反弹!-', '🔁 두 배로 반사! -', '🔁 दुगना लौटाया! -', '🔁 İki katı geri döndü! -', '🔁 Dubbel teruggekaatst! -', '🔁 Dubbelt tillbaka! -', '🔁 Відбито вдвічі! -', '🔁 Odraženo dvojnásob! -', '🔁 Duplán visszaverve! -', '🔁 Γύρισε διπλό! -', '🔁 Отразено двойно! -', '🔁 Враћено дупло! -', '🔁 Vraćeno duplo! -', '🔁 Odrazené dvojnásobne! -', '🔁 U kthye dyfish! -', '🔁 Odbito dvojno! -', '🔁 Air a thilleadh dùbailte! -', '🔁 Devolvido a dobrar! -', '🔁 በእጥፍ ተመለሰ! -', '🔁 Heijastui kaksinkertaisena! -', '🔁 Reflektert dobbelt! -', '🔁 Doppelt zrugggworfe! -', '🔁 Phản lại gấp đôi! -', '🔁 Dipantulkan dua kali lipat! -', '🔁 Peegeldus kahekordselt! -', '🔁 Endurvarpað tvöfalt! -', '🔁 دو برابر بازتاب شد! -') + back;
+    back = Math.round(blocked * ab.mult);
+    msg = (ab.mult !== 2) ? '🔁 ×' + ab.mult + ' -' + back : T('🔁 הוחזר כפול! -', '🔁 Reflected double! -', '🔁 ¡Reflejado doble! -', '🔁 2倍ではね返した! -', '🔁 Renvoyé en double ! -', '🔁 Refletiu em dobro! -', '🔁 Doppelt zurückgeworfen! -', '🔁 Отражено вдвойне! -', '🔁 ارتدّ مضاعفًا! -', '🔁 สะท้อนกลับสองเท่า! -', '🔁 Odbite podwójnie! -', '🔁 Rimandato doppio! -', '🔁 Întors dublu! -', '🔁 双倍反弹!-', '🔁 두 배로 반사! -', '🔁 दुगना लौटाया! -', '🔁 İki katı geri döndü! -', '🔁 Dubbel teruggekaatst! -', '🔁 Dubbelt tillbaka! -', '🔁 Відбито вдвічі! -', '🔁 Odraženo dvojnásob! -', '🔁 Duplán visszaverve! -', '🔁 Γύρισε διπλό! -', '🔁 Отразено двойно! -', '🔁 Враћено дупло! -', '🔁 Vraćeno duplo! -', '🔁 Odrazené dvojnásobne! -', '🔁 U kthye dyfish! -', '🔁 Odbito dvojno! -', '🔁 Air a thilleadh dùbailte! -', '🔁 Devolvido a dobrar! -', '🔁 በእጥፍ ተመለሰ! -', '🔁 Heijastui kaksinkertaisena! -', '🔁 Reflektert dobbelt! -', '🔁 Doppelt zrugggworfe! -', '🔁 Phản lại gấp đôi! -', '🔁 Dipantulkan dua kali lipat! -', '🔁 Peegeldus kahekordselt! -', '🔁 Endurvarpað tvöfalt! -', '🔁 دو برابر بازتاب شد! -') + back;
   }
+
+  // יכולות חדשות (2026-09-29): הקפאה (התוקף לא יכול לפעול), ריפוי, והמגן הקוסמי שעושה הכל.
+  if (ab.kind === 'freeze') msg = '🧊 ❄️';
+  else if (ab.kind === 'heal') msg = '💚 +' + ab.heal;
+  else if (ab.kind === 'cosmos') { back = Math.round(blocked * ab.mult); msg = '🌌 🔁×' + ab.mult + ' 💚+' + ab.heal + ' 🧊'; }
+  if (ab.heal) {
+    defender.hp = Math.min(defender.maxHp, defender.hp + ab.heal);
+    updateHealthUI(defender, defenderWho);
+  }
+  if (ab.freeze) attacker.staggerT = Math.max(attacker.staggerT || 0, ab.freeze);
 
   if (back > 0) {
     attacker.hp = Math.max(0, attacker.hp - back);
@@ -14644,6 +15184,8 @@ function updateBuffRow() {
 const WEAPON_ICON = {
   'אבן חדה': '🪨', 'גרזן': '🪓', 'פיקקס': '⛏️', 'חניט': '🥢', 'כידון': '🎯',
   'כילשון': '🔱', 'סכין מחודד': '🔪', 'חרב': '⚔️', 'קטאנה': '🗡️', 'רובה': '🔫',
+  'מיולניר': '🔨', 'מרלין': '🪄', 'ברסרק': '🪓', 'אינפרנו': '🔥', 'גלייסייר': '❄️',
+  'ריפר': '🌙', 'גונגניר': '🔱', 'שייד': '🗡️', 'פלזמה': '⚡', 'נובה': '🌟',
 };
 
 function removeWeaponProp(f) {
@@ -16620,7 +17162,7 @@ window.game = {
   BOSS_LEVELS, startBossFight, get isBossFight() { return isBossFight; },
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
-  useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY,
+  useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY, triggerShieldAbility,
   selectedLoot, LOOT_CAPS, toggleLootSelection, renderLootSelectScreen, lootItemsFor,
   upgradeCharacter, getLevels, characterLevels, upgradeCost, MAX_UPGRADE_LEVEL,
   refreshPlayerCombatStats, startJump,
