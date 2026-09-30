@@ -5600,6 +5600,175 @@ const WEAPON_CFGS = {
       return g;
     },
   },
+
+  // ===== סבב שלישי: עוד 10 נשקים (2026-09-30) - צורות חדשות לגמרי =====
+  // בומרנג - שני להבי עץ בצורת V על ידית קצרה.
+  'בומרנג': {
+    dmg: 2700, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.10, 0.013, 0x5a3a20, woodGrainTex));
+      [0.6, -0.6].forEach((rz) => {
+        const b = weaponBlade(0, 0.30, 0.06, 0xc8862a, 0.8, 0.02, woodGrainTex);
+        b.position.y = 0.10; b.rotation.z = rz; g.add(b);
+      });
+      return g;
+    },
+  },
+  // טרידנט - קלשון ים בעל שלושה שיניים.
+  'טרידנט': {
+    dmg: 2900, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.40, 0.012, 0x1a7a8a, metalScratchTex));
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.014, 0.014),
+        new THREE.MeshStandardMaterial({ color: 0xc8d4dc, roughness: 0.3, metalness: 0.8 }));
+      bar.position.y = 0.40; g.add(bar);
+      const mid = weaponSpike(0.16, 0.018, 0xe8f0f4); mid.position.y = 0.40; g.add(mid);
+      [-1, 1].forEach((sd) => { const p = weaponSpike(0.13, 0.014, 0xe8f0f4, sd * -0.12); p.position.set(sd * 0.05, 0.40, 0); g.add(p); });
+      return g;
+    },
+  },
+  // מסאמונה - חרב קטאנה: להב דק וארוך, ידית אדומה מלופפת ומגן עגול.
+  'מסאמונה': {
+    dmg: 3100, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.14, 0.012, 0x8a1010, leatherTex));
+      const guard = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.008, 12),
+        new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.8 }));
+      guard.position.y = 0.145; g.add(guard);
+      const blade = weaponBlade(0.15, 0.60, 0.028, 0xeaf0f6, 0.9);
+      blade.material.emissive.set(0x6688aa); blade.material.emissiveIntensity = 0.3; g.add(blade);
+      const tip = weaponBlade(0, 0.10, 0.026, 0xeaf0f6, 0.2);
+      tip.position.set(-0.002, 0.74, 0); tip.rotation.z = 0.18; g.add(tip);
+      return g;
+    },
+  },
+  // פלייל - שרשרת עם כדור קוצים כבד בקצה.
+  'פלייל': {
+    dmg: 3300, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.22, 0.014, 0x5a3a20, woodGrainTex));
+      const mat = new THREE.MeshStandardMaterial({ color: 0x9aa0a8, roughness: 0.4, metalness: 0.8 });
+      for (let i = 0; i < 5; i++) {
+        const link = new THREE.Mesh(new THREE.TorusGeometry(0.014, 0.004, 6, 10), mat);
+        link.position.set(0.006 * i, 0.25 + i * 0.035, 0); link.rotation.y = (i % 2) * Math.PI / 2; g.add(link);
+      }
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.05, 14, 12),
+        new THREE.MeshStandardMaterial({ color: 0x3a3e46, roughness: 0.4, metalness: 0.8 }));
+      ball.position.set(0.03, 0.47, 0); g.add(ball);
+      [[0, 0], [Math.PI / 2, 0], [-Math.PI / 2, 0], [Math.PI, 0]].forEach(([rx, rz]) => {
+        const sp = weaponSpike(0.05, 0.013, 0xc0c4cc, rz); sp.rotation.z = rx; sp.position.set(0.03, 0.47, 0); g.add(sp);
+      });
+      return g;
+    },
+  },
+  // קלידור - מפתח ענק מזהב: טבעת מקושטת למעלה ושיניים בצד.
+  'קלידור': {
+    dmg: 3500, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      const gold = new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.25, metalness: 0.85 });
+      g.add(weaponShaft(0.40, 0.014, GOLD, metalScratchTex));
+      const bow = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.014, 8, 20), gold);
+      bow.position.y = 0.48; g.add(bow);
+      const gem = new THREE.Mesh(new THREE.SphereGeometry(0.02, 10, 8),
+        new THREE.MeshStandardMaterial({ color: 0xff2a4a, emissive: 0xff2a4a, emissiveIntensity: 1.2 }));
+      gem.position.y = 0.48; g.add(gem);
+      [0.18, 0.26, 0.34].forEach((y, i) => {
+        const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.05 + (i % 2) * 0.02, 0.03, 0.02), gold);
+        tooth.position.set(0.035, y, 0); g.add(tooth);
+      });
+      return g;
+    },
+  },
+  // סוכרון - מקל סוכר אדום-לבן עם ידית מעוקלת.
+  'סוכרון': {
+    dmg: 3700, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      for (let i = 0; i < 8; i++) {
+        const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.05, 10),
+          new THREE.MeshStandardMaterial({ color: i % 2 ? 0xffffff : 0xd8182a, roughness: 0.35 }));
+        seg.position.y = 0.025 + i * 0.05; seg.castShadow = true; g.add(seg);
+      }
+      const hook = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.016, 8, 16, Math.PI),
+        new THREE.MeshStandardMaterial({ color: 0xd8182a, roughness: 0.35 }));
+      hook.position.set(-0.05, 0.40, 0); g.add(hook);
+      return g;
+    },
+  },
+  // גיטרון - גיטרה חשמלית כמו נשק: גוף אדום גדול, צוואר ארוך וראש כהה.
+  'גיטרון': {
+    dmg: 3900, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.36, 0.012, 0x2a1a10, woodGrainTex));
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.06, 0.02),
+        new THREE.MeshStandardMaterial({ color: 0x14100c, roughness: 0.5 }));
+      head.position.y = -0.01; g.add(head);
+      const body = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 12),
+        new THREE.MeshStandardMaterial({ color: 0xc0182a, roughness: 0.25, metalness: 0.4 }));
+      body.scale.set(0.9, 1.15, 0.28); body.position.y = 0.50; body.castShadow = true; g.add(body);
+      const hole = new THREE.Mesh(new THREE.CircleGeometry(0.025, 14), new THREE.MeshBasicMaterial({ color: 0x0a0606, side: THREE.DoubleSide }));
+      hole.position.set(0, 0.50, 0.03); g.add(hole);
+      return g;
+    },
+  },
+  // דרילר - מקדחה ענקית: חרוט מתכת עם טבעות ספירלה וידית כתומה.
+  'דרילר': {
+    dmg: 4100, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.12, 0.02, 0xe07010, leatherTex));
+      const cone = weaponSpike(0.44, 0.055, 0xb8c0c8); cone.position.y = 0.12; g.add(cone);
+      const steel = new THREE.MeshStandardMaterial({ color: 0x6a727a, roughness: 0.3, metalness: 0.9 });
+      for (let i = 0; i < 5; i++) {
+        const r = 0.055 * (1 - (i + 0.5) / 5.5) + 0.004;
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.006, 6, 16), steel);
+        ring.position.y = 0.17 + i * 0.075; ring.rotation.x = Math.PI / 2; g.add(ring);
+      }
+      return g;
+    },
+  },
+  // ארקוס - קשת יער: קשת ירוקה עם מיתר וחץ.
+  'ארקוס': {
+    dmg: 4300, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      const bow = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.013, 8, 24, Math.PI),
+        new THREE.MeshStandardMaterial({ color: 0x2a6a3a, roughness: 0.6, map: woodGrainTex('#ffffff') }));
+      bow.rotation.z = -Math.PI / 2; bow.position.y = 0.28; bow.castShadow = true; g.add(bow);
+      const str = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.44, 0.004), new THREE.MeshBasicMaterial({ color: 0xf0ead0 }));
+      str.position.set(0, 0.28, 0); g.add(str);
+      const arrow = weaponShaft(0.40, 0.006, 0x8a6a3a, null); arrow.position.set(0.02, 0.28 + 0.0, 0); arrow.position.y = 0.10; g.add(arrow);
+      const tip = weaponSpike(0.05, 0.013, 0xc8ced4); tip.position.set(0.02, 0.50, 0); g.add(tip);
+      return g;
+    },
+  },
+  // סולאר - מטה שמש: טבעת זהב זוהרת עם קרני שמש וגרעין כתום.
+  'סולאר': {
+    dmg: 4500, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.46, 0.012, 0x9a7412, metalScratchTex));
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.01, 8, 24),
+        new THREE.MeshStandardMaterial({ color: GOLD, emissive: 0xffb020, emissiveIntensity: 0.8, metalness: 0.8, roughness: 0.3 }));
+      ring.position.y = 0.55; g.add(ring);
+      const core = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10),
+        new THREE.MeshStandardMaterial({ color: 0xff8a10, emissive: 0xff6a00, emissiveIntensity: 1.5 }));
+      core.position.y = 0.55; g.add(core);
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4;
+        const ray = weaponSpike(0.06, 0.013, 0xffd040, 0);
+        ray.material.emissive.set(0xffaa00); ray.material.emissiveIntensity = 1.0;
+        ray.position.set(Math.cos(a) * 0.08, 0.55 + Math.sin(a) * 0.08, 0); ray.rotation.z = a - Math.PI / 2; g.add(ray);
+      }
+      return g;
+    },
+  },
 };
 
 function addWeaponProp(f, name) {
@@ -11379,6 +11548,16 @@ function T(he, en, es, ja, fr, pt, de, ru, ar, th, pl, it, ro, zh, ko, hi, tr, n
 // נשאר תמיד המפתח הפנימי (inventory/CHARACTER_CFGS/וכו') כדי לא לשבור
 // שמירות קיימות - זה תרגום-תצוגה בלבד.
 const NAME_EN = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -11598,6 +11777,16 @@ const NAME_EN = {
   'אריה': 'Lion',
 };
 const NAME_ES = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Tridente",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -11819,6 +12008,16 @@ const NAME_ES = {
 // יפנית: שמות פרטיים (דמויות/אויבים/בוסים) כתובים בקטקנה - איך שהם נשמעים,
 // כמו שיפנים כותבים שמות זרים. שמות תיאוריים (נשקים/אוכל/...) מתורגמים באמת.
 const NAME_JA = {
+  "בומרנג": "ブーメラン",
+  "טרידנט": "トライデント",
+  "מסאמונה": "マサムネ",
+  "פלייל": "フレイル",
+  "קלידור": "クリドール",
+  "סוכרון": "シュガロン",
+  "גיטרון": "ギタロン",
+  "דרילר": "ドリラー",
+  "ארקוס": "アルクス",
+  "סולאר": "ソーラー",
   "ניאו": "ネオ",
   "אטלס": "アトラス",
   "ויפר": "バイパー",
@@ -12039,6 +12238,16 @@ const NAME_JA = {
 };
 // צרפתית: שמות פרטיים (דמויות/אויבים/בוסים) זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_FR = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -12259,6 +12468,16 @@ const NAME_FR = {
 };
 // פורטוגזית (ברזיל): שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_PT = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Tridente",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -12479,6 +12698,16 @@ const NAME_PT = {
 };
 // גרמנית: שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_DE = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Dreizack",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -12700,6 +12929,16 @@ const NAME_DE = {
 // רוסית: שמות פרטיים כתובים באותיות רוסיות (קירילית) - איך שהם נשמעים,
 // כמו שרוסים כותבים שמות זרים. שמות תיאוריים מתורגמים באמת.
 const NAME_RU = {
+  "בומרנג": "Бумеранг",
+  "טרידנט": "Трезубец",
+  "מסאמונה": "Масамунэ",
+  "פלייל": "Цеп",
+  "קלידור": "Клидор",
+  "סוכרון": "Шугарон",
+  "גיטרון": "Гитарон",
+  "דרילר": "Дриллер",
+  "ארקוס": "Аркус",
+  "סולאר": "Солар",
   "ניאו": "Нео",
   "אטלס": "Атлас",
   "ויפר": "Вайпер",
@@ -12921,6 +13160,16 @@ const NAME_RU = {
 // ערבית: שמות פרטיים כתובים באותיות ערביות - איך שהם נשמעים (כמו ביפנית
 // וברוסית). שמות תיאוריים מתורגמים באמת.
 const NAME_AR = {
+  "בומרנג": "بوميرانغ",
+  "טרידנט": "ترايدنت",
+  "מסאמונה": "ماسامونه",
+  "פלייל": "فليل",
+  "קלידור": "كليدور",
+  "סוכרון": "شوغارون",
+  "גיטרון": "غيتارون",
+  "דרילר": "دريلر",
+  "ארקוס": "أركوس",
+  "סולאר": "سولار",
   "ניאו": "نيو",
   "אטלס": "أطلس",
   "ויפר": "فايبر",
@@ -13142,6 +13391,16 @@ const NAME_AR = {
 // תאילנדית: שמות פרטיים כתובים באותיות תאילנדיות - איך שהם נשמעים (כמו
 // ביפנית, ברוסית ובערבית). שמות תיאוריים מתורגמים באמת.
 const NAME_TH = {
+  "בומרנג": "บูมเมอแรง",
+  "טרידנט": "ตรีศูล",
+  "מסאמונה": "มาซามูเนะ",
+  "פלייל": "เฟลล์",
+  "קלידור": "คลิดอร์",
+  "סוכרון": "ชูการอน",
+  "גיטרון": "กีตารอน",
+  "דרילר": "ดริลเลอร์",
+  "ארקוס": "อาร์คัส",
+  "סולאר": "โซลาร์",
   "ניאו": "นีโอ",
   "אטלס": "แอตลาส",
   "ויפר": "ไวเปอร์",
@@ -13362,6 +13621,16 @@ const NAME_TH = {
 };
 // פולנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_PL = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -13582,6 +13851,16 @@ const NAME_PL = {
 };
 // איטלקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_IT = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Tridente",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -13802,6 +14081,16 @@ const NAME_IT = {
 };
 // רומנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_RO = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -14023,6 +14312,16 @@ const NAME_RO = {
 // סינית (פשוטה): שמות פרטיים כתובים בסימנים סיניים לפי הצליל (כמו שסינים
 // כותבים שמות זרים), כמו ביפנית/רוסית/ערבית/תאילנדית. תיאוריים מתורגמים.
 const NAME_ZH = {
+  "בומרנג": "回旋镖",
+  "טרידנט": "三叉戟",
+  "מסאמונה": "正宗",
+  "פלייל": "链锤",
+  "קלידור": "钥匙剑",
+  "סוכרון": "糖杖",
+  "גיטרון": "吉他战器",
+  "דרילר": "电钻",
+  "ארקוס": "弓",
+  "סולאר": "太阳杖",
   "ניאו": "尼奥",
   "אטלס": "阿特拉斯",
   "ויפר": "毒蛇",
@@ -14244,6 +14543,16 @@ const NAME_ZH = {
 // קוריאנית: שמות פרטיים כתובים באותיות קוריאניות (הנגול) לפי הצליל, כמו
 // ביפנית/רוסית/ערבית/תאילנדית/סינית. שמות תיאוריים מתורגמים באמת.
 const NAME_KO = {
+  "בומרנג": "부메랑",
+  "טרידנט": "트라이던트",
+  "מסאמונה": "마사무네",
+  "פלייל": "플레일",
+  "קלידור": "클리도르",
+  "סוכרון": "슈가론",
+  "גיטרון": "기타론",
+  "דרילר": "드릴러",
+  "ארקוס": "아르쿠스",
+  "סולאר": "솔라",
   "ניאו": "네오",
   "אטלס": "아틀라스",
   "ויפר": "바이퍼",
@@ -14465,6 +14774,16 @@ const NAME_KO = {
 // הודית: שמות פרטיים כתובים באותיות דוונאגרי לפי הצליל, כמו ביפנית/רוסית/
 // ערבית/תאילנדית/סינית/קוריאנית. שמות תיאוריים מתורגמים באמת.
 const NAME_HI = {
+  "בומרנג": "बूमरैंग",
+  "טרידנט": "त्रिशूल",
+  "מסאמונה": "मासामुने",
+  "פלייל": "फ्लेल",
+  "קלידור": "क्लिडोर",
+  "סוכרון": "शुगरॉन",
+  "גיטרון": "गिटारॉन",
+  "דרילר": "ड्रिलर",
+  "ארקוס": "आर्कस",
+  "סולאר": "सोलर",
   "ניאו": "नियो",
   "אטלס": "एटलस",
   "ויפר": "वाइपर",
@@ -14686,6 +15005,16 @@ const NAME_HI = {
 // טורקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות, כמו ספרדית/צרפתית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_TR = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -14906,6 +15235,16 @@ const NAME_TR = {
 };
 // הולנדית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_NL = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -15126,6 +15465,16 @@ const NAME_NL = {
 };
 // שוודית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_SV = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -15346,6 +15695,16 @@ const NAME_SV = {
 };
 // אוקראינית: שמות פרטיים בקירילית (כמו ברוסית, באיות אוקראיני), תיאוריים מתורגמים.
 const NAME_UK = {
+  "בומרנג": "Бумеранг",
+  "טרידנט": "Тризуб",
+  "מסאמונה": "Масамунэ",
+  "פלייל": "Ціп",
+  "קלידור": "Клідор",
+  "סוכרון": "Шугарон",
+  "גיטרון": "Гітарон",
+  "דרילר": "Дріллер",
+  "ארקוס": "Аркус",
+  "סולאר": "Солар",
   "ניאו": "Нео",
   "אטלס": "Атлас",
   "ויפר": "Вайпер",
@@ -15553,6 +15912,16 @@ const NAME_UK = {
 };
 // צ'כית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_CS = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -15760,6 +16129,16 @@ const NAME_CS = {
 };
 // הונגרית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HU = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -15968,6 +16347,16 @@ const NAME_HU = {
 // יוונית: שמות פרטיים באותיות יווניות לפי הצליל (כמו הקירילית ברוסית/אוקראינית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_EL = {
+  "בומרנג": "Μπούμερανγκ",
+  "טרידנט": "Τρίαινα",
+  "מסאמונה": "Μασαμούνε",
+  "פלייל": "Φλέιλ",
+  "קלידור": "Κλίντορ",
+  "סוכרון": "Σουγκαρόν",
+  "גיטרון": "Γκιταρόν",
+  "דרילר": "Ντρίλερ",
+  "ארקוס": "Άρκους",
+  "סולאר": "Σόλαρ",
   "ניאו": "Νέο",
   "אטלס": "Άτλας",
   "ויפר": "Βάιπερ",
@@ -16175,6 +16564,16 @@ const NAME_EL = {
 };
 // בולגרית: שמות פרטיים בקירילית (כמו ברוסית/אוקראינית, באיות בולגרי), תיאוריים מתורגמים.
 const NAME_BG = {
+  "בומרנג": "Бумеранг",
+  "טרידנט": "Тризъбец",
+  "מסאמונה": "Масамунэ",
+  "פלייל": "Боздуган",
+  "קלידור": "Клидор",
+  "סוכרון": "Шугарон",
+  "גיטרון": "Гитарон",
+  "דרילר": "Дрилър",
+  "ארקוס": "Аркус",
+  "סולאר": "Солар",
   "ניאו": "Нео",
   "אטלס": "Атлас",
   "ויפר": "Вайпър",
@@ -16382,6 +16781,16 @@ const NAME_BG = {
 };
 // סרבית (קירילית - הכתב הרשמי): שמות פרטיים לפי הצליל, תיאוריים מתורגמים.
 const NAME_SR = {
+  "בומרנג": "Бумеранг",
+  "טרידנט": "Трозубац",
+  "מסאמונה": "Масамунэ",
+  "פלייל": "Буздован",
+  "קלידור": "Клидор",
+  "סוכרון": "Шугарон",
+  "גיטרון": "Гитарон",
+  "דרילר": "Дрилер",
+  "ארקוס": "Аркус",
+  "סולאר": "Солар",
   "ניאו": "Нео",
   "אטלס": "Атлас",
   "ויפר": "Вајпер",
@@ -16589,6 +16998,16 @@ const NAME_SR = {
 };
 // קרואטית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HR = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -16796,6 +17215,16 @@ const NAME_HR = {
 };
 // סלובקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SK = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -17003,6 +17432,16 @@ const NAME_SK = {
 };
 // אלבנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SQ = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -17210,6 +17649,16 @@ const NAME_SQ = {
 };
 // סלובנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SL = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -17418,6 +17867,16 @@ const NAME_SL = {
 // גאלית סקוטית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים (מחרוזות עם
 // אפוסטרוף - שנפוץ מאוד בגאלית - כתובות במירכאות כפולות).
 const NAME_GD = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -17626,6 +18085,16 @@ const NAME_GD = {
 // פורטוגזית של פורטוגל: כמו הברזילאית, עם המילים של פורטוגל - Sumo (מיץ, בברזיל
 // Suco), Gelado (גלידה, בברזיל Sorvete), Cão (כלב, בברזיל Cachorro), Tosta, Cereais.
 const NAME_PTPT = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -17833,6 +18302,16 @@ const NAME_PTPT = {
 };
 // אמהרית: שמות פרטיים בכתב געז לפי הצליל, שמות תיאוריים מתורגמים.
 const NAME_AM = {
+  "בומרנג": "ቡመራንግ",
+  "טרידנט": "ትራይደንት",
+  "מסאמונה": "ማሳሙኔ",
+  "פלייל": "ፍሌል",
+  "קלידור": "ክሊዶር",
+  "סוכרון": "ሹጋሮን",
+  "גיטרון": "ጊታሮን",
+  "דרילר": "ድሪለር",
+  "ארקוס": "አርኩስ",
+  "סולאר": "ሶላር",
   "ניאו": "ኒዮ",
   "אטלס": "አትላስ",
   "ויפר": "ቫይፐር",
@@ -18040,6 +18519,16 @@ const NAME_AM = {
 };
 // פינית: שמות פרטיים נשארים כמו באנגלית, שמות תיאוריים מתורגמים.
 const NAME_FI = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -18247,6 +18736,16 @@ const NAME_FI = {
 };
 // נורווגית (בוקמול): שמות פרטיים כמו באנגלית, תיאוריים מתורגמים.
 const NAME_NO = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -18453,6 +18952,16 @@ const NAME_NO = {
   'דוב': 'Bjørn', 'פיל': 'Elefant', "צ'יטה": 'Gepard', 'נמר': 'Leopard', 'אריה': 'Løve',
 };
 const NAME_GSW = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -18713,6 +19222,16 @@ const NAME_GSW = {
   "אריה": "Löi",
 };
 const NAME_VI = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -18973,6 +19492,16 @@ const NAME_VI = {
   "אריה": "Sư tử",
 };
 const NAME_ID = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -19233,6 +19762,16 @@ const NAME_ID = {
   "אריה": "Singa",
 };
 const NAME_ET = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -19493,6 +20032,16 @@ const NAME_ET = {
   "אריה": "Lõvi",
 };
 const NAME_IS = {
+  "בומרנג": "Boomerang",
+  "טרידנט": "Trident",
+  "מסאמונה": "Masamune",
+  "פלייל": "Flail",
+  "קלידור": "Klidor",
+  "סוכרון": "Sugaron",
+  "גיטרון": "Guitaron",
+  "דרילר": "Driller",
+  "ארקוס": "Arcus",
+  "סולאר": "Solar",
   "ניאו": "Neo",
   "אטלס": "Atlas",
   "ויפר": "Viper",
@@ -19753,6 +20302,16 @@ const NAME_IS = {
   "אריה": "Ljón",
 };
 const NAME_FA = {
+  "בומרנג": "بومرنگ",
+  "טרידנט": "سه‌شاخ",
+  "מסאמונה": "ماسامونه",
+  "פלייל": "فلیل",
+  "קלידור": "کلیدور",
+  "סוכרון": "شوگارون",
+  "גיטרון": "گیتارون",
+  "דרילר": "دریلر",
+  "ארקוס": "آرکوس",
+  "סולאר": "سولار",
   "ניאו": "نئو",
   "אטלס": "اطلس",
   "ויפר": "وایپر",
@@ -20490,6 +21049,16 @@ const SHOP_DATA = {
     ['דרגונפנג', 'נזק 2200', '73000₪'],
     ['וויד', 'נזק 2350', '82000₪'],
     ['אינפיניטי', 'נזק 2500', '95000₪'],
+    ['בומרנג', 'נזק 2700', '105000₪'],
+    ['טרידנט', 'נזק 2900', '118000₪'],
+    ['מסאמונה', 'נזק 3100', '132000₪'],
+    ['פלייל', 'נזק 3300', '148000₪'],
+    ['קלידור', 'נזק 3500', '165000₪'],
+    ['סוכרון', 'נזק 3700', '185000₪'],
+    ['גיטרון', 'נזק 3900', '208000₪'],
+    ['דרילר', 'נזק 4100', '235000₪'],
+    ['ארקוס', 'נזק 4300', '265000₪'],
+    ['סולאר', 'נזק 4500', '300000₪'],
   ]},
   shields: { label: '🛡️ מגנים', labelEn: '🛡️ Shields', labelEs: '🛡️ Escudos', labelJa: '🛡️ たて', labelFr: '🛡️ Boucliers', labelPt: '🛡️ Escudos', labelDe: '🛡️ Schilde', labelRu: '🛡️ Щиты', labelAr: '🛡️ الدروع', labelTh: '🛡️ โล่', labelPl: '🛡️ Tarcze', labelIt: '🛡️ Scudi', labelRo: '🛡️ Scuturi', labelZh: '🛡️ 盾牌', labelKo: '🛡️ 방패', labelHi: '🛡️ ढालें', labelTr: '🛡️ Kalkanlar', labelNl: '🛡️ Schilden', labelSv: '🛡️ Sköldar', labelUk: '🛡️ Щити', labelCs: '🛡️ Štíty', labelHu: '🛡️ Pajzsok', labelEl: '🛡️ Ασπίδες', labelBg: '🛡️ Щитове', labelSr: '🛡️ Штитови', labelHr: '🛡️ Štitovi', labelSk: '🛡️ Štíty', labelSq: '🛡️ Mburoja', labelSl: '🛡️ Ščiti', labelGd: '🛡️ Sgiathan', labelPtpt: '🛡️ Escudos', labelAm: '🛡️ ጋሻዎች', labelFi: '🛡️ Kilvet', labelNo: '🛡️ Skjold', labelGsw: '🛡️ Schilder', labelVi: '🛡️ Khiên', labelId: '🛡️ Perisai', labelEt: '🛡️ Kilbid', labelIs: '🛡️ Skildir', labelFa: '🛡️ سپرها', rows: [
     ['אבן קצת גדולה אבל שבירה', 'הגנה בסיסית', 'חינם'],
@@ -20950,6 +21519,8 @@ const WEAPON_ICON = {
   'ריפר': '🌙', 'גונגניר': '🔱', 'שייד': '🗡️', 'פלזמה': '⚡', 'נובה': '🌟',
   'אקסקליבר': '🗡️', 'מורנינגסטאר': '⭐', 'טווינבלייד': '⚔️', 'סימיטר': '🌙', 'הלברד': '🪓',
   'קריסטליס': '💎', 'זאוס': '⚡', 'דרגונפנג': '🐉', 'וויד': '🕳️', 'אינפיניטי': '♾️',
+  'בומרנג': '🪃', 'טרידנט': '🔱', 'מסאמונה': '🗡️', 'פלייל': '⛓️', 'קלידור': '🗝️',
+  'סוכרון': '🍭', 'גיטרון': '🎸', 'דרילר': '🌀', 'ארקוס': '🏹', 'סולאר': '☀️',
 };
 
 function removeWeaponProp(f) {
