@@ -1098,7 +1098,6 @@
   <div class="screenTitle" id="dailyTitle">🎁</div>
   <button id="dailyGiftBtn"></button>
   <div id="chestRow"></div>
-  <button id="testChestsBtn" style="display:none"></button>
   <div id="dailyResult"></div>
   <button id="dailyBackBtn"></button>
 </div>
@@ -20098,8 +20097,6 @@ const CHEST_TYPES = {
   legendary: { icon: '💎', he: 'תיבה אגדית', en: 'Legendary chest',
                money: [5000, 25000], maxPrice: Infinity, w: { money: 20, food: 10, drinks: 10, shields: 15, weapons: 20, characters: 25 } },
 };
-// כפתור בדיקה זמני (2026-09-30, בקשת המשתמש): נותן 10 תיבות מכל סוג. כדי להסיר - להחזיר ל-false.
-const TEST_CHESTS_BUTTON = false;
 const DAILY_KEY = 'battleGameDailyClaim';
 let chests = { common: 0, rare: 0, legendary: 0 };
 let lastDailyClaim = '';
@@ -20208,9 +20205,6 @@ function renderDailyScreen(keepResult) {
   document.getElementById('chestRow').innerHTML = Object.entries(CHEST_TYPES).map(([k, c]) =>
     '<div class="chestCard ' + k + '"><div class="chestIcon">' + c.icon + '</div><div class="chestName">' + heEn(c.he, c.en) + '</div>' +
     '<div class="chestCount">× ' + chests[k] + '</div><button data-tier="' + k + '"' + (chests[k] > 0 ? '' : ' disabled') + '>' + heEn('פתח', 'Open') + '</button></div>').join('');
-  const tb = document.getElementById('testChestsBtn');
-  tb.style.display = TEST_CHESTS_BUTTON ? '' : 'none';
-  tb.textContent = heEn('🧪 קבל 10 מכל תיבה (לבדיקה)', '🧪 Get 10 of each chest (test)');
   document.getElementById('dailyBackBtn').textContent = heEn('⬅ חזרה ללובי', '⬅ Back to lobby');
   if (!keepResult) document.getElementById('dailyResult').innerHTML = '';
 }
@@ -20220,11 +20214,6 @@ function updateDailyBtn() {
 }
 dailyBtnLobbyEl.addEventListener('click', () => showScreen('daily'));
 document.getElementById('dailyGiftBtn').addEventListener('click', claimDailyGift);
-document.getElementById('testChestsBtn').addEventListener('click', () => {
-  Object.keys(chests).forEach((k) => { chests[k] += 10; });
-  saveCloudState();
-  renderDailyScreen();
-});
 document.getElementById('dailyBackBtn').addEventListener('click', () => showScreen('lobby'));
 document.getElementById('chestRow').addEventListener('click', (e) => { const b = e.target.closest('button[data-tier]'); if (b) openChest(b.dataset.tier); });
 updateDailyBtn();
