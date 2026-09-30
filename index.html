@@ -5769,6 +5769,158 @@ const WEAPON_CFGS = {
       return g;
     },
   },
+
+  // ===== סבב רביעי: עוד 10 נשקים (2026-09-30) - צורות יומיומיות =====
+  // נאנצ'קו - שני מקלות קצרים מחוברים בשרשרת.
+  "נאנצ'קו": {
+    dmg: 4800, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.22, 0.016, 0xc8202a, woodGrainTex));
+      const mat = new THREE.MeshStandardMaterial({ color: 0x9aa0a8, roughness: 0.4, metalness: 0.8 });
+      for (let i = 0; i < 4; i++) {
+        const link = new THREE.Mesh(new THREE.TorusGeometry(0.012, 0.004, 6, 10), mat);
+        link.position.set(0.01 * i, 0.235 + i * 0.026, 0); link.rotation.y = (i % 2) * Math.PI / 2; g.add(link);
+      }
+      const s2 = weaponShaft(0.22, 0.016, 0xc8202a, woodGrainTex); s2.position.set(0.04, 0.34, 0); g.add(s2);
+      return g;
+    },
+  },
+  // מטריון - מטרייה גדולה: חרוט צבעוני פתוח על מוט.
+  'מטריון': {
+    dmg: 5100, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.46, 0.010, 0x2a2a30, metalScratchTex));
+      const canopy = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.10, 10, 1, true),
+        new THREE.MeshStandardMaterial({ color: 0xd8203a, roughness: 0.6, side: THREE.DoubleSide, flatShading: true }));
+      canopy.position.y = 0.50; canopy.castShadow = true; g.add(canopy);
+      const tip = weaponSpike(0.06, 0.008, 0xc0c4cc); tip.position.y = 0.55; g.add(tip);
+      const hook = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.008, 6, 12, Math.PI),
+        new THREE.MeshStandardMaterial({ color: 0x2a2a30, roughness: 0.5 }));
+      hook.position.set(-0.03, 0.0, 0); hook.rotation.z = Math.PI; g.add(hook);
+      return g;
+    },
+  },
+  // בייסבולר - מחבט בייסבול עבה מעץ, עם ידית דקה וראש עבה.
+  'בייסבולר': {
+    dmg: 5400, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      const bat = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.012, 0.62, 12),
+        new THREE.MeshStandardMaterial({ color: 0xc89858, roughness: 0.6, map: woodGrainTex('#ffffff') }));
+      bat.position.y = 0.31; bat.castShadow = true; g.add(bat);
+      const grip = weaponShaft(0.14, 0.015, 0x1a1a1a, leatherTex); g.add(grip);
+      const knob = new THREE.Mesh(new THREE.SphereGeometry(0.02, 10, 8), new THREE.MeshStandardMaterial({ color: 0x1a1a1a }));
+      knob.position.y = -0.005; g.add(knob);
+      return g;
+    },
+  },
+  // רנצ'ר - מפתח ברגים ענק: ידית מתכת וראש עם פה פתוח.
+  "רנצ'ר": {
+    dmg: 5700, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.44, 0.016, 0x9aa0a8, metalScratchTex));
+      const steel = new THREE.MeshStandardMaterial({ color: 0xc0c6cc, roughness: 0.3, metalness: 0.85 });
+      const jawA = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.10, 0.03), steel); jawA.position.set(-0.04, 0.50, 0); g.add(jawA);
+      const jawB = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.07, 0.03), steel); jawB.position.set(0.04, 0.485, 0); g.add(jawB);
+      const base = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.035, 0.03), steel); base.position.set(0, 0.45, 0); g.add(base);
+      const hole = new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.006, 6, 12), steel); hole.position.y = -0.01; g.add(hole);
+      return g;
+    },
+  },
+  // דגלון - דגל אדום-לבן על מוט זהב.
+  'דגלון': {
+    dmg: 6000, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.62, 0.011, GOLD, metalScratchTex));
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.02, 10, 8), new THREE.MeshStandardMaterial({ color: GOLD, metalness: 0.8, roughness: 0.3 }));
+      ball.position.y = 0.64; g.add(ball);
+      const flag = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.13, 0.008), new THREE.MeshStandardMaterial({ color: 0xd01a2a, roughness: 0.7 }));
+      flag.position.set(0.105, 0.54, 0); g.add(flag);
+      const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.03, 0.010), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 }));
+      stripe.position.set(0.105, 0.54, 0); g.add(stripe);
+      return g;
+    },
+  },
+  // סכינון - סכין קצבים ענקית: להב מלבני רחב וידית עץ.
+  'סכינון': {
+    dmg: 6300, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.16, 0.014, 0x3a2410, woodGrainTex));
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.34, 0.012),
+        new THREE.MeshStandardMaterial({ color: 0xdfe4ea, roughness: 0.25, metalness: 0.8, map: metalScratchTex('#ffffff') }));
+      blade.position.set(0.02, 0.34, 0); blade.castShadow = true; g.add(blade);
+      const hole = new THREE.Mesh(new THREE.CircleGeometry(0.014, 12), new THREE.MeshBasicMaterial({ color: 0x20242a, side: THREE.DoubleSide }));
+      hole.position.set(0.05, 0.46, 0.008); g.add(hole);
+      const hole2 = hole.clone(); hole2.position.z = -0.008; g.add(hole2);
+      return g;
+    },
+  },
+  // מספרון - מספריים ענקיות: שני להבים בצורת X וידיות כתומות.
+  'מספרון': {
+    dmg: 6600, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      [1, -1].forEach((sd) => {
+        const h = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.010, 8, 16), new THREE.MeshStandardMaterial({ color: 0xe8781a, roughness: 0.5 }));
+        h.position.set(sd * 0.03, 0.0, 0); g.add(h);
+        const b = weaponBlade(0.06, 0.46, 0.03, 0xdfe4ea, 0.4, 0.008);
+        b.position.x = -sd * 0.006; b.rotation.z = sd * 0.05; g.add(b);
+      });
+      const pin = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6), new THREE.MeshStandardMaterial({ color: 0x8a8e96, metalness: 0.9, roughness: 0.3 }));
+      pin.position.y = 0.09; g.add(pin);
+      return g;
+    },
+  },
+  // מסורון - מסור ענק: להב שטוח עם שיני מסור בצד וידית עץ.
+  'מסורון': {
+    dmg: 6900, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.14, 0.016, 0x8a3a10, woodGrainTex));
+      const blade = weaponBlade(0.14, 0.50, 0.09, 0xc8ced6, 0.6, 0.008);
+      g.add(blade);
+      for (let i = 0; i < 9; i++) {
+        const t = weaponSpike(0.03, 0.012, 0xc8ced6, -Math.PI / 2 + 0.0);
+        t.position.set(-0.04 + 0.0 - i * 0.0006, 0.17 + i * 0.05, 0); g.add(t);
+      }
+      return g;
+    },
+  },
+  // אנקור - עוגן ספינה: מוט, טבעת למעלה, קשת בתחתית ושתי חודים.
+  'אנקור': {
+    dmg: 7200, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      const iron = new THREE.MeshStandardMaterial({ color: 0x3a4250, roughness: 0.45, metalness: 0.8 });
+      g.add(weaponShaft(0.46, 0.016, 0x3a4250, metalScratchTex));
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.008, 6, 14), iron); ring.position.y = 0.50; g.add(ring);
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, 0.016), iron); bar.position.y = 0.42; g.add(bar);
+      const arc = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.014, 8, 20, Math.PI), iron);
+      arc.position.y = 0.06; arc.rotation.z = Math.PI; g.add(arc);
+      [-1, 1].forEach((sd) => { const f = weaponSpike(0.06, 0.02, 0x9aa4b4, sd * -0.6); f.position.set(sd * 0.075, 0.06, 0); g.add(f); });
+      return g;
+    },
+  },
+  // ברקן - ברק זהוב זוהר: שלושה קטעים מוטים בזיגזג.
+  'ברקן': {
+    dmg: 7500, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.10, 0.013, 0x2a2a34, leatherTex));
+      const mat = new THREE.MeshStandardMaterial({ color: 0xffe020, emissive: 0xffc800, emissiveIntensity: 1.4, roughness: 0.3 });
+      [[0.0, 0.20, 0.35], [0.06, 0.40, -0.45], [0.02, 0.60, 0.35]].forEach(([x, y, rz]) => {
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.22, 0.03), mat);
+        b.position.set(x, y, 0); b.rotation.z = rz; g.add(b);
+      });
+      const tip = weaponSpike(0.10, 0.03, 0xfff080); tip.material.emissive.set(0xffc800); tip.material.emissiveIntensity = 1.2; tip.position.set(0.06, 0.69, 0); g.add(tip);
+      return g;
+    },
+  },
 };
 
 function addWeaponProp(f, name) {
@@ -11803,6 +11955,16 @@ function T(he, en, es, ja, fr, pt, de, ru, ar, th, pl, it, ro, zh, ko, hi, tr, n
 // נשאר תמיד המפתח הפנימי (inventory/CHARACTER_CFGS/וכו') כדי לא לשבור
 // שמירות קיימות - זה תרגום-תצוגה בלבד.
 const NAME_EN = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -12087,6 +12249,16 @@ const NAME_EN = {
   'אריה': 'Lion',
 };
 const NAME_ES = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Paraguas",
+  "בייסבולר": "Bateador",
+  "רנצ'ר": "Llavero",
+  "דגלון": "Bandera",
+  "סכינון": "Cuchillón",
+  "מספרון": "Tijerón",
+  "מסורון": "Serrón",
+  "אנקור": "Ancla",
+  "ברקן": "Rayón",
   "שיפו": "Sifu",
   "אמזון": "Amazona",
   "פיקסי": "Duendecillo",
@@ -12373,6 +12545,16 @@ const NAME_ES = {
 // יפנית: שמות פרטיים (דמויות/אויבים/בוסים) כתובים בקטקנה - איך שהם נשמעים,
 // כמו שיפנים כותבים שמות זרים. שמות תיאוריים (נשקים/אוכל/...) מתורגמים באמת.
 const NAME_JA = {
+  "נאנצ'קו": "ヌンチャク",
+  "מטריון": "アンブレロン",
+  "בייסבולר": "バッター",
+  "רנצ'ר": "レンチャー",
+  "דגלון": "フラゴン",
+  "סכינון": "クリーバー",
+  "מספרון": "シザロン",
+  "מסורון": "ソーロン",
+  "אנקור": "アンカー",
+  "ברקן": "ボルトン",
   "שיפו": "シーフー",
   "אמזון": "アマゾン",
   "פיקסי": "ピクシー",
@@ -12658,6 +12840,16 @@ const NAME_JA = {
 };
 // צרפתית: שמות פרטיים (דמויות/אויבים/בוסים) זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_FR = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Parapluie",
+  "בייסבולר": "Batteur",
+  "רנצ'ר": "Clé",
+  "דגלון": "Drapeau",
+  "סכינון": "Hachoir",
+  "מספרון": "Ciseaux",
+  "מסורון": "Scie",
+  "אנקור": "Ancre",
+  "ברקן": "Éclair",
   "שיפו": "Sifu",
   "אמזון": "Amazone",
   "פיקסי": "Lutin",
@@ -12943,6 +13135,16 @@ const NAME_FR = {
 };
 // פורטוגזית (ברזיל): שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_PT = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Guarda-chuva",
+  "בייסבולר": "Batedor",
+  "רנצ'ר": "Chave",
+  "דגלון": "Bandeira",
+  "סכינון": "Cutelo",
+  "מספרון": "Tesourão",
+  "מסורון": "Serrão",
+  "אנקור": "Âncora",
+  "ברקן": "Raio",
   "שיפו": "Sifu",
   "אמזון": "Amazona",
   "פיקסי": "Duende",
@@ -13228,6 +13430,16 @@ const NAME_PT = {
 };
 // גרמנית: שמות פרטיים זהים לאנגלית, תיאוריים מתורגמים.
 const NAME_DE = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Regenschirm",
+  "בייסבולר": "Schläger",
+  "רנצ'ר": "Schrauber",
+  "דגלון": "Fahne",
+  "סכינון": "Hackbeil",
+  "מספרון": "Schere",
+  "מסורון": "Säge",
+  "אנקור": "Anker",
+  "ברקן": "Blitz",
   "שיפו": "Sifu",
   "אמזון": "Amazone",
   "פיקסי": "Elfe",
@@ -13514,6 +13726,16 @@ const NAME_DE = {
 // רוסית: שמות פרטיים כתובים באותיות רוסיות (קירילית) - איך שהם נשמעים,
 // כמו שרוסים כותבים שמות זרים. שמות תיאוריים מתורגמים באמת.
 const NAME_RU = {
+  "נאנצ'קו": "Нунчаки",
+  "מטריון": "Зонтон",
+  "בייסבולר": "Бейсболер",
+  "רנצ'ר": "Ренчер",
+  "דגלון": "Флагон",
+  "סכינון": "Тесак",
+  "מספרון": "Ножницон",
+  "מסורון": "Пилон",
+  "אנקור": "Якорь",
+  "ברקן": "Молния",
   "שיפו": "Шифу",
   "אמזון": "Амазонка",
   "פיקסי": "Пикси",
@@ -13800,6 +14022,16 @@ const NAME_RU = {
 // ערבית: שמות פרטיים כתובים באותיות ערביות - איך שהם נשמעים (כמו ביפנית
 // וברוסית). שמות תיאוריים מתורגמים באמת.
 const NAME_AR = {
+  "נאנצ'קו": "نانشاكو",
+  "מטריון": "مظلون",
+  "בייסבולר": "ضارب",
+  "רנצ'ר": "مفتاحون",
+  "דגלון": "رايتون",
+  "סכינון": "ساطور",
+  "מספרון": "مقصون",
+  "מסורון": "منشارون",
+  "אנקור": "مرساة",
+  "ברקן": "برقون",
   "שיפו": "شيفو",
   "אמזון": "أمازون",
   "פיקסי": "بيكسي",
@@ -14086,6 +14318,16 @@ const NAME_AR = {
 // תאילנדית: שמות פרטיים כתובים באותיות תאילנדיות - איך שהם נשמעים (כמו
 // ביפנית, ברוסית ובערבית). שמות תיאוריים מתורגמים באמת.
 const NAME_TH = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -14371,6 +14613,16 @@ const NAME_TH = {
 };
 // פולנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_PL = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -14656,6 +14908,16 @@ const NAME_PL = {
 };
 // איטלקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_IT = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Ombrellone",
+  "בייסבולר": "Battitore",
+  "רנצ'ר": "Chiave",
+  "דגלון": "Bandiera",
+  "סכינון": "Mannaia",
+  "מספרון": "Forbicione",
+  "מסורון": "Sega",
+  "אנקור": "Ancora",
+  "ברקן": "Fulmine",
   "שיפו": "Sifu",
   "אמזון": "Amazzone",
   "פיקסי": "Folletto",
@@ -14941,6 +15203,16 @@ const NAME_IT = {
 };
 // רומנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), תיאוריים מתורגמים.
 const NAME_RO = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -15227,6 +15499,16 @@ const NAME_RO = {
 // סינית (פשוטה): שמות פרטיים כתובים בסימנים סיניים לפי הצליל (כמו שסינים
 // כותבים שמות זרים), כמו ביפנית/רוסית/ערבית/תאילנדית. תיאוריים מתורגמים.
 const NAME_ZH = {
+  "נאנצ'קו": "双节棍",
+  "מטריון": "雨伞王",
+  "בייסבולר": "棒球手",
+  "רנצ'ר": "扳手王",
+  "דגלון": "旗帜王",
+  "סכינון": "菜刀王",
+  "מספרון": "剪刀王",
+  "מסורון": "锯子王",
+  "אנקור": "船锚",
+  "ברקן": "闪电王",
   "שיפו": "师父",
   "אמזון": "亚马逊",
   "פיקסי": "小仙子",
@@ -15513,6 +15795,16 @@ const NAME_ZH = {
 // קוריאנית: שמות פרטיים כתובים באותיות קוריאניות (הנגול) לפי הצליל, כמו
 // ביפנית/רוסית/ערבית/תאילנדית/סינית. שמות תיאוריים מתורגמים באמת.
 const NAME_KO = {
+  "נאנצ'קו": "쌍절곤",
+  "מטריון": "엄브렐론",
+  "בייסבולר": "배터",
+  "רנצ'ר": "렌처",
+  "דגלון": "플래곤",
+  "סכינון": "클리버",
+  "מספרון": "시저론",
+  "מסורון": "소론",
+  "אנקור": "앵커",
+  "ברקן": "볼턴",
   "שיפו": "시푸",
   "אמזון": "아마존",
   "פיקסי": "픽시",
@@ -15799,6 +16091,16 @@ const NAME_KO = {
 // הודית: שמות פרטיים כתובים באותיות דוונאגרי לפי הצליל, כמו ביפנית/רוסית/
 // ערבית/תאילנדית/סינית/קוריאנית. שמות תיאוריים מתורגמים באמת.
 const NAME_HI = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -16085,6 +16387,16 @@ const NAME_HI = {
 // טורקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות, כמו ספרדית/צרפתית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_TR = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -16370,6 +16682,16 @@ const NAME_TR = {
 };
 // הולנדית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_NL = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -16655,6 +16977,16 @@ const NAME_NL = {
 };
 // שוודית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים באמת.
 const NAME_SV = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -16940,6 +17272,16 @@ const NAME_SV = {
 };
 // אוקראינית: שמות פרטיים בקירילית (כמו ברוסית, באיות אוקראיני), תיאוריים מתורגמים.
 const NAME_UK = {
+  "נאנצ'קו": "Нунчаки",
+  "מטריון": "Зонтон",
+  "בייסבולר": "Бейсболер",
+  "רנצ'ר": "Ренчер",
+  "דגלון": "Флагон",
+  "סכינון": "Тесак",
+  "מספרון": "Ножицон",
+  "מסורון": "Пилон",
+  "אנקור": "Якір",
+  "ברקן": "Блискавка",
   "שיפו": "Шіфу",
   "אמזון": "Амазонка",
   "פיקסי": "Піксі",
@@ -17212,6 +17554,16 @@ const NAME_UK = {
 };
 // צ'כית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_CS = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -17484,6 +17836,16 @@ const NAME_CS = {
 };
 // הונגרית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HU = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -17757,6 +18119,16 @@ const NAME_HU = {
 // יוונית: שמות פרטיים באותיות יווניות לפי הצליל (כמו הקירילית ברוסית/אוקראינית),
 // שמות תיאוריים מתורגמים באמת.
 const NAME_EL = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -18029,6 +18401,16 @@ const NAME_EL = {
 };
 // בולגרית: שמות פרטיים בקירילית (כמו ברוסית/אוקראינית, באיות בולגרי), תיאוריים מתורגמים.
 const NAME_BG = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Шифу",
   "אמזון": "Амазонка",
   "פיקסי": "Пикси",
@@ -18301,6 +18683,16 @@ const NAME_BG = {
 };
 // סרבית (קירילית - הכתב הרשמי): שמות פרטיים לפי הצליל, תיאוריים מתורגמים.
 const NAME_SR = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Шифу",
   "אמזון": "Амазонка",
   "פיקסי": "Пикси",
@@ -18573,6 +18965,16 @@ const NAME_SR = {
 };
 // קרואטית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_HR = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -18845,6 +19247,16 @@ const NAME_HR = {
 };
 // סלובקית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SK = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -19117,6 +19529,16 @@ const NAME_SK = {
 };
 // אלבנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SQ = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -19389,6 +19811,16 @@ const NAME_SQ = {
 };
 // סלובנית: שמות פרטיים זהים לאנגלית (אותיות לטיניות), שמות תיאוריים מתורגמים.
 const NAME_SL = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -19662,6 +20094,16 @@ const NAME_SL = {
 // גאלית סקוטית: שמות פרטיים זהים לאנגלית, שמות תיאוריים מתורגמים (מחרוזות עם
 // אפוסטרוף - שנפוץ מאוד בגאלית - כתובות במירכאות כפולות).
 const NAME_GD = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -19935,6 +20377,16 @@ const NAME_GD = {
 // פורטוגזית של פורטוגל: כמו הברזילאית, עם המילים של פורטוגל - Sumo (מיץ, בברזיל
 // Suco), Gelado (גלידה, בברזיל Sorvete), Cão (כלב, בברזיל Cachorro), Tosta, Cereais.
 const NAME_PTPT = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Guarda-chuva",
+  "בייסבולר": "Batedor",
+  "רנצ'ר": "Chave",
+  "דגלון": "Bandeira",
+  "סכינון": "Cutelo",
+  "מספרון": "Tesourão",
+  "מסורון": "Serrão",
+  "אנקור": "Âncora",
+  "ברקן": "Raio",
   "שיפו": "Sifu",
   "אמזון": "Amazona",
   "פיקסי": "Duende",
@@ -20207,6 +20659,16 @@ const NAME_PTPT = {
 };
 // אמהרית: שמות פרטיים בכתב געז לפי הצליל, שמות תיאוריים מתורגמים.
 const NAME_AM = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -20479,6 +20941,16 @@ const NAME_AM = {
 };
 // פינית: שמות פרטיים נשארים כמו באנגלית, שמות תיאוריים מתורגמים.
 const NAME_FI = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -20751,6 +21223,16 @@ const NAME_FI = {
 };
 // נורווגית (בוקמול): שמות פרטיים כמו באנגלית, תיאוריים מתורגמים.
 const NAME_NO = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -21022,6 +21504,16 @@ const NAME_NO = {
   'דוב': 'Bjørn', 'פיל': 'Elefant', "צ'יטה": 'Gepard', 'נמר': 'Leopard', 'אריה': 'Løve',
 };
 const NAME_GSW = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -21347,6 +21839,16 @@ const NAME_GSW = {
   "אריה": "Löi",
 };
 const NAME_VI = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -21672,6 +22174,16 @@ const NAME_VI = {
   "אריה": "Sư tử",
 };
 const NAME_ID = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -21997,6 +22509,16 @@ const NAME_ID = {
   "אריה": "Singa",
 };
 const NAME_ET = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -22322,6 +22844,16 @@ const NAME_ET = {
   "אריה": "Lõvi",
 };
 const NAME_IS = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -22647,6 +23179,16 @@ const NAME_IS = {
   "אריה": "Ljón",
 };
 const NAME_FA = {
+  "נאנצ'קו": "Nunchaku",
+  "מטריון": "Umbrellon",
+  "בייסבולר": "Batter",
+  "רנצ'ר": "Wrencher",
+  "דגלון": "Flagon",
+  "סכינון": "Cleavor",
+  "מספרון": "Scissoron",
+  "מסורון": "Sawron",
+  "אנקור": "Anchor",
+  "ברקן": "Bolton",
   "שיפו": "Sifu",
   "אמזון": "Amazon",
   "פיקסי": "Pixie",
@@ -23464,6 +24006,16 @@ const SHOP_DATA = {
     ['דרילר', 'נזק 4100', '235000₪'],
     ['ארקוס', 'נזק 4300', '265000₪'],
     ['סולאר', 'נזק 4500', '300000₪'],
+    ["נאנצ'קו", 'נזק 4800', '330000₪'],
+    ["מטריון", 'נזק 5100', '370000₪'],
+    ["בייסבולר", 'נזק 5400', '415000₪'],
+    ["רנצ'ר", 'נזק 5700', '465000₪'],
+    ["דגלון", 'נזק 6000', '520000₪'],
+    ["סכינון", 'נזק 6300', '580000₪'],
+    ["מספרון", 'נזק 6600', '645000₪'],
+    ["מסורון", 'נזק 6900', '715000₪'],
+    ["אנקור", 'נזק 7200', '790000₪'],
+    ["ברקן", 'נזק 7500', '880000₪'],
   ]},
   shields: { label: '🛡️ מגנים', labelEn: '🛡️ Shields', labelEs: '🛡️ Escudos', labelJa: '🛡️ たて', labelFr: '🛡️ Boucliers', labelPt: '🛡️ Escudos', labelDe: '🛡️ Schilde', labelRu: '🛡️ Щиты', labelAr: '🛡️ الدروع', labelTh: '🛡️ โล่', labelPl: '🛡️ Tarcze', labelIt: '🛡️ Scudi', labelRo: '🛡️ Scuturi', labelZh: '🛡️ 盾牌', labelKo: '🛡️ 방패', labelHi: '🛡️ ढालें', labelTr: '🛡️ Kalkanlar', labelNl: '🛡️ Schilden', labelSv: '🛡️ Sköldar', labelUk: '🛡️ Щити', labelCs: '🛡️ Štíty', labelHu: '🛡️ Pajzsok', labelEl: '🛡️ Ασπίδες', labelBg: '🛡️ Щитове', labelSr: '🛡️ Штитови', labelHr: '🛡️ Štitovi', labelSk: '🛡️ Štíty', labelSq: '🛡️ Mburoja', labelSl: '🛡️ Ščiti', labelGd: '🛡️ Sgiathan', labelPtpt: '🛡️ Escudos', labelAm: '🛡️ ጋሻዎች', labelFi: '🛡️ Kilvet', labelNo: '🛡️ Skjold', labelGsw: '🛡️ Schilder', labelVi: '🛡️ Khiên', labelId: '🛡️ Perisai', labelEt: '🛡️ Kilbid', labelIs: '🛡️ Skildir', labelFa: '🛡️ سپرها', rows: [
     ['אבן קצת גדולה אבל שבירה', 'הגנה בסיסית', 'חינם'],
@@ -23969,6 +24521,8 @@ const WEAPON_ICON = {
   'קריסטליס': '💎', 'זאוס': '⚡', 'דרגונפנג': '🐉', 'וויד': '🕳️', 'אינפיניטי': '♾️',
   'בומרנג': '🪃', 'טרידנט': '🔱', 'מסאמונה': '🗡️', 'פלייל': '⛓️', 'קלידור': '🗝️',
   'סוכרון': '🍭', 'גיטרון': '🎸', 'דרילר': '🌀', 'ארקוס': '🏹', 'סולאר': '☀️',
+  "נאנצ'קו": '🥋', 'מטריון': '☂️', 'בייסבולר': '⚾', "רנצ'ר": '🔧', 'דגלון': '🚩',
+  'סכינון': '🔪', 'מספרון': '✂️', 'מסורון': '🪚', 'אנקור': '⚓', 'ברקן': '⚡',
 };
 
 function removeWeaponProp(f) {
