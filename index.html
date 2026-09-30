@@ -440,6 +440,26 @@
     cursor: pointer;
   }
 
+  /* ---------- קרב חיות (2026-09-30): אתה חיה, כפתור אחד - נשיכה ---------- */
+  #petBattleHud { display: none; position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+  #petBattleHud.show { display: block; }
+  #pbBars { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 18px; direction: ltr; }
+  .pbBar { width: 280px; color: #fff; font-size: 0.95rem; text-shadow: 0 2px 6px #000; text-align: center; }
+  .pbTrack { height: 16px; border-radius: 9px; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.35); overflow: hidden; margin: 3px 0; }
+  .pbFill { height: 100%; width: 100%; background: #4cd964; transition: width 0.15s; }
+  #pbOppFill { background: #ff5a4d; }
+  #pbInstructions { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; padding: 8px 20px; color: #fff; font-size: 0.95rem; }
+  #pbBiteBtn { position: absolute; bottom: 120px; right: 26px; width: 110px; height: 110px; border-radius: 50%; border: 3px solid #fff; background: rgba(214,48,48,0.85); color: #fff; font-size: 1.15rem; font-weight: 800; cursor: pointer; pointer-events: auto; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
+  #pbBiteBtn .cd { position: absolute; left: 0; right: 0; bottom: 0; height: 0%; background: rgba(0,0,0,0.55); }
+  #pbBiteBtn span { position: relative; }
+  #pbExitBtn { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; pointer-events: auto; }
+  #petBattleResult { position: fixed; inset: 0; background: rgba(5,8,14,0.74); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
+  #petBattleResult.show { opacity: 1; pointer-events: auto; }
+  #pbResultTitle { font-size: 2.6rem; color: #fff; text-shadow: 0 4px 18px rgba(0,0,0,0.7); font-weight: 800; text-align: center; padding: 0 20px; }
+  #pbBtnRow { display: flex; gap: 14px; }
+  #pbAgainBtn { font-size: 1.2rem; padding: 12px 34px; border-radius: 14px; border: none; background: #ffcf4d; color: #1a1a1a; font-weight: bold; cursor: pointer; }
+  #pbLobbyBtn { font-size: 1.2rem; padding: 12px 34px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.08); color: #fff; font-weight: bold; cursor: pointer; }
+
   /* ---------- סומו: HUD בזמן קרב חופשי (זהה במבנה ל-caveHud) ---------- */
   #sumoHud {
     display: none;
@@ -1060,6 +1080,20 @@
 <div id="caveHud">
   <div id="caveInstructions">↑ להליכה &nbsp;·&nbsp; ← → לפנייה &nbsp;·&nbsp; האוצר מוחבא איפשהו - תחפש טוב!</div>
   <button id="caveExitBtn" data-i18n-he="⬅ יציאה למפה" data-i18n-en="⬅ Exit to map" data-i18n-es="⬅ Salir al mapa" data-i18n-ja="⬅ 地図に出る" data-i18n-fr="⬅ Sortir vers la carte" data-i18n-pt="⬅ Sair para o mapa" data-i18n-de="⬅ Zur Karte" data-i18n-ru="⬅ Выйти на карту" data-i18n-ar="⬅ الخروج إلى الخريطة" data-i18n-th="⬅ ออกไปที่แผนที่" data-i18n-pl="⬅ Wyjdź do mapy" data-i18n-it="⬅ Esci alla mappa" data-i18n-ro="⬅ Ieși la hartă" data-i18n-zh="⬅ 退出到地图" data-i18n-ko="⬅ 지도로 나가기" data-i18n-hi="⬅ नक्शे पर निकलो" data-i18n-tr="⬅ Haritaya çık" data-i18n-nl="⬅ Naar de kaart" data-i18n-sv="⬅ Till kartan" data-i18n-uk="⬅ Вийти на карту" data-i18n-cs="⬅ Odejít na mapu" data-i18n-hu="⬅ Kilépés a térképre" data-i18n-el="⬅ Έξοδος στον χάρτη" data-i18n-bg="⬅ Изход към картата" data-i18n-sr="⬅ Изађи на мапу" data-i18n-hr="⬅ Izađi na kartu" data-i18n-sk="⬅ Odísť na mapu" data-i18n-sq="⬅ Dil në hartë" data-i18n-sl="⬅ Izhod na zemljevid" data-i18n-gd="⬅ Fàg is rach dhan mhapa" data-i18n-ptpt="⬅ Sair para o mapa" data-i18n-am="⬅ ወደ ካርታ ውጣ" data-i18n-fi="⬅ Poistu kartalle" data-i18n-no="⬅ Gå til kartet" data-i18n-gsw="⬅ Zur Charte" data-i18n-vi="⬅ Ra bản đồ" data-i18n-id="⬅ Keluar ke peta" data-i18n-et="⬅ Välju kaardile" data-i18n-is="⬅ Út á kortið" data-i18n-fa="⬅ خروج به نقشه">⬅ יציאה למפה</button>
+</div>
+
+<div id="petBattleHud">
+  <div id="pbBars">
+    <div class="pbBar"><div id="pbMyName"></div><div class="pbTrack"><div class="pbFill" id="pbMyFill"></div></div><div id="pbMyHp"></div></div>
+    <div class="pbBar"><div id="pbOppName"></div><div class="pbTrack"><div class="pbFill" id="pbOppFill"></div></div><div id="pbOppHp"></div></div>
+  </div>
+  <div id="pbInstructions"></div>
+  <button id="pbBiteBtn"><div class="cd" id="pbBiteCd"></div><span id="pbBiteLabel">🦷</span></button>
+  <button id="pbExitBtn"></button>
+</div>
+<div id="petBattleResult">
+  <div id="pbResultTitle"></div>
+  <div id="pbBtnRow"><button id="pbAgainBtn"></button><button id="pbLobbyBtn"></button></div>
 </div>
 
 <div id="sumoHud">
@@ -9006,6 +9040,7 @@ function showScreen(name) {
   const wasInLava = uiScreen === 'lavaCrater';
   const wasInForest = uiScreen === 'zombieForest';
   const wasInSumo = uiScreen === 'sumo';
+  const wasInPetBattle = uiScreen === 'petBattle';
   const wasInTeamBattle = uiScreen === 'teamBattle';
   // 'match' (חדר ההמתנה) ו-'friendArena' (שלב 2 - תנועה משותפת) חולקים
   // את אותו מאזין Firestore (activeMatchUnsub) - הוא ממשיך לרוץ במעבר
@@ -9043,6 +9078,7 @@ function showScreen(name) {
   }
   caveHudEl.classList.toggle('show', name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater' || name === 'zombieForest');
   sumoHudEl.classList.toggle('show', name === 'sumo');
+  document.getElementById('petBattleHud').classList.toggle('show', name === 'petBattle');
   teamSizeEl.classList.toggle('show', name === 'teamSize');
   teamHpRowEl.classList.toggle('show', name === 'teamBattle');
   if (wasInCave && name !== 'crystalCave') exitCave();
@@ -9050,6 +9086,7 @@ function showScreen(name) {
   if (wasInLava && name !== 'lavaCrater') exitLava();
   if (wasInForest && name !== 'zombieForest') exitForest();
   if (wasInSumo && name !== 'sumo') exitSumo();
+  if (wasInPetBattle && name !== 'petBattle') exitPetBattle();
   if (wasInTeamBattle && name !== 'teamBattle') exitTeamBattle();
   const inBattle = name === 'battle';
   // קרב קבוצות משתמש ב-teamHpRow (כמה פסים) במקום hpRow (שני פסים בדיוק),
@@ -9065,7 +9102,7 @@ function showScreen(name) {
   // בלי זה, שחקן בטלפון לא יכול לזוז בכלל (המקלדת לא קיימת אצלו).
   // כפתורי הפעולה (אגרוף/בעיטה/וכו') יוצגו גם שם בלי נזק - הם עדיין לא
   // עושים כלום כי אין קרב אמיתי בשלב הזה (updateFriendArena לא קורא אותם).
-  const showTouchControls = inBattle || name === 'friendArena';
+  const showTouchControls = inBattle || name === 'friendArena' || name === 'petBattle';
   if (window.setTouchControlsVisible) window.setTouchControlsVisible(showTouchControls);
   // הלוט מוצג רק בקרב, ונבנה מחדש בכניסה אליו כדי לכלול פריטים שנקנו
   // בחנות מאז הקרב הקודם
@@ -9129,6 +9166,12 @@ function showScreen(name) {
     enemy.group.visible = false;
     if (previewFighter) previewFighter.group.visible = false;
     if (!wasInSumo) enterSumo();
+  } else if (name === 'petBattle') {
+    // קרב חיות - אתה חיית העזרה; הדמות והאויב הרגילים מוסתרים
+    enemy.group.visible = false;
+    player.forceWeaponVisible = false;
+    if (previewFighter) previewFighter.group.visible = false;
+    if (!wasInPetBattle) enterPetBattle();
   } else if (name === 'teamBattle') {
     // קרב קבוצות - מסתירים את ה-enemy הרגיל של הזירה (הוא לא חלק ממצב הזה
     // בכלל, ראה enterTeamBattle שבונה עד 5 לוחמים נפרדים).
@@ -26240,6 +26283,216 @@ function cycleWeapon(dir) {
   switchPlayerWeapon(names[(i + dir + names.length) % names.length]);
 }
 
+
+// ============================================================================
+//  קרב חיות (2026-09-30, בקשת המשתמש): אתה הופך לחיית העזרה שקנית ובחרת, ונלחם
+//  מול חיה אחרת בעיגול. חיצים לתזוזה, וכפתור אחד בלבד - נשיכה (A / רווח / הכפתור
+//  האדום). הנשיכה מורידה נזק לפי הנזק של החיה (PET_CFGS.dmg, כמו ברגיל) ואפשר
+//  לנשוך כל cfg.every שניות. חיים = נזק × PB_HP_MULT. היריב חיה אחרת במחיר קרוב.
+// ============================================================================
+const PB_OFFSET = new THREE.Vector3(600, 0, 600);
+const PB_RADIUS = 6;
+const PB_HP_MULT = 10;
+const PB_SPEED = 2.6, PB_OPP_SPEED = 2.2;
+const PB_BITE_HIT_T = 0.14, PB_BITE_LEN = 0.32;
+const pbGroup = new THREE.Group();
+pbGroup.position.copy(PB_OFFSET);
+scene.add(pbGroup);
+{
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(PB_RADIUS + 0.6, 48),
+    new THREE.MeshStandardMaterial({ color: 0x4a7a3a, roughness: 0.95 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.y = -0.01; floor.receiveShadow = true; pbGroup.add(floor);
+  const outer = new THREE.Mesh(new THREE.CircleGeometry(40, 40), new THREE.MeshStandardMaterial({ color: 0x2f4f2a, roughness: 1 }));
+  outer.rotation.x = -Math.PI / 2; outer.position.y = -0.05; pbGroup.add(outer);
+  const n = 36, rockGeo = new THREE.DodecahedronGeometry(0.42, 0);
+  const rocks = new THREE.InstancedMesh(rockGeo, new THREE.MeshStandardMaterial({ color: 0x8a8d92, roughness: 0.9, flatShading: true }), n);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    e.set(i, i * 1.7, i * 0.6); q.setFromEuler(e);
+    const sc = 0.8 + ((i * 37) % 10) / 14;
+    m4.compose(new THREE.Vector3(Math.sin(a) * (PB_RADIUS + 0.45), 0.3, Math.cos(a) * (PB_RADIUS + 0.45)), q, new THREE.Vector3(sc, sc, sc));
+    rocks.setMatrixAt(i, m4);
+  }
+  rocks.castShadow = true; pbGroup.add(rocks);
+  pbGroup.add(new THREE.AmbientLight(0xffffff, 0.95));
+  const sun = new THREE.PointLight(0xfff2d0, 2.2, 40); sun.position.set(2, 10, 3); pbGroup.add(sun);
+}
+let pbMe = null, pbOpp = null, pbOver = false, pbBiteHeld = false, pbHoldAgain = 0;
+let pbSavedFog = null, pbSavedBg = null;
+
+function pbMakeFighter(cfg, isMe) {
+  const group = buildPet(cfg, 1);
+  group.rotation.order = 'YZX';
+  pbGroup.add(group);
+  const half = petHalfLen(cfg);
+  return { cfg, group, half, hp: cfg.dmg * PB_HP_MULT, maxHp: cfg.dmg * PB_HP_MULT, yaw: 0, x: 0, z: 0,
+    cool: isMe ? 0 : cfg.every, biteT: -1, hitDone: true, phase: 0, moving: 0, hurt: 0, down: 0, isMe, react: 0.5 };
+}
+function pbDispose(f) {
+  if (!f) return;
+  if (f.group.parent) f.group.parent.remove(f.group);
+  f.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+}
+function pbPickOpponent(mine) {
+  const sorted = PET_CFGS.slice().sort((a, b) => a.price - b.price);
+  const i = sorted.findIndex((c) => c.name === mine.name);
+  const pool = [];
+  for (let k = Math.max(0, i - 3); k <= Math.min(sorted.length - 1, i + 3); k++) if (k !== i) pool.push(sorted[k]);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function pbName(f) { return (f.cfg.emoji || '🐾') + ' ' + trName(f.cfg.name); }
+function pbUpdateHud() {
+  document.getElementById('pbMyName').textContent = pbName(pbMe) + heEn(' (אתה)', ' (you)');
+  document.getElementById('pbOppName').textContent = pbName(pbOpp);
+  document.getElementById('pbMyFill').style.width = (100 * pbMe.hp / pbMe.maxHp) + '%';
+  document.getElementById('pbOppFill').style.width = (100 * pbOpp.hp / pbOpp.maxHp) + '%';
+  document.getElementById('pbMyHp').textContent = Math.ceil(pbMe.hp) + ' / ' + pbMe.maxHp;
+  document.getElementById('pbOppHp').textContent = Math.ceil(pbOpp.hp) + ' / ' + pbOpp.maxHp;
+}
+function pbSetTexts() {
+  document.getElementById('pbInstructions').textContent = heEn('↑ להתקדם · ↓ אחורה · ← → לפנייה · A / רווח = נשיכה 🦷', '↑ forward · ↓ back · ← → turn · A / Space = bite 🦷');
+  document.getElementById('pbBiteLabel').textContent = heEn('🦷 נשיכה', '🦷 Bite');
+  document.getElementById('pbExitBtn').textContent = heEn('⬅ יציאה ללובי', '⬅ Exit to lobby');
+  document.getElementById('pbAgainBtn').textContent = heEn('🔄 עוד קרב חיות', '🔄 Another animal battle');
+  document.getElementById('pbLobbyBtn').textContent = heEn('🏠 לובי', '🏠 Lobby');
+}
+
+function enterPetBattle() {
+  pbDispose(pbMe); pbDispose(pbOpp);
+  if (petGroup) petGroup.visible = false;
+  const mine = petCfg;
+  pbMe = pbMakeFighter(mine, true);
+  pbOpp = pbMakeFighter(pbPickOpponent(mine), false);
+  pbMe.x = 0; pbMe.z = PB_RADIUS - 2.8; pbMe.yaw = Math.PI;
+  pbOpp.x = 0; pbOpp.z = -(PB_RADIUS - 2.8); pbOpp.yaw = 0;
+  pbOver = false;
+  document.getElementById('petBattleResult').classList.remove('show');
+  player.group.visible = false;
+  if (!pbSavedFog) { pbSavedFog = scene.fog || 'none'; pbSavedBg = scene.background; }
+  scene.fog = new THREE.Fog(0x9cc4e4, 14, 46);
+  scene.background = new THREE.Color(0x9cc4e4);
+  pbSetTexts(); pbUpdateHud(); pbPlace(pbMe, 0); pbPlace(pbOpp, 0); pbUpdateCamera();
+}
+function exitPetBattle() {
+  pbDispose(pbMe); pbDispose(pbOpp); pbMe = pbOpp = null;
+  player.group.visible = true;
+  if (pbSavedFog) { scene.fog = pbSavedFog === 'none' ? null : pbSavedFog; scene.background = pbSavedBg; pbSavedFog = null; }
+  document.getElementById('petBattleResult').classList.remove('show');
+}
+
+// מציבה את מודל החיה: מיקום, כיוון (החיה פונה ל-+x מקומי), קפיצון בהליכה, והטיית נשיכה
+function pbPlace(f, t) {
+  const bite = f.biteT >= 0 ? Math.sin(Math.min(1, f.biteT / PB_BITE_LEN) * Math.PI) : 0;
+  const fx = Math.sin(f.yaw), fz = Math.cos(f.yaw);
+  const hop = f.moving ? Math.abs(Math.sin(f.phase)) * Math.min(0.1, (f.cfg.h || 0.2) * 0.25) : 0;
+  f.group.position.set(f.x + fx * bite * 0.35, hop + (f.down > 0 ? 0 : 0), f.z + fz * bite * 0.35);
+  f.group.rotation.set(0, f.yaw - Math.PI / 2, 0);
+  f.group.rotation.z = -bite * 0.45 + (f.hurt > 0 ? 0.12 * Math.sin(t * 50) : 0);
+  if (f.down > 0) { f.group.rotation.x = Math.min(1, f.down) * 1.45; }
+}
+function pbUpdateCamera() {
+  const f = pbMe;
+  const d = 3.0 + f.half * 2.4, h = 2.0 + (f.cfg.h || 0.3) * 1.0 + f.half * 0.6;
+  let cx = f.x - Math.sin(f.yaw) * d, cz = f.z - Math.cos(f.yaw) * d;
+  const cr = Math.hypot(cx, cz), climit = PB_RADIUS - 0.4;   // המצלמה נשארת בתוך העיגול, לא מאחורי הסלעים
+  if (cr > climit) { cx *= climit / cr; cz *= climit / cr; }
+  camera.position.set(cx + PB_OFFSET.x, h, cz + PB_OFFSET.z);
+  camera.lookAt(f.x + PB_OFFSET.x + Math.sin(f.yaw) * 1.6, (f.cfg.h || 0.3) * 0.5, f.z + PB_OFFSET.z + Math.cos(f.yaw) * 1.6);
+}
+function pbStartBite(f) {
+  if (f.cool > 0 || f.biteT >= 0 || f.down > 0) return false;
+  f.biteT = 0; f.hitDone = false; f.cool = f.cfg.every;
+  return true;
+}
+function pbEnd(winner) {
+  if (pbOver) return;
+  pbOver = true;
+  const win = winner === pbMe;
+  let title = win ? heEn('🏆 ניצחת בקרב החיות!', '🏆 You won the animal battle!') : heEn('💀 הפסדת בקרב החיות...', '💀 You lost the animal battle...');
+  if (win) {
+    const reward = 200 + pbOpp.cfg.dmg * 6;
+    money += reward; updateMoneyUI();
+    title += ' (💰 +' + reward + '₪)';
+    if (typeof saveCloudState === 'function') saveCloudState();
+  }
+  (win ? pbOpp : pbMe).down = 0.001;
+  document.getElementById('pbResultTitle').textContent = title;
+  setTimeout(() => { if (pbOver) document.getElementById('petBattleResult').classList.add('show'); }, 900);
+}
+function pbBiteHit(attacker, target) {
+  const dx = target.x - attacker.x, dz = target.z - attacker.z, dist = Math.hypot(dx, dz) || 1e-6;
+  const reach = attacker.half + target.half + 0.35;
+  const facing = (dx * Math.sin(attacker.yaw) + dz * Math.cos(attacker.yaw)) / dist;
+  if (dist > reach || facing < 0.25) return;
+  target.hp = Math.max(0, target.hp - attacker.cfg.dmg);
+  target.hurt = 0.25;
+  playHitSound('punch');
+  pbUpdateHud();
+  if (target.hp <= 0) pbEnd(attacker);
+}
+function pbClamp(f) {
+  const r = Math.hypot(f.x, f.z), lim = PB_RADIUS - 0.3;
+  if (r > lim) { f.x *= lim / r; f.z *= lim / r; }
+}
+function updatePetBattle(dt, t) {
+  if (!pbMe) return;
+  for (const f of [pbMe, pbOpp]) {
+    if (f.cool > 0) f.cool -= dt;
+    if (f.hurt > 0) f.hurt -= dt;
+    if (f.down > 0) f.down += dt;
+    if (f.biteT >= 0) {
+      const prev = f.biteT; f.biteT += dt;
+      if (!f.hitDone && f.biteT >= PB_BITE_HIT_T && !pbOver) { f.hitDone = true; pbBiteHit(f, f === pbMe ? pbOpp : pbMe); }
+      if (f.biteT > PB_BITE_LEN) f.biteT = -1;
+    }
+    f.moving = 0;
+  }
+  if (!pbOver) {
+    // ---- אתה ----
+    if (KEYS.ArrowLeft) pbMe.yaw += EXPLORE_TURN_SPEED * dt;
+    if (KEYS.ArrowRight) pbMe.yaw -= EXPLORE_TURN_SPEED * dt;
+    const dir = (KEYS.ArrowUp ? 1 : 0) - (KEYS.ArrowDown ? 1 : 0);
+    if (dir) {
+      pbMe.x += Math.sin(pbMe.yaw) * PB_SPEED * dt * dir;
+      pbMe.z += Math.cos(pbMe.yaw) * PB_SPEED * dt * dir;
+      pbMe.phase += dt * 11; pbMe.moving = 1;
+    }
+    if (KEYS.KeyA || KEYS.KeyS || KEYS.KeyW || KEYS.Space || pbBiteHeld) pbStartBite(pbMe);
+    // ---- היריב (AI): פונה אליך, מתקרב, נושך ----
+    const dx = pbMe.x - pbOpp.x, dz = pbMe.z - pbOpp.z, dist = Math.hypot(dx, dz) || 1e-6;
+    const want = Math.atan2(dx, dz);
+    let diff = want - pbOpp.yaw; diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    pbOpp.yaw += Math.sign(diff) * Math.min(Math.abs(diff), 2.6 * dt);
+    const reach = pbOpp.half + pbMe.half + 0.35;
+    if (dist > reach * 0.8) {
+      pbOpp.x += Math.sin(pbOpp.yaw) * PB_OPP_SPEED * dt;
+      pbOpp.z += Math.cos(pbOpp.yaw) * PB_OPP_SPEED * dt;
+      pbOpp.phase += dt * 11; pbOpp.moving = 1;
+    }
+    if (dist < reach * 0.95 && Math.abs(diff) < 0.4 && pbOpp.cool <= 0) {
+      pbOpp.react -= dt;
+      if (pbOpp.react <= 0) { pbStartBite(pbOpp); pbOpp.react = 0.2 + Math.random() * 0.5; }
+    }
+    // לא לעבור אחד דרך השני
+    const gap = (pbMe.half + pbOpp.half) * 0.85, d2 = Math.hypot(pbMe.x - pbOpp.x, pbMe.z - pbOpp.z) || 1e-6;
+    if (d2 < gap) {
+      const push = (gap - d2) / 2, nx = (pbMe.x - pbOpp.x) / d2, nz = (pbMe.z - pbOpp.z) / d2;
+      pbMe.x += nx * push; pbMe.z += nz * push; pbOpp.x -= nx * push; pbOpp.z -= nz * push;
+    }
+    pbClamp(pbMe); pbClamp(pbOpp);
+  }
+  pbPlace(pbMe, t); pbPlace(pbOpp, t);
+  pbUpdateCamera();
+  const cd = document.getElementById('pbBiteCd');
+  cd.style.height = (100 * Math.max(0, pbMe.cool) / pbMe.cfg.every) + '%';
+}
+document.getElementById('pbBiteBtn').addEventListener('pointerdown', () => { pbBiteHeld = true; });
+addEventListener('pointerup', () => { pbBiteHeld = false; });
+document.getElementById('pbExitBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('pbLobbyBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('pbAgainBtn').addEventListener('click', enterPetBattle);
+
 // ---------- בחירת סוג קרב בלובי (רגיל / סומו) ----------
 // אותו דפוס חצים בדיוק כמו בחירת דמות/נשק - "התחל קרב" מסתכל על הבחירה
 // הזו ומחליט לאיזה מסך להיכנס, במקום כפתור נפרד לכל סוג קרב.
@@ -26248,6 +26501,8 @@ const BATTLE_MODES = [
   { key: 'sumo', label: '🎌 קרב סומו', labelEn: '🎌 Sumo battle', labelEs: '🎌 Batalla de sumo', labelJa: '🎌 すもうバトル', labelFr: '🎌 Combat de sumo', labelPt: '🎌 Batalha de sumô', labelDe: '🎌 Sumokampf', labelRu: '🎌 Бой сумо', labelAr: '🎌 معركة سومو', labelTh: '🎌 ต่อสู้ซูโม่', labelPl: '🎌 Walka sumo', labelIt: '🎌 Battaglia di sumo', labelRo: '🎌 Luptă de sumo', labelZh: '🎌 相扑战', labelKo: '🎌 스모 배틀', labelHi: '🎌 सूमो लड़ाई', labelTr: '🎌 Sumo savaşı', labelNl: '🎌 Sumogevecht', labelSv: '🎌 Sumostrid', labelUk: '🎌 Бій сумо', labelCs: '🎌 Sumo', labelHu: '🎌 Szumó', labelEl: '🎌 Σούμο', labelBg: '🎌 Сумо', labelSr: '🎌 Сумо', labelHr: '🎌 Sumo', labelSk: '🎌 Sumo', labelSq: '🎌 Sumo', labelSl: '🎌 Sumo', labelGd: '🎌 Sumo', labelPtpt: '🎌 Sumo', labelAm: '🎌 የሱሞ ውጊያ', labelFi: '🎌 Sumotaistelu', labelNo: '🎌 Sumokamp', labelGsw: '🎌 Sumokampf', labelVi: '🎌 Đấu sumo', labelId: '🎌 Pertarungan sumo', labelEt: '🎌 Sumolahing', labelIs: '🎌 Súmóbardagi', labelFa: '🎌 نبرد سومو' },
   { key: 'team', label: '🥊 קרב קבוצות', labelEn: '🥊 Team battle', labelEs: '🥊 Batalla de equipos', labelJa: '🥊 チームバトル', labelFr: '🥊 Combat d\'équipes', labelPt: '🥊 Batalha em equipe', labelDe: '🥊 Teamkampf', labelRu: '🥊 Командный бой', labelAr: '🥊 معركة الفرق', labelTh: '🥊 ต่อสู้แบบทีม', labelPl: '🥊 Walka drużyn', labelIt: '🥊 Battaglia a squadre', labelRo: '🥊 Luptă pe echipe', labelZh: '🥊 团队战', labelKo: '🥊 팀 배틀', labelHi: '🥊 टीम लड़ाई', labelTr: '🥊 Takım savaşı', labelNl: '🥊 Teamgevecht', labelSv: '🥊 Lagstrid', labelUk: '🥊 Командний бій', labelCs: '🥊 Týmový boj', labelHu: '🥊 Csapatharc', labelEl: '🥊 Ομαδική μάχη', labelBg: '🥊 Отборна битка', labelSr: '🥊 Тимска борба', labelHr: '🥊 Timska borba', labelSk: '🥊 Tímový boj', labelSq: '🥊 Betejë ekipore', labelSl: '🥊 Ekipni boj', labelGd: '🥊 Blàr sgioba', labelPtpt: '🥊 Batalha de equipas', labelAm: '🥊 የቡድን ውጊያ', labelFi: '🥊 Joukkuetaistelu', labelNo: '🥊 Lagkamp', labelGsw: '🥊 Teamkampf', labelVi: '🥊 Đấu đội', labelId: '🥊 Pertarungan tim', labelEt: '🥊 Meeskonnavõitlus', labelIs: '🥊 Liðabardagi', labelFa: '🥊 نبرد تیمی' },
   // כולם על כולם (2026-09-29, בקשת המשתמש): 10 לוחמים, כל אחד נגד כל השאר, האחרון שנשאר מנצח. שאר השפות מקבלות אנגלית.
+  // קרב חיות (2026-09-30): אתה חיית העזרה שבחרת, כפתור נשיכה אחד. שאר השפות מקבלות אנגלית.
+  { key: 'pets', label: '🐾 קרב חיות', labelEn: '🐾 Animal battle', labelEs: '🐾 Batalla de animales', labelFr: '🐾 Combat d\'animaux', labelDe: '🐾 Tierkampf', labelPt: '🐾 Batalha de animais' },
   { key: 'ffa', label: '💥 כולם על כולם', labelEn: '💥 Free-for-all', labelEs: '💥 Todos contra todos', labelFr: '💥 Chacun pour soi', labelDe: '💥 Jeder gegen jeden', labelPt: '💥 Todos contra todos', labelRu: '💥 Все против всех', labelAr: '💥 الكل ضد الكل', labelJa: '💥 全員バトル', labelZh: '💥 大乱斗' },
 ];
 let selectedModeIndex = 0;
@@ -26269,6 +26524,9 @@ function startSelectedBattle() {
   const mode = BATTLE_MODES[selectedModeIndex].key;
   if (mode === 'sumo') {
     showScreen('sumo');
+  } else if (mode === 'pets') {
+    if (!petCfg) { showShieldToast(heEn('🐾 קודם תקנה ותבחר חיית עזרה! (כפתור "חיות עזרה" בלובי)', '🐾 First buy and choose a helper animal! ("Helper animals" button in the lobby)')); return; }
+    showScreen('petBattle');
   } else if (mode === 'ffa') {
     ffaMode = true;
     showScreen('teamBattle');
@@ -28084,6 +28342,8 @@ function animate() {
     updateForestExplorer(dt, t);
   } else if (uiScreen === 'sumo') {
     updateSumo(dt, t);
+  } else if (uiScreen === 'petBattle') {
+    updatePetBattle(dt, t);
   } else if (uiScreen === 'teamBattle') {
     updateTeamBattle(dt, t);
   } else if (uiScreen === 'friendArena') {
@@ -28171,6 +28431,7 @@ window.game = {
   upgradeCharacter, getLevels, characterLevels, upgradeCost, MAX_UPGRADE_LEVEL,
   refreshPlayerCombatStats, startJump,
   SUMO_RADIUS, SUMO_OFFSET, enterSumo, exitSumo, endSumo,
+  enterPetBattle, exitPetBattle, updatePetBattle, pbStartBite, get pbMe() { return pbMe; }, get pbOpp() { return pbOpp; }, get pbOver() { return pbOver; },
   get chests() { return chests; }, openChest, claimDailyGift, rollChestReward, dailyClaimedToday,
   BATTLE_MODES, cycleBattleMode, startSelectedBattle, get selectedModeIndex() { return selectedModeIndex; },
   get teamFighters() { return teamFighters; }, get teamBattleOver() { return teamBattleOver; },
