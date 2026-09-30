@@ -374,6 +374,8 @@
   #chestRow { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin: 18px 0; }
   .chestCard { width: 150px; padding: 14px 10px; border-radius: 16px; background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.25); text-align: center; }
   .chestCard.rare { border-color: #4da3ff; } .chestCard.legendary { border-color: #ffcf4d; box-shadow: 0 0 18px rgba(255,207,77,0.4); }
+  .chestCard.huge { border-color: #ff5ecb; box-shadow: 0 0 24px rgba(255,94,203,0.55); }
+  .chestCard.ultra { border-color: #7dffb0; box-shadow: 0 0 30px rgba(125,255,176,0.7), 0 0 60px rgba(77,163,255,0.4); }
   .chestIcon { font-size: 3rem; } .chestName { font-weight: bold; margin: 4px 0; } .chestCount { opacity: 0.85; margin-bottom: 8px; }
   .chestCard button { background: #ffcf4d; color: #1a1a1a; border: none; border-radius: 10px; padding: 8px 16px; font-weight: bold; cursor: pointer; }
   .chestCard button:disabled { background: rgba(255,255,255,0.15); color: #aaa; cursor: default; }
@@ -20096,9 +20098,14 @@ const CHEST_TYPES = {
                money: [1000, 5000], maxPrice: 60000,    w: { money: 30, food: 15, drinks: 15, shields: 15, weapons: 15, characters: 10 } },
   legendary: { icon: '💎', he: 'תיבה אגדית', en: 'Legendary chest',
                money: [5000, 25000], maxPrice: Infinity, w: { money: 20, food: 10, drinks: 10, shields: 15, weapons: 20, characters: 25 } },
+  // תיבות ענק: פריטים יקרים בלבד (minPrice) וכסף גדול. אם אין פריט יקר שעוד לא שלך - מקבלים כל פריט אחר, ואם אין בכלל - כסף.
+  huge:      { icon: '👑', he: 'תיבה אדירה', en: 'Huge chest',
+               money: [25000, 100000], minPrice: 30000, maxPrice: Infinity, w: { money: 20, food: 10, drinks: 5, shields: 20, weapons: 25, characters: 20 } },
+  ultra:     { icon: '🌟', he: 'תיבת אולטרה', en: 'Ultra chest',
+               money: [100000, 500000], minPrice: 50000, maxPrice: Infinity, w: { money: 15, food: 5, drinks: 0, shields: 25, weapons: 35, characters: 20 } },
 };
 const DAILY_KEY = 'battleGameDailyClaim';
-let chests = { common: 0, rare: 0, legendary: 0 };
+let chests = { common: 0, rare: 0, legendary: 0, huge: 0, ultra: 0 };
 let lastDailyClaim = '';
 const dailyBtnLobbyEl = document.getElementById('openDailyBtn');
 const CAT_EMOJI = { money: '💰', characters: '👤', weapons: '⚔️', shields: '🛡️', food: '🍎', drinks: '🥤' };
@@ -20120,14 +20127,14 @@ function pickWeighted(weights) {
 }
 // פריטים בקטגוריה שעוד לא בבעלות השחקן, ושהמחיר שלהם (המספר לפני ₪) קטן/שווה לתקרה.
 // פריט "חינם" (סווארק, אבן חדה, מים) לא נחשב - הוא כבר של השחקן מההתחלה.
-function unownedItems(key, maxPrice) {
+function unownedItems(key, maxPrice, minPrice = 0) {
   return SHOP_DATA[key].rows.filter((row) => {
     const name = row[0];
     if (key === 'characters' && (CUSTOM_CHARACTER_NAMES.has(name) || !CHARACTER_CFGS[name])) return false;
     if (key === 'weapons' && !WEAPON_CFGS[name]) return false;
     if (inventory.has(key + ':' + name)) return false;
     const price = parseInt(String(row[row.length - 1]).replace(/[^0-9]/g, ''), 10) || 0;
-    return price > 0 && price <= maxPrice;
+    return price > 0 && price <= maxPrice && price >= minPrice;
   }).map((row) => row[0]);
 }
 // מפיל פרס מתיבה ומחיל אותו על השחקן. מחזיר תיאור לתצוגה.
@@ -20135,7 +20142,8 @@ function rollChestReward(tier) {
   const t = CHEST_TYPES[tier];
   let cat = pickWeighted(t.w);
   if (cat !== 'money') {
-    const pool = unownedItems(cat, t.maxPrice);
+    let pool = unownedItems(cat, t.maxPrice, t.minPrice || 0);
+    if (pool.length === 0 && t.minPrice) pool = unownedItems(cat, t.maxPrice);   // אין פריט יקר - כל פריט שעוד אין
     if (pool.length === 0) cat = 'money';      // כבר יש לך הכל בקטגוריה - מקבלים כסף במקום
     else { const name = pool[Math.floor(Math.random() * pool.length)]; inventory.add(cat + ':' + name); return { cat, name }; }
   }
@@ -20170,7 +20178,7 @@ function claimDailyGift() {
     money += amount; updateMoneyUI();
     html = rewardHtml({ cat: 'money', amount });
   } else if (r < 0.85) {
-    const tier = pickWeighted({ common: 65, rare: 28, legendary: 7 });
+    const tier = pickWeighted({ common: 60, rare: 27, legendary: 10, huge: 2.5, ultra: 0.5 });
     chests[tier]++;
     html = '<span class="bigEmoji">' + CHEST_TYPES[tier].icon + '</span>' + heEn('קיבלת ' + CHEST_TYPES[tier].he + '!', 'You got a ' + CHEST_TYPES[tier].en + '!');
   } else {
@@ -20250,7 +20258,7 @@ function resetLocalPlayerStateForAccountSwitch() {
   wins = 0;
   losses = 0;
   myUsername = '';
-  chests = { common: 0, rare: 0, legendary: 0 };
+  chests = { common: 0, rare: 0, legendary: 0, huge: 0, ultra: 0 };
   lastDailyClaim = '';
   // switchPlayerCharacter/switchPlayerWeapon כותבות saveCloudState() בעצמן -
   // cloudUser כבר null בשלב הזה (ראה onAuthStateChanged למטה) כדי שזה לא
@@ -20292,7 +20300,7 @@ function applyCloudState(data) {
   if (data.wins != null) wins = data.wins;
   if (data.losses != null) losses = data.losses;
   if (data.username) myUsername = data.username;
-  if (data.chests) chests = { common: 0, rare: 0, legendary: 0, ...data.chests };
+  if (data.chests) chests = { common: 0, rare: 0, legendary: 0, huge: 0, ultra: 0, ...data.chests };
   if (data.lastDailyClaim) lastDailyClaim = data.lastDailyClaim;
   updateDailyBtn();
   updateMoneyUI();
