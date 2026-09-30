@@ -6599,17 +6599,20 @@ const NEO_CFG = {
   backSwords: true,
   bracelet: true,
 };
-// אטלס - גולם ענק מאבן: עור אפור מנומר, ידיים ורגליים ענקיות, שריון חזה.
+// אטלס - טיטאן שרירי: עור כתום, זקן שחור, קוביות בטן, מכנסי אגרוף כחולים, צמידים.
 const ATLAS_CFG = {
   power: 17.2, speed: 15.4,
-  skin: 0x8a8478,
-  mottledSkin: true, mottledColor2: 0x5a564e,
-  bald: true,
-  eyeColor: 0xffd060, glowEyes: true,
+  skin: 0xe07a30,  skinTex: true,
+  hair: 0x14100c,  hairTex: true, hairStyle: 'spiky',
+  beard: true, beardLength: 3, beardColor: 0x14100c,
+  eyeColor: 0x2a1a10,
   ears: 'round',
-  chestArmor: true, chestArmorColor: 0x6a665e,
-  armScale: 1.6, fistScale: 1.8, legScale: 1.4,
-  top: null, pants: null, boxers: 0x4a463e, boots: null,
+  abs: true,
+  armScale: 1.5, fistScale: 1.6, legScale: 1.3,
+  top: null,
+  pants: 0x1a3a9a, pantsLength: 0.5, shorts: true, pantsStripeColor: 0xffffff,
+  boots: null,
+  bracelet: true, braceletCount: 2, braceletBothWrists: true,
 };
 // ויפר - לוחמת-נחש: עור ירוק, עיניים צהובות זוהרות, זנב ארוך, ז'קט ירוק כהה.
 const VIPER_CFG = {
@@ -6656,16 +6659,16 @@ const FUNKY_CFG = {
   boots: 0xff2a8a,
   bracelet: true,
 };
-// פוסידון - אל-הים: עור טורקיז, זקן ושיער לבנים, הילה תכולה, שריון חזה וחצאית ים.
+// פוסידון - אל-הים: עור שזוף, שיער וזקן כחולים ארוכים, הילה זהובה, שריון זהב וחצאית ים.
 const POSEIDON_CFG = {
   power: 17.8, speed: 17.4,
-  skin: 0x2a9aa8,  skinTex: true,
-  hair: 0xd8f0f0,  hairTex: true, hairStyle: 'long',
-  beard: true, beardLength: 3.5, beardColor: 0xd8f0f0,
-  eyeColor: 0x40ffe0, glowEyes: true,
+  skin: 0xd8a070,  skinTex: true,
+  hair: 0x1a4aa0,  hairTex: true, hairStyle: 'long',
+  beard: true, beardLength: 3.5, beardColor: 0x1a4aa0,
+  eyeColor: 0x40a0ff, glowEyes: true,
   ears: 'pointed',
-  halo: true, haloColor: 0x40e0ff,
-  chestArmor: true, chestArmorColor: 0x1a6a8a,
+  halo: true, haloColor: 0xffd040,
+  chestArmor: true, chestArmorColor: 0xc09030,
   skirt: { len: 0.6, r0: 0.16, r1: 0.30, color: 0x1a6a8a },
   armScale: 1.2, fistScale: 1.3,
   top: null, boots: null,
@@ -6836,34 +6839,36 @@ const SOBEK_CFG = {
   armScale: 1.6, fistScale: 1.7, legScale: 1.4,
   top: null, pants: null, boxers: 0x3a3a1a, boots: null,
 };
-// אזראל - מלאך נופל: עור חיוור, שיער לבן ארוך, כנפיים שחורות, הילה אדומה כהה, שתי חרבות בגב.
+// אזראל - מלאך ורוד-טורקיז: עור ורוד בהיר, שיער טורקיז ארוך, כנפיים ורודות, הילה טורקיז, שתי חרבות בגב.
 const AZRAEL_CFG = {
   power: 19.6, speed: 15.0,
-  skin: 0xd8d8e0,  skinTex: true,
-  hair: 0xf0f0f0,  hairTex: true, hairStyle: 'long',
-  eyeColor: 0xff2020, glowEyes: true,
+  skin: 0xf4d0e0,  skinTex: true,
+  hair: 0x20d8c8,  hairTex: true, hairStyle: 'long',
+  eyeColor: 0xff60b0, glowEyes: true,
   ears: 'pointed',
-  halo: true, haloColor: 0x8a0a0a,
-  wings: true, wingScale: 1.6, wingColor: 0x0a0a10,
+  halo: true, haloColor: 0x20d8c8,
+  wings: true, wingScale: 1.6, wingColor: 0xff60b0,
   backSwords: true,
-  chestGem: true, chestGemColor: 0xff2020,
-  top: 0x1a1a22,
-  jacket: 0x0a0a10, jacketStripes: [], jacketHem: 0.3, sleeveLen: 1,
-  skirt: { len: 0.9, r0: 0.16, r1: 0.32, color: 0x0a0a10, torn: true },
-  boots: 0x0a0a10,
+  chestGem: true, chestGemColor: 0x20d8c8,
+  top: 0xfff0f8,
+  jacket: 0xfff0f8, jacketStripes: [], jacketHem: 0.3, sleeveLen: 1,
+  skirt: { len: 0.9, r0: 0.16, r1: 0.32, color: 0xff90c8, torn: true },
+  boots: 0x20d8c8,
 };
-// גרים - המוות: שלד עצם, ברדס שחור, עיניים ירוקות זוהרות, חרמש, גלימה קרועה.
+// גרים - קוצר דלעת: עור כתום מנומר, שיער-גבעול ירוק, עיניים צהובות זוהרות, שיניים גדולות, חרמש, גלימה ירוקה קרועה.
 const GRIM_CFG = {
   power: 19.8, speed: 14.6,
-  skin: 0xd8d4c0,  skinTex: true,
-  bald: true,
-  hood: true, hoodColor: 0x0a0a0a,
-  eyeColor: 0x40ff60, glowEyes: true,
+  skin: 0xe06a10,
+  mottledSkin: true, mottledColor2: 0x8a3a08,
+  hair: 0x3a8a20,  hairTex: true, hairStyle: 'spiky',
+  eyeColor: 0xffe020, glowEyes: true,
   ears: 'pointed',
+  mouthTeeth: { count: 6 },
   backScythe: true,
-  claws: true, clawColor: 0xd8d4c0,
-  jacket: 0x0a0a0a, jacketStripes: [],
-  skirt: { len: 0.95, r0: 0.16, r1: 0.34, color: 0x0a0a0a, torn: true },
+  claws: true, clawColor: 0x3a8a20,
+  jacket: 0x2a5a1a, jacketStripes: [],
+  skirt: { len: 0.95, r0: 0.16, r1: 0.34, color: 0x2a5a1a, torn: true },
+  armScale: 1.3, fistScale: 1.4,
   top: null, pants: null, boxers: null, boots: null,
 };
 // רגנרוק - הבוס הסופי החדש: עור כסוף-גבישי, עיני אדומות, קרניים וכנפיים שחורים, הילה אדומה, חרמש וחרבות, קריסטלים אדומים.
