@@ -28229,15 +28229,30 @@ document.getElementById('newUserConfirmNoBtn').addEventListener('click', () => {
 // כשמתחברים עם חשבון גוגל אחר - resetLocalPlayerStateForAccountSwitch),
 // אבל בלי לנתק את cloudUser - כדי שהאיפוס באמת יישמר בענן על החשבון
 // הנוכחי, לא רק מקומית עד לרענון הבא.
-// קוד סודי (2026-10-01, בקשת הבן): מי שמקליד את הקוד בהגדרות מקבל מיליארד כסף. הקוד גלוי למי שקורא את הקוד של המשחק - זה לא אבטחה אמיתית.
-const SECRET_BILLION_CODE = 'gal1000';
-document.getElementById('secretCodeInput').addEventListener('input', (e) => {
-  if (e.target.value.trim().toLowerCase() !== SECRET_BILLION_CODE) return;
-  e.target.value = '';
-  money = 1000000000;
+// קוד סודי (2026-10-01, בקשת הבן): מקלידים את הקוד בהגדרות, ואז כותבים כמה כסף רוצים ולוחצים Enter - והכסף נקבע לכמות הזו.
+// הקוד גלוי למי שקורא את הקוד של המשחק - זה לא אבטחה אמיתית.
+const SECRET_MONEY_CODE = '5720';
+const secretInputEl = document.getElementById('secretCodeInput');
+let secretAmountMode = false;
+secretInputEl.addEventListener('input', () => {
+  if (!secretAmountMode && secretInputEl.value.trim() === SECRET_MONEY_CODE) {
+    secretAmountMode = true;
+    secretInputEl.value = '';
+    secretInputEl.placeholder = '💰 ?';
+    secretInputEl.inputMode = 'numeric';
+  }
+});
+secretInputEl.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' || !secretAmountMode) return;
+  const amount = Math.floor(Number(secretInputEl.value.replace(/[,\s]/g, '')));
+  secretAmountMode = false;
+  secretInputEl.value = '';
+  secretInputEl.placeholder = '🔑';
+  if (!isFinite(amount) || amount < 0) return;
+  money = Math.min(amount, 1e15);
   updateMoneyUI();
   saveCloudState();
-  showShieldToast('💰 1,000,000,000');
+  showShieldToast('💰 ' + money.toLocaleString('en-US'));
 });
 document.getElementById('newUserConfirmYesBtn').addEventListener('click', () => {
   newUserConfirmEl.style.display = 'none';
