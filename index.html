@@ -9117,8 +9117,30 @@ function fallProgress(f) {
 }
 
 // עוקבים אחרי סטגר ונפילה של לוחם - נקראת לכל לוחם בכל פריים קרב (ראה animate).
+// קוביית קרח (2026-10-01, בקשת הבן): כשמגן מקפיא לוחם (`frozenT` נקבע ב-triggerShieldAbility),
+// הוא נראה "כלוא" בתוך קובייה שקופה כחולה-בהירה. הקובייה ילד של `f.group` ולכן זזה איתו.
+function updateFreezeCube(f) {
+  const on = (f.frozenT || 0) > 0 && f.staggerT > 0;
+  if (!on && !f.freezeCube) return;
+  if (!f.freezeCube) {
+    const g = new THREE.Group();
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1.05, 2.05, 1.05),
+      new THREE.MeshStandardMaterial({ color: 0x5ac8ff, emissive: 0x1a78c8, emissiveIntensity: 0.6, roughness: 0.1, metalness: 0.1, transparent: true, opacity: 0.55, depthWrite: false }));
+    g.add(box);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(box.geometry), new THREE.LineBasicMaterial({ color: 0xe8fbff }));
+    g.add(edges);
+    g.position.y = 0.98;
+    g.visible = false;
+    f.group.add(g);
+    f.freezeCube = g;
+  }
+  f.freezeCube.visible = on;
+}
+
 function tickFallState(f, dt) {
   if (f.staggerT > 0) f.staggerT = Math.max(0, f.staggerT - dt);
+  if (f.frozenT > 0) f.frozenT = Math.max(0, f.frozenT - dt);
+  updateFreezeCube(f);
   if (f.down) {
     // קרב קבוצות: מי שמגיע לאפס חיים נופל לצמיתות (koPermanent) - השעון
     // נעצר בדיוק ב-FALL_TIME (שוכב לגמרי, fallProgress=1) ולא ממשיך
@@ -28731,6 +28753,7 @@ function triggerShieldAbility(defender, attacker, blocked, attackerWho, defender
     updateHealthUI(defender, defenderWho);
   }
   if (ab.freeze) attacker.staggerT = Math.max(attacker.staggerT || 0, ab.freeze);
+  if (ab.freeze) attacker.frozenT = Math.max(attacker.frozenT || 0, ab.freeze);   // קוביית קרח (updateFreezeCube)
 
   if (back > 0) {
     attacker.hp = Math.max(0, attacker.hp - back);
