@@ -9361,7 +9361,7 @@ function tickCombat(attacker, defender, who, otherWho) {
 // 2026-09-29 (בקשת המשתמש): "בכל קרב יקבלו עד 500 כסף, אבל אפשר גם פחות - תלוי איך היית בקרב". הכסף בקרב רגיל
 // (ניצחון *או* הפסד) הוא עכשיו לפי הביצועים - אותה נוסחת נקודות של הציון (computeGradePoints): נזק שגרמת,
 // נזק שקיבלת וכמה חיים נשארו. 500 = ניצחון כמעט בלי לקבל מכות; ניצחון "בקושי" ~300; הפסד קרוב ~50, הפסד גדול 0.
-const MAX_MONEY_PER_GAME = 1350;
+const MAX_MONEY_PER_GAME = 2500;
 const MONEY_POINTS_FLOOR = 0, MONEY_POINTS_FULL = 180;   // 0 נקודות ומטה: 0₪. מ-180 ומעלה: הסכום המלא
 function fightMoney(win) {
   const pts = computeGradePoints(win);
