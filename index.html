@@ -1045,6 +1045,7 @@
     <button class="bigBtn secondary" id="newUserConfirmNoBtn" data-i18n-he="❌ לא, בטל" data-i18n-en="❌ No, cancel" data-i18n-es="❌ No, cancelar" data-i18n-ja="❌ いいえ、やめる" data-i18n-fr="❌ Non, annuler" data-i18n-pt="❌ Não, cancelar" data-i18n-de="❌ Nein, abbrechen" data-i18n-ru="❌ Нет, отмена" data-i18n-ar="❌ لا، إلغاء" data-i18n-th="❌ ไม่ ยกเลิก" data-i18n-pl="❌ Nie, anuluj" data-i18n-it="❌ No, annulla" data-i18n-ro="❌ Nu, anulează" data-i18n-zh="❌ 不,取消" data-i18n-ko="❌ 아니요, 취소" data-i18n-hi="❌ नहीं, रद्द करो" data-i18n-tr="❌ Hayır, iptal" data-i18n-nl="❌ Nee, annuleren" data-i18n-sv="❌ Nej, avbryt" data-i18n-uk="❌ Ні, скасувати" data-i18n-cs="❌ Ne, zrušit" data-i18n-hu="❌ Nem, mégse" data-i18n-el="❌ Όχι, άκυρο" data-i18n-bg="❌ Не, отказ" data-i18n-sr="❌ Не, откажи" data-i18n-hr="❌ Ne, odustani" data-i18n-sk="❌ Nie, zrušiť" data-i18n-sq="❌ Jo, anulo" data-i18n-sl="❌ Ne, prekliči" data-i18n-gd="❌ Chan eil, sguir dheth" data-i18n-ptpt="❌ Não, cancelar" data-i18n-am="❌ አይ፣ ሰርዝ" data-i18n-fi="❌ Ei, peruuta" data-i18n-no="❌ Nei, avbryt" data-i18n-gsw="❌ Nei, abbräche" data-i18n-vi="❌ Không, hủy" data-i18n-id="❌ Tidak, batal" data-i18n-et="❌ Ei, tühista" data-i18n-is="❌ Nei, hætta við" data-i18n-fa="❌ نه، لغو">❌ לא, בטל</button>
   </div>
   <input id="secretCodeInput" type="text" placeholder="🔑" autocomplete="off" style="width:120px;margin:10px auto;display:block;text-align:center;opacity:.55;font-size:16px;">
+  <button id="secretOkBtn" class="bigBtn" style="display:none;margin:0 auto 10px;">✅ OK</button>
   <button id="settingsBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby" data-i18n-es="⬅ Volver al lobby" data-i18n-ja="⬅ ロビーにもどる" data-i18n-fr="⬅ Retour à l'accueil" data-i18n-pt="⬅ Voltar ao início" data-i18n-de="⬅ Zurück zum Start" data-i18n-ru="⬅ На главную" data-i18n-ar="⬅ العودة إلى الرئيسية" data-i18n-th="⬅ กลับหน้าหลัก" data-i18n-pl="⬅ Wróć do startu" data-i18n-it="⬅ Torna all'inizio" data-i18n-ro="⬅ Înapoi acasă" data-i18n-zh="⬅ 返回主页" data-i18n-ko="⬅ 홈으로" data-i18n-hi="⬅ लॉबी पर वापस" data-i18n-tr="⬅ Lobiye dön" data-i18n-nl="⬅ Terug naar lobby" data-i18n-sv="⬅ Tillbaka till lobbyn" data-i18n-uk="⬅ На головну" data-i18n-cs="⬅ Zpět do menu" data-i18n-hu="⬅ Vissza a menübe" data-i18n-el="⬅ Πίσω στην αρχική" data-i18n-bg="⬅ Към началото" data-i18n-sr="⬅ Назад на почетну" data-i18n-hr="⬅ Natrag na početnu" data-i18n-sk="⬅ Späť do menu" data-i18n-sq="⬅ Kthehu në kryefaqe" data-i18n-sl="⬅ Nazaj na začetek" data-i18n-gd="⬅ Air ais dhachaigh" data-i18n-ptpt="⬅ Voltar ao início" data-i18n-am="⬅ ወደ መነሻ ተመለስ" data-i18n-fi="⬅ Takaisin aulaan" data-i18n-no="⬅ Tilbake til lobbyen" data-i18n-gsw="⬅ Zrugg id Lobby" data-i18n-vi="⬅ Về sảnh" data-i18n-id="⬅ Kembali ke lobi" data-i18n-et="⬅ Tagasi fuajeesse" data-i18n-is="⬅ Aftur í anddyri" data-i18n-fa="⬅ بازگشت به لابی">⬅ חזרה ללובי</button>
 </div>
 
@@ -28233,27 +28234,35 @@ document.getElementById('newUserConfirmNoBtn').addEventListener('click', () => {
 // הקוד גלוי למי שקורא את הקוד של המשחק - זה לא אבטחה אמיתית.
 const SECRET_MONEY_CODE = '5720';
 const secretInputEl = document.getElementById('secretCodeInput');
+const secretOkBtnEl = document.getElementById('secretOkBtn');
 let secretAmountMode = false;
-secretInputEl.addEventListener('input', () => {
-  if (!secretAmountMode && secretInputEl.value.trim() === SECRET_MONEY_CODE) {
-    secretAmountMode = true;
-    secretInputEl.value = '';
-    secretInputEl.placeholder = '💰 ?';
-    secretInputEl.inputMode = 'numeric';
-  }
-});
-secretInputEl.addEventListener('keydown', (e) => {
-  if (e.key !== 'Enter' || !secretAmountMode) return;
+function applySecretAmount() {
+  if (!secretAmountMode) return;
   const amount = Math.floor(Number(secretInputEl.value.replace(/[,\s]/g, '')));
+  if (!isFinite(amount) || amount < 0) return;
   secretAmountMode = false;
   secretInputEl.value = '';
   secretInputEl.placeholder = '🔑';
-  if (!isFinite(amount) || amount < 0) return;
+  secretInputEl.style.width = '120px';
+  secretOkBtnEl.style.display = 'none';
   money = Math.min(amount, 1e15);
   updateMoneyUI();
   saveCloudState();
   showShieldToast('💰 ' + money.toLocaleString('en-US'));
+}
+secretInputEl.addEventListener('input', () => {
+  if (!secretAmountMode && secretInputEl.value.trim() === SECRET_MONEY_CODE) {
+    secretAmountMode = true;
+    secretInputEl.value = '';
+    secretInputEl.placeholder = '💰 ? (כמה כסף / how much)';
+    secretInputEl.style.width = '260px';
+    secretInputEl.style.opacity = '1';
+    secretInputEl.focus();
+    secretOkBtnEl.style.display = 'block';
+  }
 });
+secretInputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') applySecretAmount(); });
+secretOkBtnEl.addEventListener('click', applySecretAmount);
 document.getElementById('newUserConfirmYesBtn').addEventListener('click', () => {
   newUserConfirmEl.style.display = 'none';
   resetLocalPlayerStateForAccountSwitch();
