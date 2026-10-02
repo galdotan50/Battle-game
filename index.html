@@ -36380,6 +36380,7 @@ const hitFxPool = [];
     hitFxPool.push({ m, vx: 0, vy: 0, vz: 0, life: 0 });
   }
 })();
+const HIT_PARTICLES_ENABLED = false;   // הנקודות/ניצוצות שניתזים מהמכה - כבויים לבקשת הבן (2026-10-02). true = להחזיר
 const BLOOD_ENABLED = false;   // הבן ביקש להוריד את הדם (2026-10-02). true = להחזיר
 const HIT_STRENGTH = { block: 0.02, punch: 0.05, kick: 0.09, stone: 0.12 };
 function spawnHitFX(defender, kind, attacker) {
@@ -36390,6 +36391,7 @@ function spawnHitFX(defender, kind, attacker) {
     defender.fightTime = (defender.fightTime || 0) + 2;   // כל מכה מעייפת/מזיעה קצת יותר
     if (uiScreen === 'battle') { camShake = Math.max(camShake, k * 1.6); hitStopT = Math.max(hitStopT, k * 1.1); }
   }
+  if (!HIT_PARTICLES_ENABLED) return;
   const count = kind === 'block' ? 6 : kind === 'punch' ? 12 : kind === 'kick' ? 16 : 22;
   const dir = Math.sign(defender.group.position.x - attacker.group.position.x) || 1;
   const cy = GROUND_Y + (kind === 'kick' ? 1.0 : 1.4);
