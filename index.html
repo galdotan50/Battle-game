@@ -384,7 +384,7 @@
   #entSkip { position: absolute; top: calc(9vh + 10px); right: 14px; font-size: 1.1rem; color: #fff; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.35); border-radius: 10px; padding: 6px 14px; }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #teamOnlineOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -396,8 +396,8 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show, #lootSelectOverlay.show, #petsOverlay.show, #teamSizeOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show, #matchOverlay.show, #dailyOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #teamOnlineOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show, #petsOverlay.show, #teamSizeOverlay.show, #teamOnlineOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show, #matchOverlay.show, #dailyOverlay.show { display: flex; }
   #dailyGiftBtn { font-size: 1.4rem; padding: 18px 40px; margin: 14px 0 6px; border-radius: 18px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(180deg, #ffe27a, #ffb52e); color: #1a1a1a; box-shadow: 0 6px 20px rgba(255,190,50,0.45); }
   #dailyGiftBtn:disabled { background: rgba(255,255,255,0.12); color: #ccc; box-shadow: none; cursor: default; }
   #chestRow { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin: 18px 0; }
@@ -847,6 +847,13 @@
   #giftContent .bigBtn.secondary, #friendsContent .bigBtn.secondary { background: rgba(255,255,255,0.12); color: #fff; }
   #giftContent input, #friendsContent input { font-size: 1.05rem; padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.35); background: rgba(0,0,0,0.35); color: #fff; width: 100%; max-width: 300px; box-sizing: border-box; text-align: center; }
   #giftContent .itemStat, #friendsContent .itemStat { opacity: 0.9; }
+  #teamOnlineContent { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 480px; width: 100%; }
+  #teamOnlineContent .bigBtn { font-size: 1.05rem; padding: 12px 30px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.35); background: #ffcf4d; color: #1a1a1a; }
+  #teamOnlineContent .bigBtn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); cursor: default; box-shadow: none; }
+  #teamOnlineContent .bigBtn.secondary { background: rgba(255,255,255,0.12); color: #fff; font-size: 0.9rem; padding: 6px 14px; margin-inline-start: 8px; }
+  #teamOnlineContent .itemStat { opacity: 0.95; font-size: 1.05rem; }
+  #teamOnlineContent input[type=checkbox] { width: 20px; height: 20px; vertical-align: middle; margin-inline-end: 6px; }
+  #teamOnlineBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
   #giftBackBtn, #friendsBackBtn { margin-top: 16px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
 
   /* ---------- שליטה במגע (טלפון) ----------
@@ -1025,6 +1032,7 @@
   </div>
   <button class="bigBtn" id="teamSize2Btn" data-i18n-he="👥 2 נגד 2" data-i18n-en="👥 2 vs 2" data-i18n-es="👥 2 contra 2" data-i18n-ja="👥 2 対 2" data-i18n-fr="👥 2 contre 2" data-i18n-pt="👥 2 x 2" data-i18n-de="👥 2 gegen 2" data-i18n-ru="👥 2 против 2" data-i18n-ar="👥 2 ضد 2" data-i18n-th="👥 2 ปะทะ 2" data-i18n-pl="👥 2 kontra 2" data-i18n-it="👥 2 contro 2" data-i18n-ro="👥 2 contra 2" data-i18n-zh="👥 2 对 2" data-i18n-ko="👥 2 대 2" data-i18n-hi="👥 2 बनाम 2" data-i18n-tr="👥 2'ye 2" data-i18n-nl="👥 2 vs 2" data-i18n-sv="👥 2 mot 2" data-i18n-uk="👥 2 проти 2" data-i18n-cs="👥 2 vs 2" data-i18n-hu="👥 2 vs 2" data-i18n-el="👥 2 εναντίον 2" data-i18n-bg="👥 2 срещу 2" data-i18n-sr="👥 2 против 2" data-i18n-hr="👥 2 protiv 2" data-i18n-sk="👥 2 vs 2" data-i18n-sq="👥 2 kundër 2" data-i18n-sl="👥 2 proti 2" data-i18n-gd="👥 2 an aghaidh 2" data-i18n-ptpt="👥 2 vs 2" data-i18n-am="👥 2 ከ 2" data-i18n-fi="👥 2 vs 2" data-i18n-no="👥 2 mot 2" data-i18n-gsw="👥 2 gäge 2" data-i18n-vi="👥 2 đấu 2" data-i18n-id="👥 2 lawan 2" data-i18n-et="👥 2 vs 2" data-i18n-is="👥 2 gegn 2" data-i18n-fa="👥 ۲ در برابر ۲" data-i18n-da="👥 2 mod 2">👥 2 נגד 2</button>
   <button class="bigBtn secondary" id="teamSize4Btn" data-i18n-he="👥 2 נגד 4" data-i18n-en="👥 2 vs 4" data-i18n-es="👥 2 contra 4" data-i18n-ja="👥 2 対 4" data-i18n-fr="👥 2 contre 4" data-i18n-pt="👥 2 x 4" data-i18n-de="👥 2 gegen 4" data-i18n-ru="👥 2 против 4" data-i18n-ar="👥 2 ضد 4" data-i18n-th="👥 2 ปะทะ 4" data-i18n-pl="👥 2 kontra 4" data-i18n-it="👥 2 contro 4" data-i18n-ro="👥 2 contra 4" data-i18n-zh="👥 2 对 4" data-i18n-ko="👥 2 대 4" data-i18n-hi="👥 2 बनाम 4" data-i18n-tr="👥 2'ye 4" data-i18n-nl="👥 2 vs 4" data-i18n-sv="👥 2 mot 4" data-i18n-uk="👥 2 проти 4" data-i18n-cs="👥 2 vs 4" data-i18n-hu="👥 2 vs 4" data-i18n-el="👥 2 εναντίον 4" data-i18n-bg="👥 2 срещу 4" data-i18n-sr="👥 2 против 4" data-i18n-hr="👥 2 protiv 4" data-i18n-sk="👥 2 vs 4" data-i18n-sq="👥 2 kundër 4" data-i18n-sl="👥 2 proti 4" data-i18n-gd="👥 2 an aghaidh 4" data-i18n-ptpt="👥 2 vs 4" data-i18n-am="👥 2 ከ 4" data-i18n-fi="👥 2 vs 4" data-i18n-no="👥 2 mot 4" data-i18n-gsw="👥 2 gäge 4" data-i18n-vi="👥 2 đấu 4" data-i18n-id="👥 2 lawan 4" data-i18n-et="👥 2 vs 4" data-i18n-is="👥 2 gegn 4" data-i18n-fa="👥 ۲ در برابر ۴" data-i18n-da="👥 2 mod 4">👥 2 נגד 4</button>
+  <button class="bigBtn secondary" id="teamSizeFriendsBtn">👥 עם חברים</button>
   <button id="teamSizeBackBtn" data-i18n-he="⬅ חזרה ללובי" data-i18n-en="⬅ Back to lobby" data-i18n-es="⬅ Volver al lobby" data-i18n-ja="⬅ ロビーにもどる" data-i18n-fr="⬅ Retour à l'accueil" data-i18n-pt="⬅ Voltar ao início" data-i18n-de="⬅ Zurück zum Start" data-i18n-ru="⬅ На главную" data-i18n-ar="⬅ العودة إلى الرئيسية" data-i18n-th="⬅ กลับหน้าหลัก" data-i18n-pl="⬅ Wróć do startu" data-i18n-it="⬅ Torna all'inizio" data-i18n-ro="⬅ Înapoi acasă" data-i18n-zh="⬅ 返回主页" data-i18n-ko="⬅ 홈으로" data-i18n-hi="⬅ लॉबी पर वापस" data-i18n-tr="⬅ Lobiye dön" data-i18n-nl="⬅ Terug naar lobby" data-i18n-sv="⬅ Tillbaka till lobbyn" data-i18n-uk="⬅ На головну" data-i18n-cs="⬅ Zpět do menu" data-i18n-hu="⬅ Vissza a menübe" data-i18n-el="⬅ Πίσω στην αρχική" data-i18n-bg="⬅ Към началото" data-i18n-sr="⬅ Назад на почетну" data-i18n-hr="⬅ Natrag na početnu" data-i18n-sk="⬅ Späť do menu" data-i18n-sq="⬅ Kthehu në kryefaqe" data-i18n-sl="⬅ Nazaj na začetek" data-i18n-gd="⬅ Air ais dhachaigh" data-i18n-ptpt="⬅ Voltar ao início" data-i18n-am="⬅ ወደ መነሻ ተመለስ" data-i18n-fi="⬅ Takaisin aulaan" data-i18n-no="⬅ Tilbake til lobbyen" data-i18n-gsw="⬅ Zrugg id Lobby" data-i18n-vi="⬅ Về sảnh" data-i18n-id="⬅ Kembali ke lobi" data-i18n-et="⬅ Tagasi fuajeesse" data-i18n-is="⬅ Aftur í anddyri" data-i18n-fa="⬅ بازگشت به لابی" data-i18n-da="⬅ Tilbage til lobbyen">⬅ חזרה ללובי</button>
 </div>
 
@@ -1094,6 +1102,12 @@
   <div class="screenTitle" data-i18n-he="👥 חברים" data-i18n-en="👥 Friends" data-i18n-es="👥 Amigos" data-i18n-ja="👥 友だち" data-i18n-fr="👥 Amis" data-i18n-pt="👥 Amigos" data-i18n-de="👥 Freunde" data-i18n-ru="👥 Друзья" data-i18n-ar="👥 الأصدقاء" data-i18n-th="👥 เพื่อน" data-i18n-pl="👥 Znajomi" data-i18n-it="👥 Amici" data-i18n-ro="👥 Prieteni" data-i18n-zh="👥 朋友" data-i18n-ko="👥 친구" data-i18n-hi="👥 दोस्त" data-i18n-tr="👥 Arkadaşlar" data-i18n-nl="👥 Vrienden" data-i18n-sv="👥 Vänner" data-i18n-uk="👥 Друзі" data-i18n-cs="👥 Kamarádi" data-i18n-hu="👥 Barátok" data-i18n-el="👥 Φίλοι" data-i18n-bg="👥 Приятели" data-i18n-sr="👥 Пријатељи" data-i18n-hr="👥 Prijatelji" data-i18n-sk="👥 Kamaráti" data-i18n-sq="👥 Miqtë" data-i18n-sl="👥 Prijatelji" data-i18n-gd="👥 Caraidean" data-i18n-ptpt="👥 Amigos" data-i18n-am="👥 ጓደኞች" data-i18n-fi="👥 Ystävät" data-i18n-no="👥 Venner" data-i18n-gsw="👥 Fründe" data-i18n-vi="👥 Bạn bè" data-i18n-id="👥 Teman" data-i18n-et="👥 Sõbrad" data-i18n-is="👥 Vinir" data-i18n-fa="👥 دوستان" data-i18n-da="👥 Venner">👥 חברים</div>
   <div id="friendsContent"></div>
   <button id="friendsBackBtn" data-i18n-he="⬅ חזרה להגדרות" data-i18n-en="⬅ Back to settings" data-i18n-es="⬅ Volver a configuración" data-i18n-ja="⬅ 設定にもどる" data-i18n-fr="⬅ Retour aux réglages" data-i18n-pt="⬅ Voltar às configurações" data-i18n-de="⬅ Zurück zu den Einstellungen" data-i18n-ru="⬅ Назад в настройки" data-i18n-ar="⬅ العودة إلى الإعدادات" data-i18n-th="⬅ กลับไปตั้งค่า" data-i18n-pl="⬅ Wróć do ustawień" data-i18n-it="⬅ Torna alle impostazioni" data-i18n-ro="⬅ Înapoi la setări" data-i18n-zh="⬅ 返回设置" data-i18n-ko="⬅ 설정으로" data-i18n-hi="⬅ सेटिंग्स पर वापस" data-i18n-tr="⬅ Ayarlara dön" data-i18n-nl="⬅ Terug naar instellingen" data-i18n-sv="⬅ Tillbaka till inställningar" data-i18n-uk="⬅ До налаштувань" data-i18n-cs="⬅ Zpět do nastavení" data-i18n-hu="⬅ Vissza a beállításokhoz" data-i18n-el="⬅ Πίσω στις ρυθμίσεις" data-i18n-bg="⬅ Към настройките" data-i18n-sr="⬅ Назад на подешавања" data-i18n-hr="⬅ Natrag na postavke" data-i18n-sk="⬅ Späť do nastavení" data-i18n-sq="⬅ Kthehu te cilësimet" data-i18n-sl="⬅ Nazaj v nastavitve" data-i18n-gd="⬅ Air ais gu roghainnean" data-i18n-ptpt="⬅ Voltar às definições" data-i18n-am="⬅ ወደ ቅንብሮች ተመለስ" data-i18n-fi="⬅ Takaisin asetuksiin" data-i18n-no="⬅ Tilbake til innstillinger" data-i18n-gsw="⬅ Zrugg zu de Iistellige" data-i18n-vi="⬅ Về cài đặt" data-i18n-id="⬅ Kembali ke pengaturan" data-i18n-et="⬅ Tagasi seadete juurde" data-i18n-is="⬅ Aftur í stillingar" data-i18n-fa="⬅ بازگشت به تنظیمات" data-i18n-da="⬅ Tilbage til indstillinger">⬅ חזרה להגדרות</button>
+</div>
+
+<div id="teamOnlineOverlay">
+  <div class="screenTitle" id="teamOnlineTitle">🤝 קרב קבוצות עם חברים</div>
+  <div id="teamOnlineContent"></div>
+  <button id="teamOnlineBackBtn">⬅ ביטול</button>
 </div>
 
 <div id="matchOverlay">
@@ -10487,6 +10501,8 @@ const dailyEl = document.getElementById('dailyOverlay');
 const giftEl = document.getElementById('giftOverlay');
 const friendsEl = document.getElementById('friendsOverlay');
 const matchEl = document.getElementById('matchOverlay');
+const teamOnlineEl = document.getElementById('teamOnlineOverlay');
+const teamOnlineContentEl = document.getElementById('teamOnlineContent');
 const caveHudEl = document.getElementById('caveHud');
 const caveInstructionsEl = document.getElementById('caveInstructions');
 const sumoHudEl = document.getElementById('sumoHud');
@@ -10550,6 +10566,8 @@ function showScreen(name) {
   giftEl.classList.toggle('show', name === 'gift');
   friendsEl.classList.toggle('show', name === 'friends');
   matchEl.classList.toggle('show', name === 'match');
+  teamOnlineEl.classList.toggle('show', name === 'teamOnline');
+  if (onlineTeam && name !== 'teamOnline' && name !== 'teamBattle') stopOnlineTeam();
   friendArenaHudEl.classList.toggle('show', name === 'friendArena');
   // עוזבים את "קרב מול חבר" (חדר ההמתנה או הזירה) בלי ללחוץ על "ביטול" -
   // מפסיקים להאזין ל-Firestore כדי לא לדלוף מאזין פעיל, אבל לא מוחקים
@@ -12604,6 +12622,7 @@ const TEAM_SPACING = 0.9;               // מרחק פתיחה בין לוחמי
 const TEAM_BATTLE_CAM = { pos: V(0, 4.6, 10.4), look: V(0, 1.45, 0) };   // מצלמה רחוקה יותר - רואים את כולם
 
 let teamFighters = [];
+let onlineTeam = null;           // קרב קבוצות עם חברים (אונליין) - ראה בסוף הקובץ; null = קרב רגיל
 let teamBattleOver = false;
 let pendingTeamEnemyCount = 2;
 let ffaMode = false;             // true = 'כולם על כולם': 10 לוחמים, לכל אחד 'קבוצה' משלו
@@ -12614,47 +12633,47 @@ const heEn = (he, en) => (uiLang === 'he' ? he : en);
 // 14 פתחת, 15 כותרת מתנות, 16 כבר לקחת, 17 קבל מתנה, 18 פתח, 19 חזרה ללובי, 20-24 שמות תיבות (רגילה/נדירה/אדירה/אגדית/אולטרה),
 // 25-30 קטגוריות (כסף/דמות/נשק/מגן/אוכל/משקה), 31 תווית "כולם על כולם", 32 תווית "קרב חיות".
 const MSG = {
-  he: ["🏆 ניצחת! אתה האחרון שנשאר!","💀 נפלת... נשארו עוד {0} לוחמים","💥 כולם על כולם - {0} לוחמים"," (אתה)","↑ להתקדם · ↓ אחורה · ← → לפנייה · A / רווח = נשיכה 🦷","🦷 נשיכה","⬅ יציאה ללובי","🔄 עוד קרב חיות","🏠 לובי","🏆 ניצחת בקרב החיות!","💀 הפסדת בקרב החיות...","🐾 קודם תקנה ותבחר חיית עזרה! (כפתור 'חיות עזרה' בלובי)","קיבלת {0}!","המתנה היומית שלך:","פתחת {0}:","🎁 מתנות יומיות","✅ לקחת את המתנה של היום - חזור מחר!","🎁 קבל את המתנה היומית!","פתח","⬅ חזרה ללובי","תיבה רגילה","תיבה נדירה","תיבה אדירה","תיבה אגדית","תיבת אולטרה","כסף","דמות חדשה","נשק חדש","מגן חדש","אוכל חדש","משקה חדש","💥 כולם על כולם","🐾 קרב חיות"],
-  en: ["🏆 You won! Last one standing!","💀 You are out... {0} fighters left","💥 Free-for-all - {0} fighters"," (you)","↑ forward · ↓ back · ← → turn · A / Space = bite 🦷","🦷 Bite","⬅ Exit to lobby","🔄 Another animal battle","🏠 Lobby","🏆 You won the animal battle!","💀 You lost the animal battle...","🐾 First buy and choose a helper animal! (Helper animals button in the lobby)","You got {0}!","Your daily gift:","You opened {0}:","🎁 Daily Gifts","✅ Today's gift taken - come back tomorrow!","🎁 Get your daily gift!","Open","⬅ Back to lobby","Common chest","Rare chest","Huge chest","Legendary chest","Ultra chest","Money","New character","New weapon","New shield","New food","New drink","💥 Free-for-all","🐾 Animal battle"],
-  es: ["🏆 ¡Ganaste! ¡Eres el último en pie!","💀 Quedaste fuera... quedan {0} luchadores","💥 Todos contra todos - {0} luchadores"," (tú)","↑ avanzar · ↓ retroceder · ← → girar · A / Espacio = morder 🦷","🦷 Morder","⬅ Salir al lobby","🔄 Otra batalla de animales","🏠 Lobby","🏆 ¡Ganaste la batalla de animales!","💀 Perdiste la batalla de animales...","🐾 ¡Primero compra y elige un animal ayudante! (botón 'Animales ayudantes' en el lobby)","¡Conseguiste {0}!","Tu regalo diario:","Abriste {0}:","🎁 Regalos diarios","✅ Ya tomaste el regalo de hoy - ¡vuelve mañana!","🎁 ¡Recibe tu regalo diario!","Abrir","⬅ Volver al lobby","Cofre común","Cofre raro","Cofre enorme","Cofre legendario","Cofre ultra","Dinero","Personaje nuevo","Arma nueva","Escudo nuevo","Comida nueva","Bebida nueva","💥 Todos contra todos","🐾 Batalla de animales"],
-  ja: ["🏆 勝った!最後の一人だ!","💀 脱落した… 残り{0}人","💥 バトルロイヤル - {0}人"," (あなた)","↑ 前へ · ↓ 後ろへ · ← → 回転 · A / スペース = かみつく 🦷","🦷 かみつく","⬅ ロビーに出る","🔄 もう一度どうぶつバトル","🏠 ロビー","🏆 どうぶつバトルに勝った!","💀 どうぶつバトルに負けた…","🐾 まずお助け動物を買って選ぼう!(ロビーの『お助け動物』ボタン)","{0}をゲット!","きょうのプレゼント:","{0}を開けた:","🎁 デイリープレゼント","✅ きょうのプレゼントは受け取り済み - また明日!","🎁 きょうのプレゼントをもらう!","開ける","⬅ ロビーにもどる","ふつうの宝箱","めずらしい宝箱","とてつもない宝箱","でんせつの宝箱","ウルトラ宝箱","お金","新しいキャラ","新しい武器","新しい盾","新しい食べ物","新しい飲み物","💥 バトルロイヤル","🐾 どうぶつバトル"],
-  fr: ["🏆 Tu as gagné ! Tu es le dernier debout !","💀 Tu es éliminé... il reste {0} combattants","💥 Chacun pour soi - {0} combattants"," (toi)","↑ avancer · ↓ reculer · ← → tourner · A / Espace = mordre 🦷","🦷 Mordre","⬅ Sortir vers l'accueil","🔄 Un autre combat d'animaux","🏠 Accueil","🏆 Tu as gagné le combat d'animaux !","💀 Tu as perdu le combat d'animaux...","🐾 Achète d'abord un animal assistant et choisis-le ! (bouton 'Animaux assistants' à l'accueil)","Tu as obtenu {0} !","Ton cadeau du jour :","Tu as ouvert {0} :","🎁 Cadeaux quotidiens","✅ Cadeau du jour déjà pris - reviens demain !","🎁 Prends ton cadeau du jour !","Ouvrir","⬅ Retour à l'accueil","Coffre commun","Coffre rare","Coffre énorme","Coffre légendaire","Coffre ultra","Argent","Nouveau personnage","Nouvelle arme","Nouveau bouclier","Nouvelle nourriture","Nouvelle boisson","💥 Chacun pour soi","🐾 Combat d'animaux"],
-  pt: ["🏆 Você venceu! É o último de pé!","💀 Você caiu... restam {0} lutadores","💥 Todos contra todos - {0} lutadores"," (você)","↑ avançar · ↓ voltar · ← → girar · A / Espaço = morder 🦷","🦷 Morder","⬅ Sair para o início","🔄 Outra batalha de animais","🏠 Início","🏆 Você venceu a batalha de animais!","💀 Você perdeu a batalha de animais...","🐾 Primeiro compre e escolha um animal ajudante! (botão 'Animais ajudantes' no início)","Você ganhou {0}!","Seu presente diário:","Você abriu {0}:","🎁 Presentes diários","✅ Presente de hoje já pego - volte amanhã!","🎁 Pegue seu presente diário!","Abrir","⬅ Voltar ao início","Baú comum","Baú raro","Baú enorme","Baú lendário","Baú ultra","Dinheiro","Novo personagem","Nova arma","Novo escudo","Nova comida","Nova bebida","💥 Todos contra todos","🐾 Batalha de animais"],
-  de: ["🏆 Du hast gewonnen! Du bist der Letzte!","💀 Du bist raus... noch {0} Kämpfer übrig","💥 Jeder gegen jeden - {0} Kämpfer"," (du)","↑ vor · ↓ zurück · ← → drehen · A / Leertaste = beißen 🦷","🦷 Beißen","⬅ Zurück zum Start","🔄 Noch ein Tierkampf","🏠 Start","🏆 Du hast den Tierkampf gewonnen!","💀 Du hast den Tierkampf verloren...","🐾 Kauf und wähle zuerst ein Helfertier! (Knopf 'Helfertiere' im Start)","Du hast {0} bekommen!","Dein Tagesgeschenk:","Du hast {0} geöffnet:","🎁 Tägliche Geschenke","✅ Heutiges Geschenk geholt - komm morgen wieder!","🎁 Hol dein Tagesgeschenk!","Öffnen","⬅ Zurück zum Start","Gewöhnliche Truhe","Seltene Truhe","Riesige Truhe","Legendäre Truhe","Ultra-Truhe","Geld","Neue Figur","Neue Waffe","Neuer Schild","Neues Essen","Neues Getränk","💥 Jeder gegen jeden","🐾 Tierkampf"],
-  ru: ["🏆 Ты победил! Ты остался последним!","💀 Ты выбыл... осталось бойцов: {0}","💥 Все против всех - бойцов: {0}"," (ты)","↑ вперёд · ↓ назад · ← → поворот · A / Пробел = укус 🦷","🦷 Укус","⬅ Выйти на главную","🔄 Ещё один бой зверей","🏠 Главная","🏆 Ты выиграл бой зверей!","💀 Ты проиграл бой зверей...","🐾 Сначала купи и выбери зверя-помощника! (кнопка 'Звери-помощники' на главной)","Ты получил: {0}!","Твой подарок на сегодня:","Ты открыл: {0}:","🎁 Ежедневные подарки","✅ Подарок за сегодня уже получен - приходи завтра!","🎁 Получи подарок дня!","Открыть","⬅ Назад на главную","Обычный сундук","Редкий сундук","Огромный сундук","Легендарный сундук","Ультра-сундук","Деньги","Новый персонаж","Новое оружие","Новый щит","Новая еда","Новый напиток","💥 Все против всех","🐾 Бой зверей"],
-  ar: ["🏆 فزت! أنت الأخير الباقي!","💀 خرجت... بقي {0} مقاتلين","💥 الكل ضد الكل - {0} مقاتلين"," (أنت)","↑ للأمام · ↓ للخلف · ← → للدوران · A / مسافة = عضّ 🦷","🦷 عضّ","⬅ الخروج إلى الرئيسية","🔄 معركة حيوانات أخرى","🏠 الرئيسية","🏆 فزت في معركة الحيوانات!","💀 خسرت معركة الحيوانات...","🐾 اشترِ أولاً حيوانًا مساعدًا واختره! (زر 'الحيوانات المساعدة' في الرئيسية)","حصلت على {0}!","هديتك اليومية:","فتحت {0}:","🎁 الهدايا اليومية","✅ أخذت هدية اليوم - عد غدًا!","🎁 احصل على هديتك اليومية!","افتح","⬅ العودة إلى الرئيسية","صندوق عادي","صندوق نادر","صندوق ضخم","صندوق أسطوري","صندوق ألترا","مال","شخصية جديدة","سلاح جديد","درع جديد","طعام جديد","مشروب جديد","💥 الكل ضد الكل","🐾 معركة الحيوانات"],
-  th: ["🏆 คุณชนะ! คุณคือคนสุดท้าย!","💀 คุณตกรอบ... เหลืออีก {0} คน","💥 ทุกคนสู้ทุกคน - {0} คน"," (คุณ)","↑ เดินหน้า · ↓ ถอยหลัง · ← → หมุน · A / เว้นวรรค = กัด 🦷","🦷 กัด","⬅ ออกไปหน้าหลัก","🔄 ศึกสัตว์อีกครั้ง","🏠 หน้าหลัก","🏆 คุณชนะศึกสัตว์!","💀 คุณแพ้ศึกสัตว์...","🐾 ซื้อและเลือกสัตว์ผู้ช่วยก่อน! (ปุ่ม 'สัตว์ผู้ช่วย' ที่หน้าหลัก)","คุณได้รับ {0}!","ของขวัญประจำวันของคุณ:","คุณเปิด {0}:","🎁 ของขวัญประจำวัน","✅ รับของขวัญวันนี้แล้ว - พรุ่งนี้มาใหม่!","🎁 รับของขวัญประจำวัน!","เปิด","⬅ กลับหน้าหลัก","หีบธรรมดา","หีบหายาก","หีบยักษ์","หีบตำนาน","หีบอัลตร้า","เงิน","ตัวละครใหม่","อาวุธใหม่","โล่ใหม่","อาหารใหม่","เครื่องดื่มใหม่","💥 ทุกคนสู้ทุกคน","🐾 ศึกสัตว์"],
-  pl: ["🏆 Wygrałeś! Zostałeś ostatni!","💀 Odpadłeś... zostało {0} wojowników","💥 Każdy na każdego - {0} wojowników"," (ty)","↑ do przodu · ↓ do tyłu · ← → obrót · A / Spacja = ugryzienie 🦷","🦷 Ugryź","⬅ Wyjdź do menu","🔄 Kolejna walka zwierząt","🏠 Menu","🏆 Wygrałeś walkę zwierząt!","💀 Przegrałeś walkę zwierząt...","🐾 Najpierw kup i wybierz zwierzę pomocnika! (przycisk 'Zwierzęta pomocnicy' w menu)","Zdobyłeś: {0}!","Twój dzienny prezent:","Otworzyłeś: {0}:","🎁 Codzienne prezenty","✅ Dzisiejszy prezent odebrany - wróć jutro!","🎁 Odbierz dzienny prezent!","Otwórz","⬅ Wróć do menu","Zwykła skrzynia","Rzadka skrzynia","Ogromna skrzynia","Legendarna skrzynia","Ultra skrzynia","Pieniądze","Nowa postać","Nowa broń","Nowa tarcza","Nowe jedzenie","Nowy napój","💥 Każdy na każdego","🐾 Walka zwierząt"],
-  it: ["🏆 Hai vinto! Sei l'ultimo rimasto!","💀 Sei fuori... restano {0} combattenti","💥 Tutti contro tutti - {0} combattenti"," (tu)","↑ avanti · ↓ indietro · ← → gira · A / Spazio = morso 🦷","🦷 Morso","⬅ Esci all'inizio","🔄 Un'altra battaglia di animali","🏠 Inizio","🏆 Hai vinto la battaglia di animali!","💀 Hai perso la battaglia di animali...","🐾 Prima compra e scegli un animale aiutante! (pulsante 'Animali aiutanti' all'inizio)","Hai ottenuto {0}!","Il tuo regalo giornaliero:","Hai aperto {0}:","🎁 Regali giornalieri","✅ Regalo di oggi già preso - torna domani!","🎁 Prendi il regalo giornaliero!","Apri","⬅ Torna all'inizio","Forziere comune","Forziere raro","Forziere enorme","Forziere leggendario","Forziere ultra","Soldi","Nuovo personaggio","Nuova arma","Nuovo scudo","Nuovo cibo","Nuova bevanda","💥 Tutti contro tutti","🐾 Battaglia di animali"],
-  ro: ["🏆 Ai câștigat! Ești ultimul rămas!","💀 Ai ieșit... au mai rămas {0} luptători","💥 Fiecare pentru sine - {0} luptători"," (tu)","↑ înainte · ↓ înapoi · ← → rotire · A / Spațiu = mușcătură 🦷","🦷 Mușcă","⬅ Ieșire la început","🔄 Încă o luptă de animale","🏠 Acasă","🏆 Ai câștigat lupta animalelor!","💀 Ai pierdut lupta animalelor...","🐾 Mai întâi cumpără și alege un animal ajutor! (butonul 'Animale ajutoare' din meniu)","Ai primit {0}!","Cadoul tău zilnic:","Ai deschis {0}:","🎁 Cadouri zilnice","✅ Cadoul de azi a fost luat - revino mâine!","🎁 Ia cadoul zilnic!","Deschide","⬅ Înapoi la meniu","Ladă obișnuită","Ladă rară","Ladă uriașă","Ladă legendară","Ladă ultra","Bani","Personaj nou","Armă nouă","Scut nou","Mâncare nouă","Băutură nouă","💥 Fiecare pentru sine","🐾 Luptă de animale"],
-  zh: ["🏆 你赢了!你是最后一个!","💀 你出局了…还剩{0}名战士","💥 大混战 - {0}名战士"," (你)","↑ 前进 · ↓ 后退 · ← → 转向 · A / 空格 = 咬 🦷","🦷 咬","⬅ 退出到主页","🔄 再来一场动物大战","🏠 主页","🏆 你赢了动物大战!","💀 你输了动物大战…","🐾 先购买并选择一只助手动物!(主页的“助手动物”按钮)","你获得了{0}!","你的每日礼物:","你打开了{0}:","🎁 每日礼物","✅ 今天的礼物已领取 - 明天再来!","🎁 领取每日礼物!","打开","⬅ 返回主页","普通宝箱","稀有宝箱","巨型宝箱","传说宝箱","超级宝箱","金钱","新角色","新武器","新盾牌","新食物","新饮料","💥 大混战","🐾 动物大战"],
-  ko: ["🏆 이겼어요! 마지막까지 남았어요!","💀 탈락했어요... {0}명 남았어요","💥 난투전 - {0}명"," (나)","↑ 앞으로 · ↓ 뒤로 · ← → 회전 · A / 스페이스 = 물기 🦷","🦷 물기","⬅ 로비로 나가기","🔄 동물 배틀 한 번 더","🏠 로비","🏆 동물 배틀에서 이겼어요!","💀 동물 배틀에서 졌어요...","🐾 먼저 도우미 동물을 사서 고르세요! (로비의 '도우미 동물' 버튼)","{0}을(를) 받았어요!","오늘의 선물:","{0}을(를) 열었어요:","🎁 일일 선물","✅ 오늘의 선물은 이미 받았어요 - 내일 또 오세요!","🎁 오늘의 선물 받기!","열기","⬅ 로비로 돌아가기","일반 상자","희귀 상자","거대 상자","전설 상자","울트라 상자","돈","새 캐릭터","새 무기","새 방패","새 음식","새 음료","💥 난투전","🐾 동물 배틀"],
-  hi: ["🏆 तुम जीत गए! तुम आख़िरी बचे हो!","💀 तुम बाहर हो गए... {0} लड़ाके बचे हैं","💥 सब सबके ख़िलाफ़ - {0} लड़ाके"," (तुम)","↑ आगे · ↓ पीछे · ← → मुड़ो · A / स्पेस = काटो 🦷","🦷 काटो","⬅ लॉबी में जाओ","🔄 एक और जानवर की लड़ाई","🏠 लॉबी","🏆 तुमने जानवरों की लड़ाई जीती!","💀 तुम जानवरों की लड़ाई हार गए...","🐾 पहले मददगार जानवर ख़रीदो और चुनो! (लॉबी में 'मददगार जानवर' बटन)","तुम्हें {0} मिला!","तुम्हारा रोज़ का तोहफ़ा:","तुमने {0} खोला:","🎁 दैनिक तोहफ़े","✅ आज का तोहफ़ा ले लिया - कल फिर आना!","🎁 रोज़ का तोहफ़ा लो!","खोलो","⬅ लॉबी में वापस","आम संदूक","दुर्लभ संदूक","विशाल संदूक","महान संदूक","अल्ट्रा संदूक","पैसे","नया किरदार","नया हथियार","नई ढाल","नया खाना","नया पेय","💥 सब सबके ख़िलाफ़","🐾 जानवरों की लड़ाई"],
-  tr: ["🏆 Kazandın! Son kalan sensin!","💀 Elendin... {0} dövüşçü kaldı","💥 Herkes herkese karşı - {0} dövüşçü"," (sen)","↑ ileri · ↓ geri · ← → dön · A / Boşluk = ısır 🦷","🦷 Isır","⬅ Lobiye çık","🔄 Bir hayvan savaşı daha","🏠 Lobi","🏆 Hayvan savaşını kazandın!","💀 Hayvan savaşını kaybettin...","🐾 Önce bir yardımcı hayvan satın al ve seç! (lobideki 'Yardımcı hayvanlar' düğmesi)","{0} kazandın!","Günlük hediyen:","{0} açtın:","🎁 Günlük hediyeler","✅ Bugünün hediyesi alındı - yarın tekrar gel!","🎁 Günlük hediyeni al!","Aç","⬅ Lobiye dön","Sıradan sandık","Nadir sandık","Devasa sandık","Efsanevi sandık","Ultra sandık","Para","Yeni karakter","Yeni silah","Yeni kalkan","Yeni yemek","Yeni içecek","💥 Herkes herkese karşı","🐾 Hayvan savaşı"],
-  nl: ["🏆 Je hebt gewonnen! Jij bent de laatste!","💀 Je ligt eruit... nog {0} vechters over","💥 Allemaal tegen allemaal - {0} vechters"," (jij)","↑ vooruit · ↓ achteruit · ← → draaien · A / Spatie = bijten 🦷","🦷 Bijten","⬅ Naar de lobby","🔄 Nog een dierengevecht","🏠 Lobby","🏆 Je hebt het dierengevecht gewonnen!","💀 Je hebt het dierengevecht verloren...","🐾 Koop en kies eerst een hulpdier! (knop 'Hulpdieren' in de lobby)","Je kreeg {0}!","Je dagelijkse cadeau:","Je opende {0}:","🎁 Dagelijkse cadeaus","✅ Cadeau van vandaag al gepakt - kom morgen terug!","🎁 Pak je dagelijkse cadeau!","Openen","⬅ Terug naar de lobby","Gewone kist","Zeldzame kist","Enorme kist","Legendarische kist","Ultra kist","Geld","Nieuw personage","Nieuw wapen","Nieuw schild","Nieuw eten","Nieuw drankje","💥 Allemaal tegen allemaal","🐾 Dierengevecht"],
-  sv: ["🏆 Du vann! Du är den sista kvar!","💀 Du åkte ut... {0} fighters kvar","💥 Alla mot alla - {0} fighters"," (du)","↑ framåt · ↓ bakåt · ← → vänd · A / Mellanslag = bita 🦷","🦷 Bit","⬅ Gå till lobbyn","🔄 Ännu en djurstrid","🏠 Lobby","🏆 Du vann djurstriden!","💀 Du förlorade djurstriden...","🐾 Köp och välj först ett hjälpdjur! (knappen 'Hjälpdjur' i lobbyn)","Du fick {0}!","Din dagliga present:","Du öppnade {0}:","🎁 Dagliga presenter","✅ Dagens present är tagen - kom tillbaka imorgon!","🎁 Hämta din dagliga present!","Öppna","⬅ Tillbaka till lobbyn","Vanlig kista","Sällsynt kista","Enorm kista","Legendarisk kista","Ultrakista","Pengar","Ny figur","Nytt vapen","Ny sköld","Ny mat","Ny dryck","💥 Alla mot alla","🐾 Djurstrid"],
-  uk: ["🏆 Ти переміг! Ти залишився останнім!","💀 Ти вибув... залишилось бійців: {0}","💥 Усі проти всіх - бійців: {0}"," (ти)","↑ уперед · ↓ назад · ← → поворот · A / Пробіл = укус 🦷","🦷 Укус","⬅ Вийти на головну","🔄 Ще один бій звірів","🏠 Головна","🏆 Ти виграв бій звірів!","💀 Ти програв бій звірів...","🐾 Спочатку купи й обери звірятко-помічника! (кнопка 'Звірі-помічники' на головній)","Ти отримав: {0}!","Твій подарунок на сьогодні:","Ти відкрив: {0}:","🎁 Щоденні подарунки","✅ Подарунок на сьогодні вже отримано - приходь завтра!","🎁 Отримай подарунок дня!","Відкрити","⬅ Назад на головну","Звичайна скриня","Рідкісна скриня","Величезна скриня","Легендарна скриня","Ультра-скриня","Гроші","Новий персонаж","Нова зброя","Новий щит","Нова їжа","Новий напій","💥 Усі проти всіх","🐾 Бій звірів"],
-  cs: ["🏆 Vyhrál jsi! Zůstal jsi poslední!","💀 Vypadl jsi... zbývá {0} bojovníků","💥 Každý proti každému - {0} bojovníků"," (ty)","↑ vpřed · ↓ vzad · ← → otáčení · A / Mezerník = kousnutí 🦷","🦷 Kousnout","⬅ Odejít do menu","🔄 Další zvířecí souboj","🏠 Menu","🏆 Vyhrál jsi zvířecí souboj!","💀 Prohrál jsi zvířecí souboj...","🐾 Nejdřív si kup a vyber pomocné zvíře! (tlačítko 'Pomocná zvířata' v menu)","Získal jsi {0}!","Tvůj denní dárek:","Otevřel jsi {0}:","🎁 Denní dárky","✅ Dnešní dárek už máš - přijď zítra!","🎁 Vyzvedni denní dárek!","Otevřít","⬅ Zpět do menu","Obyčejná truhla","Vzácná truhla","Obrovská truhla","Legendární truhla","Ultra truhla","Peníze","Nová postava","Nová zbraň","Nový štít","Nové jídlo","Nový nápoj","💥 Každý proti každému","🐾 Zvířecí souboj"],
-  hu: ["🏆 Nyertél! Te maradtál utolsónak!","💀 Kiestél... még {0} harcos maradt","💥 Mindenki mindenki ellen - {0} harcos"," (te)","↑ előre · ↓ hátra · ← → fordulás · A / Szóköz = harapás 🦷","🦷 Harapás","⬅ Kilépés a főmenübe","🔄 Még egy állatcsata","🏠 Főmenü","🏆 Megnyerted az állatcsatát!","💀 Elvesztetted az állatcsatát...","🐾 Előbb vegyél és válassz egy segítő állatot! ('Segítő állatok' gomb a főmenüben)","Megkaptad: {0}!","A napi ajándékod:","Kinyitottad: {0}:","🎁 Napi ajándékok","✅ A mai ajándékot már elvitted - gyere vissza holnap!","🎁 Vidd el a napi ajándékot!","Kinyitás","⬅ Vissza a főmenübe","Közönséges láda","Ritka láda","Hatalmas láda","Legendás láda","Ultra láda","Pénz","Új karakter","Új fegyver","Új pajzs","Új étel","Új ital","💥 Mindenki mindenki ellen","🐾 Állatcsata"],
-  el: ["🏆 Κέρδισες! Είσαι ο τελευταίος που έμεινε!","💀 Αποκλείστηκες... έμειναν {0} μαχητές","💥 Όλοι εναντίον όλων - {0} μαχητές"," (εσύ)","↑ μπροστά · ↓ πίσω · ← → στροφή · A / Space = δάγκωμα 🦷","🦷 Δάγκωμα","⬅ Έξοδος στην αρχική","🔄 Άλλη μια μάχη ζώων","🏠 Αρχική","🏆 Κέρδισες τη μάχη ζώων!","💀 Έχασες τη μάχη ζώων...","🐾 Πρώτα αγόρασε και διάλεξε ένα βοηθητικό ζώο! (κουμπί 'Βοηθητικά ζώα' στην αρχική)","Πήρες {0}!","Το καθημερινό σου δώρο:","Άνοιξες {0}:","🎁 Καθημερινά δώρα","✅ Πήρες το σημερινό δώρο - ξαναέλα αύριο!","🎁 Πάρε το καθημερινό δώρο!","Άνοιγμα","⬅ Πίσω στην αρχική","Κανονικό σεντούκι","Σπάνιο σεντούκι","Τεράστιο σεντούκι","Θρυλικό σεντούκι","Υπερ-σεντούκι","Χρήματα","Νέος χαρακτήρας","Νέο όπλο","Νέα ασπίδα","Νέο φαγητό","Νέο ποτό","💥 Όλοι εναντίον όλων","🐾 Μάχη ζώων"],
-  bg: ["🏆 Победи! Ти остана последен!","💀 Отпадна... останаха {0} бойци","💥 Всеки срещу всеки - {0} бойци"," (ти)","↑ напред · ↓ назад · ← → завиване · A / Интервал = ухапване 🦷","🦷 Ухапване","⬅ Изход към началото","🔄 Още една битка на животни","🏠 Начало","🏆 Спечели битката на животните!","💀 Загуби битката на животните...","🐾 Първо купи и избери животно помощник! (бутон 'Животни помощници' в началото)","Получи {0}!","Твоят дневен подарък:","Отвори {0}:","🎁 Ежедневни подаръци","✅ Днешният подарък е взет - ела утре!","🎁 Вземи дневния подарък!","Отвори","⬅ Назад към началото","Обикновен сандък","Рядък сандък","Огромен сандък","Легендарен сандък","Ултра сандък","Пари","Нов герой","Ново оръжие","Нов щит","Нова храна","Нова напитка","💥 Всеки срещу всеки","🐾 Битка на животни"],
-  sr: ["🏆 Победио си! Остао си последњи!","💀 Испао си... остало је {0} бораца","💥 Сви против свих - {0} бораца"," (ти)","↑ напред · ↓ назад · ← → окретање · A / Размак = угриз 🦷","🦷 Угризи","⬅ Излаз на почетну","🔄 Још једна битка животиња","🏠 Почетна","🏆 Победио си у борби животиња!","💀 Изгубио си борбу животиња...","🐾 Прво купи и изабери животињу помоћника! (дугме 'Животиње помоћници' на почетној)","Добио си {0}!","Твој дневни поклон:","Отворио си {0}:","🎁 Дневни поклони","✅ Данашњи поклон је узет - дођи сутра!","🎁 Узми дневни поклон!","Отвори","⬅ Назад на почетну","Обичан ковчег","Редак ковчег","Огроман ковчег","Легендарни ковчег","Ултра ковчег","Новац","Нови лик","Ново оружје","Нови штит","Нова храна","Ново пиће","💥 Сви против свих","🐾 Борба животиња"],
-  hr: ["🏆 Pobijedio si! Ostao si zadnji!","💀 Ispao si... ostalo je {0} boraca","💥 Svi protiv svih - {0} boraca"," (ti)","↑ naprijed · ↓ natrag · ← → okret · A / Razmak = ugriz 🦷","🦷 Ugrizi","⬅ Izlaz na početnu","🔄 Još jedna bitka životinja","🏠 Početna","🏆 Pobijedio si u borbi životinja!","💀 Izgubio si borbu životinja...","🐾 Prvo kupi i odaberi životinju pomoćnika! (gumb 'Životinje pomoćnici' na početnoj)","Dobio si {0}!","Tvoj dnevni dar:","Otvorio si {0}:","🎁 Dnevni darovi","✅ Današnji dar je uzet - dođi sutra!","🎁 Uzmi dnevni dar!","Otvori","⬅ Natrag na početnu","Obična škrinja","Rijetka škrinja","Golema škrinja","Legendarna škrinja","Ultra škrinja","Novac","Novi lik","Novo oružje","Novi štit","Nova hrana","Novo piće","💥 Svi protiv svih","🐾 Bitka životinja"],
-  sk: ["🏆 Vyhral si! Zostal si posledný!","💀 Vypadol si... zostáva {0} bojovníkov","💥 Každý proti každému - {0} bojovníkov"," (ty)","↑ vpred · ↓ vzad · ← → otáčanie · A / Medzerník = hryznutie 🦷","🦷 Hryznúť","⬅ Odísť do menu","🔄 Ďalší zvierací súboj","🏠 Menu","🏆 Vyhral si zvierací súboj!","💀 Prehral si zvierací súboj...","🐾 Najprv si kúp a vyber pomocné zviera! (tlačidlo 'Pomocné zvieratá' v menu)","Získal si {0}!","Tvoj denný darček:","Otvoril si {0}:","🎁 Denné darčeky","✅ Dnešný darček už máš - príď zajtra!","🎁 Vyzdvihni denný darček!","Otvoriť","⬅ Späť do menu","Obyčajná truhlica","Vzácna truhlica","Obrovská truhlica","Legendárna truhlica","Ultra truhlica","Peniaze","Nová postava","Nová zbraň","Nový štít","Nové jedlo","Nový nápoj","💥 Každý proti každému","🐾 Zvierací súboj"],
-  sq: ["🏆 Fitove! Ti mbete i fundit!","💀 Dolët jashtë... kanë mbetur {0} luftëtarë","💥 Të gjithë kundër të gjithëve - {0} luftëtarë"," (ti)","↑ përpara · ↓ mbrapa · ← → rrotullo · A / Hapësirë = kafshim 🦷","🦷 Kafsho","⬅ Dil te kryefaqja","🔄 Një betejë tjetër kafshësh","🏠 Kryefaqja","🏆 Fitove betejën e kafshëve!","💀 Humbe betejën e kafshëve...","🐾 Së pari bli dhe zgjidh një kafshë ndihmëse! (butoni 'Kafshët ndihmëse' te kryefaqja)","More {0}!","Dhurata jote ditore:","Hapë {0}:","🎁 Dhurata ditore","✅ Dhuratën e sotme e more - kthehu nesër!","🎁 Merr dhuratën ditore!","Hap","⬅ Kthehu te kryefaqja","Arkë e zakonshme","Arkë e rrallë","Arkë gjigante","Arkë legjendare","Arkë ultra","Para","Personazh i ri","Armë e re","Mburojë e re","Ushqim i ri","Pije e re","💥 Të gjithë kundër të gjithëve","🐾 Beteja e kafshëve"],
-  sl: ["🏆 Zmagal si! Ostal si zadnji!","💀 Izpadel si... ostalo je še {0} borcev","💥 Vsi proti vsem - {0} borcev"," (ti)","↑ naprej · ↓ nazaj · ← → obračanje · A / Preslednica = ugriz 🦷","🦷 Ugrizni","⬅ Izhod na začetno","🔄 Še en boj živali","🏠 Začetna","🏆 Zmagal si v boju živali!","💀 Izgubil si boj živali...","🐾 Najprej kupi in izberi pomočnika živali! (gumb 'Pomočniki živali' na začetni)","Dobil si {0}!","Tvoje dnevno darilo:","Odprl si {0}:","🎁 Dnevna darila","✅ Današnje darilo je prevzeto - pridi jutri!","🎁 Prevzemi dnevno darilo!","Odpri","⬅ Nazaj na začetno","Navadna skrinja","Redka skrinja","Ogromna skrinja","Legendarna skrinja","Ultra skrinja","Denar","Nov lik","Novo orožje","Nov ščit","Nova hrana","Nova pijača","💥 Vsi proti vsem","🐾 Boj živali"],
-  gd: ["🏆 Choisinn thu! Is tusa an fheadhainn mu dheireadh!","💀 Chaidh do chur a-mach... tha {0} neach-sabaid air fhàgail","💥 A h-uile duine an aghaidh a h-uile duine - {0} neach-sabaid"," (thusa)","↑ air adhart · ↓ air ais · ← → tionndadh · A / Spàs = bìdeadh 🦷","🦷 Bìd","⬅ Falbh dhan phrìomh sgrìn","🔄 Blàr bheathaichean eile","🏠 Prìomh sgrìn","🏆 Choisinn thu blàr nam beathaichean!","💀 Chaill thu blàr nam beathaichean...","🐾 An toiseach ceannaich agus tagh beathach-taice! (putan 'Beathaichean-taice' air a' phrìomh sgrìn)","Fhuair thu {0}!","Do thiodhlac làitheil:","Dh'fhosgail thu {0}:","🎁 Tiodhlacan làitheil","✅ Fhuair thu tiodhlac an-diugh - till a-màireach!","🎁 Faigh do thiodhlac làitheil!","Fosgail","⬅ Air ais dhan phrìomh sgrìn","Cisteachan àbhaisteach","Cisteachan tearc","Cisteachan mòr","Cisteachan uirsgeulach","Cisteachan ultra","Airgead","Caractar ùr","Armachd ùr","Sgiath ùr","Biadh ùr","Deoch ùr","💥 A h-uile duine an aghaidh a h-uile duine","🐾 Blàr bheathaichean"],
-  ptpt: ["🏆 Ganhaste! És o último de pé!","💀 Foste eliminado... restam {0} lutadores","💥 Todos contra todos - {0} lutadores"," (tu)","↑ avançar · ↓ recuar · ← → rodar · A / Espaço = morder 🦷","🦷 Morder","⬅ Sair para o início","🔄 Outra batalha de animais","🏠 Início","🏆 Ganhaste a batalha de animais!","💀 Perdeste a batalha de animais...","🐾 Primeiro compra e escolhe um animal ajudante! (botão 'Animais ajudantes' no início)","Ganhaste {0}!","A tua prenda diária:","Abriste {0}:","🎁 Prendas diárias","✅ Já levantaste a prenda de hoje - volta amanhã!","🎁 Levanta a tua prenda diária!","Abrir","⬅ Voltar ao início","Baú comum","Baú raro","Baú enorme","Baú lendário","Baú ultra","Dinheiro","Novo personagem","Nova arma","Novo escudo","Nova comida","Nova bebida","💥 Todos contra todos","🐾 Batalha de animais"],
-  am: ["🏆 አሸነፍክ! የመጨረሻው ቀሪ አንተ ነህ!","💀 ወጣህ... {0} ተዋጊዎች ቀርተዋል","💥 ሁሉም በሁሉም ላይ - {0} ተዋጊዎች"," (አንተ)","↑ ወደ ፊት · ↓ ወደ ኋላ · ← → መዞር · A / ክፍተት = መንከስ 🦷","🦷 ንከስ","⬅ ወደ መነሻ ውጣ","🔄 ሌላ የእንስሳት ውጊያ","🏠 መነሻ","🏆 የእንስሳት ውጊያውን አሸነፍክ!","💀 የእንስሳት ውጊያውን ተሸነፍክ...","🐾 መጀመሪያ ረዳት እንስሳ ግዛ እና ምረጥ! (በመነሻ ያለው 'ረዳት እንስሳት' ቁልፍ)","{0} አገኘህ!","የዕለቱ ስጦታህ፦","{0} ከፈትክ፦","🎁 የዕለት ስጦታዎች","✅ የዛሬውን ስጦታ ወስደሃል - ነገ ተመለስ!","🎁 የዕለቱን ስጦታ ውሰድ!","ክፈት","⬅ ወደ መነሻ ተመለስ","ተራ ሣጥን","ብርቅ ሣጥን","ግዙፍ ሣጥን","አፈ ታሪክ ሣጥን","አልትራ ሣጥን","ገንዘብ","አዲስ ገጸ ባህሪ","አዲስ መሣሪያ","አዲስ ጋሻ","አዲስ ምግብ","አዲስ መጠጥ","💥 ሁሉም በሁሉም ላይ","🐾 የእንስሳት ውጊያ"],
-  fi: ["🏆 Voitit! Olet viimeinen jäljellä!","💀 Putosit... {0} taistelijaa jäljellä","💥 Kaikki kaikkia vastaan - {0} taistelijaa"," (sinä)","↑ eteen · ↓ taakse · ← → käänny · A / Väli = pure 🦷","🦷 Pure","⬅ Poistu aulaan","🔄 Vielä yksi eläintaistelu","🏠 Aula","🏆 Voitit eläintaistelun!","💀 Hävisit eläintaistelun...","🐾 Osta ja valitse ensin apueläin! (aulan 'Apueläimet'-painike)","Sait: {0}!","Päivän lahjasi:","Avasit: {0}:","🎁 Päivittäiset lahjat","✅ Päivän lahja on jo otettu - tule huomenna uudestaan!","🎁 Ota päivän lahja!","Avaa","⬅ Takaisin aulaan","Tavallinen arkku","Harvinainen arkku","Valtava arkku","Legendaarinen arkku","Ultra-arkku","Raha","Uusi hahmo","Uusi ase","Uusi kilpi","Uusi ruoka","Uusi juoma","💥 Kaikki kaikkia vastaan","🐾 Eläintaistelu"],
-  no: ["🏆 Du vant! Du er den siste igjen!","💀 Du er ute... {0} kjempere igjen","💥 Alle mot alle - {0} kjempere"," (du)","↑ fremover · ↓ bakover · ← → snu · A / Mellomrom = bite 🦷","🦷 Bit","⬅ Gå til lobbyen","🔄 Enda en dyrekamp","🏠 Lobby","🏆 Du vant dyrekampen!","💀 Du tapte dyrekampen...","🐾 Kjøp og velg først et hjelpedyr! ('Hjelpedyr'-knappen i lobbyen)","Du fikk {0}!","Din daglige gave:","Du åpnet {0}:","🎁 Daglige gaver","✅ Dagens gave er hentet - kom tilbake i morgen!","🎁 Hent din daglige gave!","Åpne","⬅ Tilbake til lobbyen","Vanlig kiste","Sjelden kiste","Enorm kiste","Legendarisk kiste","Ultrakiste","Penger","Ny figur","Nytt våpen","Nytt skjold","Ny mat","Ny drikke","💥 Alle mot alle","🐾 Dyrekamp"],
-  gsw: ["🏆 Du hesch gwunne! Du bisch dr Letscht!","💀 Du bisch useg'flöge... no {0} Kämpfer übrig","💥 Jede gäg jede - {0} Kämpfer"," (du)","↑ vor · ↓ zrugg · ← → drähe · A / Leertaschte = bisse 🦷","🦷 Bisse","⬅ Zrugg zum Start","🔄 No ä Tierkampf","🏠 Start","🏆 Du hesch dr Tierkampf gwunne!","💀 Du hesch dr Tierkampf verlore...","🐾 Chauf und wähl zerscht es Helfertier! ('Helfertier'-Chnopf im Start)","Du hesch {0} becho!","Dis Tagesgschänk:","Du hesch {0} ufgmacht:","🎁 Tägligi Gschänk","✅ S'hütig Gschänk isch gholt - chum morn wieder!","🎁 Hol dis Tagesgschänk!","Ufmache","⬅ Zrugg zum Start","Gwöhnlichi Chischte","Seltni Chischte","Riesigi Chischte","Legendäri Chischte","Ultra-Chischte","Gäld","Neui Figur","Neui Waffe","Neue Schild","Neus Ässe","Neus Getränk","💥 Jede gäg jede","🐾 Tierkampf"],
-  vi: ["🏆 Bạn thắng rồi! Bạn là người cuối cùng!","💀 Bạn bị loại... còn {0} chiến binh","💥 Hỗn chiến - {0} chiến binh"," (bạn)","↑ tiến · ↓ lùi · ← → xoay · A / Dấu cách = cắn 🦷","🦷 Cắn","⬅ Thoát ra sảnh","🔄 Thêm một trận thú","🏠 Sảnh","🏆 Bạn thắng trận thú!","💀 Bạn thua trận thú...","🐾 Trước tiên hãy mua và chọn một thú trợ thủ! (nút 'Thú trợ thủ' ở sảnh)","Bạn nhận được {0}!","Quà hằng ngày của bạn:","Bạn đã mở {0}:","🎁 Quà hằng ngày","✅ Đã nhận quà hôm nay - mai quay lại nhé!","🎁 Nhận quà hằng ngày!","Mở","⬅ Quay lại sảnh","Rương thường","Rương hiếm","Rương khổng lồ","Rương huyền thoại","Rương siêu cấp","Tiền","Nhân vật mới","Vũ khí mới","Khiên mới","Đồ ăn mới","Đồ uống mới","💥 Hỗn chiến","🐾 Trận thú"],
-  id: ["🏆 Kamu menang! Kamu yang terakhir!","💀 Kamu tersingkir... tersisa {0} petarung","💥 Semua lawan semua - {0} petarung"," (kamu)","↑ maju · ↓ mundur · ← → putar · A / Spasi = gigit 🦷","🦷 Gigit","⬅ Keluar ke lobi","🔄 Pertarungan hewan lagi","🏠 Lobi","🏆 Kamu menang pertarungan hewan!","💀 Kamu kalah pertarungan hewan...","🐾 Beli dan pilih dulu hewan pembantu! (tombol 'Hewan pembantu' di lobi)","Kamu mendapat {0}!","Hadiah harianmu:","Kamu membuka {0}:","🎁 Hadiah harian","✅ Hadiah hari ini sudah diambil - kembali besok!","🎁 Ambil hadiah harianmu!","Buka","⬅ Kembali ke lobi","Peti biasa","Peti langka","Peti raksasa","Peti legendaris","Peti ultra","Uang","Karakter baru","Senjata baru","Perisai baru","Makanan baru","Minuman baru","💥 Semua lawan semua","🐾 Pertarungan hewan"],
-  et: ["🏆 Sa võitsid! Sa jäid viimaseks!","💀 Sa langesid välja... alles on {0} võitlejat","💥 Kõik kõigi vastu - {0} võitlejat"," (sina)","↑ edasi · ↓ tagasi · ← → pööra · A / Tühik = hammusta 🦷","🦷 Hammusta","⬅ Välju fuajeesse","🔄 Veel üks loomavõitlus","🏠 Fuajee","🏆 Sa võitsid loomavõitluse!","💀 Sa kaotasid loomavõitluse...","🐾 Osta ja vali kõigepealt abiloom! (fuajee nupp 'Abiloomad')","Said: {0}!","Sinu päevane kingitus:","Avasid: {0}:","🎁 Igapäevased kingitused","✅ Tänane kingitus on võetud - tule homme tagasi!","🎁 Võta päevane kingitus!","Ava","⬅ Tagasi fuajeesse","Tavaline kirst","Haruldane kirst","Hiiglaslik kirst","Legendaarne kirst","Ultrakirst","Raha","Uus tegelane","Uus relv","Uus kilp","Uus toit","Uus jook","💥 Kõik kõigi vastu","🐾 Loomavõitlus"],
-  is: ["🏆 Þú vannst! Þú ert sá síðasti!","💀 Þú ert úr leik... {0} bardagamenn eftir","💥 Allir á móti öllum - {0} bardagamenn"," (þú)","↑ áfram · ↓ afturábak · ← → snúa · A / Bil = bíta 🦷","🦷 Bíta","⬅ Fara í anddyrið","🔄 Annar dýrabardagi","🏠 Anddyri","🏆 Þú vannst dýrabardagann!","💀 Þú tapaðir dýrabardaganum...","🐾 Kauptu og veldu fyrst hjálpardýr! (hnappurinn 'Hjálpardýr' í anddyrinu)","Þú fékkst {0}!","Dagleg gjöf þín:","Þú opnaðir {0}:","🎁 Daglegar gjafir","✅ Þú ert búinn að sækja gjöf dagsins - komdu aftur á morgun!","🎁 Sæktu daglegu gjöfina!","Opna","⬅ Aftur í anddyrið","Venjuleg kista","Sjaldgæf kista","Risastór kista","Goðsagnakennd kista","Ofurkista","Peningar","Ný persóna","Nýtt vopn","Nýr skjöldur","Nýr matur","Nýr drykkur","💥 Allir á móti öllum","🐾 Dýrabardagi"],
-  da: ["🏆 Du vandt! Den sidste, der stod tilbage!","💀 Du er ude... {0} kæmpere tilbage","💥 Alle mod alle - {0} kæmpere"," (dig)","↑ frem · ↓ tilbage · ← → drej · A / Mellemrum = bid 🦷","🦷 Bid","⬅ Tilbage til lobbyen","🔄 Endnu en dyrekamp","🏠 Lobby","🏆 Du vandt dyrekampen!","💀 Du tabte dyrekampen...","🐾 Køb og vælg først et hjælpedyr! (Knappen Hjælpedyr i lobbyen)","Du fik {0}!","Din daglige gave:","Du åbnede {0}:","🎁 Daglige gaver","✅ Dagens gave er hentet - kom igen i morgen!","🎁 Hent din daglige gave!","Åbn","⬅ Tilbage til lobbyen","Almindelig kiste","Sjælden kiste","Kæmpekiste","Legendarisk kiste","Ultrakiste","Penge","Ny figur","Nyt våben","Nyt skjold","Ny mad","Ny drikke","💥 Alle mod alle","🐾 Dyrekamp"],
-  fa: ["🏆 تو بردی! تو آخرین نفر مانده‌ای!","💀 تو حذف شدی... {0} جنگجو مانده","💥 همه علیه همه - {0} جنگجو"," (تو)","↑ جلو · ↓ عقب · ← → چرخش · A / فاصله = گاز گرفتن 🦷","🦷 گاز بگیر","⬅ خروج به صفحه اصلی","🔄 یک نبرد حیوانات دیگر","🏠 صفحه اصلی","🏆 تو نبرد حیوانات را بردی!","💀 تو نبرد حیوانات را باختی...","🐾 اول یک حیوان کمکی بخر و انتخاب کن! (دکمه «حیوانات کمکی» در صفحه اصلی)","تو {0} گرفتی!","هدیه روزانه‌ات:","تو {0} را باز کردی:","🎁 هدیه‌های روزانه","✅ هدیه امروز را گرفتی - فردا دوباره بیا!","🎁 هدیه روزانه‌ات را بگیر!","باز کن","⬅ بازگشت به صفحه اصلی","صندوق معمولی","صندوق کمیاب","صندوق غول‌پیکر","صندوق افسانه‌ای","صندوق اولترا","پول","شخصیت جدید","سلاح جدید","سپر جدید","غذای جدید","نوشیدنی جدید","💥 همه علیه همه","🐾 نبرد حیوانات"],
+  he: ["🏆 ניצחת! אתה האחרון שנשאר!","💀 נפלת... נשארו עוד {0} לוחמים","💥 כולם על כולם - {0} לוחמים"," (אתה)","↑ להתקדם · ↓ אחורה · ← → לפנייה · A / רווח = נשיכה 🦷","🦷 נשיכה","⬅ יציאה ללובי","🔄 עוד קרב חיות","🏠 לובי","🏆 ניצחת בקרב החיות!","💀 הפסדת בקרב החיות...","🐾 קודם תקנה ותבחר חיית עזרה! (כפתור 'חיות עזרה' בלובי)","קיבלת {0}!","המתנה היומית שלך:","פתחת {0}:","🎁 מתנות יומיות","✅ לקחת את המתנה של היום - חזור מחר!","🎁 קבל את המתנה היומית!","פתח","⬅ חזרה ללובי","תיבה רגילה","תיבה נדירה","תיבה אדירה","תיבה אגדית","תיבת אולטרה","כסף","דמות חדשה","נשק חדש","מגן חדש","אוכל חדש","משקה חדש","💥 כולם על כולם","🐾 קרב חיות","👥 עם חברים","🤝 קרב קבוצות עם חברים","בחר חברים והחלט מי איתך ומי נגדך","איתי","נגדי","🤖 להשלים עם מחשב","📨 שלח הזמנות","מחכה לחברים...","▶️ התחל קרב!","הצטרפת! מחכים שהמארח יתחיל...","עוד אין לך חברים. הוסף חברים בהגדרות.","המארח עזב את הקרב.","בחר לפחות חבר אחד.","משהו השתבש, נסה שוב."],
+  en: ["🏆 You won! Last one standing!","💀 You are out... {0} fighters left","💥 Free-for-all - {0} fighters"," (you)","↑ forward · ↓ back · ← → turn · A / Space = bite 🦷","🦷 Bite","⬅ Exit to lobby","🔄 Another animal battle","🏠 Lobby","🏆 You won the animal battle!","💀 You lost the animal battle...","🐾 First buy and choose a helper animal! (Helper animals button in the lobby)","You got {0}!","Your daily gift:","You opened {0}:","🎁 Daily Gifts","✅ Today's gift taken - come back tomorrow!","🎁 Get your daily gift!","Open","⬅ Back to lobby","Common chest","Rare chest","Huge chest","Legendary chest","Ultra chest","Money","New character","New weapon","New shield","New food","New drink","💥 Free-for-all","🐾 Animal battle","👥 With friends","🤝 Team battle with friends","Pick friends and choose who is with you and who is against you","With me","Against me","🤖 Fill with computer players","📨 Send invites","Waiting for friends...","▶️ Start battle!","You joined! Waiting for the host to start...","You have no friends yet. Add friends in Settings.","The host left the battle.","Pick at least one friend.","Something went wrong, try again."],
+  es: ["🏆 ¡Ganaste! ¡Eres el último en pie!","💀 Quedaste fuera... quedan {0} luchadores","💥 Todos contra todos - {0} luchadores"," (tú)","↑ avanzar · ↓ retroceder · ← → girar · A / Espacio = morder 🦷","🦷 Morder","⬅ Salir al lobby","🔄 Otra batalla de animales","🏠 Lobby","🏆 ¡Ganaste la batalla de animales!","💀 Perdiste la batalla de animales...","🐾 ¡Primero compra y elige un animal ayudante! (botón 'Animales ayudantes' en el lobby)","¡Conseguiste {0}!","Tu regalo diario:","Abriste {0}:","🎁 Regalos diarios","✅ Ya tomaste el regalo de hoy - ¡vuelve mañana!","🎁 ¡Recibe tu regalo diario!","Abrir","⬅ Volver al lobby","Cofre común","Cofre raro","Cofre enorme","Cofre legendario","Cofre ultra","Dinero","Personaje nuevo","Arma nueva","Escudo nuevo","Comida nueva","Bebida nueva","💥 Todos contra todos","🐾 Batalla de animales","👥 Con amigos","🤝 Batalla de equipos con amigos","Elige amigos y decide quién está contigo y quién contra ti","Conmigo","Contra mí","🤖 Completar con la computadora","📨 Enviar invitaciones","Esperando a los amigos...","▶️ ¡Empezar batalla!","¡Te uniste! Esperando a que el anfitrión empiece...","Todavía no tienes amigos. Agrégalos en Configuración.","El anfitrión dejó la batalla.","Elige al menos un amigo.","Algo salió mal, inténtalo de nuevo."],
+  ja: ["🏆 勝った!最後の一人だ!","💀 脱落した… 残り{0}人","💥 バトルロイヤル - {0}人"," (あなた)","↑ 前へ · ↓ 後ろへ · ← → 回転 · A / スペース = かみつく 🦷","🦷 かみつく","⬅ ロビーに出る","🔄 もう一度どうぶつバトル","🏠 ロビー","🏆 どうぶつバトルに勝った!","💀 どうぶつバトルに負けた…","🐾 まずお助け動物を買って選ぼう!(ロビーの『お助け動物』ボタン)","{0}をゲット!","きょうのプレゼント:","{0}を開けた:","🎁 デイリープレゼント","✅ きょうのプレゼントは受け取り済み - また明日!","🎁 きょうのプレゼントをもらう!","開ける","⬅ ロビーにもどる","ふつうの宝箱","めずらしい宝箱","とてつもない宝箱","でんせつの宝箱","ウルトラ宝箱","お金","新しいキャラ","新しい武器","新しい盾","新しい食べ物","新しい飲み物","💥 バトルロイヤル","🐾 どうぶつバトル","👥 友だちと","🤝 友だちとチームバトル","友だちをえらんで、味方か敵かを決めよう","味方","敵","🤖 コンピューターでうめる","📨 しょうたいを送る","友だちを待っています...","▶️ バトルスタート!","さんかしたよ!ホストがはじめるのを待っています...","まだ友だちがいません。設定で追加しよう。","ホストがバトルからぬけました。","友だちを1人以上えらんでね。","うまくいきませんでした。もう一度ためしてね。"],
+  fr: ["🏆 Tu as gagné ! Tu es le dernier debout !","💀 Tu es éliminé... il reste {0} combattants","💥 Chacun pour soi - {0} combattants"," (toi)","↑ avancer · ↓ reculer · ← → tourner · A / Espace = mordre 🦷","🦷 Mordre","⬅ Sortir vers l'accueil","🔄 Un autre combat d'animaux","🏠 Accueil","🏆 Tu as gagné le combat d'animaux !","💀 Tu as perdu le combat d'animaux...","🐾 Achète d'abord un animal assistant et choisis-le ! (bouton 'Animaux assistants' à l'accueil)","Tu as obtenu {0} !","Ton cadeau du jour :","Tu as ouvert {0} :","🎁 Cadeaux quotidiens","✅ Cadeau du jour déjà pris - reviens demain !","🎁 Prends ton cadeau du jour !","Ouvrir","⬅ Retour à l'accueil","Coffre commun","Coffre rare","Coffre énorme","Coffre légendaire","Coffre ultra","Argent","Nouveau personnage","Nouvelle arme","Nouveau bouclier","Nouvelle nourriture","Nouvelle boisson","💥 Chacun pour soi","🐾 Combat d'animaux","👥 Avec des amis","🤝 Combat d'équipes avec des amis","Choisis des amis et décide qui est avec toi ou contre toi","Avec moi","Contre moi","🤖 Compléter avec l'ordinateur","📨 Envoyer les invitations","En attente des amis...","▶️ Lancer le combat !","Tu as rejoint ! On attend que l'hôte commence...","Tu n'as pas encore d'amis. Ajoute-en dans les réglages.","L'hôte a quitté le combat.","Choisis au moins un ami.","Quelque chose a échoué, réessaie."],
+  pt: ["🏆 Você venceu! É o último de pé!","💀 Você caiu... restam {0} lutadores","💥 Todos contra todos - {0} lutadores"," (você)","↑ avançar · ↓ voltar · ← → girar · A / Espaço = morder 🦷","🦷 Morder","⬅ Sair para o início","🔄 Outra batalha de animais","🏠 Início","🏆 Você venceu a batalha de animais!","💀 Você perdeu a batalha de animais...","🐾 Primeiro compre e escolha um animal ajudante! (botão 'Animais ajudantes' no início)","Você ganhou {0}!","Seu presente diário:","Você abriu {0}:","🎁 Presentes diários","✅ Presente de hoje já pego - volte amanhã!","🎁 Pegue seu presente diário!","Abrir","⬅ Voltar ao início","Baú comum","Baú raro","Baú enorme","Baú lendário","Baú ultra","Dinheiro","Novo personagem","Nova arma","Novo escudo","Nova comida","Nova bebida","💥 Todos contra todos","🐾 Batalha de animais","👥 Com amigos","🤝 Batalha em equipe com amigos","Escolha amigos e decida quem fica com você e quem fica contra","Comigo","Contra mim","🤖 Completar com o computador","📨 Enviar convites","Esperando os amigos...","▶️ Começar batalha!","Você entrou! Esperando o anfitrião começar...","Você ainda não tem amigos. Adicione nas Configurações.","O anfitrião saiu da batalha.","Escolha pelo menos um amigo.","Algo deu errado, tente de novo."],
+  de: ["🏆 Du hast gewonnen! Du bist der Letzte!","💀 Du bist raus... noch {0} Kämpfer übrig","💥 Jeder gegen jeden - {0} Kämpfer"," (du)","↑ vor · ↓ zurück · ← → drehen · A / Leertaste = beißen 🦷","🦷 Beißen","⬅ Zurück zum Start","🔄 Noch ein Tierkampf","🏠 Start","🏆 Du hast den Tierkampf gewonnen!","💀 Du hast den Tierkampf verloren...","🐾 Kauf und wähle zuerst ein Helfertier! (Knopf 'Helfertiere' im Start)","Du hast {0} bekommen!","Dein Tagesgeschenk:","Du hast {0} geöffnet:","🎁 Tägliche Geschenke","✅ Heutiges Geschenk geholt - komm morgen wieder!","🎁 Hol dein Tagesgeschenk!","Öffnen","⬅ Zurück zum Start","Gewöhnliche Truhe","Seltene Truhe","Riesige Truhe","Legendäre Truhe","Ultra-Truhe","Geld","Neue Figur","Neue Waffe","Neuer Schild","Neues Essen","Neues Getränk","💥 Jeder gegen jeden","🐾 Tierkampf","👥 Mit Freunden","🤝 Teamkampf mit Freunden","Wähle Freunde und entscheide, wer mit dir und wer gegen dich ist","Mit mir","Gegen mich","🤖 Mit Computer auffüllen","📨 Einladungen senden","Warte auf Freunde...","▶️ Kampf starten!","Du bist dabei! Warte, bis der Gastgeber startet...","Du hast noch keine Freunde. Füge welche in den Einstellungen hinzu.","Der Gastgeber hat den Kampf verlassen.","Wähle mindestens einen Freund.","Etwas ist schiefgelaufen, versuche es nochmal."],
+  ru: ["🏆 Ты победил! Ты остался последним!","💀 Ты выбыл... осталось бойцов: {0}","💥 Все против всех - бойцов: {0}"," (ты)","↑ вперёд · ↓ назад · ← → поворот · A / Пробел = укус 🦷","🦷 Укус","⬅ Выйти на главную","🔄 Ещё один бой зверей","🏠 Главная","🏆 Ты выиграл бой зверей!","💀 Ты проиграл бой зверей...","🐾 Сначала купи и выбери зверя-помощника! (кнопка 'Звери-помощники' на главной)","Ты получил: {0}!","Твой подарок на сегодня:","Ты открыл: {0}:","🎁 Ежедневные подарки","✅ Подарок за сегодня уже получен - приходи завтра!","🎁 Получи подарок дня!","Открыть","⬅ Назад на главную","Обычный сундук","Редкий сундук","Огромный сундук","Легендарный сундук","Ультра-сундук","Деньги","Новый персонаж","Новое оружие","Новый щит","Новая еда","Новый напиток","💥 Все против всех","🐾 Бой зверей","👥 С друзьями","🤝 Командный бой с друзьями","Выбери друзей и реши, кто с тобой, а кто против","Со мной","Против меня","🤖 Дополнить компьютером","📨 Отправить приглашения","Ждём друзей...","▶️ Начать бой!","Ты присоединился! Ждём, пока хозяин начнёт...","У тебя пока нет друзей. Добавь их в настройках.","Хозяин вышел из боя.","Выбери хотя бы одного друга.","Что-то пошло не так, попробуй ещё раз."],
+  ar: ["🏆 فزت! أنت الأخير الباقي!","💀 خرجت... بقي {0} مقاتلين","💥 الكل ضد الكل - {0} مقاتلين"," (أنت)","↑ للأمام · ↓ للخلف · ← → للدوران · A / مسافة = عضّ 🦷","🦷 عضّ","⬅ الخروج إلى الرئيسية","🔄 معركة حيوانات أخرى","🏠 الرئيسية","🏆 فزت في معركة الحيوانات!","💀 خسرت معركة الحيوانات...","🐾 اشترِ أولاً حيوانًا مساعدًا واختره! (زر 'الحيوانات المساعدة' في الرئيسية)","حصلت على {0}!","هديتك اليومية:","فتحت {0}:","🎁 الهدايا اليومية","✅ أخذت هدية اليوم - عد غدًا!","🎁 احصل على هديتك اليومية!","افتح","⬅ العودة إلى الرئيسية","صندوق عادي","صندوق نادر","صندوق ضخم","صندوق أسطوري","صندوق ألترا","مال","شخصية جديدة","سلاح جديد","درع جديد","طعام جديد","مشروب جديد","💥 الكل ضد الكل","🐾 معركة الحيوانات","👥 مع الأصدقاء","🤝 معركة فرق مع الأصدقاء","اختر أصدقاء وقرر من معك ومن ضدك","معي","ضدي","🤖 أكمل بلاعبين من الكمبيوتر","📨 أرسل الدعوات","في انتظار الأصدقاء...","▶️ ابدأ المعركة!","انضممت! ننتظر أن يبدأ المضيف...","ليس لديك أصدقاء بعد. أضف أصدقاء من الإعدادات.","غادر المضيف المعركة.","اختر صديقًا واحدًا على الأقل.","حدث خطأ، حاول مرة أخرى."],
+  th: ["🏆 คุณชนะ! คุณคือคนสุดท้าย!","💀 คุณตกรอบ... เหลืออีก {0} คน","💥 ทุกคนสู้ทุกคน - {0} คน"," (คุณ)","↑ เดินหน้า · ↓ ถอยหลัง · ← → หมุน · A / เว้นวรรค = กัด 🦷","🦷 กัด","⬅ ออกไปหน้าหลัก","🔄 ศึกสัตว์อีกครั้ง","🏠 หน้าหลัก","🏆 คุณชนะศึกสัตว์!","💀 คุณแพ้ศึกสัตว์...","🐾 ซื้อและเลือกสัตว์ผู้ช่วยก่อน! (ปุ่ม 'สัตว์ผู้ช่วย' ที่หน้าหลัก)","คุณได้รับ {0}!","ของขวัญประจำวันของคุณ:","คุณเปิด {0}:","🎁 ของขวัญประจำวัน","✅ รับของขวัญวันนี้แล้ว - พรุ่งนี้มาใหม่!","🎁 รับของขวัญประจำวัน!","เปิด","⬅ กลับหน้าหลัก","หีบธรรมดา","หีบหายาก","หีบยักษ์","หีบตำนาน","หีบอัลตร้า","เงิน","ตัวละครใหม่","อาวุธใหม่","โล่ใหม่","อาหารใหม่","เครื่องดื่มใหม่","💥 ทุกคนสู้ทุกคน","🐾 ศึกสัตว์","👥 เล่นกับเพื่อน","🤝 ต่อสู้เป็นทีมกับเพื่อน","เลือกเพื่อนและเลือกว่าใครอยู่ทีมเดียวกันหรือตรงข้าม","ทีมเดียวกับฉัน","ตรงข้ามฉัน","🤖 เติมด้วยคอมพิวเตอร์","📨 ส่งคำเชิญ","กำลังรอเพื่อน...","▶️ เริ่มต่อสู้!","คุณเข้าร่วมแล้ว! รอเจ้าของห้องเริ่ม...","คุณยังไม่มีเพื่อน เพิ่มเพื่อนได้ในการตั้งค่า","เจ้าของห้องออกจากการต่อสู้แล้ว","เลือกเพื่อนอย่างน้อยหนึ่งคน","เกิดข้อผิดพลาด ลองอีกครั้ง"],
+  pl: ["🏆 Wygrałeś! Zostałeś ostatni!","💀 Odpadłeś... zostało {0} wojowników","💥 Każdy na każdego - {0} wojowników"," (ty)","↑ do przodu · ↓ do tyłu · ← → obrót · A / Spacja = ugryzienie 🦷","🦷 Ugryź","⬅ Wyjdź do menu","🔄 Kolejna walka zwierząt","🏠 Menu","🏆 Wygrałeś walkę zwierząt!","💀 Przegrałeś walkę zwierząt...","🐾 Najpierw kup i wybierz zwierzę pomocnika! (przycisk 'Zwierzęta pomocnicy' w menu)","Zdobyłeś: {0}!","Twój dzienny prezent:","Otworzyłeś: {0}:","🎁 Codzienne prezenty","✅ Dzisiejszy prezent odebrany - wróć jutro!","🎁 Odbierz dzienny prezent!","Otwórz","⬅ Wróć do menu","Zwykła skrzynia","Rzadka skrzynia","Ogromna skrzynia","Legendarna skrzynia","Ultra skrzynia","Pieniądze","Nowa postać","Nowa broń","Nowa tarcza","Nowe jedzenie","Nowy napój","💥 Każdy na każdego","🐾 Walka zwierząt","👥 Z przyjaciółmi","🤝 Bitwa drużynowa z przyjaciółmi","Wybierz przyjaciół i zdecyduj, kto jest z tobą, a kto przeciw","Ze mną","Przeciwko mnie","🤖 Uzupełnij komputerem","📨 Wyślij zaproszenia","Czekam na przyjaciół...","▶️ Zacznij bitwę!","Dołączyłeś! Czekamy, aż gospodarz zacznie...","Nie masz jeszcze przyjaciół. Dodaj ich w ustawieniach.","Gospodarz opuścił bitwę.","Wybierz co najmniej jednego przyjaciela.","Coś poszło nie tak, spróbuj ponownie."],
+  it: ["🏆 Hai vinto! Sei l'ultimo rimasto!","💀 Sei fuori... restano {0} combattenti","💥 Tutti contro tutti - {0} combattenti"," (tu)","↑ avanti · ↓ indietro · ← → gira · A / Spazio = morso 🦷","🦷 Morso","⬅ Esci all'inizio","🔄 Un'altra battaglia di animali","🏠 Inizio","🏆 Hai vinto la battaglia di animali!","💀 Hai perso la battaglia di animali...","🐾 Prima compra e scegli un animale aiutante! (pulsante 'Animali aiutanti' all'inizio)","Hai ottenuto {0}!","Il tuo regalo giornaliero:","Hai aperto {0}:","🎁 Regali giornalieri","✅ Regalo di oggi già preso - torna domani!","🎁 Prendi il regalo giornaliero!","Apri","⬅ Torna all'inizio","Forziere comune","Forziere raro","Forziere enorme","Forziere leggendario","Forziere ultra","Soldi","Nuovo personaggio","Nuova arma","Nuovo scudo","Nuovo cibo","Nuova bevanda","💥 Tutti contro tutti","🐾 Battaglia di animali","👥 Con gli amici","🤝 Battaglia a squadre con gli amici","Scegli gli amici e decidi chi è con te e chi contro di te","Con me","Contro di me","🤖 Completa con il computer","📨 Invia gli inviti","In attesa degli amici...","▶️ Inizia la battaglia!","Ti sei unito! Aspettiamo che l'ospite inizi...","Non hai ancora amici. Aggiungili nelle impostazioni.","L'ospite ha lasciato la battaglia.","Scegli almeno un amico.","Qualcosa è andato storto, riprova."],
+  ro: ["🏆 Ai câștigat! Ești ultimul rămas!","💀 Ai ieșit... au mai rămas {0} luptători","💥 Fiecare pentru sine - {0} luptători"," (tu)","↑ înainte · ↓ înapoi · ← → rotire · A / Spațiu = mușcătură 🦷","🦷 Mușcă","⬅ Ieșire la început","🔄 Încă o luptă de animale","🏠 Acasă","🏆 Ai câștigat lupta animalelor!","💀 Ai pierdut lupta animalelor...","🐾 Mai întâi cumpără și alege un animal ajutor! (butonul 'Animale ajutoare' din meniu)","Ai primit {0}!","Cadoul tău zilnic:","Ai deschis {0}:","🎁 Cadouri zilnice","✅ Cadoul de azi a fost luat - revino mâine!","🎁 Ia cadoul zilnic!","Deschide","⬅ Înapoi la meniu","Ladă obișnuită","Ladă rară","Ladă uriașă","Ladă legendară","Ladă ultra","Bani","Personaj nou","Armă nouă","Scut nou","Mâncare nouă","Băutură nouă","💥 Fiecare pentru sine","🐾 Luptă de animale","👥 Cu prietenii","🤝 Luptă pe echipe cu prietenii","Alege prieteni și decide cine e cu tine și cine e împotriva ta","Cu mine","Împotriva mea","🤖 Completează cu calculatorul","📨 Trimite invitații","Aștept prietenii...","▶️ Începe lupta!","Te-ai alăturat! Așteptăm ca gazda să înceapă...","Încă nu ai prieteni. Adaugă prieteni în setări.","Gazda a părăsit lupta.","Alege cel puțin un prieten.","Ceva nu a mers, încearcă din nou."],
+  zh: ["🏆 你赢了!你是最后一个!","💀 你出局了…还剩{0}名战士","💥 大混战 - {0}名战士"," (你)","↑ 前进 · ↓ 后退 · ← → 转向 · A / 空格 = 咬 🦷","🦷 咬","⬅ 退出到主页","🔄 再来一场动物大战","🏠 主页","🏆 你赢了动物大战!","💀 你输了动物大战…","🐾 先购买并选择一只助手动物!(主页的“助手动物”按钮)","你获得了{0}!","你的每日礼物:","你打开了{0}:","🎁 每日礼物","✅ 今天的礼物已领取 - 明天再来!","🎁 领取每日礼物!","打开","⬅ 返回主页","普通宝箱","稀有宝箱","巨型宝箱","传说宝箱","超级宝箱","金钱","新角色","新武器","新盾牌","新食物","新饮料","💥 大混战","🐾 动物大战","👥 和朋友一起","🤝 和朋友组队战斗","选择朋友,决定谁和你一队、谁是对手","和我一队","对手","🤖 用电脑补满","📨 发送邀请","正在等朋友...","▶️ 开始战斗!","你加入了!等待房主开始...","你还没有朋友。去设置里添加吧。","房主离开了战斗。","请至少选一位朋友。","出错了,请再试一次。"],
+  ko: ["🏆 이겼어요! 마지막까지 남았어요!","💀 탈락했어요... {0}명 남았어요","💥 난투전 - {0}명"," (나)","↑ 앞으로 · ↓ 뒤로 · ← → 회전 · A / 스페이스 = 물기 🦷","🦷 물기","⬅ 로비로 나가기","🔄 동물 배틀 한 번 더","🏠 로비","🏆 동물 배틀에서 이겼어요!","💀 동물 배틀에서 졌어요...","🐾 먼저 도우미 동물을 사서 고르세요! (로비의 '도우미 동물' 버튼)","{0}을(를) 받았어요!","오늘의 선물:","{0}을(를) 열었어요:","🎁 일일 선물","✅ 오늘의 선물은 이미 받았어요 - 내일 또 오세요!","🎁 오늘의 선물 받기!","열기","⬅ 로비로 돌아가기","일반 상자","희귀 상자","거대 상자","전설 상자","울트라 상자","돈","새 캐릭터","새 무기","새 방패","새 음식","새 음료","💥 난투전","🐾 동물 배틀","👥 친구와 함께","🤝 친구와 팀 대결","친구를 골라서 누가 내 편이고 누가 상대인지 정해요","내 편","상대","🤖 컴퓨터로 채우기","📨 초대 보내기","친구를 기다리는 중...","▶️ 대결 시작!","참가했어요! 방장이 시작하길 기다려요...","아직 친구가 없어요. 설정에서 친구를 추가하세요.","방장이 대결을 나갔어요.","친구를 한 명 이상 골라 주세요.","문제가 생겼어요. 다시 해 보세요."],
+  hi: ["🏆 तुम जीत गए! तुम आख़िरी बचे हो!","💀 तुम बाहर हो गए... {0} लड़ाके बचे हैं","💥 सब सबके ख़िलाफ़ - {0} लड़ाके"," (तुम)","↑ आगे · ↓ पीछे · ← → मुड़ो · A / स्पेस = काटो 🦷","🦷 काटो","⬅ लॉबी में जाओ","🔄 एक और जानवर की लड़ाई","🏠 लॉबी","🏆 तुमने जानवरों की लड़ाई जीती!","💀 तुम जानवरों की लड़ाई हार गए...","🐾 पहले मददगार जानवर ख़रीदो और चुनो! (लॉबी में 'मददगार जानवर' बटन)","तुम्हें {0} मिला!","तुम्हारा रोज़ का तोहफ़ा:","तुमने {0} खोला:","🎁 दैनिक तोहफ़े","✅ आज का तोहफ़ा ले लिया - कल फिर आना!","🎁 रोज़ का तोहफ़ा लो!","खोलो","⬅ लॉबी में वापस","आम संदूक","दुर्लभ संदूक","विशाल संदूक","महान संदूक","अल्ट्रा संदूक","पैसे","नया किरदार","नया हथियार","नई ढाल","नया खाना","नया पेय","💥 सब सबके ख़िलाफ़","🐾 जानवरों की लड़ाई","👥 दोस्तों के साथ","🤝 दोस्तों के साथ टीम की लड़ाई","दोस्त चुनो और तय करो कि कौन तुम्हारे साथ है और कौन खिलाफ","मेरे साथ","मेरे खिलाफ","🤖 कंप्यूटर से पूरा करो","📨 न्योते भेजो","दोस्तों का इंतज़ार...","▶️ लड़ाई शुरू करो!","तुम जुड़ गए! मेज़बान के शुरू करने का इंतज़ार...","अभी तुम्हारे कोई दोस्त नहीं हैं। सेटिंग्स में दोस्त जोड़ो।","मेज़बान लड़ाई छोड़कर चला गया।","कम से कम एक दोस्त चुनो।","कुछ गड़बड़ हो गई, फिर कोशिश करो।"],
+  tr: ["🏆 Kazandın! Son kalan sensin!","💀 Elendin... {0} dövüşçü kaldı","💥 Herkes herkese karşı - {0} dövüşçü"," (sen)","↑ ileri · ↓ geri · ← → dön · A / Boşluk = ısır 🦷","🦷 Isır","⬅ Lobiye çık","🔄 Bir hayvan savaşı daha","🏠 Lobi","🏆 Hayvan savaşını kazandın!","💀 Hayvan savaşını kaybettin...","🐾 Önce bir yardımcı hayvan satın al ve seç! (lobideki 'Yardımcı hayvanlar' düğmesi)","{0} kazandın!","Günlük hediyen:","{0} açtın:","🎁 Günlük hediyeler","✅ Bugünün hediyesi alındı - yarın tekrar gel!","🎁 Günlük hediyeni al!","Aç","⬅ Lobiye dön","Sıradan sandık","Nadir sandık","Devasa sandık","Efsanevi sandık","Ultra sandık","Para","Yeni karakter","Yeni silah","Yeni kalkan","Yeni yemek","Yeni içecek","💥 Herkes herkese karşı","🐾 Hayvan savaşı","👥 Arkadaşlarla","🤝 Arkadaşlarla takım savaşı","Arkadaşlarını seç, kimin seninle kimin karşında olduğuna karar ver","Benimle","Bana karşı","🤖 Bilgisayarla tamamla","📨 Davet gönder","Arkadaşlar bekleniyor...","▶️ Savaşı başlat!","Katıldın! Ev sahibinin başlatması bekleniyor...","Henüz arkadaşın yok. Ayarlardan arkadaş ekle.","Ev sahibi savaştan ayrıldı.","En az bir arkadaş seç.","Bir şeyler ters gitti, tekrar dene."],
+  nl: ["🏆 Je hebt gewonnen! Jij bent de laatste!","💀 Je ligt eruit... nog {0} vechters over","💥 Allemaal tegen allemaal - {0} vechters"," (jij)","↑ vooruit · ↓ achteruit · ← → draaien · A / Spatie = bijten 🦷","🦷 Bijten","⬅ Naar de lobby","🔄 Nog een dierengevecht","🏠 Lobby","🏆 Je hebt het dierengevecht gewonnen!","💀 Je hebt het dierengevecht verloren...","🐾 Koop en kies eerst een hulpdier! (knop 'Hulpdieren' in de lobby)","Je kreeg {0}!","Je dagelijkse cadeau:","Je opende {0}:","🎁 Dagelijkse cadeaus","✅ Cadeau van vandaag al gepakt - kom morgen terug!","🎁 Pak je dagelijkse cadeau!","Openen","⬅ Terug naar de lobby","Gewone kist","Zeldzame kist","Enorme kist","Legendarische kist","Ultra kist","Geld","Nieuw personage","Nieuw wapen","Nieuw schild","Nieuw eten","Nieuw drankje","💥 Allemaal tegen allemaal","🐾 Dierengevecht","👥 Met vrienden","🤝 Teamgevecht met vrienden","Kies vrienden en bepaal wie met jou is en wie tegen jou","Met mij","Tegen mij","🤖 Aanvullen met de computer","📨 Uitnodigingen sturen","Wachten op vrienden...","▶️ Start het gevecht!","Je doet mee! Wachten tot de gastheer start...","Je hebt nog geen vrienden. Voeg ze toe bij Instellingen.","De gastheer heeft het gevecht verlaten.","Kies minstens één vriend.","Er ging iets mis, probeer het opnieuw."],
+  sv: ["🏆 Du vann! Du är den sista kvar!","💀 Du åkte ut... {0} fighters kvar","💥 Alla mot alla - {0} fighters"," (du)","↑ framåt · ↓ bakåt · ← → vänd · A / Mellanslag = bita 🦷","🦷 Bit","⬅ Gå till lobbyn","🔄 Ännu en djurstrid","🏠 Lobby","🏆 Du vann djurstriden!","💀 Du förlorade djurstriden...","🐾 Köp och välj först ett hjälpdjur! (knappen 'Hjälpdjur' i lobbyn)","Du fick {0}!","Din dagliga present:","Du öppnade {0}:","🎁 Dagliga presenter","✅ Dagens present är tagen - kom tillbaka imorgon!","🎁 Hämta din dagliga present!","Öppna","⬅ Tillbaka till lobbyn","Vanlig kista","Sällsynt kista","Enorm kista","Legendarisk kista","Ultrakista","Pengar","Ny figur","Nytt vapen","Ny sköld","Ny mat","Ny dryck","💥 Alla mot alla","🐾 Djurstrid","👥 Med vänner","🤝 Lagstrid med vänner","Välj vänner och bestäm vem som är med dig och vem som är mot dig","Med mig","Mot mig","🤖 Fyll på med datorn","📨 Skicka inbjudningar","Väntar på vänner...","▶️ Starta striden!","Du är med! Väntar på att värden startar...","Du har inga vänner än. Lägg till vänner i Inställningar.","Värden lämnade striden.","Välj minst en vän.","Något gick fel, försök igen."],
+  uk: ["🏆 Ти переміг! Ти залишився останнім!","💀 Ти вибув... залишилось бійців: {0}","💥 Усі проти всіх - бійців: {0}"," (ти)","↑ уперед · ↓ назад · ← → поворот · A / Пробіл = укус 🦷","🦷 Укус","⬅ Вийти на головну","🔄 Ще один бій звірів","🏠 Головна","🏆 Ти виграв бій звірів!","💀 Ти програв бій звірів...","🐾 Спочатку купи й обери звірятко-помічника! (кнопка 'Звірі-помічники' на головній)","Ти отримав: {0}!","Твій подарунок на сьогодні:","Ти відкрив: {0}:","🎁 Щоденні подарунки","✅ Подарунок на сьогодні вже отримано - приходь завтра!","🎁 Отримай подарунок дня!","Відкрити","⬅ Назад на головну","Звичайна скриня","Рідкісна скриня","Величезна скриня","Легендарна скриня","Ультра-скриня","Гроші","Новий персонаж","Нова зброя","Новий щит","Нова їжа","Новий напій","💥 Усі проти всіх","🐾 Бій звірів","👥 З друзями","🤝 Командний бій з друзями","Обери друзів і вирішуй, хто з тобою, а хто проти","Зі мною","Проти мене","🤖 Доповнити комп'ютером","📨 Надіслати запрошення","Чекаємо на друзів...","▶️ Почати бій!","Ти приєднався! Чекаємо, поки господар почне...","У тебе ще немає друзів. Додай їх у налаштуваннях.","Господар вийшов із бою.","Обери хоча б одного друга.","Щось пішло не так, спробуй ще раз."],
+  cs: ["🏆 Vyhrál jsi! Zůstal jsi poslední!","💀 Vypadl jsi... zbývá {0} bojovníků","💥 Každý proti každému - {0} bojovníků"," (ty)","↑ vpřed · ↓ vzad · ← → otáčení · A / Mezerník = kousnutí 🦷","🦷 Kousnout","⬅ Odejít do menu","🔄 Další zvířecí souboj","🏠 Menu","🏆 Vyhrál jsi zvířecí souboj!","💀 Prohrál jsi zvířecí souboj...","🐾 Nejdřív si kup a vyber pomocné zvíře! (tlačítko 'Pomocná zvířata' v menu)","Získal jsi {0}!","Tvůj denní dárek:","Otevřel jsi {0}:","🎁 Denní dárky","✅ Dnešní dárek už máš - přijď zítra!","🎁 Vyzvedni denní dárek!","Otevřít","⬅ Zpět do menu","Obyčejná truhla","Vzácná truhla","Obrovská truhla","Legendární truhla","Ultra truhla","Peníze","Nová postava","Nová zbraň","Nový štít","Nové jídlo","Nový nápoj","💥 Každý proti každému","🐾 Zvířecí souboj","👥 S přáteli","🤝 Týmový boj s přáteli","Vyber přátele a rozhodni, kdo je s tebou a kdo proti tobě","Se mnou","Proti mně","🤖 Doplnit počítačem","📨 Poslat pozvánky","Čekám na přátele...","▶️ Začít boj!","Připojil ses! Čekáme, až hostitel začne...","Zatím nemáš žádné přátele. Přidej je v nastavení.","Hostitel opustil boj.","Vyber alespoň jednoho přítele.","Něco se pokazilo, zkus to znovu."],
+  hu: ["🏆 Nyertél! Te maradtál utolsónak!","💀 Kiestél... még {0} harcos maradt","💥 Mindenki mindenki ellen - {0} harcos"," (te)","↑ előre · ↓ hátra · ← → fordulás · A / Szóköz = harapás 🦷","🦷 Harapás","⬅ Kilépés a főmenübe","🔄 Még egy állatcsata","🏠 Főmenü","🏆 Megnyerted az állatcsatát!","💀 Elvesztetted az állatcsatát...","🐾 Előbb vegyél és válassz egy segítő állatot! ('Segítő állatok' gomb a főmenüben)","Megkaptad: {0}!","A napi ajándékod:","Kinyitottad: {0}:","🎁 Napi ajándékok","✅ A mai ajándékot már elvitted - gyere vissza holnap!","🎁 Vidd el a napi ajándékot!","Kinyitás","⬅ Vissza a főmenübe","Közönséges láda","Ritka láda","Hatalmas láda","Legendás láda","Ultra láda","Pénz","Új karakter","Új fegyver","Új pajzs","Új étel","Új ital","💥 Mindenki mindenki ellen","🐾 Állatcsata","👥 Barátokkal","🤝 Csapatharc barátokkal","Válassz barátokat, és döntsd el, ki van veled és ki ellened","Velem","Ellenem","🤖 Kiegészítés számítógéppel","📨 Meghívók küldése","Várunk a barátokra...","▶️ Harc indítása!","Csatlakoztál! Várjuk, hogy a házigazda elindítsa...","Még nincsenek barátaid. Adj hozzá a beállításokban.","A házigazda elhagyta a harcot.","Válassz legalább egy barátot.","Valami nem sikerült, próbáld újra."],
+  el: ["🏆 Κέρδισες! Είσαι ο τελευταίος που έμεινε!","💀 Αποκλείστηκες... έμειναν {0} μαχητές","💥 Όλοι εναντίον όλων - {0} μαχητές"," (εσύ)","↑ μπροστά · ↓ πίσω · ← → στροφή · A / Space = δάγκωμα 🦷","🦷 Δάγκωμα","⬅ Έξοδος στην αρχική","🔄 Άλλη μια μάχη ζώων","🏠 Αρχική","🏆 Κέρδισες τη μάχη ζώων!","💀 Έχασες τη μάχη ζώων...","🐾 Πρώτα αγόρασε και διάλεξε ένα βοηθητικό ζώο! (κουμπί 'Βοηθητικά ζώα' στην αρχική)","Πήρες {0}!","Το καθημερινό σου δώρο:","Άνοιξες {0}:","🎁 Καθημερινά δώρα","✅ Πήρες το σημερινό δώρο - ξαναέλα αύριο!","🎁 Πάρε το καθημερινό δώρο!","Άνοιγμα","⬅ Πίσω στην αρχική","Κανονικό σεντούκι","Σπάνιο σεντούκι","Τεράστιο σεντούκι","Θρυλικό σεντούκι","Υπερ-σεντούκι","Χρήματα","Νέος χαρακτήρας","Νέο όπλο","Νέα ασπίδα","Νέο φαγητό","Νέο ποτό","💥 Όλοι εναντίον όλων","🐾 Μάχη ζώων","👥 Με φίλους","🤝 Ομαδική μάχη με φίλους","Διάλεξε φίλους και αποφάσισε ποιος είναι μαζί σου και ποιος εναντίον σου","Μαζί μου","Εναντίον μου","🤖 Συμπλήρωσε με υπολογιστή","📨 Στείλε προσκλήσεις","Περιμένουμε τους φίλους...","▶️ Ξεκίνα τη μάχη!","Μπήκες! Περιμένουμε τον οικοδεσπότη να ξεκινήσει...","Δεν έχεις φίλους ακόμα. Πρόσθεσε φίλους στις Ρυθμίσεις.","Ο οικοδεσπότης έφυγε από τη μάχη.","Διάλεξε τουλάχιστον έναν φίλο.","Κάτι πήγε στραβά, δοκίμασε ξανά."],
+  bg: ["🏆 Победи! Ти остана последен!","💀 Отпадна... останаха {0} бойци","💥 Всеки срещу всеки - {0} бойци"," (ти)","↑ напред · ↓ назад · ← → завиване · A / Интервал = ухапване 🦷","🦷 Ухапване","⬅ Изход към началото","🔄 Още една битка на животни","🏠 Начало","🏆 Спечели битката на животните!","💀 Загуби битката на животните...","🐾 Първо купи и избери животно помощник! (бутон 'Животни помощници' в началото)","Получи {0}!","Твоят дневен подарък:","Отвори {0}:","🎁 Ежедневни подаръци","✅ Днешният подарък е взет - ела утре!","🎁 Вземи дневния подарък!","Отвори","⬅ Назад към началото","Обикновен сандък","Рядък сандък","Огромен сандък","Легендарен сандък","Ултра сандък","Пари","Нов герой","Ново оръжие","Нов щит","Нова храна","Нова напитка","💥 Всеки срещу всеки","🐾 Битка на животни","👥 С приятели","🤝 Отборен бой с приятели","Избери приятели и реши кой е с теб и кой е против теб","С мен","Срещу мен","🤖 Допълни с компютър","📨 Изпрати покани","Чакаме приятелите...","▶️ Започни боя!","Присъедини се! Чакаме домакинът да започне...","Още нямаш приятели. Добави ги от настройките.","Домакинът напусна боя.","Избери поне един приятел.","Нещо се обърка, опитай пак."],
+  sr: ["🏆 Победио си! Остао си последњи!","💀 Испао си... остало је {0} бораца","💥 Сви против свих - {0} бораца"," (ти)","↑ напред · ↓ назад · ← → окретање · A / Размак = угриз 🦷","🦷 Угризи","⬅ Излаз на почетну","🔄 Још једна битка животиња","🏠 Почетна","🏆 Победио си у борби животиња!","💀 Изгубио си борбу животиња...","🐾 Прво купи и изабери животињу помоћника! (дугме 'Животиње помоћници' на почетној)","Добио си {0}!","Твој дневни поклон:","Отворио си {0}:","🎁 Дневни поклони","✅ Данашњи поклон је узет - дођи сутра!","🎁 Узми дневни поклон!","Отвори","⬅ Назад на почетну","Обичан ковчег","Редак ковчег","Огроман ковчег","Легендарни ковчег","Ултра ковчег","Новац","Нови лик","Ново оружје","Нови штит","Нова храна","Ново пиће","💥 Сви против свих","🐾 Борба животиња","👥 Са пријатељима","🤝 Тимска борба са пријатељима","Изабери пријатеље и одлучи ко је са тобом, а ко против","Са мном","Против мене","🤖 Допуни рачунаром","📨 Пошаљи позиве","Чекамо пријатеље...","▶️ Почни борбу!","Придружио си се! Чекамо да домаћин почне...","Још немаш пријатеља. Додај их у подешавањима.","Домаћин је напустио борбу.","Изабери бар једног пријатеља.","Нешто је пошло по злу, покушај поново."],
+  hr: ["🏆 Pobijedio si! Ostao si zadnji!","💀 Ispao si... ostalo je {0} boraca","💥 Svi protiv svih - {0} boraca"," (ti)","↑ naprijed · ↓ natrag · ← → okret · A / Razmak = ugriz 🦷","🦷 Ugrizi","⬅ Izlaz na početnu","🔄 Još jedna bitka životinja","🏠 Početna","🏆 Pobijedio si u borbi životinja!","💀 Izgubio si borbu životinja...","🐾 Prvo kupi i odaberi životinju pomoćnika! (gumb 'Životinje pomoćnici' na početnoj)","Dobio si {0}!","Tvoj dnevni dar:","Otvorio si {0}:","🎁 Dnevni darovi","✅ Današnji dar je uzet - dođi sutra!","🎁 Uzmi dnevni dar!","Otvori","⬅ Natrag na početnu","Obična škrinja","Rijetka škrinja","Golema škrinja","Legendarna škrinja","Ultra škrinja","Novac","Novi lik","Novo oružje","Novi štit","Nova hrana","Novo piće","💥 Svi protiv svih","🐾 Bitka životinja","👥 S prijateljima","🤝 Timska borba s prijateljima","Odaberi prijatelje i odluči tko je s tobom, a tko protiv tebe","Sa mnom","Protiv mene","🤖 Dopuni računalom","📨 Pošalji pozivnice","Čekamo prijatelje...","▶️ Počni borbu!","Pridružio si se! Čekamo da domaćin počne...","Još nemaš prijatelja. Dodaj ih u postavkama.","Domaćin je napustio borbu.","Odaberi barem jednog prijatelja.","Nešto je pošlo po zlu, pokušaj ponovno."],
+  sk: ["🏆 Vyhral si! Zostal si posledný!","💀 Vypadol si... zostáva {0} bojovníkov","💥 Každý proti každému - {0} bojovníkov"," (ty)","↑ vpred · ↓ vzad · ← → otáčanie · A / Medzerník = hryznutie 🦷","🦷 Hryznúť","⬅ Odísť do menu","🔄 Ďalší zvierací súboj","🏠 Menu","🏆 Vyhral si zvierací súboj!","💀 Prehral si zvierací súboj...","🐾 Najprv si kúp a vyber pomocné zviera! (tlačidlo 'Pomocné zvieratá' v menu)","Získal si {0}!","Tvoj denný darček:","Otvoril si {0}:","🎁 Denné darčeky","✅ Dnešný darček už máš - príď zajtra!","🎁 Vyzdvihni denný darček!","Otvoriť","⬅ Späť do menu","Obyčajná truhlica","Vzácna truhlica","Obrovská truhlica","Legendárna truhlica","Ultra truhlica","Peniaze","Nová postava","Nová zbraň","Nový štít","Nové jedlo","Nový nápoj","💥 Každý proti každému","🐾 Zvierací súboj","👥 S priateľmi","🤝 Tímový boj s priateľmi","Vyber priateľov a rozhodni, kto je s tebou a kto proti tebe","So mnou","Proti mne","🤖 Doplniť počítačom","📨 Poslať pozvánky","Čakám na priateľov...","▶️ Začať boj!","Pridal si sa! Čakáme, kým hostiteľ začne...","Zatiaľ nemáš žiadnych priateľov. Pridaj ich v nastaveniach.","Hostiteľ opustil boj.","Vyber aspoň jedného priateľa.","Niečo sa pokazilo, skús znova."],
+  sq: ["🏆 Fitove! Ti mbete i fundit!","💀 Dolët jashtë... kanë mbetur {0} luftëtarë","💥 Të gjithë kundër të gjithëve - {0} luftëtarë"," (ti)","↑ përpara · ↓ mbrapa · ← → rrotullo · A / Hapësirë = kafshim 🦷","🦷 Kafsho","⬅ Dil te kryefaqja","🔄 Një betejë tjetër kafshësh","🏠 Kryefaqja","🏆 Fitove betejën e kafshëve!","💀 Humbe betejën e kafshëve...","🐾 Së pari bli dhe zgjidh një kafshë ndihmëse! (butoni 'Kafshët ndihmëse' te kryefaqja)","More {0}!","Dhurata jote ditore:","Hapë {0}:","🎁 Dhurata ditore","✅ Dhuratën e sotme e more - kthehu nesër!","🎁 Merr dhuratën ditore!","Hap","⬅ Kthehu te kryefaqja","Arkë e zakonshme","Arkë e rrallë","Arkë gjigante","Arkë legjendare","Arkë ultra","Para","Personazh i ri","Armë e re","Mburojë e re","Ushqim i ri","Pije e re","💥 Të gjithë kundër të gjithëve","🐾 Beteja e kafshëve","👥 Me miq","🤝 Betejë ekipore me miq","Zgjidh miq dhe vendos kush është me ty dhe kush kundër teje","Me mua","Kundër meje","🤖 Plotëso me kompjuterin","📨 Dërgo ftesa","Po presim miqtë...","▶️ Nis betejën!","U bashkove! Po presim që pritësi të fillojë...","Ende nuk ke miq. Shto miq te Cilësimet.","Pritësi e la betejën.","Zgjidh të paktën një mik.","Diçka shkoi keq, provo përsëri."],
+  sl: ["🏆 Zmagal si! Ostal si zadnji!","💀 Izpadel si... ostalo je še {0} borcev","💥 Vsi proti vsem - {0} borcev"," (ti)","↑ naprej · ↓ nazaj · ← → obračanje · A / Preslednica = ugriz 🦷","🦷 Ugrizni","⬅ Izhod na začetno","🔄 Še en boj živali","🏠 Začetna","🏆 Zmagal si v boju živali!","💀 Izgubil si boj živali...","🐾 Najprej kupi in izberi pomočnika živali! (gumb 'Pomočniki živali' na začetni)","Dobil si {0}!","Tvoje dnevno darilo:","Odprl si {0}:","🎁 Dnevna darila","✅ Današnje darilo je prevzeto - pridi jutri!","🎁 Prevzemi dnevno darilo!","Odpri","⬅ Nazaj na začetno","Navadna skrinja","Redka skrinja","Ogromna skrinja","Legendarna skrinja","Ultra skrinja","Denar","Nov lik","Novo orožje","Nov ščit","Nova hrana","Nova pijača","💥 Vsi proti vsem","🐾 Boj živali","👥 S prijatelji","🤝 Ekipni boj s prijatelji","Izberi prijatelje in se odloči, kdo je s tabo in kdo proti tebi","Z mano","Proti meni","🤖 Dopolni z računalnikom","📨 Pošlji povabila","Čakamo prijatelje...","▶️ Začni boj!","Pridružil si se! Čakamo, da gostitelj začne...","Še nimaš prijateljev. Dodaj jih v nastavitvah.","Gostitelj je zapustil boj.","Izberi vsaj enega prijatelja.","Nekaj je šlo narobe, poskusi znova."],
+  gd: ["🏆 Choisinn thu! Is tusa an fheadhainn mu dheireadh!","💀 Chaidh do chur a-mach... tha {0} neach-sabaid air fhàgail","💥 A h-uile duine an aghaidh a h-uile duine - {0} neach-sabaid"," (thusa)","↑ air adhart · ↓ air ais · ← → tionndadh · A / Spàs = bìdeadh 🦷","🦷 Bìd","⬅ Falbh dhan phrìomh sgrìn","🔄 Blàr bheathaichean eile","🏠 Prìomh sgrìn","🏆 Choisinn thu blàr nam beathaichean!","💀 Chaill thu blàr nam beathaichean...","🐾 An toiseach ceannaich agus tagh beathach-taice! (putan 'Beathaichean-taice' air a' phrìomh sgrìn)","Fhuair thu {0}!","Do thiodhlac làitheil:","Dh'fhosgail thu {0}:","🎁 Tiodhlacan làitheil","✅ Fhuair thu tiodhlac an-diugh - till a-màireach!","🎁 Faigh do thiodhlac làitheil!","Fosgail","⬅ Air ais dhan phrìomh sgrìn","Cisteachan àbhaisteach","Cisteachan tearc","Cisteachan mòr","Cisteachan uirsgeulach","Cisteachan ultra","Airgead","Caractar ùr","Armachd ùr","Sgiath ùr","Biadh ùr","Deoch ùr","💥 A h-uile duine an aghaidh a h-uile duine","🐾 Blàr bheathaichean","👥 Le caraidean","🤝 Blàr sgioba le caraidean","Tagh caraidean agus co-dhùin cò a tha còmhla riut agus cò a tha nad aghaidh","Còmhla rium","Nam aghaidh","🤖 Lìon le coimpiutair","📨 Cuir cuiridhean","A' feitheamh ris na caraidean...","▶️ Tòisich am blàr!","Chaidh thu a-steach! A' feitheamh ris an aoigh tòiseachadh...","Chan eil caraidean agad fhathast. Cuir caraidean ris sna roghainnean.","Dh'fhàg an t-aoigh am blàr.","Tagh co-dhiù aon charaid.","Chaidh rudeigin ceàrr, feuch a-rithist."],
+  ptpt: ["🏆 Ganhaste! És o último de pé!","💀 Foste eliminado... restam {0} lutadores","💥 Todos contra todos - {0} lutadores"," (tu)","↑ avançar · ↓ recuar · ← → rodar · A / Espaço = morder 🦷","🦷 Morder","⬅ Sair para o início","🔄 Outra batalha de animais","🏠 Início","🏆 Ganhaste a batalha de animais!","💀 Perdeste a batalha de animais...","🐾 Primeiro compra e escolhe um animal ajudante! (botão 'Animais ajudantes' no início)","Ganhaste {0}!","A tua prenda diária:","Abriste {0}:","🎁 Prendas diárias","✅ Já levantaste a prenda de hoje - volta amanhã!","🎁 Levanta a tua prenda diária!","Abrir","⬅ Voltar ao início","Baú comum","Baú raro","Baú enorme","Baú lendário","Baú ultra","Dinheiro","Novo personagem","Nova arma","Novo escudo","Nova comida","Nova bebida","💥 Todos contra todos","🐾 Batalha de animais","👥 Com amigos","🤝 Batalha de equipas com amigos","Escolhe amigos e decide quem fica contigo e quem fica contra ti","Comigo","Contra mim","🤖 Completar com o computador","📨 Enviar convites","A aguardar os amigos...","▶️ Começar batalha!","Entraste! A aguardar que o anfitrião comece...","Ainda não tens amigos. Adiciona-os nas Definições.","O anfitrião saiu da batalha.","Escolhe pelo menos um amigo.","Algo correu mal, tenta de novo."],
+  am: ["🏆 አሸነፍክ! የመጨረሻው ቀሪ አንተ ነህ!","💀 ወጣህ... {0} ተዋጊዎች ቀርተዋል","💥 ሁሉም በሁሉም ላይ - {0} ተዋጊዎች"," (አንተ)","↑ ወደ ፊት · ↓ ወደ ኋላ · ← → መዞር · A / ክፍተት = መንከስ 🦷","🦷 ንከስ","⬅ ወደ መነሻ ውጣ","🔄 ሌላ የእንስሳት ውጊያ","🏠 መነሻ","🏆 የእንስሳት ውጊያውን አሸነፍክ!","💀 የእንስሳት ውጊያውን ተሸነፍክ...","🐾 መጀመሪያ ረዳት እንስሳ ግዛ እና ምረጥ! (በመነሻ ያለው 'ረዳት እንስሳት' ቁልፍ)","{0} አገኘህ!","የዕለቱ ስጦታህ፦","{0} ከፈትክ፦","🎁 የዕለት ስጦታዎች","✅ የዛሬውን ስጦታ ወስደሃል - ነገ ተመለስ!","🎁 የዕለቱን ስጦታ ውሰድ!","ክፈት","⬅ ወደ መነሻ ተመለስ","ተራ ሣጥን","ብርቅ ሣጥን","ግዙፍ ሣጥን","አፈ ታሪክ ሣጥን","አልትራ ሣጥን","ገንዘብ","አዲስ ገጸ ባህሪ","አዲስ መሣሪያ","አዲስ ጋሻ","አዲስ ምግብ","አዲስ መጠጥ","💥 ሁሉም በሁሉም ላይ","🐾 የእንስሳት ውጊያ","👥 ከጓደኞች ጋር","🤝 ከጓደኞች ጋር የቡድን ውጊያ","ጓደኞችን ምረጥ እና ከአንተ ጋር ማን እንደሆነ፣ ማን እንደሚቃወምህ ወስን","ከእኔ ጋር","በእኔ ላይ","🤖 በኮምፒውተር ሙላ","📨 ግብዣ ላክ","ጓደኞችን እየጠበቅን ነው...","▶️ ውጊያውን ጀምር!","ተቀላቅለሃል! አስተናጋጁ እስኪጀምር እየጠበቅን ነው...","ገና ጓደኛ የለህም። ከቅንብሮች ጓደኛ ጨምር።","አስተናጋጁ ከውጊያው ወጥቷል።","ቢያንስ አንድ ጓደኛ ምረጥ።","የሆነ ችግር ተፈጠረ፣ እንደገና ሞክር።"],
+  fi: ["🏆 Voitit! Olet viimeinen jäljellä!","💀 Putosit... {0} taistelijaa jäljellä","💥 Kaikki kaikkia vastaan - {0} taistelijaa"," (sinä)","↑ eteen · ↓ taakse · ← → käänny · A / Väli = pure 🦷","🦷 Pure","⬅ Poistu aulaan","🔄 Vielä yksi eläintaistelu","🏠 Aula","🏆 Voitit eläintaistelun!","💀 Hävisit eläintaistelun...","🐾 Osta ja valitse ensin apueläin! (aulan 'Apueläimet'-painike)","Sait: {0}!","Päivän lahjasi:","Avasit: {0}:","🎁 Päivittäiset lahjat","✅ Päivän lahja on jo otettu - tule huomenna uudestaan!","🎁 Ota päivän lahja!","Avaa","⬅ Takaisin aulaan","Tavallinen arkku","Harvinainen arkku","Valtava arkku","Legendaarinen arkku","Ultra-arkku","Raha","Uusi hahmo","Uusi ase","Uusi kilpi","Uusi ruoka","Uusi juoma","💥 Kaikki kaikkia vastaan","🐾 Eläintaistelu","👥 Kavereiden kanssa","🤝 Joukkuetaistelu kavereiden kanssa","Valitse kaverit ja päätä, kuka on mukanasi ja kuka sinua vastaan","Minun kanssani","Minua vastaan","🤖 Täytä tietokoneella","📨 Lähetä kutsut","Odotetaan kavereita...","▶️ Aloita taistelu!","Liityit mukaan! Odotetaan, että isäntä aloittaa...","Sinulla ei ole vielä kavereita. Lisää kavereita asetuksissa.","Isäntä poistui taistelusta.","Valitse vähintään yksi kaveri.","Jokin meni pieleen, yritä uudelleen."],
+  no: ["🏆 Du vant! Du er den siste igjen!","💀 Du er ute... {0} kjempere igjen","💥 Alle mot alle - {0} kjempere"," (du)","↑ fremover · ↓ bakover · ← → snu · A / Mellomrom = bite 🦷","🦷 Bit","⬅ Gå til lobbyen","🔄 Enda en dyrekamp","🏠 Lobby","🏆 Du vant dyrekampen!","💀 Du tapte dyrekampen...","🐾 Kjøp og velg først et hjelpedyr! ('Hjelpedyr'-knappen i lobbyen)","Du fikk {0}!","Din daglige gave:","Du åpnet {0}:","🎁 Daglige gaver","✅ Dagens gave er hentet - kom tilbake i morgen!","🎁 Hent din daglige gave!","Åpne","⬅ Tilbake til lobbyen","Vanlig kiste","Sjelden kiste","Enorm kiste","Legendarisk kiste","Ultrakiste","Penger","Ny figur","Nytt våpen","Nytt skjold","Ny mat","Ny drikke","💥 Alle mot alle","🐾 Dyrekamp","👥 Med venner","🤝 Lagkamp med venner","Velg venner og bestem hvem som er med deg og hvem som er mot deg","Med meg","Mot meg","🤖 Fyll opp med datamaskinen","📨 Send invitasjoner","Venter på venner...","▶️ Start kampen!","Du er med! Venter på at verten starter...","Du har ingen venner ennå. Legg til venner i Innstillinger.","Verten forlot kampen.","Velg minst én venn.","Noe gikk galt, prøv igjen."],
+  gsw: ["🏆 Du hesch gwunne! Du bisch dr Letscht!","💀 Du bisch useg'flöge... no {0} Kämpfer übrig","💥 Jede gäg jede - {0} Kämpfer"," (du)","↑ vor · ↓ zrugg · ← → drähe · A / Leertaschte = bisse 🦷","🦷 Bisse","⬅ Zrugg zum Start","🔄 No ä Tierkampf","🏠 Start","🏆 Du hesch dr Tierkampf gwunne!","💀 Du hesch dr Tierkampf verlore...","🐾 Chauf und wähl zerscht es Helfertier! ('Helfertier'-Chnopf im Start)","Du hesch {0} becho!","Dis Tagesgschänk:","Du hesch {0} ufgmacht:","🎁 Tägligi Gschänk","✅ S'hütig Gschänk isch gholt - chum morn wieder!","🎁 Hol dis Tagesgschänk!","Ufmache","⬅ Zrugg zum Start","Gwöhnlichi Chischte","Seltni Chischte","Riesigi Chischte","Legendäri Chischte","Ultra-Chischte","Gäld","Neui Figur","Neui Waffe","Neue Schild","Neus Ässe","Neus Getränk","💥 Jede gäg jede","🐾 Tierkampf","👥 Mit Fründe","🤝 Teamkampf mit Fründe","Wähl Fründe us und entscheid, wer mit dir und wer gäge dich isch","Mit mir","Gäge mi","🤖 Mit em Computer uffülle","📨 Iiladige schicke","Mir warte uf d Fründe...","▶️ Kampf starte!","Du bisch debii! Mir warte, bis dr Gastgeber startet...","Du hesch na keini Fründe. Füeg i de Iistellige wélli hinzue.","Dr Gastgeber isch usem Kampf gange.","Wähl mindeschtens ein Fründ us.","Öppis isch schiefgange, probier s nomol."],
+  vi: ["🏆 Bạn thắng rồi! Bạn là người cuối cùng!","💀 Bạn bị loại... còn {0} chiến binh","💥 Hỗn chiến - {0} chiến binh"," (bạn)","↑ tiến · ↓ lùi · ← → xoay · A / Dấu cách = cắn 🦷","🦷 Cắn","⬅ Thoát ra sảnh","🔄 Thêm một trận thú","🏠 Sảnh","🏆 Bạn thắng trận thú!","💀 Bạn thua trận thú...","🐾 Trước tiên hãy mua và chọn một thú trợ thủ! (nút 'Thú trợ thủ' ở sảnh)","Bạn nhận được {0}!","Quà hằng ngày của bạn:","Bạn đã mở {0}:","🎁 Quà hằng ngày","✅ Đã nhận quà hôm nay - mai quay lại nhé!","🎁 Nhận quà hằng ngày!","Mở","⬅ Quay lại sảnh","Rương thường","Rương hiếm","Rương khổng lồ","Rương huyền thoại","Rương siêu cấp","Tiền","Nhân vật mới","Vũ khí mới","Khiên mới","Đồ ăn mới","Đồ uống mới","💥 Hỗn chiến","🐾 Trận thú","👥 Cùng bạn bè","🤝 Đấu đội cùng bạn bè","Chọn bạn bè và quyết định ai cùng đội, ai đối đầu","Cùng tôi","Chống lại tôi","🤖 Bổ sung bằng máy tính","📨 Gửi lời mời","Đang chờ bạn bè...","▶️ Bắt đầu trận đấu!","Bạn đã tham gia! Đang chờ chủ phòng bắt đầu...","Bạn chưa có bạn bè. Hãy thêm trong Cài đặt.","Chủ phòng đã rời trận đấu.","Hãy chọn ít nhất một người bạn.","Có lỗi xảy ra, hãy thử lại."],
+  id: ["🏆 Kamu menang! Kamu yang terakhir!","💀 Kamu tersingkir... tersisa {0} petarung","💥 Semua lawan semua - {0} petarung"," (kamu)","↑ maju · ↓ mundur · ← → putar · A / Spasi = gigit 🦷","🦷 Gigit","⬅ Keluar ke lobi","🔄 Pertarungan hewan lagi","🏠 Lobi","🏆 Kamu menang pertarungan hewan!","💀 Kamu kalah pertarungan hewan...","🐾 Beli dan pilih dulu hewan pembantu! (tombol 'Hewan pembantu' di lobi)","Kamu mendapat {0}!","Hadiah harianmu:","Kamu membuka {0}:","🎁 Hadiah harian","✅ Hadiah hari ini sudah diambil - kembali besok!","🎁 Ambil hadiah harianmu!","Buka","⬅ Kembali ke lobi","Peti biasa","Peti langka","Peti raksasa","Peti legendaris","Peti ultra","Uang","Karakter baru","Senjata baru","Perisai baru","Makanan baru","Minuman baru","💥 Semua lawan semua","🐾 Pertarungan hewan","👥 Bersama teman","🤝 Pertarungan tim bersama teman","Pilih teman dan tentukan siapa yang satu tim denganmu dan siapa lawanmu","Bersamaku","Melawanku","🤖 Lengkapi dengan komputer","📨 Kirim undangan","Menunggu teman...","▶️ Mulai pertarungan!","Kamu bergabung! Menunggu tuan rumah memulai...","Kamu belum punya teman. Tambahkan di Pengaturan.","Tuan rumah keluar dari pertarungan.","Pilih setidaknya satu teman.","Terjadi kesalahan, coba lagi."],
+  et: ["🏆 Sa võitsid! Sa jäid viimaseks!","💀 Sa langesid välja... alles on {0} võitlejat","💥 Kõik kõigi vastu - {0} võitlejat"," (sina)","↑ edasi · ↓ tagasi · ← → pööra · A / Tühik = hammusta 🦷","🦷 Hammusta","⬅ Välju fuajeesse","🔄 Veel üks loomavõitlus","🏠 Fuajee","🏆 Sa võitsid loomavõitluse!","💀 Sa kaotasid loomavõitluse...","🐾 Osta ja vali kõigepealt abiloom! (fuajee nupp 'Abiloomad')","Said: {0}!","Sinu päevane kingitus:","Avasid: {0}:","🎁 Igapäevased kingitused","✅ Tänane kingitus on võetud - tule homme tagasi!","🎁 Võta päevane kingitus!","Ava","⬅ Tagasi fuajeesse","Tavaline kirst","Haruldane kirst","Hiiglaslik kirst","Legendaarne kirst","Ultrakirst","Raha","Uus tegelane","Uus relv","Uus kilp","Uus toit","Uus jook","💥 Kõik kõigi vastu","🐾 Loomavõitlus","👥 Sõpradega","🤝 Meeskonnavõitlus sõpradega","Vali sõbrad ja otsusta, kes on sinuga ja kes sinu vastu","Minuga","Minu vastu","🤖 Täida arvutiga","📨 Saada kutsed","Ootame sõpru...","▶️ Alusta võitlust!","Liitusid! Ootame, kuni võõrustaja alustab...","Sul pole veel sõpru. Lisa sõpru seadetes.","Võõrustaja lahkus võitlusest.","Vali vähemalt üks sõber.","Midagi läks valesti, proovi uuesti."],
+  is: ["🏆 Þú vannst! Þú ert sá síðasti!","💀 Þú ert úr leik... {0} bardagamenn eftir","💥 Allir á móti öllum - {0} bardagamenn"," (þú)","↑ áfram · ↓ afturábak · ← → snúa · A / Bil = bíta 🦷","🦷 Bíta","⬅ Fara í anddyrið","🔄 Annar dýrabardagi","🏠 Anddyri","🏆 Þú vannst dýrabardagann!","💀 Þú tapaðir dýrabardaganum...","🐾 Kauptu og veldu fyrst hjálpardýr! (hnappurinn 'Hjálpardýr' í anddyrinu)","Þú fékkst {0}!","Dagleg gjöf þín:","Þú opnaðir {0}:","🎁 Daglegar gjafir","✅ Þú ert búinn að sækja gjöf dagsins - komdu aftur á morgun!","🎁 Sæktu daglegu gjöfina!","Opna","⬅ Aftur í anddyrið","Venjuleg kista","Sjaldgæf kista","Risastór kista","Goðsagnakennd kista","Ofurkista","Peningar","Ný persóna","Nýtt vopn","Nýr skjöldur","Nýr matur","Nýr drykkur","💥 Allir á móti öllum","🐾 Dýrabardagi","👥 Með vinum","🤝 Liðabardagi með vinum","Veldu vini og ákveddu hver er með þér og hver á móti þér","Með mér","Á móti mér","🤖 Fylla með tölvunni","📨 Senda boð","Bíð eftir vinum...","▶️ Byrja bardaga!","Þú ert með! Bíð eftir að gestgjafinn byrji...","Þú átt enga vini enn. Bættu við vinum í stillingum.","Gestgjafinn yfirgaf bardagann.","Veldu að minnsta kosti einn vin.","Eitthvað fór úrskeiðis, reyndu aftur."],
+  da: ["🏆 Du vandt! Den sidste, der stod tilbage!","💀 Du er ude... {0} kæmpere tilbage","💥 Alle mod alle - {0} kæmpere"," (dig)","↑ frem · ↓ tilbage · ← → drej · A / Mellemrum = bid 🦷","🦷 Bid","⬅ Tilbage til lobbyen","🔄 Endnu en dyrekamp","🏠 Lobby","🏆 Du vandt dyrekampen!","💀 Du tabte dyrekampen...","🐾 Køb og vælg først et hjælpedyr! (Knappen Hjælpedyr i lobbyen)","Du fik {0}!","Din daglige gave:","Du åbnede {0}:","🎁 Daglige gaver","✅ Dagens gave er hentet - kom igen i morgen!","🎁 Hent din daglige gave!","Åbn","⬅ Tilbage til lobbyen","Almindelig kiste","Sjælden kiste","Kæmpekiste","Legendarisk kiste","Ultrakiste","Penge","Ny figur","Nyt våben","Nyt skjold","Ny mad","Ny drikke","💥 Alle mod alle","🐾 Dyrekamp","👥 Med venner","🤝 Holdkamp med venner","Vælg venner og beslut, hvem der er med dig, og hvem der er imod dig","Med mig","Imod mig","🤖 Fyld op med computeren","📨 Send invitationer","Venter på venner...","▶️ Start kampen!","Du er med! Venter på at værten starter...","Du har ingen venner endnu. Tilføj venner i Indstillinger.","Værten forlod kampen.","Vælg mindst én ven.","Noget gik galt, prøv igen."],
+  fa: ["🏆 تو بردی! تو آخرین نفر مانده‌ای!","💀 تو حذف شدی... {0} جنگجو مانده","💥 همه علیه همه - {0} جنگجو"," (تو)","↑ جلو · ↓ عقب · ← → چرخش · A / فاصله = گاز گرفتن 🦷","🦷 گاز بگیر","⬅ خروج به صفحه اصلی","🔄 یک نبرد حیوانات دیگر","🏠 صفحه اصلی","🏆 تو نبرد حیوانات را بردی!","💀 تو نبرد حیوانات را باختی...","🐾 اول یک حیوان کمکی بخر و انتخاب کن! (دکمه «حیوانات کمکی» در صفحه اصلی)","تو {0} گرفتی!","هدیه روزانه‌ات:","تو {0} را باز کردی:","🎁 هدیه‌های روزانه","✅ هدیه امروز را گرفتی - فردا دوباره بیا!","🎁 هدیه روزانه‌ات را بگیر!","باز کن","⬅ بازگشت به صفحه اصلی","صندوق معمولی","صندوق کمیاب","صندوق غول‌پیکر","صندوق افسانه‌ای","صندوق اولترا","پول","شخصیت جدید","سلاح جدید","سپر جدید","غذای جدید","نوشیدنی جدید","💥 همه علیه همه","🐾 نبرد حیوانات","👥 با دوستان","🤝 نبرد تیمی با دوستان","دوستان را انتخاب کن و تصمیم بگیر چه کسی با توست و چه کسی علیه تو","با من","علیه من","🤖 با کامپیوتر کامل کن","📨 ارسال دعوت‌ها","منتظر دوستان...","▶️ شروع نبرد!","به بازی پیوستی! منتظر شروع میزبان هستیم...","هنوز دوستی نداری. در تنظیمات دوست اضافه کن.","میزبان نبرد را ترک کرد.","حداقل یک دوست انتخاب کن.","مشکلی پیش آمد، دوباره تلاش کن."],
 };
 function TM(i, ...args) {
   const arr = MSG[uiLang] || MSG.en;
@@ -12860,12 +12879,13 @@ function tickTeamCombat(attacker, fighters) {
   attacker.hitDone = true;
   if (defender.down) return;
   if (defender.blocking) { playHitSound('block'); spawnHitFX(defender, 'block', attacker); return; }
-  playHitSound(attacker.action);
-  spawnHitFX(defender, attacker.action, attacker);
+  if (!onlineTeam) { playHitSound(attacker.action); spawnHitFX(defender, attacker.action, attacker); }
 
   const isWeaponHit = attacker.action === 'stone' && attacker.weaponDmg != null;
   const base = isWeaponHit ? attacker.weaponDmg : cfg.dmg * (attacker.powerMult || 1);
   const dmg = Math.round(base + (attacker.powerBonus || 0));
+  // קרב עם חברים: לא משנים חיים מקומית - כותבים נזק ל-Firestore וכולם מגיבים (onlineApplySnapshot)
+  if (onlineTeam) { onlineSendHit(attacker, defender, dmg); return; }
 
   defender.hp = Math.max(0, defender.hp - dmg);
   flashHit();
@@ -12899,6 +12919,13 @@ function tickTeamCombat(attacker, fighters) {
 
 function checkTeamBattleEnd() {
   if (teamBattleOver) return;
+  if (onlineTeam && onlineTeam.started) {
+    const mine = player.team;
+    const aliveMine = teamFighters.some((f) => f.team === mine && !f.koPermanent);
+    const aliveOther = teamFighters.some((f) => f.team !== mine && !f.koPermanent);
+    if (!aliveMine || !aliveOther) { teamBattleOver = true; onlineTeam.over = true; endTeamBattle(aliveMine); }
+    return;
+  }
   if (ffaMode) {
     // כולם על כולם: מפסידים כשנופלים, מנצחים כשכל האחרים נפלו
     const playerAlive = !player.koPermanent;
@@ -12941,7 +12968,7 @@ function renderTeamHpUI() {
     const pct = Math.max(0, f.hp / f.maxHp) * 100;
     const dead = f.koPermanent ? ' teamHpDead' : '';
     return '<div class="teamHpBar' + dead + '">' +
-      '<div class="teamHpName">' + trName(f.teamName) + '</div>' +
+      '<div class="teamHpName">' + (f.label ? escHtml(f.label) + ' · ' : '') + trName(f.teamName) + '</div>' +
       '<div class="teamHpTrack"><div class="teamHpFill" style="width:' + pct + '%"></div></div>' +
       '</div>';
   };
@@ -12988,7 +13015,9 @@ function enterTeamBattle() {
   player.jumping = false; player.jumpY = 0; player.jumpVel = 0;
   teamFighters.push(player);
 
-  if (ffaMode) {
+  if (onlineTeam && onlineTeam.roster) {
+    buildOnlineTeamFighters();
+  } else if (ffaMode) {
     // עיגול של 10: אתה בקדמת המסך (מול המצלמה), כולם פונים למרכז, וכל אחד "קבוצה" בפני עצמו
     const place = (f, i) => {
       const a = (Math.PI * 2 * i) / FFA_COUNT;
@@ -13022,12 +13051,14 @@ function enterTeamBattle() {
   // על קו. הטקסט חוזר לברירת המחדל ביציאה (exitTeamBattle).
   if (moveKeyLegendEl) moveKeyLegendEl.innerHTML = T('<b>↑</b><b>↓</b> להתקדם/לסגת · <b>←</b><b>→</b> לפנות', '<b>↑</b><b>↓</b> Advance/retreat · <b>←</b><b>→</b> Turn', '<b>↑</b><b>↓</b> Avanzar/retroceder · <b>←</b><b>→</b> Girar', '<b>↑</b><b>↓</b> 前進/後退 · <b>←</b><b>→</b> 回る', '<b>↑</b><b>↓</b> Avancer/reculer · <b>←</b><b>→</b> Tourner', '<b>↑</b><b>↓</b> Avançar/recuar · <b>←</b><b>→</b> Virar', '<b>↑</b><b>↓</b> Vor/zurück · <b>←</b><b>→</b> Drehen', '<b>↑</b><b>↓</b> Вперёд/назад · <b>←</b><b>→</b> Повернуть', '<b>↑</b><b>↓</b> تقدّم/تراجع · <b>←</b><b>→</b> استدر', '<b>↑</b><b>↓</b> เดินหน้า/ถอย · <b>←</b><b>→</b> หมุน', '<b>↑</b><b>↓</b> Naprzód/wstecz · <b>←</b><b>→</b> Obróć się', '<b>↑</b><b>↓</b> Avanti/indietro · <b>←</b><b>→</b> Girati', '<b>↑</b><b>↓</b> Înainte/înapoi · <b>←</b><b>→</b> Întoarce-te', '<b>↑</b><b>↓</b> 前进/后退 · <b>←</b><b>→</b> 转身', '<b>↑</b><b>↓</b> 앞으로/뒤로 · <b>←</b><b>→</b> 돌기', '<b>↑</b><b>↓</b> आगे/पीछे · <b>←</b><b>→</b> मुड़ो', '<b>↑</b><b>↓</b> İleri/geri · <b>←</b><b>→</b> Dön', '<b>↑</b><b>↓</b> Vooruit/achteruit · <b>←</b><b>→</b> Draaien', '<b>↑</b><b>↓</b> Framåt/bakåt · <b>←</b><b>→</b> Vänd', '<b>↑</b><b>↓</b> Вперед/назад · <b>←</b><b>→</b> Повернути', '<b>↑</b><b>↓</b> Dopředu/dozadu · <b>←</b><b>→</b> Otočit', '<b>↑</b><b>↓</b> Előre/hátra · <b>←</b><b>→</b> Fordulás', '<b>↑</b><b>↓</b> Μπροστά/πίσω · <b>←</b><b>→</b> Γύρνα', '<b>↑</b><b>↓</b> Напред/назад · <b>←</b><b>→</b> Завий', '<b>↑</b><b>↓</b> Напред/назад · <b>←</b><b>→</b> Окрени се', '<b>↑</b><b>↓</b> Naprijed/natrag · <b>←</b><b>→</b> Okreni se', '<b>↑</b><b>↓</b> Dopredu/dozadu · <b>←</b><b>→</b> Otoč sa', '<b>↑</b><b>↓</b> Para/prapa · <b>←</b><b>→</b> Kthehu', '<b>↑</b><b>↓</b> Naprej/nazaj · <b>←</b><b>→</b> Obrni se', '<b>↑</b><b>↓</b> Air adhart/air ais · <b>←</b><b>→</b> Tionndaidh', '<b>↑</b><b>↓</b> Avançar/recuar · <b>←</b><b>→</b> Rodar', '<b>↑</b><b>↓</b> ወደፊት/ወደኋላ · <b>←</b><b>→</b> ዙር', '<b>↑</b><b>↓</b> Eteen/taakse · <b>←</b><b>→</b> Käänny', '<b>↑</b><b>↓</b> Frem/tilbake · <b>←</b><b>→</b> Sving', '<b>↑</b><b>↓</b> Vor/zrugg · <b>←</b><b>→</b> Drähe', '<b>↑</b><b>↓</b> Tiến/lùi · <b>←</b><b>→</b> Quay', '<b>↑</b><b>↓</b> Maju/mundur · <b>←</b><b>→</b> Belok', '<b>↑</b><b>↓</b> Edasi/tagasi · <b>←</b><b>→</b> Pööra', '<b>↑</b><b>↓</b> Áfram/afturábak · <b>←</b><b>→</b> Snúa', '<b>↑</b><b>↓</b> جلو/عقب · <b>←</b><b>→</b> بچرخ', '<b>↑</b><b>↓</b> Frem/tilbage · <b>←</b><b>→</b> Drej');
   if (ffaMode) labelEl.textContent = TM(2, FFA_COUNT);
+  if (onlineTeam && onlineTeam.roster) labelEl.textContent = TM(34);
   const cam = ffaMode ? FFA_BATTLE_CAM : TEAM_BATTLE_CAM;
   camera.position.copy(cam.pos);
   camera.lookAt(cam.look);
 }
 
 function exitTeamBattle() {
+  stopOnlineTeam();
   ffaMode = false;
   teamFighters.forEach((f) => { if (f !== player) disposeTeamFighter(f); });
   teamFighters = [];
@@ -13049,25 +13080,28 @@ function exitTeamBattle() {
 }
 
 function updateTeamBattle(dt, t) {
+  if (onlineTeam && onlineTeam.started) onlineUpdateGhosts(dt);
   teamFighters.forEach((f) => tickFallState(f, dt));
   if (!teamBattleOver) {
     teamFighters.forEach((f) => {
       if (f === player) updateTeamPlayerControl(f, dt);
+      else if (f.remote) return;      // שחקן/AI שרץ אצל מישהו אחר - רק מציגים (onlineUpdateGhosts)
       else updateTeamFighter(f, teamFighters, dt);
     });
   } else {
     teamFighters.forEach((f) => { f.mv = 0; f.blocking = false; });
   }
   teamFighters.forEach((f) => tickAction(f, dt));
-  teamFighters.forEach((f) => tickJump(f, dt));
+  if (onlineTeam) onlineTrackActions();
+  teamFighters.forEach((f) => { if (!f.remote) tickJump(f, dt); });
   teamFighters.forEach((f) => { f.blockAmt += ((f.blocking ? 1 : 0) - f.blockAmt) * (1 - Math.exp(-dt * 16)); });
   // הפנייה (yaw) כבר מטופלת בשוטף בתוך updateTeamPlayerControl/updateTeamFighter
   // למעלה (כל אחד מסתובב לכיוון היריב הכי קרוב אליו, או לפי חיצי השחקן) -
   // moveTeamFighter מיישמת גם את התזוזה וגם את הסיבוב (rotation.y=f.yaw)
   // יחד, אז אין צורך יותר במעבר נפרד שמחליף facing אחרי התזוזה.
-  teamFighters.forEach((f) => moveTeamFighter(f, dt));
+  teamFighters.forEach((f) => { if (f.remote) moveOnlineGhost(f, dt); else moveTeamFighter(f, dt); });
   resolveTeamOverlaps(teamFighters);
-  if (!teamBattleOver) teamFighters.forEach((f) => tickTeamCombat(f, teamFighters));
+  if (!teamBattleOver) teamFighters.forEach((f) => { if (!f.remote) tickTeamCombat(f, teamFighters); });
   teamFighters.forEach((f) => poseFighter(f, t, dt));
 }
 
@@ -34879,7 +34913,8 @@ async function renderFriendsScreen() {
   friendsContentEl.querySelectorAll('.matchJoinBtn').forEach((btn) => {
     btn.addEventListener('click', () => {
       btn.disabled = true;
-      joinBattleInvite(btn.dataset.uid, btn.dataset.username, btn.dataset.match);
+      if (isTeamMatchId(btn.dataset.match)) joinTeamInvite(btn.dataset.uid, btn.dataset.match);
+      else joinBattleInvite(btn.dataset.uid, btn.dataset.username, btn.dataset.match);
     });
   });
   friendsContentEl.querySelectorAll('.matchDeclineBtn').forEach((btn) => {
@@ -35860,6 +35895,7 @@ Object.entries(SHOP_DATA).forEach(([key, { label, labelEn, labelEs, labelJa, lab
 // ואת המסכים הדינמיים שכבר פתוחים (חנות/כפתור מצב-קרב) כדי שהתרגום ייכנס
 // לתוקף מיד בלי לצאת וליכנס מחדש למסך.
 function applyLanguage() {
+  updateTeamOnlineTexts();
   // עוזר לדפדפן לבחור גופן נכון לכל שפה. 'ptpt' הוא קוד פנימי (בלי מקף, כי הוא גם
   // שם פרמטר ב-T()) - לדפדפן מוסרים את הקוד התקני שלו, pt-PT.
   document.documentElement.lang = uiLang === 'ptpt' ? 'pt-PT' : uiLang;
@@ -36764,6 +36800,370 @@ animate();
 
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
+// ============================================================================
+//  קרב קבוצות עם חברים (אונליין) - 2-4 שחקנים אמיתיים, כל אחד בקבוצה 🔵 או 🔴.
+//  ⚠️ אושר ע"י אבא (2026-10-02). בלי שום שינוי בכללי Firestore: משתמשים באותו
+//  מסמך matches/{matchId} של "קרב מול חבר" (כלל: מי שב-uids קורא/כותב), רק עם
+//  matchId שמתחיל ב-"team_" ועם עד 4 uids, ובאותן הזמנות battleInvites.
+//  מסמך: kind:'team', uids, usernames, hostUid, ready{}, teams{uid:0|1}, chars{},
+//  fill, phase:'lobby'|'battle', roster[{id,name,team,ai,user}], hp{id}, st{id},
+//  hit{id}. כל שחקן כותב st.<uid> שלו (10 פעמים בשנייה); המארח גם מריץ את ה-AI
+//  וכותב st.a0.. שלהם. נזק: התוקף כותב increment(-נזק) ל-hp.<הנפגע> (+hit.<הנפגע>),
+//  וכולם מגיבים לירידת החיים ב-onSnapshot (כמו בקרב מול חבר, מודל אמון בלי שרת).
+// ============================================================================
+const TEAM_ONLINE_HP = 100, TEAM_ONLINE_AI_HP = 70, TEAM_ONLINE_SEND_MS = 125, TEAM_ONLINE_TIMEOUT_MS = 9000;
+let teamSetup = { friends: [], sel: {}, fill: true };
+const escHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const teamMatchId = (hostUid) => 'team_' + hostUid;
+const isTeamMatchId = (id) => typeof id === 'string' && id.startsWith('team_');
+
+function updateTeamOnlineTexts() {
+  const b = document.getElementById('teamSizeFriendsBtn');
+  if (b) b.textContent = TM(33);
+  const t = document.getElementById('teamOnlineTitle');
+  if (t) t.textContent = TM(34);
+  const back = document.getElementById('teamOnlineBackBtn');
+  if (back) back.textContent = document.getElementById('matchLeaveBtn').textContent;
+}
+
+async function openTeamOnline() {
+  if (!cloudUser || !myUsername) { openFriendsScreen(); return; }
+  stopOnlineTeam();
+  showScreen('teamOnline');
+  teamOnlineContentEl.innerHTML = '<div class="itemStat">⏳</div>';
+  try {
+    const snap = await getDocs(collection(db, 'players', cloudUser.uid, 'friends'));
+    teamSetup.friends = snap.docs.map((d) => ({ uid: d.id, username: d.data().username || '?' }));
+  } catch (e) {
+    console.error('טעינת חברים לקרב קבוצות נכשלה:', e);
+    teamOnlineContentEl.innerHTML = '<div class="itemStat">⚠️ ' + escHtml(TM(46)) + '</div>';
+    return;
+  }
+  teamSetup.sel = {};
+  renderTeamSetup();
+}
+
+function renderTeamSetup() {
+  const picked = teamSetup.friends.filter((f) => teamSetup.sel[f.uid]);
+  let html = '<div class="itemStat">' + escHtml(TM(35)) + '</div>';
+  if (teamSetup.friends.length === 0) {
+    html += '<div class="itemStat">' + escHtml(TM(43)) + '</div>';
+  } else {
+    teamSetup.friends.forEach((f) => {
+      const s = teamSetup.sel[f.uid];
+      const full = !s && picked.length >= 3;
+      html += '<div class="itemStat teamPickRow"><label><input type="checkbox" class="teamPickChk" data-uid="' + escHtml(f.uid) + '"' + (s ? ' checked' : '') + (full ? ' disabled' : '') + '> 👤 ' + escHtml(f.username) + '</label>' +
+        (s ? ' <button class="bigBtn secondary teamSideBtn" data-uid="' + escHtml(f.uid) + '">' + (s.side === 0 ? '🔵 ' + escHtml(TM(36)) : '🔴 ' + escHtml(TM(37))) + '</button>' : '') + '</div>';
+    });
+    html += '<div class="itemStat"><label><input type="checkbox" id="teamFillChk"' + (teamSetup.fill ? ' checked' : '') + '> ' + escHtml(TM(38)) + '</label></div>';
+    html += '<button class="bigBtn" id="teamSendBtn"' + (picked.length === 0 ? ' disabled' : '') + '>' + escHtml(TM(39)) + '</button>';
+  }
+  teamOnlineContentEl.innerHTML = html;
+  teamOnlineContentEl.querySelectorAll('.teamPickChk').forEach((c) => c.addEventListener('change', () => {
+    if (c.checked) teamSetup.sel[c.dataset.uid] = { side: 0 }; else delete teamSetup.sel[c.dataset.uid];
+    renderTeamSetup();
+  }));
+  teamOnlineContentEl.querySelectorAll('.teamSideBtn').forEach((b) => b.addEventListener('click', () => {
+    const s = teamSetup.sel[b.dataset.uid]; if (s) s.side = s.side === 0 ? 1 : 0;
+    renderTeamSetup();
+  }));
+  const fillChk = document.getElementById('teamFillChk');
+  if (fillChk) fillChk.addEventListener('change', () => { teamSetup.fill = fillChk.checked; });
+  const sendBtn = document.getElementById('teamSendBtn');
+  if (sendBtn) sendBtn.addEventListener('click', () => { sendBtn.disabled = true; hostCreateTeamMatch(); });
+}
+
+// המארח: יוצר את מסמך הקרב + הזמנה לכל חבר שנבחר, ונכנס לחדר ההמתנה.
+async function hostCreateTeamMatch() {
+  const picked = teamSetup.friends.filter((f) => teamSetup.sel[f.uid]);
+  if (picked.length === 0) { showShieldToast(TM(45)); return; }
+  const me = cloudUser.uid, matchId = teamMatchId(me);
+  const usernames = { [me]: myUsername }, ready = { [me]: true }, teams = { [me]: 0 }, chars = { [me]: selectedCharacterName };
+  picked.forEach((p) => { usernames[p.uid] = p.username; ready[p.uid] = false; teams[p.uid] = teamSetup.sel[p.uid].side; });
+  try {
+    await setDoc(doc(db, 'matches', matchId), {
+      kind: 'team', uids: [me, ...picked.map((p) => p.uid)], usernames, hostUid: me, ready, teams, chars,
+      fill: !!teamSetup.fill, phase: 'lobby', createdAt: serverTimestamp(),
+    });
+    await Promise.all(picked.map((p) => setDoc(doc(db, 'players', p.uid, 'battleInvites', me), { fromUsername: myUsername, matchId, createdAt: serverTimestamp() })));
+  } catch (e) {
+    console.error('יצירת קרב קבוצות נכשלה:', e);
+    showShieldToast(TM(46));
+    renderTeamSetup();
+    return;
+  }
+  openTeamLobby(matchId, true);
+}
+
+// חבר מוזמן: מסמן "מוכן", מוחק את ההזמנה, ונכנס לחדר ההמתנה.
+async function joinTeamInvite(fromUid, matchId) {
+  if (!cloudUser) return;
+  try {
+    await updateDoc(doc(db, 'matches', matchId), { [`ready.${cloudUser.uid}`]: true, [`chars.${cloudUser.uid}`]: selectedCharacterName });
+    await deleteDoc(doc(db, 'players', cloudUser.uid, 'battleInvites', fromUid));
+  } catch (e) {
+    console.error('הצטרפות לקרב קבוצות נכשלה:', e);
+    showShieldToast(TM(46));
+    openFriendsScreen();
+    return;
+  }
+  openTeamLobby(matchId, false);
+}
+
+function openTeamLobby(matchId, isHost) {
+  stopOnlineTeam();
+  onlineTeam = { matchId, isHost, unsub: null, timer: null, started: false, over: false, roster: null, byId: {}, data: null };
+  showScreen('teamOnline');
+  teamOnlineContentEl.innerHTML = '<div class="itemStat">⏳</div>';
+  onlineTeam.unsub = onSnapshot(doc(db, 'matches', matchId), onTeamSnapshot, (e) => console.error('מעקב אחרי קרב הקבוצות נכשל:', e));
+}
+
+function renderTeamLobby(d) {
+  const ot = onlineTeam;
+  const readyN = d.uids.filter((u) => d.ready && d.ready[u]).length;
+  let html = '';
+  d.uids.forEach((u) => {
+    html += '<div class="itemStat">' + (d.teams[u] === 1 ? '🔴' : '🔵') + ' 👤 ' + escHtml((d.usernames && d.usernames[u]) || '?') + ' ' + (d.ready && d.ready[u] ? '✅' : '⏳') + '</div>';
+  });
+  if (ot.isHost) {
+    html += '<div class="itemStat">' + escHtml(TM(40)) + '</div>';
+    html += '<button class="bigBtn" id="teamStartBtn"' + (readyN < 2 ? ' disabled' : '') + '>' + escHtml(TM(41)) + '</button>';
+  } else {
+    html += '<div class="itemStat">' + escHtml(TM(42)) + '</div>';
+  }
+  teamOnlineContentEl.innerHTML = html;
+  const sb = document.getElementById('teamStartBtn');
+  if (sb) sb.addEventListener('click', () => { sb.disabled = true; hostStartTeamBattle(); });
+}
+
+// המארח: מחליט מי בקרב (רק מי שמוכן), משלים עם מחשב, וכותב phase:'battle'.
+async function hostStartTeamBattle() {
+  const ot = onlineTeam, d = ot && ot.data;
+  if (!d) return;
+  const roster = d.uids.filter((u) => d.ready && d.ready[u]).map((u) => ({
+    id: u, name: CHARACTER_CFGS[d.chars && d.chars[u]] ? d.chars[u] : 'סווארק', team: d.teams[u] === 1 ? 1 : 0, ai: false, user: (d.usernames && d.usernames[u]) || '',
+  }));
+  const n = [0, 0];
+  roster.forEach((r) => n[r.team]++);
+  const pool = pickRandomTeamCharacters(8, roster.map((r) => r.name));
+  let aiIdx = 0;
+  const addAI = (t) => { roster.push({ id: 'a' + (aiIdx++), name: pool.shift() || 'בו', team: t, ai: true, user: '' }); n[t]++; };
+  const target = d.fill ? Math.max(2, n[0], n[1]) : 0;
+  for (let t = 0; t < 2; t++) while (n[t] < target) addAI(t);
+  if (n[1] === 0) { const need = Math.max(2, n[0]); while (n[1] < need) addAI(1); }
+  const hp = {};
+  roster.forEach((r) => { hp[r.id] = r.ai ? TEAM_ONLINE_AI_HP : TEAM_ONLINE_HP; });
+  try {
+    await updateDoc(doc(db, 'matches', ot.matchId), { phase: 'battle', roster, hp, st: {}, hit: {}, startedAt: serverTimestamp() });
+  } catch (e) { console.error('התחלת קרב קבוצות נכשלה:', e); showShieldToast(TM(46)); }
+}
+
+function onTeamSnapshot(snap) {
+  const ot = onlineTeam;
+  if (!ot) return;
+  if (!snap.exists()) {
+    if (!ot.over && !ot.isHost) { showShieldToast(TM(44)); showScreen('lobby'); }
+    return;
+  }
+  const d = snap.data();
+  ot.data = d;
+  if (!ot.started) {
+    if (d.phase === 'battle' && d.roster) startOnlineTeamBattle(d);
+    else if (uiScreen === 'teamOnline') renderTeamLobby(d);
+    return;
+  }
+  onlineApplySnapshot(d);
+}
+
+function startOnlineTeamBattle(d) {
+  const ot = onlineTeam, me = cloudUser.uid;
+  ot.started = true;
+  ot.roster = d.roster;
+  ffaMode = false;
+  const mine = d.roster.find((r) => r.id === me);
+  pendingTeamEnemyCount = d.roster.filter((r) => mine && r.team !== mine.team).length;
+  showScreen('teamBattle');
+  ot.timer = setInterval(onlineSendState, TEAM_ONLINE_SEND_MS);
+}
+
+// נקראת מתוך enterTeamBattle: בונה את כל הלוחמים לפי הרשימה (roster).
+function buildOnlineTeamFighters() {
+  const ot = onlineTeam, me = cloudUser.uid;
+  ot.byId = {};
+  teamFighters = [];
+  const count = [0, 0], idx = [0, 0];
+  ot.roster.forEach((r) => count[r.team]++);
+  const place = (f, r) => {
+    const i = idx[r.team]++;
+    f.x = (r.team === 0 ? -1 : 1) * 1.2;
+    f.z = (i - (count[r.team] - 1) / 2) * 0.95;
+    f.yaw = (r.team === 0 ? 1 : -1) * STANCE_YAW;
+    f.fallBaseYaw = f.yaw;
+    f.group.position.set(battleAnchorX + f.x, GROUND_Y, battleAnchorZ + f.z);
+    f.group.rotation.y = f.yaw;
+  };
+  ot.roster.forEach((r) => {
+    let f;
+    if (r.id === me) {
+      f = player;
+      f.team = r.team; f.teamName = selectedCharacterName; f.koPermanent = false;
+      f.maxHp = TEAM_ONLINE_HP; f.hp = TEAM_ONLINE_HP;
+      f.group.visible = true;
+      f.action = null; f.actionT = 0; f.hitDone = false; f.blocking = false; f.blockAmt = 0; f.mv = 0;
+      f.knockVel = 0; f.knockVelX = 0; f.knockVelZ = 0; f.staggerT = 0; f.down = false; f.downT = 0;
+      f.fallDirX = 0; f.fallDirZ = -1; f.jumping = false; f.jumpY = 0; f.jumpVel = 0;
+      f.remote = false; f.label = myUsername;
+    } else {
+      const nm = CHARACTER_CFGS[r.name] ? r.name : 'סווארק';
+      f = buildTeamFighter(nm, 0, 1, r.ai ? TEAM_ONLINE_AI_HP : TEAM_ONLINE_HP, r.team);
+      f.remote = !(r.ai && ot.isHost);
+      f.label = r.user || '';
+      f.rt = null; f.rtSeen = performance.now(); f.lastN = 0; f._d = false;
+    }
+    f.id = r.id; f.isAI = r.ai; f.actN = 0; f._hadAct = false;
+    place(f, r);
+    ot.byId[r.id] = f;
+    teamFighters.push(f);
+  });
+  document.getElementById('teamPlayAgainBtn').style.display = 'none';
+}
+
+function onlinePackState(f) {
+  const r = (v) => Math.round(v * 1000) / 1000;
+  return { x: r(f.x), z: r(f.z), y: r(f.yaw), m: f.mv || 0, a: f.action || '', n: f.actN || 0, b: f.blocking ? 1 : 0, d: f.down ? 1 : 0, j: r(f.jumpY || 0), t: Date.now() };
+}
+
+function onlineSendState() {
+  const ot = onlineTeam;
+  if (!ot || !ot.started || ot.over || !cloudUser) return;
+  const upd = {};
+  ot.roster.forEach((r) => { const f = ot.byId[r.id]; if (f && !f.remote) upd['st.' + r.id] = onlinePackState(f); });
+  if (Object.keys(upd).length) updateDoc(doc(db, 'matches', ot.matchId), upd).catch((e) => console.error('שליחת מצב נכשלה:', e));
+}
+
+// התוקף (אני, או AI שאצל המארח) כותב נזק + פרטי המכה; כולם מגיבים ב-onSnapshot.
+function onlineSendHit(attacker, defender, dmg) {
+  const ot = onlineTeam;
+  updateDoc(doc(db, 'matches', ot.matchId), {
+    [`hp.${defender.id}`]: increment(-dmg),
+    [`hit.${defender.id}`]: { n: Date.now(), a: attacker.action, f: attacker.id, x: attacker.x, z: attacker.z },
+  }).catch((e) => console.error('שליחת מכה נכשלה:', e));
+}
+
+function onlineSetFall(f, hit, ko) {
+  let dx = 0, dz = -1;
+  if (hit && typeof hit.x === 'number') { dx = f.x - hit.x; dz = f.z - hit.z; }
+  const dist = Math.hypot(dx, dz) || 1;
+  f.fallDirX = dx / dist; f.fallDirZ = dz / dist;
+  f.down = true; f.downT = 0;
+  f.fallBaseYaw = f.group.rotation.y;
+  f.action = null; f.actionT = 0;
+  if (ko) f.koPermanent = true;
+}
+
+function onlineDamaged(f, dmg, hit) {
+  const ot = onlineTeam;
+  const kind = (hit && ATTACKS[hit.a]) ? hit.a : 'punch';
+  const att = (hit && ot.byId[hit.f]) || f;
+  playHitSound(kind);
+  spawnHitFX(f, kind, att);
+  if (f === player) flashHit();
+  if (f.remote) return;     // מי שאצלי: אני + AI של המארח - מגיבים בהדף/נפילה (השאר רואים לפי מה שהבעלים משדר)
+  const cfg = ATTACKS[kind];
+  let dx = f.x - (hit && typeof hit.x === 'number' ? hit.x : f.x - 1), dz = f.z - (hit && typeof hit.z === 'number' ? hit.z : f.z);
+  const dist = Math.hypot(dx, dz) || 1;
+  f.knockVelX = (dx / dist) * cfg.knock; f.knockVelZ = (dz / dist) * cfg.knock;
+  f.staggerT = Math.max(f.staggerT, cfg.stagger);
+  if (cfg.fall && !f.down) onlineSetFall(f, hit, false);
+}
+
+function onlineKO(f, hit) {
+  onlineSetFall(f, hit, true);
+  f.blocking = false; f.mv = 0;
+}
+
+function onlineApplySnapshot(d) {
+  const ot = onlineTeam;
+  let hpChanged = false;
+  ot.roster.forEach((r) => {
+    const f = ot.byId[r.id];
+    if (!f) return;
+    const hpv = d.hp && d.hp[r.id];
+    if (typeof hpv === 'number') {
+      const nh = Math.max(0, hpv);
+      const hit = d.hit && d.hit[r.id];
+      if (nh < f.hp) { onlineDamaged(f, f.hp - nh, hit); hpChanged = true; }
+      f.hp = nh;
+      if (nh <= 0 && !f.koPermanent) onlineKO(f, hit);
+    }
+    if (f.remote) {
+      const st = d.st && d.st[r.id];
+      if (st && (!f.rt || st.t !== f.rt.t)) { f.rt = st; f.rtSeen = performance.now(); }
+    }
+  });
+  if (hpChanged) renderTeamHpUI();
+  checkTeamBattleEnd();
+}
+
+// לוחמים "רפאים" (שחקנים אחרים, ו-AI אצל לא-מארח): מחליקים למצב האחרון שהתקבל.
+function onlineUpdateGhosts(dt) {
+  if (teamBattleOver) return;      // הקרב נגמר - אף אחד כבר לא שולח מצב, לא להוציא אנשים בגלל זה
+  const now = performance.now();
+  const k = 1 - Math.exp(-dt * 12);
+  teamFighters.forEach((f) => {
+    if (!f.remote || f.koPermanent) return;
+    if (now - f.rtSeen > TEAM_ONLINE_TIMEOUT_MS) {      // החיבור שלו נפל - מוציאים אותו מהקרב
+      f.hp = 0; onlineKO(f, null); renderTeamHpUI(); checkTeamBattleEnd();
+      return;
+    }
+    const st = f.rt;
+    if (!st) return;
+    f.x += (st.x - f.x) * k;
+    f.z += (st.z - f.z) * k;
+    let dy = st.y - f.yaw;
+    while (dy > Math.PI) dy -= Math.PI * 2;
+    while (dy < -Math.PI) dy += Math.PI * 2;
+    f.yaw += dy * k;
+    f.mv = st.m || 0;
+    f.blocking = !!st.b;
+    f.jumpY = st.j || 0;
+    if (st.n !== f.lastN) { f.lastN = st.n; if (st.a) { f.action = null; startAction(f, st.a); } }
+    if (st.d && !f._d) { f._d = true; if (!f.down) onlineSetFall(f, null, false); }
+    else if (!st.d) f._d = false;
+  });
+}
+
+function moveOnlineGhost(f, dt) {
+  f.group.position.x = battleAnchorX + f.x;
+  f.group.position.z = battleAnchorZ + f.z;
+  f.group.rotation.y = f.yaw;
+  if (f.mv !== 0) f.phase += dt * 8.5 * f.mv;
+}
+
+// סופרת מכות חדשות של לוחמים שרצים אצלי (כדי שהרפאים אצל אחרים יתחילו אותה מכה).
+function onlineTrackActions() {
+  teamFighters.forEach((f) => {
+    if (f.remote) return;
+    if (f.action && !f._hadAct) f.actN = (f.actN || 0) + 1;
+    f._hadAct = !!f.action;
+  });
+}
+
+// ניקוי: עוצרים טיימר/מאזין, והמארח מוחק את מסמך הקרב.
+function stopOnlineTeam() {
+  const ot = onlineTeam;
+  if (!ot) return;
+  onlineTeam = null;
+  if (ot.timer) clearInterval(ot.timer);
+  if (ot.unsub) ot.unsub();
+  if (ot.isHost && cloudUser) deleteDoc(doc(db, 'matches', ot.matchId)).catch(() => {});
+  document.getElementById('teamPlayAgainBtn').style.display = '';
+}
+
+document.getElementById('teamSizeFriendsBtn').addEventListener('click', openTeamOnline);
+document.getElementById('teamOnlineBackBtn').addEventListener('click', () => showScreen('teamSize'));
+updateTeamOnlineTexts();
+
 window.game = {
   entrance, startEntrance, endEntrance, crowdExcite, spawnHitFX,
   baseHpFor, maxHpFor,
@@ -36781,6 +37181,8 @@ window.game = {
   enterPetBattle, exitPetBattle, updatePetBattle, pbStartBite, get pbMe() { return pbMe; }, get pbOpp() { return pbOpp; }, get pbOver() { return pbOver; },
   get chests() { return chests; }, openChest, claimDailyGift, rollChestReward, dailyClaimedToday,
   BATTLE_MODES, cycleBattleMode, startSelectedBattle, get selectedModeIndex() { return selectedModeIndex; },
+  openFriendsScreen, openTeamOnline, joinTeamInvite, hostStartTeamBattle, hostCreateTeamMatch, get teamSetup() { return teamSetup; },
+  get onlineTeam() { return onlineTeam; }, onlineApplySnapshot, onlineSendState, onlineUpdateGhosts, startOnlineTeamBattle, onTeamSnapshot,
   get teamFighters() { return teamFighters; }, get teamBattleOver() { return teamBattleOver; },
   set pendingTeamEnemyCount(v) { pendingTeamEnemyCount = v; }, get pendingTeamEnemyCount() { return pendingTeamEnemyCount; },
   enterTeamBattle, exitTeamBattle, endTeamBattle, checkTeamBattleEnd,
