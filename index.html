@@ -354,6 +354,35 @@
   #clickStartOverlay .big { font-size: 3rem; animation: clickPulse 1.1s ease-in-out infinite; }
   @keyframes clickPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
+  /* ---------- כניסה לקרב (2026-10-02): סרטון כניסה בסגנון WWE ---------- */
+  #entranceOverlay { position: fixed; inset: 0; z-index: 60; display: none; cursor: pointer; overflow: hidden; }
+  #entranceOverlay.show { display: block; }
+  body.entranceOn #hpRow, body.entranceOn #label, body.entranceOn #controls, body.entranceOn #lootStack,
+  body.entranceOn #touchControls, body.entranceOn #petBattleHud { display: none !important; }
+  #entranceOverlay .bar { position: absolute; left: 0; right: 0; height: 0; background: #000; transition: height .6s ease; }
+  #entranceOverlay.show .bar { height: 9vh; }
+  #entranceOverlay .bar.top { top: 0; }
+  #entranceOverlay .bar.bottom { bottom: 0; }
+  #entBanner {
+    position: absolute; left: 50%; bottom: 13vh; transform: translateX(-50%);
+    font-size: clamp(2rem, 6vw, 4.2rem); font-weight: 900; color: #fff; white-space: nowrap;
+    padding: 6px 34px; border-radius: 12px; letter-spacing: 2px;
+    text-shadow: 0 0 18px currentColor, 0 4px 0 rgba(0,0,0,.6);
+    background: linear-gradient(90deg, transparent, rgba(0,0,0,.65), transparent);
+    opacity: 0;
+  }
+  #entBanner.player { color: #6fb4ff; }
+  #entBanner.enemy { color: #ff6a5a; }
+  #entBanner.fight { color: #ffd23f; font-size: clamp(3rem, 10vw, 7rem); }
+  #entBanner.pop { animation: entPop .9s ease-out forwards; }
+  @keyframes entPop { 0% { opacity: 0; transform: translateX(-50%) scale(.4); } 18% { opacity: 1; transform: translateX(-50%) scale(1.18); } 35% { transform: translateX(-50%) scale(1); } 85% { opacity: 1; } 100% { opacity: .0; transform: translateX(-50%) scale(1.05); } }
+  #entBanner.stay { animation: entStay .5s ease-out forwards; }
+  @keyframes entStay { 0% { opacity: 0; transform: translateX(-50%) scale(.5); } 60% { transform: translateX(-50%) scale(1.15); } 100% { opacity: 1; transform: translateX(-50%) scale(1); } }
+  #entFlashes { position: absolute; inset: 0; pointer-events: none; }
+  #entFlashes i { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 0 34px 14px rgba(255,255,255,.9); opacity: 0; }
+  #entFlashes i.on { opacity: .9; }
+  #entSkip { position: absolute; top: calc(9vh + 10px); right: 14px; font-size: 1.1rem; color: #fff; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.35); border-radius: 10px; padding: 6px 14px; }
+
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
   #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay {
     position: fixed;
@@ -925,6 +954,12 @@
   <div class="big">👆</div>
   <div data-i18n-he="לחץ כאן כדי להתחיל לשחק" data-i18n-en="Click here to start playing" data-i18n-es="Haz clic aquí para empezar a jugar" data-i18n-ja="ここをクリックしてスタート" data-i18n-fr="Clique ici pour commencer à jouer" data-i18n-pt="Clique aqui para começar a jogar" data-i18n-de="Klick hier, um loszuspielen" data-i18n-ru="Нажми здесь, чтобы начать игру" data-i18n-ar="اضغط هنا لتبدأ اللعب" data-i18n-th="คลิกที่นี่เพื่อเริ่มเล่น" data-i18n-pl="Kliknij tutaj, żeby zacząć grać" data-i18n-it="Clicca qui per cominciare a giocare" data-i18n-ro="Apasă aici ca să începi jocul" data-i18n-zh="点这里开始游戏" data-i18n-ko="여기를 눌러 게임을 시작하세요" data-i18n-hi="खेलना शुरू करने के लिए यहाँ क्लिक करो" data-i18n-tr="Oynamaya başlamak için buraya tıkla" data-i18n-nl="Klik hier om te beginnen met spelen" data-i18n-sv="Klicka här för att börja spela" data-i18n-uk="Натисни тут, щоб почати гру" data-i18n-cs="Klikni sem a začni hrát" data-i18n-hu="Kattints ide a játék indításához" data-i18n-el="Πάτα εδώ για να αρχίσεις να παίζεις" data-i18n-bg="Натисни тук, за да започнеш" data-i18n-sr="Кликни овде да почнеш игру" data-i18n-hr="Klikni ovdje za početak igre" data-i18n-sk="Klikni sem a začni hrať" data-i18n-sq="Kliko këtu për të filluar lojën" data-i18n-sl="Klikni tukaj za začetek igre" data-i18n-gd="Briog an seo airson tòiseachadh" data-i18n-ptpt="Clica aqui para começar a jogar" data-i18n-am="መጫወት ለመጀመር እዚህ ጠቅ አድርግ" data-i18n-fi="Aloita peli klikkaamalla tästä" data-i18n-no="Klikk her for å begynne å spille" data-i18n-gsw="Klick da zum Aafange mit Spile" data-i18n-vi="Nhấn vào đây để bắt đầu chơi" data-i18n-id="Klik di sini untuk mulai bermain" data-i18n-et="Mängimise alustamiseks klõpsa siia" data-i18n-is="Smelltu hér til að byrja að spila" data-i18n-fa="برای شروع بازی اینجا کلیک کن">לחץ כאן כדי להתחיל לשחק</div>
 </div>
+<div id="entranceOverlay">
+  <div class="bar top"></div><div class="bar bottom"></div>
+  <div id="entFlashes"></div>
+  <div id="entBanner"></div>
+  <div id="entSkip">⏭ ▶▶</div>
+</div>
 <div id="label">🥊 סווארק מול בו - שלב חיים ונזק</div>
 <div id="controls">
   <span id="moveKeyLegend"><b>←</b> <b>→</b> <span data-i18n-he="לזוז" data-i18n-en="Move" data-i18n-es="Mover" data-i18n-ja="移動" data-i18n-fr="Bouger" data-i18n-pt="Mover" data-i18n-de="Bewegen" data-i18n-ru="Двигаться" data-i18n-ar="تحرّك" data-i18n-th="เคลื่อนที่" data-i18n-pl="Ruch" data-i18n-it="Muoviti" data-i18n-ro="Mișcă-te" data-i18n-zh="移动" data-i18n-ko="이동" data-i18n-hi="चलो" data-i18n-tr="Hareket" data-i18n-nl="Bewegen" data-i18n-sv="Rör dig" data-i18n-uk="Рух" data-i18n-cs="Pohyb" data-i18n-hu="Mozgás" data-i18n-el="Κίνηση" data-i18n-bg="Движение" data-i18n-sr="Кретање" data-i18n-hr="Kretanje" data-i18n-sk="Pohyb" data-i18n-sq="Lëvizje" data-i18n-sl="Premikanje" data-i18n-gd="Gluais" data-i18n-ptpt="Mover" data-i18n-am="ተንቀሳቀስ" data-i18n-fi="Liiku" data-i18n-no="Beveg" data-i18n-gsw="Bewege" data-i18n-vi="Di chuyển" data-i18n-id="Bergerak" data-i18n-et="Liigu" data-i18n-is="Hreyfa" data-i18n-fa="حرکت">לזוז</span></span> &nbsp;·&nbsp; <b>A</b> <span data-i18n-he="אגרוף" data-i18n-en="Punch" data-i18n-es="Puñetazo" data-i18n-ja="パンチ" data-i18n-fr="Coup de poing" data-i18n-pt="Soco" data-i18n-de="Schlag" data-i18n-ru="Удар рукой" data-i18n-ar="لكمة" data-i18n-th="ต่อย" data-i18n-pl="Cios" data-i18n-it="Pugno" data-i18n-ro="Pumn" data-i18n-zh="出拳" data-i18n-ko="펀치" data-i18n-hi="मुक्का" data-i18n-tr="Yumruk" data-i18n-nl="Stoten" data-i18n-sv="Slå" data-i18n-uk="Удар рукою" data-i18n-cs="Úder" data-i18n-hu="Ütés" data-i18n-el="Γροθιά" data-i18n-bg="Удар" data-i18n-sr="Ударац" data-i18n-hr="Udarac" data-i18n-sk="Úder" data-i18n-sq="Grusht" data-i18n-sl="Udarec" data-i18n-gd="Buille" data-i18n-ptpt="Soco" data-i18n-am="ጡጫ" data-i18n-fi="Isku" data-i18n-no="Slag" data-i18n-gsw="Schlag" data-i18n-vi="Đấm" data-i18n-id="Pukul" data-i18n-et="Löök" data-i18n-is="Högg" data-i18n-fa="مشت">אגרוף</span> &nbsp;·&nbsp; <b>S</b> <span data-i18n-he="בעיטה" data-i18n-en="Kick" data-i18n-es="Patada" data-i18n-ja="キック" data-i18n-fr="Coup de pied" data-i18n-pt="Chute" data-i18n-de="Tritt" data-i18n-ru="Удар ногой" data-i18n-ar="ركلة" data-i18n-th="เตะ" data-i18n-pl="Kopnięcie" data-i18n-it="Calcio" data-i18n-ro="Lovitură de picior" data-i18n-zh="踢" data-i18n-ko="발차기" data-i18n-hi="लात" data-i18n-tr="Tekme" data-i18n-nl="Schoppen" data-i18n-sv="Sparka" data-i18n-uk="Удар ногою" data-i18n-cs="Kop" data-i18n-hu="Rúgás" data-i18n-el="Κλωτσιά" data-i18n-bg="Ритник" data-i18n-sr="Ударац ногом" data-i18n-hr="Udarac nogom" data-i18n-sk="Kop" data-i18n-sq="Shqelm" data-i18n-sl="Brca" data-i18n-gd="Breab" data-i18n-ptpt="Pontapé" data-i18n-am="ምታ (እርግጫ)" data-i18n-fi="Potku" data-i18n-no="Spark" data-i18n-gsw="Tritt" data-i18n-vi="Đá" data-i18n-id="Tendang" data-i18n-et="Löö jalaga" data-i18n-is="Spark" data-i18n-fa="لگد">בעיטה</span> &nbsp;·&nbsp; <b>W</b> <span id="weaponKeyLegend">אבן חדה</span> &nbsp;·&nbsp; <b>D</b> <span data-i18n-he="חסימה" data-i18n-en="Block" data-i18n-es="Bloquear" data-i18n-ja="ガード" data-i18n-fr="Bloquer" data-i18n-pt="Defender" data-i18n-de="Blocken" data-i18n-ru="Блок" data-i18n-ar="صدّ" data-i18n-th="ป้องกัน" data-i18n-pl="Blok" data-i18n-it="Para" data-i18n-ro="Blochează" data-i18n-zh="格挡" data-i18n-ko="막기" data-i18n-hi="रोको" data-i18n-tr="Blok" data-i18n-nl="Blokken" data-i18n-sv="Blockera" data-i18n-uk="Блок" data-i18n-cs="Blok" data-i18n-hu="Védés" data-i18n-el="Άμυνα" data-i18n-bg="Блок" data-i18n-sr="Блок" data-i18n-hr="Blok" data-i18n-sk="Blok" data-i18n-sq="Mbrojtje" data-i18n-sl="Blok" data-i18n-gd="Bac" data-i18n-ptpt="Defender" data-i18n-am="ተከላከል" data-i18n-fi="Torju" data-i18n-no="Blokker" data-i18n-gsw="Blocke" data-i18n-vi="Đỡ" data-i18n-id="Tangkis" data-i18n-et="Blokeeri" data-i18n-is="Verjast" data-i18n-fa="دفاع">חסימה</span> &nbsp;·&nbsp; <b data-i18n-he="רווח" data-i18n-en="Space" data-i18n-es="Espacio" data-i18n-ja="スペース" data-i18n-fr="Espace" data-i18n-pt="Espaço" data-i18n-de="Leertaste" data-i18n-ru="Пробел" data-i18n-ar="مسافة" data-i18n-th="เว้นวรรค" data-i18n-pl="Spacja" data-i18n-it="Spazio" data-i18n-ro="Spațiu" data-i18n-zh="空格" data-i18n-ko="스페이스" data-i18n-hi="स्पेस" data-i18n-tr="Boşluk" data-i18n-nl="Spatie" data-i18n-sv="Mellanslag" data-i18n-uk="Пробіл" data-i18n-cs="Mezerník" data-i18n-hu="Szóköz" data-i18n-el="Κενό" data-i18n-bg="Интервал" data-i18n-sr="Размак" data-i18n-hr="Razmaknica" data-i18n-sk="Medzerník" data-i18n-sq="Hapësirë" data-i18n-sl="Presledek" data-i18n-gd="Beàrn" data-i18n-ptpt="Espaço" data-i18n-am="ስፔስ" data-i18n-fi="Väli" data-i18n-no="Mellomrom" data-i18n-gsw="Leertaschte" data-i18n-vi="Phím cách" data-i18n-id="Spasi" data-i18n-et="Tühik" data-i18n-is="Bilslá" data-i18n-fa="فاصله">רווח</b> <span data-i18n-he="קפיצה" data-i18n-en="Jump" data-i18n-es="Saltar" data-i18n-ja="ジャンプ" data-i18n-fr="Sauter" data-i18n-pt="Pular" data-i18n-de="Springen" data-i18n-ru="Прыжок" data-i18n-ar="قفز" data-i18n-th="กระโดด" data-i18n-pl="Skok" data-i18n-it="Salta" data-i18n-ro="Sari" data-i18n-zh="跳" data-i18n-ko="점프" data-i18n-hi="कूदो" data-i18n-tr="Zıpla" data-i18n-nl="Springen" data-i18n-sv="Hoppa" data-i18n-uk="Стрибок" data-i18n-cs="Skok" data-i18n-hu="Ugrás" data-i18n-el="Άλμα" data-i18n-bg="Скок" data-i18n-sr="Скок" data-i18n-hr="Skok" data-i18n-sk="Skok" data-i18n-sq="Kërcim" data-i18n-sl="Skok" data-i18n-gd="Leum" data-i18n-ptpt="Saltar" data-i18n-am="ዝለል" data-i18n-fi="Hyppää" data-i18n-no="Hopp" data-i18n-gsw="Sprunge" data-i18n-vi="Nhảy" data-i18n-id="Lompat" data-i18n-et="Hüppa" data-i18n-is="Hoppa" data-i18n-fa="پرش">קפיצה</span>
@@ -1369,6 +1404,9 @@ corners.forEach(([cx, cz], i) => {
 });
 
 // חבלים - 3 בכל אחת מ-4 הצלעות
+// (החבלים בצדדים שמאל/ימין נשמרים כאן - סרטון הכניסה מסתיר אותם רגע כדי שהלוחם ייכנס לזירה)
+const ringSideRopes = { '-1': [], '1': [] };
+const ringFrontRopes = [];   // החבלים שבצד המצלמה - מוסתרים בסרטון הכניסה כדי לא להסתיר את הלוחם
 const ropeMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.6 });
 const ropeLen = RING_HALF * 2;
 
@@ -1381,6 +1419,7 @@ ROPE_HEIGHTS.forEach((h) => {
     rope.position.set(0, y, z);
     rope.castShadow = true;
     scene.add(rope);
+    if (z > 0) ringFrontRopes.push(rope);
   });
 
   [-RING_HALF, RING_HALF].forEach((x) => {
@@ -1389,6 +1428,7 @@ ROPE_HEIGHTS.forEach((h) => {
     rope.position.set(x, y, 0);
     rope.castShadow = true;
     scene.add(rope);
+    ringSideRopes[x < 0 ? '-1' : '1'].push(rope);
   });
 });
 
@@ -9080,6 +9120,7 @@ function startBossFight(idx) {
   hpNameEnemyEl.textContent = '👹 ' + trName(boss.name);
   resetGame();
   showScreen('battle');
+  startEntrance();
 }
 
 addStoneProp(player);
@@ -9238,6 +9279,17 @@ function poseFighter(f, t, dt) {
     rot('shoulderR', -0.13 * s, 0, 0);
     rot('spine', 0, -0.06 * s, 0);
     bob -= 0.020 * Math.abs(c);
+  }
+
+  // ---------- חגיגה (כניסה לקרב): שתי הידיים באוויר ----------
+  if (f.celebrate) {
+    const k = f.celebrate;
+    rot('shoulderL', -2.7 * k, 0, 0.35 * k);
+    rot('shoulderR', -2.7 * k, 0, -0.35 * k);
+    rot('elbowL', 0.25 * k, 0, 0);
+    rot('elbowR', 0.25 * k, 0, 0);
+    rot('head', -0.22 * k, 0, 0);
+    rot('spine', -0.05 * k, 0, 0);
   }
 
   // ---------- חסימה: איקס עם הידיים ----------
@@ -10004,7 +10056,7 @@ function resetGame() {
     f.blocking = false; f.blockAmt = 0;
     f.mv = 0; f.cool = 0; f.think = 0; f.mode = 'wait'; f.blockTimer = 0;
     f.damageDealt = 0;
-    f.jumping = false; f.jumpY = 0; f.jumpVel = 0;
+    f.jumping = false; f.jumpY = 0; f.jumpVel = 0; f.celebrate = 0;
     // שלב 4: קרב חדש תמיד מתחיל בעמידה - בלי הדף/הלם/נפילה שנשארו מהקרב הקודם.
     f.knockVel = 0; f.staggerT = 0; f.down = false; f.downT = 0;
     f.fallDirX = 0; f.fallDirZ = -1; f.fallBaseYaw = f.facing * STANCE_YAW;
@@ -32938,6 +32990,7 @@ function startSelectedBattle() {
   } else {
     resetGame();
     showScreen('battle');
+    startEntrance();
   }
 }
 
@@ -34708,7 +34761,7 @@ charNextBtn.addEventListener('click', () => cycleCharacter(1));
 weaponPrevBtn.addEventListener('click', () => cycleWeapon(-1));
 weaponNextBtn.addEventListener('click', () => cycleWeapon(1));
 
-playAgainBtn.addEventListener('click', resetGame);
+playAgainBtn.addEventListener('click', () => { resetGame(); startEntrance(); });
 updateHealthUI(player, 'player');
 updateHealthUI(enemy, 'enemy');
 updateMoneyUI();
@@ -34728,6 +34781,311 @@ showScreen('lobby');
 // ---------- לולאת רינדור ----------
 const clock = new THREE.Clock();
 
+// ============================================================================
+//  כניסה לקרב - סרטון בסגנון WWE (2026-10-02, בקשת המשתמש)
+//
+//  לפני כל קרב רגיל בזירה (התחל קרב / לשחק שוב / קרב בוס): קודם השחקן יוצא משער
+//  זוהר בצד שמאל, הולך על מסלול הכניסה אל הזירה, הקהל מריע, זיקוקים והבזקי
+//  מצלמות - ואחר כך האויב עושה אותו דבר מהשער שבצד ימין. אפשר לדלג בלחיצה.
+//  הכל מצויר בסצנה האמיתית (בלי וידאו מוקלט), והצלילים מסונתזים עם Web Audio.
+//  בקרבות שמתרחשים בעולמות אחרים (הרפתקה/סומו/קבוצות/חיות/חבר) אין כניסה.
+// ============================================================================
+const entrance = { active: false, t: 0, part: -1, music: null, flashTimer: null, gates: null, sparks: [], burst: [false, false] };
+const crowdExcite = { v: 0 };          // 0..1 - כמה הקהל מתלהב (קופץ מהר וגבוה)
+const ENT_WALK = 3.3;                  // שניות הליכה על המסלול
+const ENT_CELEB = 1.5;                 // שניות חגיגה בתוך הזירה
+const ENT_PART = ENT_WALK + ENT_CELEB; // חלק אחד = כניסה של לוחם אחד
+const ENT_FINAL = 1.2;                 // המצלמה חוזרת לזירה + "קרב!"
+const ENT_TOTAL = ENT_PART * 2 + ENT_FINAL;
+const ENT_GATE_X = 8.0;                // מיקום השער (הזירה נגמרת ב-4.6, היציעים מתחילים ב-9)
+const entranceOverlayEl = document.getElementById('entranceOverlay');
+const entBannerEl = document.getElementById('entBanner');
+const entFlashesEl = document.getElementById('entFlashes');
+
+function makeGateScreenTexture(text, color) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 640;
+  const g = c.getContext('2d');
+  const grad = g.createLinearGradient(0, 0, 0, 640);
+  grad.addColorStop(0, '#05060f'); grad.addColorStop(0.5, color); grad.addColorStop(1, '#05060f');
+  g.fillStyle = grad; g.fillRect(0, 0, 512, 640);
+  g.fillStyle = 'rgba(255,255,255,0.10)';
+  for (let i = 0; i < 640; i += 8) g.fillRect(0, i, 512, 2);   // קווי מסך
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  let size = 110;
+  g.font = `bold ${size}px sans-serif`;
+  while (g.measureText(text).width > 460 && size > 30) { size -= 6; g.font = `bold ${size}px sans-serif`; }
+  g.shadowColor = '#000'; g.shadowBlur = 24;
+  g.fillStyle = '#fff';
+  g.fillText(text, 256, 320);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function buildEntranceGates() {
+  if (entrance.gates) return;
+  entrance.gates = [];
+  const darkMetal = new THREE.MeshStandardMaterial({ color: 0x1b1d26, roughness: 0.4, metalness: 0.8 });
+  [[-1, 0x2a7bff], [1, 0xff2a2a]].forEach(([s, col]) => {
+    const grp = new THREE.Group();
+    const neon = new THREE.MeshBasicMaterial({ color: col });
+    const runLen = ENT_GATE_X - 4.5;
+    // מסלול הכניסה - בגובה הזירה, עם פס ניאון בצדדים ושטיח צבעוני
+    const run = new THREE.Mesh(new THREE.BoxGeometry(runLen, RING_TOP, 2.2), new THREE.MeshStandardMaterial({ color: 0x20232e, roughness: 0.5 }));
+    run.position.set(s * (4.5 + runLen / 2), RING_TOP / 2, 0); grp.add(run);
+    const carpet = new THREE.Mesh(new THREE.BoxGeometry(runLen, 0.03, 1.5), new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, emissive: col, emissiveIntensity: 0.25 }));
+    carpet.position.set(s * (4.5 + runLen / 2), RING_TOP + 0.01, 0); grp.add(carpet);
+    [-1.1, 1.1].forEach((z) => {
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(runLen, 0.06, 0.07), neon);
+      strip.position.set(s * (4.5 + runLen / 2), RING_TOP + 0.02, z); grp.add(strip);
+    });
+    // השער: שני עמודים, קורה עליונה, מסגרת ניאון
+    const gx = s * (ENT_GATE_X + 0.3);
+    [-1.5, 1.5].forEach((z) => {
+      const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 4.2, 0.4), darkMetal);
+      pillar.position.set(gx, 2.1, z); grp.add(pillar);
+      const edge = new THREE.Mesh(new THREE.BoxGeometry(0.06, 4.2, 0.06), neon);
+      edge.position.set(gx - s * 0.22, 2.1, z * 0.9); grp.add(edge);
+    });
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 3.5), darkMetal);
+    beam.position.set(gx, 4.3, 0); grp.add(beam);
+    const beamEdge = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 3.4), neon);
+    beamEdge.position.set(gx - s * 0.27, 4.0, 0); grp.add(beamEdge);
+    // מסך LED בתוך השער (הטקסט נכתב בכל כניסה)
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 3.3), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    screen.position.set(s * (ENT_GATE_X + 0.55), 2.1, 0);
+    screen.rotation.y = s * Math.PI / 2 * -1;     // הפנים של המסך פונים למרכז הזירה
+    grp.add(screen);
+    // קרני אור
+    const beamMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+    const rays = [];
+    [-1.5, 1.5].forEach((z) => {
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.9, 9, 16, 1, true), beamMat);
+      cone.position.set(gx - s * 0.6, 4.5 + 4.5, z); cone.rotation.z = s * 0.28; grp.add(cone);
+      rays.push(cone);
+    });
+    grp.visible = false;
+    scene.add(grp);
+    entrance.gates.push({ grp, screen, neon, beamMat, rays, col });
+  });
+  // ניצוצות (זיקוקים)
+  const sparkGeo = new THREE.SphereGeometry(0.06, 6, 6);
+  for (let i = 0; i < 70; i++) {
+    const m = new THREE.Mesh(sparkGeo, new THREE.MeshBasicMaterial({ color: i % 2 ? 0xffd23f : 0xff7a1a }));
+    m.visible = false; scene.add(m);
+    entrance.sparks.push({ m, vx: 0, vy: 0, vz: 0, life: 0 });
+  }
+}
+
+function burstSparks(x, y, z, n = 30) {
+  let k = 0;
+  for (const sp of entrance.sparks) {
+    if (k >= n) break;
+    if (sp.life > 0) continue;
+    sp.m.position.set(x + (Math.random() - 0.5) * 0.5, y, z + (Math.random() - 0.5) * 0.5);
+    sp.vx = (Math.random() - 0.5) * 3.2; sp.vy = 4 + Math.random() * 4.5; sp.vz = (Math.random() - 0.5) * 3.2;
+    sp.life = 0.9 + Math.random() * 0.8;
+    sp.m.visible = true;
+    k++;
+  }
+}
+
+// קול הקהל: רעש מסונן שמתחזק ומתנפנף (כמו שאגה). חלק הלוחם מריע גבוה, חלק האויב נמוך (בוז).
+function scheduleCrowd(ctx, dest, t0, dur, peak, centerHz) {
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffer(ctx, dur + 0.3);
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = centerHz; bp.Q.value = 0.6;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.linearRampToValueAtTime(peak, t0 + dur * 0.65);
+  g.gain.linearRampToValueAtTime(peak * 0.45, t0 + dur);
+  const lfo = ctx.createOscillator(); lfo.frequency.value = 5.5;
+  const lg = ctx.createGain(); lg.gain.value = peak * 0.22;
+  lfo.connect(lg).connect(g.gain);
+  src.connect(bp).connect(g).connect(dest);
+  src.start(t0); lfo.start(t0); lfo.stop(t0 + dur + 0.3);
+}
+
+// מוזיקת כניסה: תיפוף + ריף גיטרה פשוט, מסונתזים. מחזירה ידית לעצירה (דילוג).
+function playEntranceMusic(ctx) {
+  const master = ctx.createGain();
+  master.gain.value = 0.8;
+  master.connect(ctx.destination);
+  const t0 = ctx.currentTime + 0.05;
+  const beat = 60 / 124;
+  const steps = Math.floor(ENT_TOTAL / beat);
+  const riff = [82.41, 82.41, 98, 82.41, 110, 82.41, 98, 73.42];
+  for (let i = 0; i < steps; i++) {
+    const tt = t0 + i * beat;
+    const kick = ctx.createOscillator(); kick.type = 'sine';
+    kick.frequency.setValueAtTime(150, tt); kick.frequency.exponentialRampToValueAtTime(45, tt + 0.16);
+    const kg = ctx.createGain(); kg.gain.setValueAtTime(0.55, tt); kg.gain.exponentialRampToValueAtTime(0.001, tt + 0.2);
+    kick.connect(kg).connect(master); kick.start(tt); kick.stop(tt + 0.22);
+    if (i % 2 === 1) {
+      const sn = ctx.createBufferSource(); sn.buffer = noiseBuffer(ctx, 0.14);
+      const sf = ctx.createBiquadFilter(); sf.type = 'bandpass'; sf.frequency.value = 1900;
+      const sg = ctx.createGain(); sg.gain.setValueAtTime(0.3, tt); sg.gain.exponentialRampToValueAtTime(0.001, tt + 0.14);
+      sn.connect(sf).connect(sg).connect(master); sn.start(tt);
+    }
+    const note = ctx.createOscillator(); note.type = 'sawtooth';
+    note.frequency.value = riff[i % 8] * 2;
+    const nf = ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 1100;
+    const ng = ctx.createGain(); ng.gain.setValueAtTime(0.17, tt); ng.gain.exponentialRampToValueAtTime(0.001, tt + beat * 0.92);
+    note.connect(nf).connect(ng).connect(master); note.start(tt); note.stop(tt + beat);
+  }
+  // הקהל: מריע לשחקן, מבעבע (נמוך) לאויב, ושאגה בסוף
+  scheduleCrowd(ctx, master, t0, ENT_PART, 0.5, 1100);
+  scheduleCrowd(ctx, master, t0 + ENT_PART, ENT_PART, 0.4, 500);
+  scheduleCrowd(ctx, master, t0 + ENT_PART * 2, ENT_FINAL + 0.4, 0.55, 1000);
+  return { stop() { master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0, ctx.currentTime, 0.05); } };
+}
+
+function setEntranceBanner(cls, text, anim) {
+  entBannerEl.className = cls + ' ' + anim;
+  entBannerEl.textContent = text;
+  void entBannerEl.offsetWidth;   // מאתחל את האנימציה מחדש
+  entBannerEl.className = cls + ' ' + anim;
+}
+
+function startEntrance() {
+  if (entrance.active || uiScreen !== 'battle') return;
+  buildEntranceGates();
+  entrance.active = true; entrance.t = 0; entrance.part = -1; entrance.burst = [false, false];
+  document.body.classList.add('entranceOn');
+  entranceOverlayEl.classList.add('show');
+  entrance.gates[0].screen.material.map = makeGateScreenTexture(hpNamePlayerEl.textContent, '#1f5fd0');
+  entrance.gates[1].screen.material.map = makeGateScreenTexture(hpNameEnemyEl.textContent, '#c01818');
+  entrance.gates.forEach((g) => { g.screen.material.needsUpdate = true; g.grp.visible = true; });
+  ringFrontRopes.forEach((r) => { r.visible = false; });
+  player.group.visible = true;
+  enemy.group.visible = false;
+  entFlashesEl.innerHTML = '';
+  for (let i = 0; i < 18; i++) {
+    const d = document.createElement('i');
+    d.style.left = (4 + Math.random() * 90) + '%';
+    d.style.top = (20 + Math.random() * 55) + '%';
+    entFlashesEl.appendChild(d);
+  }
+  entrance.flashTimer = setInterval(() => {
+    const els = entFlashesEl.children;
+    for (let i = 0; i < els.length; i++) els[i].classList.toggle('on', Math.random() < 0.12 + 0.2 * crowdExcite.v);
+  }, 110);
+  const ctx = getAudioCtx();
+  entrance.music = ctx ? playEntranceMusic(ctx) : null;
+}
+
+function endEntrance() {
+  if (!entrance.active) return;
+  entrance.active = false;
+  if (entrance.music) { entrance.music.stop(); entrance.music = null; }
+  if (entrance.flashTimer) { clearInterval(entrance.flashTimer); entrance.flashTimer = null; }
+  document.body.classList.remove('entranceOn');
+  entranceOverlayEl.classList.remove('show');
+  entBannerEl.className = '';
+  entrance.gates.forEach((g) => { g.grp.visible = false; });
+  entrance.sparks.forEach((sp) => { sp.life = 0; sp.m.visible = false; });
+  ringSideRopes['-1'].concat(ringSideRopes['1'], ringFrontRopes).forEach((r) => { r.visible = true; });
+  [[player, -1.7], [enemy, 1.7]].forEach(([f, x0]) => {
+    f.x = x0; f.group.position.x = battleAnchorX + x0; f.mv = 0; f.celebrate = 0; f.jumpY = 0;
+  });
+  player.group.visible = true;
+  enemy.group.visible = true;
+  camera.position.copy(BATTLE_CAM.pos);
+  camera.lookAt(BATTLE_CAM.look);
+  crowdExcite.v = Math.min(crowdExcite.v, 0.6);
+}
+
+const _entLook = new THREE.Vector3();
+function updateEntrance(dt, t) {
+  entrance.t += dt;
+  const T = entrance.t;
+  if (T >= ENT_TOTAL) { endEntrance(); return; }
+  const part = T < ENT_PART ? 0 : (T < ENT_PART * 2 ? 1 : 2);
+  let target = 0.5;
+
+  // הבהוב המסכים והקרניים
+  entrance.gates.forEach((g, i) => {
+    const on = part === i ? 1 : 0.35;
+    g.beamMat.opacity = (0.12 + 0.12 * Math.sin(t * 7 + i)) * on + 0.04;
+    g.rays.forEach((r, k) => { r.rotation.x = Math.sin(t * 2.2 + k * 2 + i) * 0.35; });
+  });
+  // ניצוצות
+  entrance.sparks.forEach((sp) => {
+    if (sp.life <= 0) return;
+    sp.life -= dt;
+    sp.vy -= 7 * dt;
+    sp.m.position.x += sp.vx * dt; sp.m.position.y += sp.vy * dt; sp.m.position.z += sp.vz * dt;
+    if (sp.life <= 0 || sp.m.position.y < RING_TOP) { sp.life = 0; sp.m.visible = false; }
+  });
+
+  if (part < 2) {
+    const f = part === 0 ? player : enemy;
+    const s = part === 0 ? -1 : 1;
+    const lt = T - part * ENT_PART;
+    if (entrance.part !== part) {
+      entrance.part = part;
+      f.group.visible = true;
+      f.x = s * (ENT_GATE_X - 0.4);
+      ringSideRopes[String(s)].forEach((r) => { r.visible = false; });   // פתח בחבלים בצד שבו נכנסים
+      setEntranceBanner(part === 0 ? 'player' : 'enemy', (part === 0 ? '🥊 ' : '👹 ') + (part === 0 ? hpNamePlayerEl : hpNameEnemyEl).textContent.replace(/^[^\p{L}\p{N}]+/u, ''), 'pop');
+      burstSparks(s * (ENT_GATE_X - 0.2), RING_TOP + 0.1, 0, 40);
+    }
+    if (lt < ENT_WALK) {
+      const p = lt / ENT_WALK;
+      f.x = s * (ENT_GATE_X - 0.4) + (s * 1.7 - s * (ENT_GATE_X - 0.4)) * p;
+      f.mv = -s; f.celebrate = 0; f.jumpY = 0;
+      f.phase += dt * 8.5;
+      target = 0.55;
+      // מצלמת מעקב: לפני הלוחם, מביטה אחורה אליו עם השער ברקע
+      const cx = f.x - s * 3.2;
+      camera.position.set(cx, 1.6 + 0.5 * p, 6.4 - 1.6 * p);
+      _entLook.set(f.x + s * 0.2, 1.7, 0);
+      camera.lookAt(_entLook);
+    } else {
+      const ct = lt - ENT_WALK;
+      f.mv = 0;
+      f.celebrate = Math.min(1, ct / 0.3);
+      f.jumpY = 0.10 * Math.abs(Math.sin(ct * 9));
+      ringSideRopes[String(s)].forEach((r) => { r.visible = true; });
+      if (!entrance.burst[part]) { entrance.burst[part] = true; burstSparks(s * 2.6, RING_TOP + 0.1, 1.3, 35); burstSparks(s * 2.6, RING_TOP + 0.1, -1.3, 35); }
+      if (ct > 0.5 && ct < 0.55) burstSparks(s * 1.7, RING_TOP + 0.1, 1.6, 20);
+      target = 1;
+      if (ct < 0.05) setEntranceBanner(part === 0 ? 'player' : 'enemy', (part === 0 ? '🥊 ' : '👹 ') + (part === 0 ? hpNamePlayerEl : hpNameEnemyEl).textContent.replace(/^[^\p{L}\p{N}]+/u, ''), 'stay');
+      const q = Math.min(1, ct / ENT_CELEB);
+      camera.position.set(f.x * 0.3, 2.0 + 0.7 * q, 5.2 + 1.3 * q);
+      _entLook.set(f.x * 0.9, 1.9, 0);
+      camera.lookAt(_entLook);
+    }
+  } else {
+    const ft = T - ENT_PART * 2;
+    if (entrance.part !== 2) {
+      entrance.part = 2;
+      player.celebrate = 0; enemy.celebrate = 0; player.jumpY = 0; enemy.jumpY = 0;
+      setEntranceBanner('fight', '🔔 🥊 🔔', 'pop');
+    }
+    const q = Math.min(1, ft / (ENT_FINAL * 0.8));
+    const e = q * q * (3 - 2 * q);
+    camera.position.set(0.3 * (1 - e) + BATTLE_CAM.pos.x * e, 2.7 * (1 - e) + BATTLE_CAM.pos.y * e, 6.5 * (1 - e) + BATTLE_CAM.pos.z * e);
+    _entLook.set(0, 1.9 * (1 - e) + BATTLE_CAM.look.y * e, 0);
+    camera.lookAt(_entLook);
+    target = 0.9;
+  }
+  crowdExcite.v += (target - crowdExcite.v) * Math.min(1, dt * 3);
+  // מסכי השערים מהבהבים קלות
+  entrance.gates.forEach((g, i) => { g.screen.material.color.setScalar(0.85 + 0.15 * Math.sin(t * 9 + i * 2)); });
+}
+
+entranceOverlayEl.addEventListener('click', endEntrance);
+entranceOverlayEl.addEventListener('touchstart', (e) => { e.preventDefault(); endEntrance(); }, { passive: false });
+window.addEventListener('keydown', (e) => {
+  if (entrance.active && (e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape')) {
+    endEntrance();
+    setTimeout(() => { jumpRequested = false; }, 0);
+  }
+});
+
 function animate() {
   requestAnimationFrame(animate);
   // סדר חשוב: getDelta חייב לרוץ ראשון. getElapsedTime של three.js קורא ל-getDelta
@@ -34739,11 +35097,14 @@ function animate() {
   // בתוך uiScreen==='crystalCave'/'lostIsland' עצמם - הקרב קורה שם, לא
   // במסך הזירה, ראה startCaveMonsterFight/startIslandMonsterFight) מריצים
   // בדיוק את אותה לוגיקת קרב.
-  const inBattleMode = uiScreen === 'battle' ||
+  if (entrance.active && uiScreen !== 'battle') endEntrance();
+  if (entrance.active) updateEntrance(dt, t);
+  else if (crowdExcite.v > 0) crowdExcite.v = Math.max(0, crowdExcite.v - dt * 0.6);
+  const inBattleMode = !entrance.active && (uiScreen === 'battle' ||
     (uiScreen === 'crystalCave' && isCaveFight) ||
     (uiScreen === 'lostIsland' && isIslandFight) ||
     (uiScreen === 'lavaCrater' && isLavaFight) ||
-    (uiScreen === 'zombieForest' && isForestFight);
+    (uiScreen === 'zombieForest' && isForestFight));
 
   if (gameOver || !inBattleMode) {
     player.mv = 0; enemy.mv = 0;
@@ -34838,7 +35199,7 @@ function animate() {
 
   // תנועת קהל עדינה - נותנת חיים לאולם
   crowdPositions.forEach((p, i) => {
-    const bob = Math.sin(t * 2.2 + p.phase) * 0.06;
+    const bob = Math.sin(t * (2.2 + 5 * crowdExcite.v) + p.phase) * (0.06 + 0.16 * crowdExcite.v);
     dummy.position.set(p.x, p.y + 0.36 + bob, p.z);
     dummy.updateMatrix();
     crowdBodies.setMatrixAt(i, dummy.matrix);
@@ -34856,6 +35217,7 @@ animate();
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
+  entrance, startEntrance, endEntrance, crowdExcite,
   baseHpFor, maxHpFor,
   PET_CFGS, switchPet, buildPet, get selectedPetName() { return selectedPetName; }, get petGroup() { return petGroup; }, petState, renderPetsScreen,
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
