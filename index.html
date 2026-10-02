@@ -1531,54 +1531,137 @@ for (let t = 0; t < TIERS; t++) {
 
 const crowdCount = crowdPositions.length;
 
-const crowdBodyGeo = new THREE.CapsuleGeometry(0.17, 0.34, 4, 8);
-const crowdHeadGeo = new THREE.SphereGeometry(0.145, 10, 10);
-const crowdMat = new THREE.MeshStandardMaterial({ roughness: 0.85 });
+// ---------- קהל: אנשים אמיתיים (2026-10-02, "שיהיו אנשים ולא נקניקיות") ----------
+// כל צופה בנוי מחלקים: רגליים עם נעליים, מכנסיים, פלג גוף עם כתפיים, צוואר, ראש עם אוזניים ואף,
+// שיער, עיניים ופה, ושתי ידיים נפרדות (שרוול + אמה + כף יד) שיכולות להתרומם ולנופף. הם מסתכלים
+// אל הזירה. כל סוג חלק הוא InstancedMesh אחד (גיאומטריה ממוזגת), עם צבע נפרד לכל צופה.
+function mergeGeoParts(parts) {
+  const pos = [], nor = [], idx = [];
+  let off = 0;
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1);
+  parts.forEach(({ geo, p, s = [1, 1, 1], r = [0, 0, 0] }) => {
+    const g = geo.index ? geo : geo;
+    e.set(r[0], r[1], r[2]); q.setFromEuler(e); v.set(p[0], p[1], p[2]); sc.set(s[0], s[1], s[2]);
+    m.compose(v, q, sc);
+    const g2 = g.clone().applyMatrix4(m);
+    const pa = g2.attributes.position.array, na = g2.attributes.normal.array;
+    for (let i = 0; i < pa.length; i++) { pos.push(pa[i]); nor.push(na[i]); }
+    if (g2.index) { const ia = g2.index.array; for (let i = 0; i < ia.length; i++) idx.push(ia[i] + off); }
+    else { for (let i = 0; i < pa.length / 3; i++) idx.push(i + off); }
+    off += pa.length / 3;
+  });
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  out.setIndex(idx);
+  return out;
+}
+const PG = {
+  cyl: (rt, rb, h, seg = 8) => new THREE.CylinderGeometry(rt, rb, h, seg),
+  sph: (r, w = 8, h = 6) => new THREE.SphereGeometry(r, w, h),
+  box: (x, y, z) => new THREE.BoxGeometry(x, y, z),
+};
+const personShirtGeo = mergeGeoParts([
+  { geo: PG.cyl(0.19, 0.155, 0.46, 8), p: [0, 0.93, 0], s: [1, 1, 0.62] },          // פלג גוף
+  { geo: PG.sph(0.085, 6, 4), p: [-0.205, 1.12, 0] }, { geo: PG.sph(0.085, 6, 4), p: [0.205, 1.12, 0] },   // כתפיים
+]);
+const personPantsGeo = mergeGeoParts([
+  { geo: PG.cyl(0.07, 0.058, 0.62, 7), p: [-0.085, 0.4, 0] }, { geo: PG.cyl(0.07, 0.058, 0.62, 7), p: [0.085, 0.4, 0] },
+  { geo: PG.cyl(0.165, 0.17, 0.14, 8), p: [0, 0.72, 0], s: [1, 1, 0.65] },           // אגן
+]);
+const personSkinGeo = mergeGeoParts([
+  { geo: PG.cyl(0.048, 0.055, 0.1, 7), p: [0, 1.22, 0] },                              // צוואר
+  { geo: PG.sph(0.115, 9, 7), p: [0, 1.36, 0], s: [0.92, 1.12, 1] },                  // ראש
+  { geo: PG.sph(0.024, 5, 4), p: [0, 1.345, 0.112], s: [1, 1.1, 1.2] },                // אף
+  { geo: PG.sph(0.028, 5, 3), p: [-0.108, 1.355, 0], s: [0.5, 1, 0.8] }, { geo: PG.sph(0.028, 5, 3), p: [0.108, 1.355, 0], s: [0.5, 1, 0.8] },   // אוזניים
+]);
+const personHairGeo = mergeGeoParts([
+  { geo: new THREE.SphereGeometry(0.126, 9, 5, 0, Math.PI * 2, 0, Math.PI * 0.58), p: [0, 1.375, -0.008], s: [0.96, 1.1, 1.04] },   // כיפת שיער
+  { geo: PG.sph(0.1, 6, 4), p: [0, 1.335, -0.062], s: [1, 1.02, 0.7] },               // שיער מאחור
+]);
+const personFaceGeo = mergeGeoParts([                                                 // חלקים כהים: עיניים, פה, נעליים, חגורה
+  { geo: PG.sph(0.016, 4, 3), p: [-0.041, 1.378, 0.101], s: [1, 0.8, 0.6] }, { geo: PG.sph(0.016, 4, 3), p: [0.041, 1.378, 0.101], s: [1, 0.8, 0.6] },
+  { geo: PG.box(0.05, 0.011, 0.01), p: [0, 1.312, 0.108] },
+  { geo: PG.box(0.095, 0.06, 0.2), p: [-0.085, 0.045, 0.045] }, { geo: PG.box(0.095, 0.06, 0.2), p: [0.085, 0.045, 0.045] },
+  { geo: PG.box(0.34, 0.03, 0.2), p: [0, 0.76, 0] },
+]);
+const personSleeveGeo = mergeGeoParts([{ geo: PG.cyl(0.06, 0.052, 0.25, 7), p: [0, -0.125, 0] }]);
+const personForearmGeo = mergeGeoParts([
+  { geo: PG.cyl(0.045, 0.038, 0.24, 7), p: [0, -0.37, 0] },
+  { geo: PG.sph(0.048, 5, 4), p: [0, -0.51, 0] },
+]);
+const crowdMatStd = (c) => new THREE.MeshStandardMaterial({ roughness: 0.85, color: c ?? 0xffffff });
+const crowdShirt = new THREE.InstancedMesh(personShirtGeo, crowdMatStd(), crowdCount);
+const crowdPants = new THREE.InstancedMesh(personPantsGeo, crowdMatStd(), crowdCount);
+const crowdSkin = new THREE.InstancedMesh(personSkinGeo, crowdMatStd(), crowdCount);
+const crowdHair = new THREE.InstancedMesh(personHairGeo, crowdMatStd(), crowdCount);
+const crowdFace = new THREE.InstancedMesh(personFaceGeo, crowdMatStd(0x15110f), crowdCount);
+const crowdSleeveL = new THREE.InstancedMesh(personSleeveGeo, crowdMatStd(), crowdCount);
+const crowdSleeveR = new THREE.InstancedMesh(personSleeveGeo, crowdMatStd(), crowdCount);
+const crowdHandL = new THREE.InstancedMesh(personForearmGeo, crowdMatStd(), crowdCount);
+const crowdHandR = new THREE.InstancedMesh(personForearmGeo, crowdMatStd(), crowdCount);
+const crowdAllMeshes = [crowdShirt, crowdPants, crowdSkin, crowdHair, crowdFace, crowdSleeveL, crowdSleeveR, crowdHandL, crowdHandR];
+crowdAllMeshes.forEach((m) => { m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; m.castShadow = false; });
 
-const crowdBodies = new THREE.InstancedMesh(crowdBodyGeo, crowdMat, crowdCount);
-const crowdHeads = new THREE.InstancedMesh(crowdHeadGeo, crowdMat, crowdCount);
-crowdBodies.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-crowdHeads.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-
-const shirtPalette = [0xe74c3c, 0x3498db, 0xf1c40f, 0x2ecc71, 0x9b59b6, 0xe67e22, 0xecf0f1, 0x1abc9c];
-const skinPalette = [0xf0c39a, 0xd9a273, 0xb07a4e, 0x8a5a35, 0x66401f];
+const shirtPalette = [0xe74c3c, 0x3498db, 0xf1c40f, 0x2ecc71, 0x9b59b6, 0xe67e22, 0xecf0f1, 0x1abc9c, 0x34495e, 0xd35400, 0xc0392b, 0x16a085];
+const pantsPalette = [0x2a4a7a, 0x1c1c22, 0x3a3a44, 0x6a5a40, 0x2a3a5a, 0x4a4a4a, 0x5a3a28];
+const skinPalette = [0xf0c39a, 0xd9a273, 0xb07a4e, 0x8a5a35, 0x66401f, 0xe8b48a];
+const hairPalette = [0x14100c, 0x2a1a10, 0x4a3220, 0x7a5a30, 0xc8a050, 0x6a6a6a, 0x8a2a18, 0x0a0a0a];
 
 const dummy = new THREE.Object3D();
 const colorTmp = new THREE.Color();
-
+const _pm = new THREE.Matrix4(), _am = new THREE.Matrix4(), _tm = new THREE.Matrix4(), _rm = new THREE.Matrix4();
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
 crowdPositions.forEach((p, i) => {
-  dummy.position.set(p.x, p.y + 0.36, p.z);
-  dummy.updateMatrix();
-  crowdBodies.setMatrixAt(i, dummy.matrix);
-
-  dummy.position.set(p.x, p.y + 0.76, p.z);
-  dummy.updateMatrix();
-  crowdHeads.setMatrixAt(i, dummy.matrix);
-
-  // הצבעים מוכהים (0.55x) - קהל צבעוני-בהיר לגמרי לא מתאים לאווירה
-  // הדרמטית/כהה שהמשתמש ביקש (כמו במערה); עדיין מזהים גוון, רק פחות זוהר.
-  crowdBodies.setColorAt(i, colorTmp.setHex(shirtPalette[Math.floor(Math.random() * shirtPalette.length)]).multiplyScalar(0.55));
-  p.skinHex = skinPalette[Math.floor(Math.random() * skinPalette.length)];
-  crowdHeads.setColorAt(i, colorTmp.setHex(p.skinHex).multiplyScalar(0.7));
+  p.yaw = Math.atan2(-p.x, -p.z) + (Math.random() - 0.5) * 0.5;   // מסתכלים אל הזירה, בערך
+  p.skinHex = pick(skinPalette);
+  p.bald = Math.random() < 0.1;
+  p.cheer = Math.random();
+  p.raise = 0;
+  p.hs = 0.88 + Math.random() * 0.26;
+  p.side = Math.random() < 0.5 ? -1 : 1;
+  // הצבעים מוכהים - קהל צבעוני-בהיר לגמרי לא מתאים לאווירה הדרמטית של הזירה
+  crowdShirt.setColorAt(i, colorTmp.setHex(pick(shirtPalette)).multiplyScalar(0.62));
+  crowdSleeveL.setColorAt(i, colorTmp); crowdSleeveR.setColorAt(i, colorTmp);
+  crowdPants.setColorAt(i, colorTmp.setHex(pick(pantsPalette)).multiplyScalar(0.6));
+  crowdSkin.setColorAt(i, colorTmp.setHex(p.skinHex).multiplyScalar(0.78));
+  crowdHandL.setColorAt(i, colorTmp); crowdHandR.setColorAt(i, colorTmp);
+  crowdHair.setColorAt(i, colorTmp.setHex(pick(hairPalette)).multiplyScalar(0.8));
 });
+crowdAllMeshes.forEach((m) => { if (m.instanceColor) m.instanceColor.needsUpdate = true; });
+scene.add(...crowdAllMeshes);
 
-scene.add(crowdBodies, crowdHeads);
+// עדכון כל הקהל בכל פריים: קפיצות קטנות, וידיים שמתרוממות ומנופפות (יותר כשהקהל מתלהב)
+function updateCrowd(t, dt) {
+  const ex = crowdExcite.v;
+  for (let i = 0; i < crowdPositions.length; i++) {
+    const p = crowdPositions[i];
+    const bob = Math.max(0, Math.sin(t * (2.2 + 5 * ex) + p.phase)) * (0.012 + 0.11 * ex);
+    dummy.position.set(p.x, p.y + bob, p.z);
+    dummy.rotation.set(0, p.yaw, 0);
+    dummy.scale.setScalar(p.hs);
+    dummy.updateMatrix();
+    _pm.copy(dummy.matrix);
+    crowdShirt.setMatrixAt(i, _pm); crowdPants.setMatrixAt(i, _pm); crowdSkin.setMatrixAt(i, _pm); crowdFace.setMatrixAt(i, _pm);
+    if (p.bald) { dummy.scale.setScalar(0.0001); dummy.updateMatrix(); crowdHair.setMatrixAt(i, dummy.matrix); }
+    else crowdHair.setMatrixAt(i, _pm);
+    const want = (p.armUp || ex > 0.3 + 0.7 * p.cheer) ? 1 : 0;
+    p.raise += (want - p.raise) * Math.min(1, dt * 7);
+    const wave = Math.sin(t * (3.2 + 5 * ex) + p.phase * 2);
+    for (let k = 0; k < 2; k++) {
+      const side = k ? 1 : -1, sl = k ? crowdSleeveR : crowdSleeveL, hd = k ? crowdHandR : crowdHandL;
+      const raised = p.raise * (side === p.side || ex > 0.75 ? 1 : 0);
+      const swing = 0.09 + 0.05 * Math.sin(t * 1.3 + p.phase + side);
+      const ang = side * (swing + raised * (2.55 + 0.35 * wave));
+      _tm.makeTranslation(side * 0.225, 1.1, 0);
+      _rm.makeRotationZ(ang);
+      _am.copy(_pm).multiply(_tm).multiply(_rm);
+      sl.setMatrixAt(i, _am); hd.setMatrixAt(i, _am);
+    }
+  }
+  crowdAllMeshes.forEach((m) => { m.instanceMatrix.needsUpdate = true; });
+}
 
-// שיער לצופים + זרועות מונפות (2026-10-02, ריאליזם): כל צופה מקבל כיפת שיער בצבע טבעי,
-// ובערך 38% מהם מניפים יד באוויר (מתנדנדת - ראה לולאת הקהל ב-animate).
-const hairPalette = [0x14100c, 0x2a1a10, 0x4a3220, 0x7a5a30, 0xc8a050, 0x6a6a6a, 0x8a2a18];
-const crowdHair = new THREE.InstancedMesh(new THREE.SphereGeometry(0.152, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.55),
-  new THREE.MeshStandardMaterial({ roughness: 0.9 }), crowdCount);
-crowdHair.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-let crowdArmCount = 0;
-crowdPositions.forEach((p, i) => {
-  crowdHair.setColorAt(i, colorTmp.setHex(hairPalette[Math.floor(Math.random() * hairPalette.length)]).multiplyScalar(0.7));
-  if (p.armUp) p.armIdx = crowdArmCount++;
-});
-const crowdArms = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.045, 0.34, 3, 6), new THREE.MeshStandardMaterial({ roughness: 0.85 }), Math.max(1, crowdArmCount));
-crowdArms.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-crowdPositions.forEach((p) => { if (p.armUp) crowdArms.setColorAt(p.armIdx, colorTmp.setHex(p.skinHex).multiplyScalar(0.7)); });
-scene.add(crowdHair, crowdArms);
 
 // הבזקי מצלמות בקהל: נקודות אור שמהבהבות באקראי על היציעים
 const camFlashPts = [];
@@ -35466,34 +35549,8 @@ function animate() {
     riverMat.emissiveIntensity = 0.9 * pulse;
   }
 
-  // תנועת קהל עדינה - נותנת חיים לאולם
-  crowdPositions.forEach((p, i) => {
-    const ex = crowdExcite.v;
-    const bob = Math.sin(t * (2.2 + 5 * ex) + p.phase) * (0.06 + 0.16 * ex);
-    dummy.position.set(p.x, p.y + 0.36 + bob, p.z);
-    dummy.updateMatrix();
-    crowdBodies.setMatrixAt(i, dummy.matrix);
-    dummy.position.set(p.x, p.y + 0.76 + bob, p.z);
-    dummy.scale.setScalar(p.hs);
-    dummy.updateMatrix();
-    crowdHeads.setMatrixAt(i, dummy.matrix);
-    dummy.position.y += 0.012;
-    dummy.updateMatrix();
-    crowdHair.setMatrixAt(i, dummy.matrix);
-    dummy.scale.setScalar(1);
-    if (p.armUp) {
-      const wave = Math.sin(t * (3 + 5 * ex) + p.phase * 2);
-      dummy.position.set(p.x + 0.2 * p.side, p.y + 0.86 + bob, p.z);
-      dummy.rotation.set(0, 0, p.side * (-0.18 - 0.3 * wave));
-      dummy.updateMatrix();
-      crowdArms.setMatrixAt(p.armIdx, dummy.matrix);
-      dummy.rotation.set(0, 0, 0);
-    }
-  });
-  crowdBodies.instanceMatrix.needsUpdate = true;
-  crowdHeads.instanceMatrix.needsUpdate = true;
-  crowdHair.instanceMatrix.needsUpdate = true;
-  crowdArms.instanceMatrix.needsUpdate = true;
+  // תנועת קהל - ראה updateCrowd
+  updateCrowd(t, dt);
   updateCamFlashes(dt, crowdExcite.v);
 
   renderer.render(scene, camera);
