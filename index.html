@@ -1360,7 +1360,7 @@ scene.add(hallFloor);
 // ---------- במת הזירה ----------
 const platform = new THREE.Mesh(
   new THREE.BoxGeometry(RING_HALF * 2 + 0.8, RING_TOP, RING_HALF * 2 + 0.8),
-  new THREE.MeshStandardMaterial({ color: 0x1e3a6e, roughness: 0.85 })
+  new THREE.MeshStandardMaterial({ color: 0x6e1220, roughness: 0.8 })
 );
 platform.position.y = RING_TOP / 2;
 platform.castShadow = true;
@@ -1368,9 +1368,56 @@ platform.receiveShadow = true;
 scene.add(platform);
 
 // יריעת הקנבס (משטח הלחימה)
+// קנבס אמיתי: אריג עדין, פס צבעוני בקצה, לוגו במרכז, כתמי זיעה ושפשופים (2026-10-02, "הכי ריאליסטי")
+function makeRingCanvasTexture() {
+  const n = 1024, c = document.createElement('canvas');
+  c.width = c.height = n;
+  const g = c.getContext('2d');
+  g.fillStyle = '#2a5ca6'; g.fillRect(0, 0, n, n);
+  // אריג (חוטים אנכיים ואופקיים)
+  for (let i = 0; i < n; i += 3) {
+    g.fillStyle = `rgba(0,0,0,${0.035 + (i % 6 ? 0 : 0.03)})`; g.fillRect(i, 0, 1, n);
+    g.fillStyle = `rgba(255,255,255,${0.03 + (i % 6 ? 0 : 0.025)})`; g.fillRect(0, i, n, 1);
+  }
+  // כתמים ושפשופים
+  for (let i = 0; i < 120; i++) {
+    const x = Math.random() * n, y = Math.random() * n, r = 10 + Math.random() * 70;
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    const dark = Math.random() < 0.6;
+    gr.addColorStop(0, dark ? 'rgba(10,30,70,0.13)' : 'rgba(255,255,255,0.10)');
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  // פס קצה אדום-לבן
+  g.fillStyle = '#c92a2a'; g.fillRect(0, 0, n, 46); g.fillRect(0, n - 46, n, 46); g.fillRect(0, 0, 46, n); g.fillRect(n - 46, 0, 46, n);
+  g.fillStyle = '#f2f2f2'; g.fillRect(46, 46, n - 92, 10); g.fillRect(46, n - 56, n - 92, 10); g.fillRect(46, 46, 10, n - 92); g.fillRect(n - 56, 46, 10, n - 92);
+  // לוגו במרכז: שני טבעות וכוכב
+  g.save(); g.translate(n / 2, n / 2);
+  g.globalAlpha = 0.9;
+  g.lineWidth = 26; g.strokeStyle = '#f2f2f2'; g.beginPath(); g.arc(0, 0, 250, 0, Math.PI * 2); g.stroke();
+  g.lineWidth = 12; g.strokeStyle = '#c92a2a'; g.beginPath(); g.arc(0, 0, 215, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = '#c92a2a';
+  g.beginPath();
+  for (let k = 0; k < 10; k++) { const rr = k % 2 ? 80 : 190, a = -Math.PI / 2 + k * Math.PI / 5; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+  g.closePath(); g.fill();
+  g.fillStyle = '#f2f2f2';
+  g.beginPath();
+  for (let k = 0; k < 10; k++) { const rr = k % 2 ? 40 : 100, a = -Math.PI / 2 + k * Math.PI / 5; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+  g.closePath(); g.fill();
+  g.restore();
+  // סימני פגיעה/זיעה על הקנבס שמתחת ללוחמים
+  for (let i = 0; i < 14; i++) {
+    g.fillStyle = 'rgba(90,20,20,0.10)';
+    g.beginPath(); g.ellipse(250 + Math.random() * 520, 300 + Math.random() * 420, 4 + Math.random() * 10, 3 + Math.random() * 7, Math.random() * 3, 0, Math.PI * 2); g.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
 const canvasMat = new THREE.Mesh(
   new THREE.BoxGeometry(RING_HALF * 2 + 0.85, 0.06, RING_HALF * 2 + 0.85),
-  new THREE.MeshStandardMaterial({ color: 0x4a8ee0, roughness: 0.95 })
+  new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92, map: makeRingCanvasTexture() })
 );
 canvasMat.position.y = RING_TOP + 0.01;
 canvasMat.receiveShadow = true;
@@ -1476,7 +1523,7 @@ for (let t = 0; t < TIERS; t++) {
       const along = d + (Math.random() - 0.5) * 0.3;
       const outJ = out + (Math.random() - 0.5) * 0.25;
       [[along, -outJ], [along, outJ], [-outJ, along], [outJ, along]].forEach(([x, z]) => {
-        crowdPositions.push({ x, y: height, z, phase: Math.random() * Math.PI * 2 });
+        crowdPositions.push({ x, y: height, z, phase: Math.random() * Math.PI * 2, armUp: Math.random() < 0.38, side: Math.random() < 0.5 ? -1 : 1, hs: 0.92 + Math.random() * 0.2 });
       });
     }
   });
@@ -1511,10 +1558,103 @@ crowdPositions.forEach((p, i) => {
   // הצבעים מוכהים (0.55x) - קהל צבעוני-בהיר לגמרי לא מתאים לאווירה
   // הדרמטית/כהה שהמשתמש ביקש (כמו במערה); עדיין מזהים גוון, רק פחות זוהר.
   crowdBodies.setColorAt(i, colorTmp.setHex(shirtPalette[Math.floor(Math.random() * shirtPalette.length)]).multiplyScalar(0.55));
-  crowdHeads.setColorAt(i, colorTmp.setHex(skinPalette[Math.floor(Math.random() * skinPalette.length)]).multiplyScalar(0.7));
+  p.skinHex = skinPalette[Math.floor(Math.random() * skinPalette.length)];
+  crowdHeads.setColorAt(i, colorTmp.setHex(p.skinHex).multiplyScalar(0.7));
 });
 
 scene.add(crowdBodies, crowdHeads);
+
+// שיער לצופים + זרועות מונפות (2026-10-02, ריאליזם): כל צופה מקבל כיפת שיער בצבע טבעי,
+// ובערך 38% מהם מניפים יד באוויר (מתנדנדת - ראה לולאת הקהל ב-animate).
+const hairPalette = [0x14100c, 0x2a1a10, 0x4a3220, 0x7a5a30, 0xc8a050, 0x6a6a6a, 0x8a2a18];
+const crowdHair = new THREE.InstancedMesh(new THREE.SphereGeometry(0.152, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.55),
+  new THREE.MeshStandardMaterial({ roughness: 0.9 }), crowdCount);
+crowdHair.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+let crowdArmCount = 0;
+crowdPositions.forEach((p, i) => {
+  crowdHair.setColorAt(i, colorTmp.setHex(hairPalette[Math.floor(Math.random() * hairPalette.length)]).multiplyScalar(0.7));
+  if (p.armUp) p.armIdx = crowdArmCount++;
+});
+const crowdArms = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.045, 0.34, 3, 6), new THREE.MeshStandardMaterial({ roughness: 0.85 }), Math.max(1, crowdArmCount));
+crowdArms.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+crowdPositions.forEach((p) => { if (p.armUp) crowdArms.setColorAt(p.armIdx, colorTmp.setHex(p.skinHex).multiplyScalar(0.7)); });
+scene.add(crowdHair, crowdArms);
+
+// הבזקי מצלמות בקהל: נקודות אור שמהבהבות באקראי על היציעים
+const camFlashPts = [];
+const camFlashGeo = new THREE.BufferGeometry();
+const camFlashPos = new Float32Array(70 * 3);
+for (let i = 0; i < 70; i++) {
+  const cp = crowdPositions[Math.floor(Math.random() * crowdPositions.length)];
+  camFlashPts.push({ x: cp.x, y: cp.y + 1.05, z: cp.z, on: false });
+  camFlashPos.set([cp.x, -50, cp.z], i * 3);
+}
+camFlashGeo.setAttribute('position', new THREE.BufferAttribute(camFlashPos, 3));
+const camFlashes = new THREE.Points(camFlashGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.55, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false }));
+camFlashes.frustumCulled = false;
+scene.add(camFlashes);
+let camFlashTimer = 0;
+function updateCamFlashes(dt, excite) {
+  camFlashTimer -= dt;
+  if (camFlashTimer > 0) return;
+  camFlashTimer = 0.09;
+  const pa = camFlashGeo.attributes.position;
+  camFlashPts.forEach((f, i) => {
+    f.on = Math.random() < 0.025 + 0.07 * excite;
+    pa.setY(i, f.on ? f.y : -50);
+  });
+  pa.needsUpdate = true;
+}
+
+// ---------- אולם אמיתי יותר: מעקות, מסבך תאורה וקרני זרקורים ----------
+(function buildArenaExtras() {
+  // מעקה ביטחון סביב הזירה (חזית/גב מלאים; בצדדים נשאר פתח למסלול הכניסה)
+  const barMat = new THREE.MeshStandardMaterial({ color: 0x2a2f3a, roughness: 0.55, metalness: 0.3 });
+  const barTop = new THREE.MeshStandardMaterial({ color: 0xc92a2a, roughness: 0.5 });
+  const BH = 0.95, BR = 7.0;
+  const seg = (x, z, lenX, lenZ) => {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(lenX, BH, lenZ), barMat);
+    b.position.set(x, BH / 2, z); b.castShadow = true; b.receiveShadow = true; scene.add(b);
+    const t = new THREE.Mesh(new THREE.BoxGeometry(lenX + (lenX > lenZ ? 0 : 0.04), 0.07, lenZ + (lenZ > lenX ? 0 : 0.04)), barTop);
+    t.position.set(x, BH + 0.035, z); scene.add(t);
+  };
+  seg(0, -BR, BR * 2, 0.14); seg(0, BR, BR * 2, 0.14);
+  [-1, 1].forEach((sx) => [-1, 1].forEach((sz) => seg(sx * BR, sz * (1.7 + 2.65), 0.14, 5.3)));
+
+  // מסבך תאורה מעל הזירה
+  const truss = new THREE.Group();
+  const metal = new THREE.MeshStandardMaterial({ color: 0x1d2029, roughness: 0.4, metalness: 0.85 });
+  const TY = 9.3, TH = 6.6;
+  [[0, -TH, TH * 2, 0.2, 0.2], [0, TH, TH * 2, 0.2, 0.2], [-TH, 0, 0.2, 0.2, TH * 2], [TH, 0, 0.2, 0.2, TH * 2]].forEach(([x, z, lx, ly, lz]) => {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(lx, ly, lz), metal);
+    bar.position.set(x, TY, z); truss.add(bar);
+  });
+  for (let i = -3; i <= 3; i++) {
+    const cross = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, TH * 2), metal);
+    cross.position.set(i * 2.2, TY, 0); truss.add(cross);
+  }
+  scene.add(truss);
+  const beamMat = new THREE.MeshBasicMaterial({ color: 0xfff1d6, transparent: true, opacity: 0.032, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+  const lensMat = new THREE.MeshBasicMaterial({ color: 0xfff6e0 });
+  const targets = [[-1.7, 0], [1.7, 0], [-2.8, 1.8], [2.8, -1.8], [0, 2.2], [0, -2.2], [-1.2, -2], [1.2, 2]];
+  const fixtures = [[-5, -5], [5, 5], [-5, 5], [5, -5], [0, -6], [0, 6], [-6, 0], [6, 0]];
+  fixtures.forEach(([fx, fz], i) => {
+    const grp = new THREE.Group();
+    grp.position.set(fx, TY - 0.2, fz);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.26, 0.55, 14), metal);
+    body.rotation.x = -Math.PI / 2; body.position.z = 0.0; grp.add(body);
+    const lens = new THREE.Mesh(new THREE.CircleGeometry(0.28, 14), lensMat);
+    lens.position.z = 0.28; grp.add(lens);
+    const h = 9.2;
+    const geo = new THREE.ConeGeometry(1.5, h, 22, 1, true);
+    geo.translate(0, -h / 2, 0);
+    const beam = new THREE.Mesh(geo, beamMat);
+    beam.rotation.x = -Math.PI / 2;
+    grp.add(beam);
+    scene.add(grp);
+    grp.lookAt(targets[i][0], RING_TOP, targets[i][1]);
+  });
+})();
 
 // ============================================================================
 //  הרפתקה — מערת הקריסטל
@@ -3391,6 +3531,24 @@ function toSkinned(mesh, chainKey) {
 
 // ============================================================================
 
+let _skinBump = null;
+function skinBumpTexture() {
+  if (_skinBump) return _skinBump;
+  const n = 256, c = document.createElement('canvas');
+  c.width = c.height = n;
+  const g = c.getContext('2d');
+  g.fillStyle = '#808080'; g.fillRect(0, 0, n, n);
+  for (let i = 0; i < 5200; i++) {
+    const v = 90 + Math.random() * 90;
+    g.fillStyle = `rgb(${v},${v},${v})`;
+    g.fillRect(Math.random() * n, Math.random() * n, 1 + Math.random() * 1.5, 1 + Math.random() * 1.5);
+  }
+  _skinBump = new THREE.CanvasTexture(c);
+  _skinBump.wrapS = _skinBump.wrapT = THREE.RepeatWrapping;
+  _skinBump.repeat.set(3, 3);
+  return _skinBump;
+}
+
 function createFighter(cfg) {
   const g = new THREE.Group();
   const rand = rng(cfg.seed ?? 12345);
@@ -3446,6 +3604,8 @@ function createFighter(cfg) {
     color: 0xffffff, roughness: 0.62,
     map: catStripeTex('#' + new THREE.Color(cfg.skin).getHexString()),
   }) : skinMat;
+  // ריאליזם עור (2026-10-02): נקבוביות (bump), וסימון החומר כדי שזיעה/אדמומיות יעבדו עליו (ראה updateFighterRealism)
+  if (!cfg.crystalSkin) [skinMat, headMat].forEach((m) => { m.userData.isSkin = true; m.bumpMap = skinBumpTexture(); m.bumpScale = 0.55; });
   const hairMat = cfg.hairTex
     ? new THREE.MeshStandardMaterial({ color: cfg.hair, roughness: 0.88, map: hairTex('#ffffff') })
     : M(cfg.hair, 0.88);
@@ -9786,8 +9946,9 @@ function tickCombat(attacker, defender, who, otherWho) {
   // שלב 4: אי אפשר לפגוע במישהו ששוכב על הרצפה - אחרת אפשר "לתקוע" אותו
   // שם לנצח במכות רצופות במקום לתת לו רגע להתאושש ולקום.
   if (defender.down) return;
-  if (defender.blocking) { playHitSound('block'); return; }
+  if (defender.blocking) { playHitSound('block'); spawnHitFX(defender, 'block', attacker); return; }
   playHitSound(attacker.action);
+  spawnHitFX(defender, attacker.action, attacker);
 
   // מכת נשק (W) לוקחת את הנזק מהנשק המצויד בפועל (`f.weaponDmg`, נקבע
   // ב-addWeaponProp) במקום מהמספר הקבוע ב-ATTACKS - כדי שנשק חזק יותר
@@ -10057,6 +10218,7 @@ function resetGame() {
     f.mv = 0; f.cool = 0; f.think = 0; f.mode = 'wait'; f.blockTimer = 0;
     f.damageDealt = 0;
     f.jumping = false; f.jumpY = 0; f.jumpVel = 0; f.celebrate = 0;
+    f.fightTime = 0; f.hurtFlash = 0; f.flush = 0;
     // שלב 4: קרב חדש תמיד מתחיל בעמידה - בלי הדף/הלם/נפילה שנשארו מהקרב הקודם.
     f.knockVel = 0; f.staggerT = 0; f.down = false; f.downT = 0;
     f.fallDirX = 0; f.fallDirZ = -1; f.fallBaseYaw = f.facing * STANCE_YAW;
@@ -12469,8 +12631,9 @@ function tickTeamCombat(attacker, fighters) {
 
   attacker.hitDone = true;
   if (defender.down) return;
-  if (defender.blocking) { playHitSound('block'); return; }
+  if (defender.blocking) { playHitSound('block'); spawnHitFX(defender, 'block', attacker); return; }
   playHitSound(attacker.action);
+  spawnHitFX(defender, attacker.action, attacker);
 
   const isWeaponHit = attacker.action === 'stone' && attacker.weaponDmg != null;
   const base = isWeaponHit ? attacker.weaponDmg : cfg.dmg * (attacker.powerMult || 1);
@@ -35086,11 +35249,114 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+// ============================================================================
+//  ריאליזם בקרב (2026-10-02, "הכי ריאליסטי": דמויות + זירה/קהל)
+//  - זיעה (עור מבריק יותר) ואדמומיות שגדלות ככל שהלוחם נפגע ומתעייף
+//  - צל מגע עגול מתחת לכל לוחם
+//  - טיפות זיעה/דם ניתזות ממכה, רעידת מצלמה ו"עצירה" קצרצרה של הזמן בפגיעה חזקה
+// ============================================================================
+let hitStopT = 0, camShake = 0, camShaking = false;
+const hitFxPool = [];
+(function () {
+  const geo = new THREE.SphereGeometry(1, 6, 6);
+  for (let i = 0; i < 80; i++) {
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    m.visible = false; scene.add(m);
+    hitFxPool.push({ m, vx: 0, vy: 0, vz: 0, life: 0 });
+  }
+})();
+const HIT_STRENGTH = { block: 0.02, punch: 0.05, kick: 0.09, stone: 0.12 };
+function spawnHitFX(defender, kind, attacker) {
+  const k = HIT_STRENGTH[kind] ?? 0.05;
+  if (kind !== 'block') {
+    defender.hurtFlash = 0.7;
+    defender.fightTime = (defender.fightTime || 0) + 2;   // כל מכה מעייפת/מזיעה קצת יותר
+    if (uiScreen === 'battle') { camShake = Math.max(camShake, k * 1.6); hitStopT = Math.max(hitStopT, k * 1.1); }
+  }
+  const count = kind === 'block' ? 6 : kind === 'punch' ? 12 : kind === 'kick' ? 16 : 22;
+  const dir = Math.sign(defender.group.position.x - attacker.group.position.x) || 1;
+  const cy = GROUND_Y + (kind === 'kick' ? 1.0 : 1.4);
+  let made = 0;
+  for (const p of hitFxPool) {
+    if (made >= count) break;
+    if (p.life > 0) continue;
+    const red = kind !== 'block' && Math.random() < 0.18;
+    p.m.material.color.setHex(kind === 'block' ? 0xffd070 : red ? 0xb01820 : 0xdff2ff);
+    const sz = 0.018 + Math.random() * 0.03;
+    p.m.scale.setScalar(sz);
+    p.m.position.set(defender.group.position.x + dir * (-0.1), cy + (Math.random() - 0.5) * 0.3, defender.group.position.z + 0.15);
+    p.vx = dir * (0.8 + Math.random() * 2.6) * (kind === 'block' ? 0.6 : 1);
+    p.vy = 0.6 + Math.random() * 2.4;
+    p.vz = (Math.random() - 0.3) * 1.6;
+    p.life = 0.45 + Math.random() * 0.45;
+    p.m.visible = true;
+    made++;
+  }
+}
+function updateHitFX(dt) {
+  hitFxPool.forEach((p) => {
+    if (p.life <= 0) return;
+    p.life -= dt;
+    p.vy -= 7.5 * dt;
+    p.m.position.x += p.vx * dt; p.m.position.y += p.vy * dt; p.m.position.z += p.vz * dt;
+    if (p.life <= 0 || p.m.position.y < RING_TOP) { p.life = 0; p.m.visible = false; }
+  });
+  if (uiScreen === 'battle' && !entrance.active) {
+    if (camShake > 0.002) {
+      camShake *= Math.exp(-dt * 9);
+      camera.position.set(BATTLE_CAM.pos.x + (Math.random() - 0.5) * camShake, BATTLE_CAM.pos.y + (Math.random() - 0.5) * camShake, BATTLE_CAM.pos.z);
+      camera.lookAt(BATTLE_CAM.look);
+      camShaking = true;
+    } else if (camShaking) {
+      camShaking = false; camShake = 0;
+      camera.position.copy(BATTLE_CAM.pos); camera.lookAt(BATTLE_CAM.look);
+    }
+  }
+}
+
+let _blobTex = null;
+function updateFighterRealism(f, dt, fighting) {
+  if (!f._rl) {
+    const mats = [];
+    f.group.traverse((o) => {
+      const m = o.material;
+      if (m && m.userData && m.userData.isSkin && !mats.some((e) => e.m === m)) mats.push({ m, rough: m.roughness });
+    });
+    if (!_blobTex) {
+      const c = document.createElement('canvas'); c.width = c.height = 128;
+      const g = c.getContext('2d');
+      const gr = g.createRadialGradient(64, 64, 4, 64, 64, 62);
+      gr.addColorStop(0, 'rgba(0,0,0,0.65)'); gr.addColorStop(0.6, 'rgba(0,0,0,0.25)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+      _blobTex = new THREE.CanvasTexture(c);
+    }
+    const blob = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.25),
+      new THREE.MeshBasicMaterial({ map: _blobTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+    blob.rotation.x = -Math.PI / 2; blob.position.y = 0.012;
+    f.group.add(blob);
+    f._rl = { mats, blob, flush: 0 };
+  }
+  const rl = f._rl;
+  if (fighting) f.fightTime = (f.fightTime || 0) + dt;
+  f.hurtFlash = Math.max(0, (f.hurtFlash || 0) - dt * 1.4);
+  const hpR = f.maxHp > 0 ? Math.max(0, Math.min(1, f.hp / f.maxHp)) : 1;
+  const sweat = Math.min(0.95, (1 - hpR) * 0.6 + (f.fightTime || 0) * 0.012);
+  const flushT = Math.min(1, (1 - hpR) * 0.75 + f.hurtFlash * 0.5);
+  rl.flush += (flushT - rl.flush) * Math.min(1, dt * 4);
+  rl.mats.forEach(({ m, rough }) => {
+    m.roughness = rough - 0.3 * sweat;
+    m.emissive.setRGB(0.55, 0.07, 0.05).multiplyScalar(rl.flush * 0.32);
+  });
+  rl.blob.scale.setScalar(1 - Math.min(0.45, (f.jumpY || 0) * 2.2));
+  rl.blob.material.opacity = 0.75 - Math.min(0.4, (f.jumpY || 0) * 2);
+}
+
 function animate() {
   requestAnimationFrame(animate);
   // סדר חשוב: getDelta חייב לרוץ ראשון. getElapsedTime של three.js קורא ל-getDelta
   // בעצמו ומאפס את הזמן, ואז ה-dt שאחריו יוצא 0 והמשחק קופא לגמרי.
-  const dt = Math.min(clock.getDelta(), 0.05);   // תקרה: מונע קפיצה אחרי לשונית ברקע
+  let dt = Math.min(clock.getDelta(), 0.05);   // תקרה: מונע קפיצה אחרי לשונית ברקע
+  if (hitStopT > 0) { hitStopT -= dt; dt *= 0.12; }   // עצירה קצרצרה בפגיעה חזקה
   const t = clock.elapsedTime;
 
   // קרב פעיל: גם הזירה הרגילה וגם קרב מפלצת בהרפתקה (isCaveFight/isIslandFight,
@@ -35170,6 +35436,9 @@ function animate() {
     poseFighter(enemy, t, dt);
   }
 
+  updateHitFX(dt);
+  [player, enemy].forEach((f) => updateFighterRealism(f, dt, inBattleMode && !gameOver));
+
   // חיית העזרה (אם נבחרה) - ראה updatePet
   updatePet(dt, t, inBattleMode, !gameOver);
 
@@ -35199,16 +35468,33 @@ function animate() {
 
   // תנועת קהל עדינה - נותנת חיים לאולם
   crowdPositions.forEach((p, i) => {
-    const bob = Math.sin(t * (2.2 + 5 * crowdExcite.v) + p.phase) * (0.06 + 0.16 * crowdExcite.v);
+    const ex = crowdExcite.v;
+    const bob = Math.sin(t * (2.2 + 5 * ex) + p.phase) * (0.06 + 0.16 * ex);
     dummy.position.set(p.x, p.y + 0.36 + bob, p.z);
     dummy.updateMatrix();
     crowdBodies.setMatrixAt(i, dummy.matrix);
     dummy.position.set(p.x, p.y + 0.76 + bob, p.z);
+    dummy.scale.setScalar(p.hs);
     dummy.updateMatrix();
     crowdHeads.setMatrixAt(i, dummy.matrix);
+    dummy.position.y += 0.012;
+    dummy.updateMatrix();
+    crowdHair.setMatrixAt(i, dummy.matrix);
+    dummy.scale.setScalar(1);
+    if (p.armUp) {
+      const wave = Math.sin(t * (3 + 5 * ex) + p.phase * 2);
+      dummy.position.set(p.x + 0.2 * p.side, p.y + 0.86 + bob, p.z);
+      dummy.rotation.set(0, 0, p.side * (-0.18 - 0.3 * wave));
+      dummy.updateMatrix();
+      crowdArms.setMatrixAt(p.armIdx, dummy.matrix);
+      dummy.rotation.set(0, 0, 0);
+    }
   });
   crowdBodies.instanceMatrix.needsUpdate = true;
   crowdHeads.instanceMatrix.needsUpdate = true;
+  crowdHair.instanceMatrix.needsUpdate = true;
+  crowdArms.instanceMatrix.needsUpdate = true;
+  updateCamFlashes(dt, crowdExcite.v);
 
   renderer.render(scene, camera);
 }
