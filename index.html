@@ -10302,6 +10302,7 @@ function resetGame() {
     f.damageDealt = 0;
     f.jumping = false; f.jumpY = 0; f.jumpVel = 0; f.celebrate = 0;
     f.fightTime = 0; f.hurtFlash = 0; f.flush = 0;
+    clearBlood(f);
     // שלב 4: קרב חדש תמיד מתחיל בעמידה - בלי הדף/הלם/נפילה שנשארו מהקרב הקודם.
     f.knockVel = 0; f.staggerT = 0; f.down = false; f.downT = 0;
     f.fallDirX = 0; f.fallDirZ = -1; f.fallBaseYaw = f.facing * STANCE_YAW;
@@ -35352,6 +35353,7 @@ const HIT_STRENGTH = { block: 0.02, punch: 0.05, kick: 0.09, stone: 0.12 };
 function spawnHitFX(defender, kind, attacker) {
   const k = HIT_STRENGTH[kind] ?? 0.05;
   if (kind !== 'block') {
+    bloodHit(defender, attacker, kind);
     defender.hurtFlash = 0.7;
     defender.fightTime = (defender.fightTime || 0) + 2;   // כל מכה מעייפת/מזיעה קצת יותר
     if (uiScreen === 'battle') { camShake = Math.max(camShake, k * 1.6); hitStopT = Math.max(hitStopT, k * 1.1); }
@@ -35376,7 +35378,179 @@ function spawnHitFX(defender, kind, attacker) {
     made++;
   }
 }
+// ============================================================================
+//  דם (2026-10-02, בקשת הבן: "דם מאוד ריאליסטי שנשאר על המקום ונוזל")
+//  - טיפות דם ניתזות מהמכה, נופלות ומשאירות כתמים על הקנבס (נשארים עד הקרב הבא)
+//  - כתמי דם רטובים וברקיים על הפנים/הגוף של מי שנפגע, ו"נזילות" שמתארכות כלפי מטה
+//  - מי שנפגע ממשיך לטפטף כמה שניות, ובריכת דם קטנה גדלה מתחתיו
+//  (סגנון קריקטורי-ריאליסטי: כתמים וטיפות, בלי פצעים/גופות)
+// ============================================================================
+var bloodSys = null;
+function ensureBloodSys() {
+  if (bloodSys) return bloodSys;
+  // 4 צורות כתם
+  const texs = [];
+  for (let v = 0; v < 4; v++) {
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const g = c.getContext('2d');
+    g.translate(64, 64);
+    const blob = (x, y, r) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(120,8,14,1)'); gr.addColorStop(0.7, 'rgba(100,6,12,0.95)'); gr.addColorStop(1, 'rgba(90,5,10,0)'); g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); };
+    blob(0, 0, 20 + v * 4);
+    for (let i = 0; i < 9 + v * 2; i++) {
+      const a = Math.random() * Math.PI * 2, d = 22 + Math.random() * 30, r = 2 + Math.random() * 6;
+      blob(Math.cos(a) * d, Math.sin(a) * d, r);
+      if (Math.random() < 0.5) {   // פס ניתז מהמרכז החוצה
+        g.strokeStyle = 'rgba(105,7,13,0.9)'; g.lineWidth = r * 0.55; g.beginPath(); g.moveTo(Math.cos(a) * 14, Math.sin(a) * 14); g.lineTo(Math.cos(a) * d, Math.sin(a) * d); g.stroke();
+      }
+    }
+    const t = new THREE.CanvasTexture(c);
+    texs.push(t);
+  }
+  const decalGeo = new THREE.PlaneGeometry(1, 1);
+  const decals = [];
+  for (let i = 0; i < 140; i++) {
+    const m = new THREE.Mesh(decalGeo, new THREE.MeshBasicMaterial({ map: texs[i % 4], color: 0x8a8a8a, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
+    m.rotation.x = -Math.PI / 2;
+    m.position.y = RING_TOP + 0.045 + (i % 8) * 0.0004;
+    m.visible = false; m.renderOrder = 2;
+    scene.add(m);
+    decals.push(m);
+  }
+  const drops = [];
+  const dropGeo = new THREE.SphereGeometry(1, 6, 5);
+  const dropMats = [0x7a0b10, 0x9a1018, 0x5e070b].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.15, metalness: 0.1 }));
+  for (let i = 0; i < 150; i++) {
+    const m = new THREE.Mesh(dropGeo, dropMats[i % 3]);
+    m.visible = false; scene.add(m);
+    drops.push({ m, vx: 0, vy: 0, vz: 0, life: 0 });
+  }
+  const pools = [new THREE.Mesh(decalGeo, new THREE.MeshBasicMaterial({ map: texs[0], color: 0x777777, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })),
+                 new THREE.Mesh(decalGeo, new THREE.MeshBasicMaterial({ map: texs[2], color: 0x777777, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }))];
+  pools.forEach((m) => { m.rotation.x = -Math.PI / 2; m.position.y = RING_TOP + 0.052; m.scale.setScalar(0.0001); m.visible = false; m.renderOrder = 3; scene.add(m); });
+  bloodSys = { decals, drops, pools, nextDecal: 0, stainGeo: new THREE.SphereGeometry(1, 8, 6), dripGeo: new THREE.CylinderGeometry(1, 0.7, 1, 6),
+    stainMat: new THREE.MeshStandardMaterial({ color: 0x8a0d13, roughness: 0.12, metalness: 0.15 }),
+    dripMat: new THREE.MeshStandardMaterial({ color: 0x7a0a10, roughness: 0.1, metalness: 0.15 }) };
+  return bloodSys;
+}
+const _bwp = new THREE.Vector3();
+function addFloorSplat(x, z, size) {
+  const b = ensureBloodSys();
+  const d = b.decals[b.nextDecal++ % b.decals.length];
+  d.position.x = x; d.position.z = z;
+  d.rotation.z = Math.random() * Math.PI * 2;
+  d.scale.setScalar(size);
+  d.visible = true;
+}
+function bloodDrop(x, y, z, vx, vy, vz, size) {
+  const b = ensureBloodSys();
+  const dr = b.drops.find((q) => q.life <= 0);
+  if (!dr) return;
+  dr.m.position.set(x, y, z); dr.m.scale.set(size, size * 1.5, size);
+  dr.vx = vx; dr.vy = vy; dr.vz = vz; dr.life = 2.5; dr.m.visible = true; dr.size = size;
+}
+const BLOOD_FACE = [[0, 0.0, 0.112], [-0.055, -0.005, 0.1], [0.055, -0.005, 0.1], [-0.045, 0.045, 0.105], [0.045, 0.045, 0.105], [0, -0.045, 0.108], [-0.085, -0.02, 0.07], [0.085, -0.02, 0.07]];
+function addBloodStain(f, kind) {
+  const b = ensureBloodSys();
+  f.bloodSpots = f.bloodSpots || [];
+  if (f.bloodSpots.length >= 16) return;
+  const onHead = kind === 'punch' || Math.random() < 0.5;
+  const bone = f.byName[onHead ? 'head' : 'chest'];
+  if (!bone) return;
+  const pos = onHead ? BLOOD_FACE[Math.floor(Math.random() * BLOOD_FACE.length)] : [(Math.random() - 0.5) * 0.18, -0.02 + Math.random() * 0.14, 0.085 + Math.random() * 0.01];
+  const r = (onHead ? 0.012 : 0.018) + Math.random() * 0.016;
+  const g = new THREE.Group();
+  const stain = new THREE.Mesh(b.stainGeo, b.stainMat);
+  stain.scale.set(r, r * (0.8 + Math.random() * 0.8), r * 0.35);
+  g.add(stain);
+  const drip = new THREE.Mesh(b.dripGeo, b.dripMat);
+  drip.scale.set(r * 0.32, 0.001, r * 0.32);
+  drip.position.y = 0;
+  g.add(drip);
+  g.position.set(pos[0], pos[1] + (onHead ? 0.03 : 0), pos[2]);
+  bone.add(g);
+  f.bloodSpots.push({ g, drip, r, len: 0, maxLen: 0.05 + Math.random() * (onHead ? 0.12 : 0.18), speed: 0.012 + Math.random() * 0.025, wait: Math.random() * 0.4 });
+}
+function bloodHit(defender, attacker, kind) {
+  const b = ensureBloodSys();
+  const k = kind === 'punch' ? 1 : kind === 'kick' ? 1.6 : 2.2;
+  const dir = Math.sign(defender.group.position.x - attacker.group.position.x) || 1;
+  defender.group.getWorldPosition(_bwp);
+  const cy = GROUND_Y + (kind === 'kick' ? 1.0 : 1.4);
+  const n = Math.round(10 * k);
+  for (let i = 0; i < n; i++) {
+    bloodDrop(_bwp.x - dir * 0.05, cy + (Math.random() - 0.5) * 0.25, _bwp.z + 0.12,
+      dir * (0.6 + Math.random() * 3.2) * (0.7 + 0.3 * k), 0.8 + Math.random() * 2.6, (Math.random() - 0.35) * 1.8, 0.012 + Math.random() * 0.022);
+  }
+  addBloodStain(defender, kind);
+  if (k > 1) addBloodStain(defender, kind);
+  defender.bleedT = Math.min(14, (defender.bleedT || 0) + 3 + 2.2 * k);
+  defender.bleedAcc = 0;
+  defender.bloodAmt = Math.min(1, (defender.bloodAmt || 0) + 0.08 * k);
+}
+function clearBlood(f) {
+  if (!bloodSys) return;
+  if (f) {
+    (f.bloodSpots || []).forEach((sp) => { if (sp.g.parent) sp.g.parent.remove(sp.g); });
+    f.bloodSpots = []; f.bleedT = 0; f.bloodAmt = 0;
+  }
+  if (f === player || !f) {
+    bloodSys.decals.forEach((d) => { d.visible = false; });
+    bloodSys.drops.forEach((q) => { q.life = 0; q.m.visible = false; });
+    bloodSys.pools.forEach((m) => { m.visible = false; m.scale.setScalar(0.0001); });
+    bloodSys.nextDecal = 0;
+  }
+}
+function updateBlood(dt) {
+  if (!bloodSys) return;
+  const b = bloodSys;
+  b.drops.forEach((q) => {
+    if (q.life <= 0) return;
+    q.life -= dt;
+    q.vy -= 8.5 * dt;
+    q.m.position.x += q.vx * dt; q.m.position.y += q.vy * dt; q.m.position.z += q.vz * dt;
+    if (q.m.position.y <= RING_TOP + 0.05 && q.vy < 0) {
+      q.life = 0; q.m.visible = false;
+      addFloorSplat(q.m.position.x, q.m.position.z, 0.1 + q.size * 14 + Math.random() * 0.12);
+    } else if (q.life <= 0) q.m.visible = false;
+  });
+  [player, enemy].forEach((f, fi) => {
+    // נזילות על הגוף
+    (f.bloodSpots || []).forEach((sp) => {
+      if (sp.wait > 0) { sp.wait -= dt; return; }
+      sp.len = Math.min(sp.maxLen, sp.len + sp.speed * dt);
+      sp.drip.scale.y = Math.max(0.001, sp.len);
+      sp.drip.position.y = -sp.len / 2;
+      if (sp.len >= sp.maxLen && Math.random() < dt * 0.6 && f.bleedT > 0) {   // טיפה נופלת מקצה הנזילה
+        sp.drip.getWorldPosition(_bwp);
+        bloodDrop(_bwp.x, _bwp.y - sp.len / 2, _bwp.z, (Math.random() - 0.5) * 0.15, 0, (Math.random() - 0.5) * 0.15, 0.014 + Math.random() * 0.01);
+        sp.len *= 0.45;
+      }
+    });
+    // טפטוף + בריכת דם מתחת למי שדימם
+    if (f.bleedT > 0) {
+      f.bleedT -= dt;
+      f.bleedAcc = (f.bleedAcc || 0) + dt;
+      if (f.bleedAcc > 0.28) {
+        f.bleedAcc = 0;
+        const head = f.byName.head;
+        if (head) { head.getWorldPosition(_bwp); bloodDrop(_bwp.x + (Math.random() - 0.5) * 0.12, _bwp.y - 0.08, _bwp.z + 0.1, (Math.random() - 0.5) * 0.3, 0.3, 0.1, 0.014 + Math.random() * 0.012); }
+        f.bloodAmt = Math.min(1, (f.bloodAmt || 0) + 0.012);
+      }
+    }
+    const pool = b.pools[fi];
+    if ((f.bloodAmt || 0) > 0.02) {
+      f.group.getWorldPosition(_bwp);
+      pool.position.x += (_bwp.x - pool.position.x) * Math.min(1, dt * 1.2);
+      pool.position.z = _bwp.z + 0.05;
+      pool.visible = true;
+      const tgt = 0.25 + f.bloodAmt * 0.9;
+      pool.scale.setScalar(pool.scale.x + (tgt - pool.scale.x) * Math.min(1, dt * 0.8));
+    }
+  });
+}
+
 function updateHitFX(dt) {
+  updateBlood(dt);
   hitFxPool.forEach((p) => {
     if (p.life <= 0) return;
     p.life -= dt;
@@ -35560,7 +35734,7 @@ animate();
 // ידית לבדיקה: מאפשרת לרנדר תנוחה מסוימת ולצלם אותה בזמן פיתוח.
 // אין לה שום השפעה על המשחק עצמו.
 window.game = {
-  entrance, startEntrance, endEntrance, crowdExcite,
+  entrance, startEntrance, endEntrance, crowdExcite, spawnHitFX,
   baseHpFor, maxHpFor,
   PET_CFGS, switchPet, buildPet, get selectedPetName() { return selectedPetName; }, get petGroup() { return petGroup; }, petState, renderPetsScreen,
   startAction, KEYS, camera, scene, resetGame, endGame, showScreen, createFighter,
