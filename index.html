@@ -575,9 +575,14 @@
   /* בלובי הרקע שקוף חלקית - כדי שסווארק (מרונדר מאחורי המסך) יראה מבעד לתפריט */
   #lobbyOverlay {
     background: linear-gradient(200deg, rgba(22,33,58,0.55), rgba(12,18,32,0.72));
-    justify-content: flex-end;
+    justify-content: flex-start;   /* לא flex-end: במסך נמוך flex-end חותך את הכפתורים העליונים ואי אפשר לגלול אליהם */
     padding-bottom: 60px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
   }
+  /* רווח גמיש שדוחף את התפריט לתחתית כשיש מקום (כמו flex-end), ובמסך נמוך הכול גולל כרגיל */
+  #lobbyOverlay::before { content: ''; margin-top: auto; }
   #lobbyOverlay.show, #shopOverlay.show { display: flex; }
   #loadoutRow, #weaponRow { display: flex; align-items: center; gap: 12px; }
   #bossRow { align-items: center; gap: 12px; margin-bottom: 14px; }
