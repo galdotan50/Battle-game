@@ -9878,7 +9878,7 @@ if (isTouchDevice) {
   const joystickStickEl = document.getElementById('joystickStick');
   const rotateOverlayEl = document.getElementById('rotateOverlay');
 
-  // ---------- ג'ויסטיק וירטואלי: שולט רק ב-ArrowLeft/ArrowRight ----------
+  // ---------- ג'ויסטיק וירטואלי: שולט בארבעת החיצים ----------
   const JOY_RADIUS = 50;   // פיקסלים - עד כמה רחוק היד יכולה למשוך את הידית
   const JOY_DEAD = 12;     // אזור מת קטן באמצע כדי שרעד קל לא יזיז את הלוחם
   let joyTouchId = null;
@@ -9893,12 +9893,17 @@ if (isTouchDevice) {
       `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`;
     KEYS.ArrowRight = dx > JOY_DEAD;
     KEYS.ArrowLeft = dx < -JOY_DEAD;
+    // למעלה/למטה - לתנועה חופשית (סומו, קרב קבוצות, כולם על כולם, קרב חיות, הרפתקה). בקרב רגיל אין להם שימוש.
+    KEYS.ArrowUp = dy < -JOY_DEAD;
+    KEYS.ArrowDown = dy > JOY_DEAD;
   }
 
   function resetJoystick() {
     joyTouchId = null;
     KEYS.ArrowLeft = false;
     KEYS.ArrowRight = false;
+    KEYS.ArrowUp = false;
+    KEYS.ArrowDown = false;
     joystickStickEl.style.transform = 'translate(0px, 0px)';
   }
 
@@ -10647,7 +10652,7 @@ function showScreen(name) {
   // בלי זה, שחקן בטלפון לא יכול לזוז בכלל (המקלדת לא קיימת אצלו).
   // כפתורי הפעולה (אגרוף/בעיטה/וכו') יוצגו גם שם בלי נזק - הם עדיין לא
   // עושים כלום כי אין קרב אמיתי בשלב הזה (updateFriendArena לא קורא אותם).
-  const showTouchControls = inBattle || name === 'friendArena' || name === 'petBattle';
+  const showTouchControls = inBattle || name === 'friendArena' || name === 'petBattle' || name === 'teamBattle' || name === 'sumo';
   if (window.setTouchControlsVisible) window.setTouchControlsVisible(showTouchControls);
   // הלוט מוצג רק בקרב, ונבנה מחדש בכניסה אליו כדי לכלול פריטים שנקנו
   // בחנות מאז הקרב הקודם
