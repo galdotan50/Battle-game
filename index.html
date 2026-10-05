@@ -9948,13 +9948,31 @@ if (isTouchDevice) {
   }
 
   // ---------- "סובב את הטלפון": מוצג כל עוד המכשיר מחזיק לאורך ----------
+  // ⚠️ באייפון/אנדרואיד האירוע orientationchange נורה *לפני* שהמידות innerWidth/innerHeight מתעדכנות -
+  // הבדיקה הישנה ראתה "עדיין לאורך" ונתקעה. לכן: בודקים גם עם matchMedia (מתעדכן נכון) ושוב אחרי רגע.
+  let rotateDismissed = false;   // לחיצה על המסך = "תן לי לשחק בכל זאת" (עד הסיבוב הבא)
+  function isPortraitNow() {
+    const bySize = window.innerHeight > window.innerWidth;
+    let byMedia = bySize;
+    try { byMedia = window.matchMedia('(orientation: portrait)').matches; } catch (e) {}
+    // רק אם שניהם אומרים "לאורך" - כדי שטעות של אחד מהם לא תחסום משחק
+    return bySize && byMedia;
+  }
   function updateOrientationGate() {
-    const portrait = window.innerHeight > window.innerWidth;
-    rotateOverlayEl.classList.toggle('show', portrait);
+    const portrait = isPortraitNow();
+    if (!portrait) rotateDismissed = false;
+    rotateOverlayEl.classList.toggle('show', portrait && !rotateDismissed);
     if (portrait) resetJoystick();   // לא נשאיר תזוזה "תקועה" מסיבוב באמצע גרירה
   }
-  window.addEventListener('resize', updateOrientationGate);
-  window.addEventListener('orientationchange', updateOrientationGate);
+  function updateOrientationGateSoon() {
+    updateOrientationGate();
+    [150, 400, 900].forEach((ms) => setTimeout(updateOrientationGate, ms));
+  }
+  window.addEventListener('resize', updateOrientationGateSoon);
+  window.addEventListener('orientationchange', updateOrientationGateSoon);
+  try { window.matchMedia('(orientation: portrait)').addEventListener('change', updateOrientationGateSoon); } catch (e) {}
+  try { screen.orientation && screen.orientation.addEventListener('change', updateOrientationGateSoon); } catch (e) {}
+  rotateOverlayEl.addEventListener('click', () => { rotateDismissed = true; updateOrientationGate(); });
   updateOrientationGate();
 
   // מציגים את כפתורי המגע רק בזמן קרב בפועל - showScreen() קורא לזה
