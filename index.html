@@ -9891,11 +9891,15 @@ if (isTouchDevice) {
     const angle = Math.atan2(dy, dx);
     joystickStickEl.style.transform =
       `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`;
-    KEYS.ArrowRight = dx > JOY_DEAD;
-    KEYS.ArrowLeft = dx < -JOY_DEAD;
+    // נועלים ציר: כשהאצבע דוחפת בעיקר קדימה/אחורה, סטייה קטנה הצידה לא מסובבת את העולם.
+    // (בקרב רגיל אין תנועה אנכית, אז dy קטן ושמאל/ימין עובדים כרגיל.)
+    const horiz = Math.abs(dx) > JOY_DEAD && Math.abs(dx) >= Math.abs(dy) * 0.7;
+    const vert = Math.abs(dy) > JOY_DEAD && Math.abs(dy) >= Math.abs(dx) * 0.7;
+    KEYS.ArrowRight = horiz && dx > 0;
+    KEYS.ArrowLeft = horiz && dx < 0;
     // למעלה/למטה - לתנועה חופשית (סומו, קרב קבוצות, כולם על כולם, קרב חיות, הרפתקה). בקרב רגיל אין להם שימוש.
-    KEYS.ArrowUp = dy < -JOY_DEAD;
-    KEYS.ArrowDown = dy > JOY_DEAD;
+    KEYS.ArrowUp = vert && dy < 0;
+    KEYS.ArrowDown = vert && dy > 0;
   }
 
   function resetJoystick() {
