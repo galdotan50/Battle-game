@@ -10652,7 +10652,7 @@ function showScreen(name) {
   // בלי זה, שחקן בטלפון לא יכול לזוז בכלל (המקלדת לא קיימת אצלו).
   // כפתורי הפעולה (אגרוף/בעיטה/וכו') יוצגו גם שם בלי נזק - הם עדיין לא
   // עושים כלום כי אין קרב אמיתי בשלב הזה (updateFriendArena לא קורא אותם).
-  const showTouchControls = inBattle || name === 'friendArena' || name === 'petBattle' || name === 'teamBattle' || name === 'sumo';
+  const showTouchControls = inBattle || name === 'friendArena' || name === 'petBattle' || name === 'teamBattle' || name === 'sumo' || name === 'crystalCave' || name === 'lostIsland' || name === 'lavaCrater' || name === 'zombieForest';
   if (window.setTouchControlsVisible) window.setTouchControlsVisible(showTouchControls);
   // הלוט מוצג רק בקרב, ונבנה מחדש בכניסה אליו כדי לכלול פריטים שנקנו
   // בחנות מאז הקרב הקודם
