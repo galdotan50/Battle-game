@@ -33222,8 +33222,6 @@ const SHOP_DATA = {
     ["פנדי", 'כוח 31.6/10', 'מהירות 30.4/10', '4000000₪'],
     ["מרלינו", 'כוח 32.2/10', 'מהירות 31.8/10', '4400000₪'],
     ["אירוס", 'כוח 33.0/10', 'מהירות 33.0/10', '5000000₪'],
-    ['סינזר', 'כוח 15/10', 'מהירות 15/10', '1000₪'],
-    ['פראנק', 'כוח 15/10', 'מהירות 15/10', '1000₪'],
   ]},
   weapons: { label: '⚔️ נשקים', labelEn: '⚔️ Weapons', labelEs: '⚔️ Armas', labelJa: '⚔️ 武器', labelFr: '⚔️ Armes', labelPt: '⚔️ Armas', labelDe: '⚔️ Waffen', labelRu: '⚔️ Оружие', labelAr: '⚔️ الأسلحة', labelTh: '⚔️ อาวุธ', labelPl: '⚔️ Bronie', labelIt: '⚔️ Armi', labelRo: '⚔️ Arme', labelZh: '⚔️ 武器', labelKo: '⚔️ 무기', labelHi: '⚔️ हथियार', labelTr: '⚔️ Silahlar', labelNl: '⚔️ Wapens', labelSv: '⚔️ Vapen', labelUk: '⚔️ Зброя', labelCs: '⚔️ Zbraně', labelHu: '⚔️ Fegyverek', labelEl: '⚔️ Όπλα', labelBg: '⚔️ Оръжия', labelSr: '⚔️ Оружје', labelHr: '⚔️ Oružje', labelSk: '⚔️ Zbrane', labelSq: '⚔️ Armë', labelSl: '⚔️ Orožje', labelGd: '⚔️ Buill-airm', labelPtpt: '⚔️ Armas', labelAm: '⚔️ መሳሪያዎች', labelFi: '⚔️ Aseet', labelNo: '⚔️ Våpen', labelGsw: '⚔️ Waffe', labelVi: '⚔️ Vũ khí', labelId: '⚔️ Senjata', labelEt: '⚔️ Relvad', labelIs: '⚔️ Vopn', labelFa: '⚔️ سلاح‌ها', labelDa: '⚔️ Våben', rows: [
     ['אבן חדה', 'נזק 7', 'חינם'],
@@ -34028,8 +34026,6 @@ const btnTouchWeaponEl = document.getElementById('btnTouchWeapon');
 const CUSTOM_CHARACTER_NAMES = new Set();
 // דמויות איוונט מהאפיון (game-spec.md סעיף 14, כמו סינזר/פראנק) - נקנות
 // ונבחרות רק בזמן איוונט, בדיוק כמו דמויות "בנייה עצמית" - אותו דגל.
-CUSTOM_CHARACTER_NAMES.add('סינזר');
-CUSTOM_CHARACTER_NAMES.add('פראנק');
 const ownedCharacterNames = () =>
   Object.keys(CHARACTER_CFGS).filter((n) =>
     inventory.has('characters:' + n) && (!CUSTOM_CHARACTER_NAMES.has(n) || eventActive));
