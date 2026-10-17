@@ -39225,8 +39225,14 @@ function updateFocus(dt) {
   camera.updateMatrixWorld();
   _focusV.copy(_focusT).applyMatrix4(camera.matrixWorldInverse);
   const tgt = Math.max(0.6, -_focusV.z);
+  // בהתחלה/במעבר מסך - קופצים מיד לפוקוס הנכון (אחרת כל המסך מטושטש עד שהפוקוס "מתיישב")
+  if (updateFocus._screen !== uiScreen) { updateFocus._screen = uiScreen; _focusSm = tgt; }
   _focusSm += (tgt - _focusSm) * Math.min(1, dt * 6);
-  if (bokehPass) bokehPass.uniforms.focus.value = _focusSm;
+  if (bokehPass) {
+    bokehPass.uniforms.focus.value = _focusSm;
+    // טשטוש עומק-שדה רק בקרב עצמו; בלובי/חנות הכל חד
+    bokehPass.uniforms.aperture.value = (uiScreen === 'battle' || uiScreen === 'friendArena') ? 0.0004 : 0;
+  }
 }
 
 function animate() {
