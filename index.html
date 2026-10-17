@@ -583,6 +583,18 @@
   }
   /* רווח גמיש שדוחף את התפריט לתחתית כשיש מקום (כמו flex-end), ובמסך נמוך הכול גולל כרגיל */
   #lobbyOverlay::before { content: ''; margin-top: auto; }
+  /* שם המשחק בראש הלובי */
+  #lobbyOverlay { padding-top: 58px; }
+  #gameTitle {
+    position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    font: 900 34px/1.1 'Impact', 'Arial Black', system-ui, sans-serif; letter-spacing: 3px; white-space: nowrap;
+    background: linear-gradient(180deg, #fff6b0 0%, #ffd23a 45%, #ff8a1e 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    -webkit-text-stroke: 1px rgba(90,30,0,0.55);
+    filter: drop-shadow(0 3px 0 rgba(120,30,0,0.8)) drop-shadow(0 0 14px rgba(255,170,40,0.55));
+    pointer-events: none; direction: ltr; z-index: 2;
+  }
+  @media (max-width: 1000px) { #gameTitle { font-size: 26px; letter-spacing: 2px; top: 56px; } #lobbyOverlay { padding-top: 96px; } }
   #lobbyOverlay.show, #shopOverlay.show { display: flex; }
   #loadoutRow, #weaponRow { display: flex; align-items: center; gap: 12px; }
   #bossRow { align-items: center; gap: 12px; margin-bottom: 14px; }
@@ -1082,6 +1094,7 @@
 </div>
 
 <div id="lobbyOverlay">
+  <div id="gameTitle">Battle Arena</div>
   <button id="settingsBtn">⚙️</button>
   <button id="cloudSignInBtn" class="cloudSignInBtn">🔵 התחבר עם גוגל (שומר התקדמות)</button>
   <div class="eventBanner" data-i18n-he="🎉 איוונט מיוחד! 30% הנחה בחנות!" data-i18n-en="🎉 Special Event! 30% off in the shop!" data-i18n-es="🎉 ¡Evento especial! ¡30% de descuento en la tienda!" data-i18n-ja="🎉 スペシャルイベント! ショップが30%オフ!" data-i18n-fr="🎉 Événement spécial ! -30 % dans la boutique !" data-i18n-pt="🎉 Evento especial! 30% de desconto na loja!" data-i18n-de="🎉 Sonder-Event! 30 % Rabatt im Laden!" data-i18n-ru="🎉 Особое событие! Скидка 30% в магазине!" data-i18n-ar="🎉 حدث خاص! خصم 30% في المتجر!" data-i18n-th="🎉 อีเวนต์พิเศษ! ร้านค้าลด 30%!" data-i18n-pl="🎉 Specjalne wydarzenie! -30% w sklepie!" data-i18n-it="🎉 Evento speciale! Sconto del 30% nel negozio!" data-i18n-ro="🎉 Eveniment special! Reducere 30% în magazin!" data-i18n-zh="🎉 特别活动!商店七折!" data-i18n-ko="🎉 특별 이벤트! 상점 30% 할인!" data-i18n-hi="🎉 खास इवेंट! दुकान में 30% छूट!" data-i18n-tr="🎉 Özel Etkinlik! Mağazada %30 indirim!" data-i18n-nl="🎉 Speciaal evenement! 30% korting in de winkel!" data-i18n-sv="🎉 Specialevent! 30% rabatt i butiken!" data-i18n-uk="🎉 Особлива подія! Знижка 30% у крамниці!" data-i18n-cs="🎉 Speciální akce! 30% sleva v obchodě!" data-i18n-hu="🎉 Különleges esemény! 30% kedvezmény a boltban!" data-i18n-el="🎉 Ειδική εκδήλωση! 30% έκπτωση στο κατάστημα!" data-i18n-bg="🎉 Специално събитие! 30% отстъпка в магазина!" data-i18n-sr="🎉 Посебан догађај! 30% попуста у продавници!" data-i18n-hr="🎉 Poseban događaj! 30% popusta u trgovini!" data-i18n-sk="🎉 Špeciálna akcia! 30% zľava v obchode!" data-i18n-sq="🎉 Ngjarje e veçantë! 30% ulje në dyqan!" data-i18n-sl="🎉 Poseben dogodek! 30% popusta v trgovini!" data-i18n-gd="🎉 Tachartas sònraichte! 30% dheth sa bhùth!" data-i18n-ptpt="🎉 Evento especial! 30% de desconto na loja!" data-i18n-am="🎉 ልዩ ዝግጅት! በሱቁ ውስጥ 30% ቅናሽ!" data-i18n-fi="🎉 Erikoistapahtuma! 30 % alennus kaupassa!" data-i18n-no="🎉 Spesialarrangement! 30 % avslag i butikken!" data-i18n-gsw="🎉 Spezialevent! 30 % Rabatt im Lade!" data-i18n-vi="🎉 Sự kiện đặc biệt! Giảm 30% trong cửa hàng!" data-i18n-id="🎉 Acara Spesial! Diskon 30% di toko!" data-i18n-et="🎉 Eriüritus! 30% allahindlust poes!" data-i18n-is="🎉 Sérstakur viðburður! 30% afsláttur í búðinni!" data-i18n-fa="🎉 رویداد ویژه! ۳۰٪ تخفیف در فروشگاه!" data-i18n-da="🎉 Særlig begivenhed! 30% rabat i butikken!">🎉 איוונט מיוחד! 30% הנחה בחנות!</div>
