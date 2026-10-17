@@ -588,12 +588,25 @@
   #gameTitle {
     position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
     font: 900 34px/1.1 'Impact', 'Arial Black', system-ui, sans-serif; letter-spacing: 3px; white-space: nowrap;
-    background: linear-gradient(180deg, #fff6b0 0%, #ffd23a 45%, #ff8a1e 100%);
+    background: linear-gradient(180deg, #fff6a8 0%, #ffd21a 28%, #ff7a00 62%, #e01800 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
-    -webkit-text-stroke: 1px rgba(90,30,0,0.55);
-    filter: drop-shadow(0 3px 0 rgba(120,30,0,0.8)) drop-shadow(0 0 14px rgba(255,170,40,0.55));
+    -webkit-text-stroke: 1px rgba(110,10,0,0.7);
+    filter: drop-shadow(0 3px 0 rgba(90,8,0,0.85)) drop-shadow(0 0 12px rgba(255,90,0,0.8));
+    animation: titleFire 1.3s ease-in-out infinite alternate;
     pointer-events: none; direction: ltr; z-index: 2;
   }
+  /* להבות משני הצדדים (אמוג'י - לא חלק מהטקסט המגוון) */
+  #gameTitle::before, #gameTitle::after {
+    content: '🔥'; position: absolute; top: 0; font-size: 0.8em; -webkit-text-fill-color: initial; letter-spacing: 0;
+    animation: titleFlame 0.9s ease-in-out infinite alternate;
+  }
+  #gameTitle::before { left: -1.4em; }
+  #gameTitle::after { right: -1.4em; animation-delay: 0.3s; }
+  @keyframes titleFire {
+    from { filter: drop-shadow(0 3px 0 rgba(90,8,0,0.85)) drop-shadow(0 0 8px rgba(255,80,0,0.7)); }
+    to   { filter: drop-shadow(0 3px 0 rgba(90,8,0,0.85)) drop-shadow(0 0 20px rgba(255,140,0,0.95)); }
+  }
+  @keyframes titleFlame { from { transform: scale(0.9) rotate(-6deg); } to { transform: scale(1.15) rotate(6deg); } }
   @media (max-width: 1000px) { #gameTitle { font-size: 26px; letter-spacing: 2px; top: 56px; } #lobbyOverlay { padding-top: 96px; } }
   #lobbyOverlay.show, #shopOverlay.show { display: flex; }
   #loadoutRow, #weaponRow { display: flex; align-items: center; gap: 12px; }
