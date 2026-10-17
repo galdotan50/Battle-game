@@ -2493,15 +2493,15 @@ function checkSumoFall(f, winnerWho) {
   }
 }
 
+const SUMO_REWARD = 1000;
 function endSumo(winnerWho) {
   if (sumoOver) return;
   sumoOver = true;
   const win = winnerWho === 'player';
   let title = win ? T('🏆 ניצחת בסומו!', '🏆 You won the sumo!', '🏆 ¡Ganaste el sumo!', '🏆 すもうで勝った!', '🏆 Tu as gagné le sumo !', '🏆 Você venceu o sumô!', '🏆 Du hast den Sumo gewonnen!', '🏆 Ты победил в сумо!', '🏆 فزت في السومو!', '🏆 คุณชนะซูโม่!', '🏆 Wygrałeś sumo!', '🏆 Hai vinto il sumo!', '🏆 Ai câștigat la sumo!', '🏆 你赢了相扑!', '🏆 스모에서 이겼어요!', '🏆 तुम सूमो जीत गए!', '🏆 Sumoyu kazandın!', '🏆 Je hebt de sumo gewonnen!', '🏆 Du vann sumon!', '🏆 Ти переміг у сумо!', '🏆 Vyhrál jsi sumo!', '🏆 Megnyerted a szumót!', '🏆 Κέρδισες στο σούμο!', '🏆 Спечели сумото!', '🏆 Победио си у сумоу!', '🏆 Pobijedio si u sumu!', '🏆 Vyhral si sumo!', '🏆 Fitove në sumo!', '🏆 Zmagal si v sumu!', '🏆 Bhuannaich thu an sumo!', '🏆 Ganhaste o sumo!', '🏆 ሱሞውን አሸነፍክ!', '🏆 Voitit sumon!', '🏆 Du vant sumoen!', '🏆 Du hesch s Sumo gwunne!', '🏆 Bạn đã thắng sumo!', '🏆 Kamu menang sumo!', '🏆 Sa võitsid sumo!', '🏆 Þú vannst súmóið!', '🏆 تو سومو را بردی!', '🏆 Du vandt sumo!') : T('❌ נדחפת מהעיגול...', '❌ You got pushed out of the circle...', '❌ Te empujaron fuera del círculo...', '❌ 土俵の外におし出された...', '❌ Tu as été poussé hors du cercle...', '❌ Você foi empurrado para fora do círculo...', '❌ Du wurdest aus dem Kreis geschubst...', '❌ Тебя вытолкнули из круга...', '❌ تم دفعك خارج الدائرة...', '❌ คุณถูกผลักออกจากวง...', '❌ Zostałeś wypchnięty z koła...', '❌ Sei stato spinto fuori dal cerchio...', '❌ Ai fost împins afară din cerc...', '❌ 你被推出圈外了...', '❌ 원 밖으로 밀려났어요...', '❌ तुम्हें घेरे से बाहर धकेल दिया गया...', '❌ Çemberin dışına itildin...', '❌ Je bent uit de cirkel geduwd...', '❌ Du blev knuffad ut ur cirkeln...', '❌ Тебе виштовхнули з кола...', '❌ Vystrčili tě z kruhu...', '❌ Kilöktek a körből...', '❌ Σε έσπρωξαν έξω από τον κύκλο...', '❌ Избутаха те от кръга...', '❌ Гурнули су те из круга...', '❌ Izgurali su te iz kruga...', '❌ Vytlačili ťa z kruhu...', '❌ Të shtynë jashtë rrethit...', '❌ Porinili so te iz kroga...', '❌ Chaidh do phutadh a-mach às a\' chearcall...', '❌ Empurraram-te para fora do círculo...', '❌ ከክብ ውጭ ተገፋህ...', '❌ Sinut työnnettiin ulos ympyrästä...', '❌ Du ble dyttet ut av sirkelen...', '❌ Du bisch us em Chreis gstosse worde...', '❌ Bạn bị đẩy ra khỏi vòng tròn...', '❌ Kamu terdorong keluar dari lingkaran...', '❌ Sind tõugati ringist välja...', '❌ Þér var ýtt út úr hringnum...', '❌ تو را از دایره بیرون هل دادند...', '❌ Du blev skubbet ud af cirklen...');
   if (win) {
-    // בלי חיים/נזק בסומו (אין "כמה נזק גרמת" למדוד) - תגמול קבוע כמו
-    // בוס/מפלצת הרפתקה, עולה לפי רמת היריב (בדיוק כמו powerMult שלו).
-    const reward = 15 + enemyLevel * 5;
+    // בלי חיים/נזק בסומו (אין "כמה נזק גרמת" למדוד) - תגמול קבוע: 1000₪ על ניצחון.
+    const reward = SUMO_REWARD;
     money += reward;
     updateMoneyUI();
     title += ' (💰 +' + reward + '₪)';
