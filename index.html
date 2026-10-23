@@ -36885,23 +36885,23 @@ function QT(i, ...args) {
 }
 // stat -> [אינדקס טקסט, אייקון, [[יעד, פרס], ...]]. פרס: m=כסף, c=תיבה, ch=דמות חדשה (עד מחיר), w=נשק חדש (עד מחיר), n=כמות
 const QUEST_DEFS = [
-  ['fights', 4, '⚔️', [[1, { m: 2000 }], [10, { c: 'common' }], [50, { m: 50000 }], [200, { m: 1000000 }], [1000, { ch: 5e6 }]]],
-  ['wins', 5, '🏆', [[1, { m: 5000 }], [5, { c: 'common' }], [25, { w: 5e5 }], [100, { m: 5e6 }], [500, { c: 'huge' }]]],
-  ['level', 6, '📈', [[3, { m: 10000 }], [10, { c: 'rare' }], [25, { ch: 2e6 }], [50, { m: 5e7 }], [83, { ch: 1e8, n: 2 }]]],
-  ['sumo', 7, '🤼', [[1, { m: 3000 }], [5, { c: 'common' }], [25, { w: 1e6 }]]],
-  ['pets', 8, '🐾', [[1, { m: 3000 }], [5, { c: 'common' }], [20, { c: 'rare' }]]],
-  ['team', 9, '👥', [[1, { m: 3000 }], [5, { c: 'rare' }], [20, { ch: 3e6 }]]],
-  ['monsters', 10, '👹', [[1, { m: 5000 }], [5, { c: 'rare' }], [15, { m: 2e6 }]]],
-  ['bosses', 11, '👑', [[1, { m: 10000 }], [5, { c: 'legendary' }]]],
-  ['treasure', 12, '💎', [[1, { m: 20000 }], [4, { c: 'rare' }], [10, { c: 'legendary' }]]],
-  ['buys', 13, '🛒', [[1, { m: 1000 }], [10, { c: 'common' }], [50, { m: 2e7 }]]],
-  ['upgrades', 14, '⬆️', [[1, { m: 2000 }], [10, { c: 'rare' }], [40, { w: 1e7, n: 2 }]]],
-  ['ownChars', 15, '👤', [[3, { m: 5000 }], [10, { c: 'rare' }], [25, { c: 'huge' }]]],
-  ['ownWeapons', 16, '🗡️', [[3, { m: 5000 }], [10, { c: 'rare' }], [25, { c: 'huge' }]]],
-  ['ownPets', 17, '🐶', [[1, { m: 5000 }], [5, { c: 'rare' }], [15, { c: 'legendary' }]]],
-  ['chestsOpened', 18, '🎁', [[1, { m: 1000 }], [10, { c: 'common' }], [30, { ch: 5e6 }]]],
-  ['dailies', 19, '📅', [[1, { m: 2000 }], [7, { c: 'rare' }], [30, { c: 'ultra' }]]],
-  ['maxMoney', 20, '💰', [[100000, { c: 'common' }], [1e7, { c: 'rare' }], [1e9, { m: 1e8 }]]],
+  ['fights', 4, '⚔️', [[25, { m: 20000 }], [100, { c: 'common' }], [500, { m: 2e6 }], [2000, { ch: 5e6 }], [10000, { c: 'ultra' }]]],
+  ['wins', 5, '🏆', [[10, { m: 50000 }], [50, { c: 'rare' }], [250, { w: 2e6 }], [1000, { m: 5e7 }], [5000, { c: 'ultra', }]]],
+  ['level', 6, '📈', [[10, { m: 50000 }], [25, { c: 'rare' }], [50, { ch: 5e6 }], [70, { m: 1e8 }], [83, { ch: 1e9, n: 3 }]]],
+  ['sumo', 7, '🤼', [[10, { m: 10000 }], [50, { c: 'rare' }], [200, { w: 1e7 }]]],
+  ['pets', 8, '🐾', [[10, { m: 10000 }], [50, { c: 'rare' }], [200, { c: 'huge' }]]],
+  ['team', 9, '👥', [[10, { m: 10000 }], [50, { c: 'legendary' }], [150, { ch: 2e7 }]]],
+  ['monsters', 10, '👹', [[10, { m: 20000 }], [50, { c: 'legendary' }], [150, { m: 5e7 }]]],
+  ['bosses', 11, '👑', [[5, { m: 50000 }], [25, { c: 'huge' }], [100, { w: 5e7, n: 2 }]]],
+  ['treasure', 12, '💎', [[3, { m: 50000 }], [10, { c: 'legendary' }], [30, { c: 'ultra' }]]],
+  ['buys', 13, '🛒', [[20, { m: 10000 }], [100, { c: 'rare' }], [400, { m: 2e8 }]]],
+  ['upgrades', 14, '⬆️', [[20, { m: 10000 }], [100, { c: 'legendary' }], [400, { w: 1e8, n: 3 }]]],
+  ['ownChars', 15, '👤', [[10, { m: 20000 }], [30, { c: 'legendary' }], [80, { c: 'ultra' }]]],
+  ['ownWeapons', 16, '🗡️', [[10, { m: 20000 }], [30, { c: 'legendary' }], [80, { c: 'ultra' }]]],
+  ['ownPets', 17, '🐶', [[10, { m: 20000 }], [30, { c: 'legendary' }], [80, { c: 'ultra' }]]],
+  ['chestsOpened', 18, '🎁', [[20, { m: 10000 }], [100, { c: 'rare' }], [300, { ch: 1e8 }]]],
+  ['dailies', 19, '📅', [[14, { m: 20000 }], [60, { c: 'huge' }], [200, { c: 'ultra', n: 2 }]]],
+  ['maxMoney', 20, '💰', [[1e6, { c: 'rare' }], [1e8, { c: 'huge' }], [1e10, { c: 'ultra' }], [1e12, { m: 1e10 }]]],
 ];
 const countInv = (prefix) => [...inventory].filter((id) => id.startsWith(prefix)).length;
 function questValue(stat) {
@@ -39337,8 +39337,10 @@ function withLinearAdditive(fn) {
   _addMats.forEach((m) => { m.userData._od = m.opacity; m.opacity = Math.pow(m.opacity, 1.7); });
   try { fn(); } finally { _addMats.forEach((m) => { m.opacity = m.userData._od; }); }
 }
+// כבוי (הבן דיווח פעמיים שהמשחק מטושטש בהתחלה) - כדי להחזיר את הטשטוש/נוצץ: USE_POST = true
+const USE_POST = false;
 (async function setupPost() {
-  if (REAL_LITE) return;
+  if (REAL_LITE || !USE_POST) return;
   try {
     const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { BokehPass }, { OutputPass }] = await Promise.all([
       import('three/addons/postprocessing/EffectComposer.js'),
