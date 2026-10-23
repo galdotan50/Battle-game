@@ -384,7 +384,7 @@
   #entSkip { position: absolute; top: calc(9vh + 10px); right: 14px; font-size: 1.1rem; color: #fff; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.35); border-radius: 10px; padding: 6px 14px; }
 
   /* ---------- לובי וחנות: מסכים מלאים מעל הזירה ---------- */
-  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #teamOnlineOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay {
+  #lobbyOverlay, #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #teamOnlineOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay, #questsOverlay {
     position: fixed;
     inset: 0;
     display: none;
@@ -396,8 +396,21 @@
     padding: 40px 20px;
     box-sizing: border-box;
   }
-  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #teamOnlineOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
-  #adventureOverlay.show, #lootSelectOverlay.show, #petsOverlay.show, #teamSizeOverlay.show, #teamOnlineOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show, #matchOverlay.show, #dailyOverlay.show { display: flex; }
+  #shopOverlay, #adventureOverlay, #lootSelectOverlay, #petsOverlay, #teamSizeOverlay, #teamOnlineOverlay, #settingsOverlay, #giftOverlay, #friendsOverlay, #matchOverlay, #dailyOverlay, #questsOverlay { background: linear-gradient(160deg, #16213a, #0c1220); }
+  #adventureOverlay.show, #lootSelectOverlay.show, #petsOverlay.show, #teamSizeOverlay.show, #teamOnlineOverlay.show, #settingsOverlay.show, #giftOverlay.show, #friendsOverlay.show, #matchOverlay.show, #dailyOverlay.show, #questsOverlay.show { display: flex; }
+  #questList { width: min(640px, 100%); display: flex; flex-direction: column; gap: 10px; margin: 10px 0 18px; }
+  .questCard { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.18); }
+  .questCard.ready { border-color: #ffcf4d; box-shadow: 0 0 16px rgba(255,207,77,0.45); }
+  .questCard.done { opacity: 0.45; }
+  .questIcon { font-size: 2rem; }
+  .questBody { flex: 1; min-width: 0; }
+  .questText { font-weight: bold; font-size: 1.05rem; }
+  .questBar { height: 10px; border-radius: 6px; background: rgba(255,255,255,0.15); margin: 6px 0 4px; overflow: hidden; }
+  .questBar i { display: block; height: 100%; background: linear-gradient(90deg, #4dd2ff, #7dffb0); }
+  .questRew { font-size: 0.9rem; opacity: 0.9; }
+  .questCard button { background: #ffcf4d; color: #1a1a1a; border: none; border-radius: 10px; padding: 8px 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+  .questCard button:disabled { background: rgba(255,255,255,0.15); color: #aaa; cursor: default; }
+  #questResult { min-height: 28px; text-align: center; font-size: 1.2rem; font-weight: bold; color: #ffe27a; }
   #dailyGiftBtn { font-size: 1.4rem; padding: 18px 40px; margin: 14px 0 6px; border-radius: 18px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(180deg, #ffe27a, #ffb52e); color: #1a1a1a; box-shadow: 0 6px 20px rgba(255,190,50,0.45); }
   #dailyGiftBtn:disabled { background: rgba(255,255,255,0.12); color: #ccc; box-shadow: none; cursor: default; }
   #chestRow { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin: 18px 0; }
@@ -1138,6 +1151,7 @@
   <button class="bigBtn secondary" id="openAdventureBtn" data-i18n-he="🗺️ הרפתקה" data-i18n-en="🗺️ Adventure" data-i18n-es="🗺️ Aventura" data-i18n-ja="🗺️ 冒険" data-i18n-fr="🗺️ Aventure" data-i18n-pt="🗺️ Aventura" data-i18n-de="🗺️ Abenteuer" data-i18n-ru="🗺️ Приключение" data-i18n-ar="🗺️ مغامرة" data-i18n-th="🗺️ ผจญภัย" data-i18n-pl="🗺️ Przygoda" data-i18n-it="🗺️ Avventura" data-i18n-ro="🗺️ Aventură" data-i18n-zh="🗺️ 冒险" data-i18n-ko="🗺️ 모험" data-i18n-hi="🗺️ रोमांच" data-i18n-tr="🗺️ Macera" data-i18n-nl="🗺️ Avontuur" data-i18n-sv="🗺️ Äventyr" data-i18n-uk="🗺️ Пригода" data-i18n-cs="🗺️ Dobrodružství" data-i18n-hu="🗺️ Kaland" data-i18n-el="🗺️ Περιπέτεια" data-i18n-bg="🗺️ Приключение" data-i18n-sr="🗺️ Авантура" data-i18n-hr="🗺️ Pustolovina" data-i18n-sk="🗺️ Dobrodružstvo" data-i18n-sq="🗺️ Aventurë" data-i18n-sl="🗺️ Pustolovščina" data-i18n-gd="🗺️ Dàn-thuras" data-i18n-ptpt="🗺️ Aventura" data-i18n-am="🗺️ ጀብዱ" data-i18n-fi="🗺️ Seikkailu" data-i18n-no="🗺️ Eventyr" data-i18n-gsw="🗺️ Abentüür" data-i18n-vi="🗺️ Phiêu lưu" data-i18n-id="🗺️ Petualangan" data-i18n-et="🗺️ Seiklus" data-i18n-is="🗺️ Ævintýri" data-i18n-fa="🗺️ ماجراجویی" data-i18n-da="🗺️ Eventyr">🗺️ הרפתקה</button>
   <button class="bigBtn secondary" id="openLootSelectBtn" data-i18n-he="🎒 ציוד לקרב" data-i18n-en="🎒 Battle gear" data-i18n-es="🎒 Equipo de batalla" data-i18n-ja="🎒 バトルの持ち物" data-i18n-fr="🎒 Équipement de combat" data-i18n-pt="🎒 Equipamento de batalha" data-i18n-de="🎒 Kampfausrüstung" data-i18n-ru="🎒 Снаряжение" data-i18n-ar="🎒 عتاد المعركة" data-i18n-th="🎒 อุปกรณ์ต่อสู้" data-i18n-pl="🎒 Ekwipunek" data-i18n-it="🎒 Equipaggiamento" data-i18n-ro="🎒 Echipament de luptă" data-i18n-zh="🎒 战斗装备" data-i18n-ko="🎒 배틀 장비" data-i18n-hi="🎒 लड़ाई का सामान" data-i18n-tr="🎒 Savaş teçhizatı" data-i18n-nl="🎒 Gevechtsuitrusting" data-i18n-sv="🎒 Stridsutrustning" data-i18n-uk="🎒 Спорядження" data-i18n-cs="🎒 Výbava do boje" data-i18n-hu="🎒 Harci felszerelés" data-i18n-el="🎒 Εξοπλισμός μάχης" data-i18n-bg="🎒 Бойна екипировка" data-i18n-sr="🎒 Опрема за борбу" data-i18n-hr="🎒 Oprema za borbu" data-i18n-sk="🎒 Výbava do boja" data-i18n-sq="🎒 Pajisje beteje" data-i18n-sl="🎒 Bojna oprema" data-i18n-gd="🎒 Uidheam blàir" data-i18n-ptpt="🎒 Equipamento de batalha" data-i18n-am="🎒 የውጊያ ዕቃዎች" data-i18n-fi="🎒 Taisteluvarusteet" data-i18n-no="🎒 Kamputstyr" data-i18n-gsw="🎒 Kampfusrüschtig" data-i18n-vi="🎒 Trang bị chiến đấu" data-i18n-id="🎒 Perlengkapan tempur" data-i18n-et="🎒 Lahingukomplekt" data-i18n-is="🎒 Bardagabúnaður" data-i18n-fa="🎒 تجهیزات نبرد" data-i18n-da="🎒 Kampudstyr">🎒 ציוד לקרב</button>
   <button class="bigBtn secondary" id="openDailyBtn">🎁</button>
+  <button class="bigBtn secondary" id="openQuestsBtn">🏆</button>
   <button class="bigBtn secondary" id="openPetsBtn" data-i18n-he="🐾 חיות עזרה" data-i18n-en="🐾 Helper Animals" data-i18n-es="🐾 Animales ayudantes" data-i18n-ja="🐾 おたすけ動物" data-i18n-fr="🐾 Animaux alliés" data-i18n-pt="🐾 Animais ajudantes" data-i18n-de="🐾 Helfer-Tiere" data-i18n-ru="🐾 Звери-помощники" data-i18n-ar="🐾 حيوانات مساعدة" data-i18n-th="🐾 สัตว์ผู้ช่วย" data-i18n-pl="🐾 Zwierzęta pomocnicy" data-i18n-it="🐾 Animali aiutanti" data-i18n-ro="🐾 Animale ajutătoare" data-i18n-zh="🐾 助战动物" data-i18n-ko="🐾 도우미 동물" data-i18n-hi="🐾 मददगार जानवर" data-i18n-tr="🐾 Yardımcı Hayvanlar" data-i18n-nl="🐾 Helperdieren" data-i18n-sv="🐾 Hjälpdjur" data-i18n-uk="🐾 Тварини-помічники" data-i18n-cs="🐾 Zvířecí pomocníci" data-i18n-hu="🐾 Segítő állatok" data-i18n-el="🐾 Ζώα βοηθοί" data-i18n-bg="🐾 Животни помощници" data-i18n-sr="🐾 Животиње помагачи" data-i18n-hr="🐾 Životinje pomagači" data-i18n-sk="🐾 Zvierací pomocníci" data-i18n-sq="🐾 Kafshë ndihmëse" data-i18n-sl="🐾 Živali pomočnice" data-i18n-gd="🐾 Beathaichean-cuideachaidh" data-i18n-ptpt="🐾 Animais ajudantes" data-i18n-am="🐾 ረዳት እንስሳት" data-i18n-fi="🐾 Apueläimet" data-i18n-no="🐾 Hjelpedyr" data-i18n-gsw="🐾 Helfer-Tier" data-i18n-vi="🐾 Thú trợ giúp" data-i18n-id="🐾 Hewan Pembantu" data-i18n-et="🐾 Abiloomad" data-i18n-is="🐾 Hjálpardýr" data-i18n-fa="🐾 حیوانات کمکی" data-i18n-da="🐾 Hjælpedyr">🐾 חיות עזרה</button>
 </div>
 
@@ -1255,6 +1269,13 @@
   <div id="chestRow"></div>
   <div id="dailyResult"></div>
   <button id="dailyBackBtn"></button>
+</div>
+
+<div id="questsOverlay">
+  <div class="screenTitle" id="questsTitle">🏆</div>
+  <div id="questResult"></div>
+  <div id="questList"></div>
+  <button id="questsBackBtn"></button>
 </div>
 
 <div id="petsOverlay">
@@ -2500,6 +2521,7 @@ function endSumo(winnerWho) {
   const win = winnerWho === 'player';
   let title = win ? T('🏆 ניצחת בסומו!', '🏆 You won the sumo!', '🏆 ¡Ganaste el sumo!', '🏆 すもうで勝った!', '🏆 Tu as gagné le sumo !', '🏆 Você venceu o sumô!', '🏆 Du hast den Sumo gewonnen!', '🏆 Ты победил в сумо!', '🏆 فزت في السومو!', '🏆 คุณชนะซูโม่!', '🏆 Wygrałeś sumo!', '🏆 Hai vinto il sumo!', '🏆 Ai câștigat la sumo!', '🏆 你赢了相扑!', '🏆 스모에서 이겼어요!', '🏆 तुम सूमो जीत गए!', '🏆 Sumoyu kazandın!', '🏆 Je hebt de sumo gewonnen!', '🏆 Du vann sumon!', '🏆 Ти переміг у сумо!', '🏆 Vyhrál jsi sumo!', '🏆 Megnyerted a szumót!', '🏆 Κέρδισες στο σούμο!', '🏆 Спечели сумото!', '🏆 Победио си у сумоу!', '🏆 Pobijedio si u sumu!', '🏆 Vyhral si sumo!', '🏆 Fitove në sumo!', '🏆 Zmagal si v sumu!', '🏆 Bhuannaich thu an sumo!', '🏆 Ganhaste o sumo!', '🏆 ሱሞውን አሸነፍክ!', '🏆 Voitit sumon!', '🏆 Du vant sumoen!', '🏆 Du hesch s Sumo gwunne!', '🏆 Bạn đã thắng sumo!', '🏆 Kamu menang sumo!', '🏆 Sa võitsid sumo!', '🏆 Þú vannst súmóið!', '🏆 تو سومو را بردی!', '🏆 Du vandt sumo!') : T('❌ נדחפת מהעיגול...', '❌ You got pushed out of the circle...', '❌ Te empujaron fuera del círculo...', '❌ 土俵の外におし出された...', '❌ Tu as été poussé hors du cercle...', '❌ Você foi empurrado para fora do círculo...', '❌ Du wurdest aus dem Kreis geschubst...', '❌ Тебя вытолкнули из круга...', '❌ تم دفعك خارج الدائرة...', '❌ คุณถูกผลักออกจากวง...', '❌ Zostałeś wypchnięty z koła...', '❌ Sei stato spinto fuori dal cerchio...', '❌ Ai fost împins afară din cerc...', '❌ 你被推出圈外了...', '❌ 원 밖으로 밀려났어요...', '❌ तुम्हें घेरे से बाहर धकेल दिया गया...', '❌ Çemberin dışına itildin...', '❌ Je bent uit de cirkel geduwd...', '❌ Du blev knuffad ut ur cirkeln...', '❌ Тебе виштовхнули з кола...', '❌ Vystrčili tě z kruhu...', '❌ Kilöktek a körből...', '❌ Σε έσπρωξαν έξω από τον κύκλο...', '❌ Избутаха те от кръга...', '❌ Гурнули су те из круга...', '❌ Izgurali su te iz kruga...', '❌ Vytlačili ťa z kruhu...', '❌ Të shtynë jashtë rrethit...', '❌ Porinili so te iz kroga...', '❌ Chaidh do phutadh a-mach às a\' chearcall...', '❌ Empurraram-te para fora do círculo...', '❌ ከክብ ውጭ ተገፋህ...', '❌ Sinut työnnettiin ulos ympyrästä...', '❌ Du ble dyttet ut av sirkelen...', '❌ Du bisch us em Chreis gstosse worde...', '❌ Bạn bị đẩy ra khỏi vòng tròn...', '❌ Kamu terdorong keluar dari lingkaran...', '❌ Sind tõugati ringist välja...', '❌ Þér var ýtt út úr hringnum...', '❌ تو را از دایره بیرون هل دادند...', '❌ Du blev skubbet ud af cirklen...');
   if (win) {
+    qAdd('sumo');
     // בלי חיים/נזק בסומו (אין "כמה נזק גרמת" למדוד) - תגמול קבוע: 1000₪ על ניצחון.
     const reward = SUMO_REWARD;
     money += reward;
@@ -10954,8 +10976,12 @@ let money = 0;
 // קבוצות/בוסים/הרפתקה - לאלה יש כבר מנגנוני תגמול נפרדים משלהם.
 let wins = 0;
 let losses = 0;
+// ---- משימות והישגים: מונים (נשמרים בענן יחד עם שאר ההתקדמות) ----
+let questStats = { fights: 0, wins: 0, sumo: 0, pets: 0, team: 0, monsters: 0, bosses: 0, treasure: 0, buys: 0, upgrades: 0, chestsOpened: 0, dailies: 0, maxMoney: 0 };
+let questClaimed = {};
+function qAdd(k, n = 1) { questStats[k] = (questStats[k] || 0) + n; if (typeof updateQuestBtn === 'function') updateQuestBtn(); }
 const moneyBadgeEl = document.getElementById('moneyBadge');
-function updateMoneyUI() { moneyBadgeEl.textContent = '💰 ' + money + '₪'; }
+function updateMoneyUI() { moneyBadgeEl.textContent = '💰 ' + money + '₪'; if (money > questStats.maxMoney) questStats.maxMoney = money; }
 
 // ---------- אויבים לפי רמות ----------
 // מנצחים אויב → עולים רמה והאויב הבא מחליף אותו. מפסידים → נשארים באותה
@@ -11043,6 +11069,8 @@ function endGame(winnerWho) {
   gameOver = true;
   gameOverEl.classList.add('show');
   const win = winnerWho === 'player';
+  qAdd('fights');
+  if (win) { if (isBossFight) qAdd('bosses'); else if (isCaveFight || isIslandFight || isLavaFight || isForestFight) qAdd('monsters'); else qAdd('wins'); }
   updateGameOverStats(win);
   playAgainBtn.style.display = '';
   playAgainBtn.textContent = T('🔄 לשחק שוב', '🔄 Play Again', '🔄 Jugar de nuevo', '🔄 もう一回', '🔄 Rejouer', '🔄 Jogar de novo', '🔄 Nochmal spielen', '🔄 Играть снова', '🔄 العب مرة أخرى', '🔄 เล่นอีกครั้ง', '🔄 Zagraj jeszcze raz', '🔄 Gioca ancora', '🔄 Joacă din nou', '🔄 再玩一次', '🔄 다시 하기', '🔄 फिर से खेलो', '🔄 Tekrar Oyna', '🔄 Opnieuw spelen', '🔄 Spela igen', '🔄 Грати ще', '🔄 Hrát znovu', '🔄 Újra', '🔄 Παίξε ξανά', '🔄 Играй пак', '🔄 Играј поново', '🔄 Igraj ponovno', '🔄 Hrať znova', '🔄 Luaj përsëri', '🔄 Igraj znova', '🔄 Cluich a-rithist', '🔄 Jogar outra vez', '🔄 እንደገና ተጫወት', '🔄 Pelaa uudelleen', '🔄 Spill igjen', '🔄 Nomal spile', '🔄 Chơi lại', '🔄 Main lagi', '🔄 Mängi uuesti', '🔄 Spila aftur', '🔄 دوباره بازی کن', '🔄 Spil igen');
@@ -11255,6 +11283,8 @@ function showScreen(name) {
   if (name === 'lootSelect') renderLootSelectScreen();
   petsEl.classList.toggle('show', name === 'pets');
   dailyEl.classList.toggle('show', name === 'daily');
+  document.getElementById('questsOverlay').classList.toggle('show', name === 'quests');
+  if (name === 'quests') renderQuests();
   if (name === 'daily') renderDailyScreen();
   if (name === 'lobby') updateDailyBtn();
   if (name === 'pets') renderPetsScreen();
@@ -12501,6 +12531,7 @@ function updateExplorer(dt, t) {
 // reward כפרמטר (לא TREASURE_REWARD קבוע) - כדי שכל עולם הרפתקה יוכל
 // להשתמש באותה פונקציה עם התגמול שלו.
 function onTreasureFound(reward) {
+  qAdd('treasure');
   money += reward;
   updateMoneyUI();
   document.getElementById('treasureFoundAmount').textContent = '💰 +' + reward + '₪';
@@ -13228,6 +13259,7 @@ function buyPet(btn) {
   if (money < price) { flashCantAfford(btn); return; }
   money -= price;
   inventory.add('pets:' + name);
+  qAdd('buys');
   updateMoneyUI();
   switchPet(name);          // חיה שנקנתה עכשיו נבחרת מיד לקרב הבא
   saveCloudState();
@@ -13705,6 +13737,7 @@ function checkTeamBattleEnd() {
 }
 
 function endTeamBattle(win) {
+  if (win) qAdd('team');
   if (ffaMode) {
     const left = teamFighters.filter((f) => !f.koPermanent).length;
     let t = win ? TM(0) : TM(1, left);
@@ -36322,6 +36355,7 @@ function upgradeCharacter(name, stat) {
   if (money < cost) return false;
   money -= cost;
   lv[stat] = level + 1;
+  qAdd('upgrades');
   updateMoneyUI();
   if (name === selectedCharacterName) refreshPlayerCombatStats();
   saveCloudState();
@@ -36553,6 +36587,7 @@ function pbEnd(winner) {
   const win = winner === pbMe;
   let title = win ? TM(9) : TM(10);
   if (win) {
+    qAdd('pets');
     const reward = 200 + pbOpp.cfg.dmg * 6;
     money += reward; updateMoneyUI();
     title += ' (💰 +' + reward + '₪)';
@@ -36776,6 +36811,7 @@ function claimDailyGift() {
   if (dailyClaimedToday()) return;
   const t = todayStr();
   lastDailyClaim = t;
+  qAdd('dailies');
   try { localStorage.setItem(DAILY_KEY, t); } catch (e) {}
   const r = Math.random();
   let html;
@@ -36804,6 +36840,7 @@ function claimDailyGift() {
 function openChest(tier) {
   if (!(chests[tier] > 0)) return;
   chests[tier]--;
+  qAdd('chestsOpened');
   const reward = rollChestReward(tier);
   applyRewardUI(reward);
   showDailyResult(CHEST_TYPES[tier].icon + ' ' + TM(14, TM(CHEST_MSG_IDX[tier])) + '<br>' + rewardHtml(reward));
@@ -36831,7 +36868,112 @@ document.getElementById('dailyGiftBtn').addEventListener('click', claimDailyGift
 document.getElementById('dailyBackBtn').addEventListener('click', () => showScreen('lobby'));
 document.getElementById('chestRow').addEventListener('click', (e) => { const b = e.target.closest('button[data-tier]'); if (b) openChest(b.dataset.tier); });
 updateDailyBtn();
-setInterval(updateDailyBtn, 60000);   // אם עוברים חצות בזמן שהמשחק פתוח
+setInterval(updateDailyBtn, 60000);
+
+// ============================================================================
+//  משימות והישגים (בקשת הבן, 2026-10-23): מסך "🏆 משימות" בלובי. כל משימה היא
+//  מונה + יעד; כשמגיעים ליעד לוחצים "קבל פרס" ומקבלים כסף / תיבה / דמות חדשה /
+//  נשק חדש. המונים נשמרים בענן ב-questStats/questClaimed (המסמך של השחקן עצמו).
+//  טקסט: 10 שפות (he,en,es,fr,de,pt,ru,ar,ja,zh), בשאר השפות - אנגלית.
+// ============================================================================
+const QTXT = {"he": ["🏆 משימות", "קבל פרס", "✅ נלקח", "🎉 קיבלת:", "שחק {0} קרבות", "נצח {0} קרבות", "הגע לרמה {0} של האויבים", "נצח {0} פעמים בסומו", "נצח {0} קרבות חיות", "נצח {0} קרבות קבוצות", "נצח {0} מפלצות בהרפתקה", "נצח {0} בוסים", "מצא {0} אוצרות", "קנה {0} דברים בחנות", "שדרג {0} פעמים", "הגע ל-{0} דמויות", "הגע ל-{0} נשקים", "הגע ל-{0} חיות עזרה", "פתח {0} תיבות", "קח {0} מתנות יומיות", "הגע ל-{0}₪"], "en": ["🏆 Quests", "Claim reward", "✅ Claimed", "🎉 You got:", "Play {0} fights", "Win {0} fights", "Reach enemy level {0}", "Win {0} sumo matches", "Win {0} animal battles", "Win {0} team battles", "Beat {0} adventure monsters", "Beat {0} bosses", "Find {0} treasures", "Buy {0} things in the shop", "Upgrade {0} times", "Own {0} characters", "Own {0} weapons", "Own {0} helper animals", "Open {0} chests", "Collect {0} daily gifts", "Reach {0}₪"], "es": ["🏆 Misiones", "Reclamar premio", "✅ Reclamado", "🎉 Obtuviste:", "Juega {0} combates", "Gana {0} combates", "Llega al nivel {0} de enemigos", "Gana {0} partidas de sumo", "Gana {0} combates de animales", "Gana {0} combates por equipos", "Vence a {0} monstruos de aventura", "Vence a {0} jefes", "Encuentra {0} tesoros", "Compra {0} cosas en la tienda", "Mejora {0} veces", "Consigue {0} personajes", "Consigue {0} armas", "Consigue {0} animales ayudantes", "Abre {0} cofres", "Recoge {0} regalos diarios", "Llega a {0}₪"], "fr": ["🏆 Quêtes", "Récupérer", "✅ Récupéré", "🎉 Tu as obtenu :", "Joue {0} combats", "Gagne {0} combats", "Atteins le niveau {0} des ennemis", "Gagne {0} matchs de sumo", "Gagne {0} combats d'animaux", "Gagne {0} combats d'équipe", "Bats {0} monstres d'aventure", "Bats {0} boss", "Trouve {0} trésors", "Achète {0} objets à la boutique", "Améliore {0} fois", "Possède {0} personnages", "Possède {0} armes", "Possède {0} animaux aidants", "Ouvre {0} coffres", "Récupère {0} cadeaux quotidiens", "Atteins {0}₪"], "de": ["🏆 Aufgaben", "Belohnung holen", "✅ Geholt", "🎉 Du hast bekommen:", "Spiele {0} Kämpfe", "Gewinne {0} Kämpfe", "Erreiche Gegner-Level {0}", "Gewinne {0} Sumo-Matches", "Gewinne {0} Tierkämpfe", "Gewinne {0} Teamkämpfe", "Besiege {0} Abenteuer-Monster", "Besiege {0} Bosse", "Finde {0} Schätze", "Kaufe {0} Dinge im Shop", "Verbessere {0} Mal", "Besitze {0} Figuren", "Besitze {0} Waffen", "Besitze {0} Helfertiere", "Öffne {0} Truhen", "Hole {0} Tagesgeschenke", "Erreiche {0}₪"], "pt": ["🏆 Missões", "Pegar prêmio", "✅ Pego", "🎉 Você ganhou:", "Jogue {0} lutas", "Vença {0} lutas", "Chegue ao nível {0} dos inimigos", "Vença {0} partidas de sumô", "Vença {0} lutas de animais", "Vença {0} lutas em equipe", "Derrote {0} monstros da aventura", "Derrote {0} chefes", "Encontre {0} tesouros", "Compre {0} coisas na loja", "Melhore {0} vezes", "Tenha {0} personagens", "Tenha {0} armas", "Tenha {0} animais ajudantes", "Abra {0} baús", "Pegue {0} presentes diários", "Chegue a {0}₪"], "ru": ["🏆 Задания", "Забрать награду", "✅ Получено", "🎉 Ты получил:", "Сыграй {0} боёв", "Выиграй {0} боёв", "Достигни уровня врагов {0}", "Выиграй {0} матчей в сумо", "Выиграй {0} боёв животных", "Выиграй {0} командных боёв", "Победи {0} монстров приключений", "Победи {0} боссов", "Найди {0} сокровищ", "Купи {0} вещей в магазине", "Улучши {0} раз", "Собери {0} персонажей", "Собери {0} оружий", "Собери {0} зверей-помощников", "Открой {0} сундуков", "Забери {0} ежедневных подарков", "Накопи {0}₪"], "ar": ["🏆 المهام", "خذ الجائزة", "✅ تم الاستلام", "🎉 حصلت على:", "العب {0} معارك", "اربح {0} معارك", "صل إلى مستوى الأعداء {0}", "اربح {0} مباريات سومو", "اربح {0} معارك حيوانات", "اربح {0} معارك فرق", "اهزم {0} وحوش في المغامرة", "اهزم {0} زعماء", "اعثر على {0} كنوز", "اشترِ {0} أشياء من المتجر", "طوّر {0} مرات", "امتلك {0} شخصيات", "امتلك {0} أسلحة", "امتلك {0} حيوانات مساعدة", "افتح {0} صناديق", "خذ {0} هدايا يومية", "اوصل إلى {0}₪"], "ja": ["🏆 ミッション", "ほうしゅうをもらう", "✅ もらった", "🎉 ゲット:", "{0}回たたかう", "{0}回勝つ", "てきのレベル{0}に着く", "すもうで{0}回勝つ", "どうぶつバトルで{0}回勝つ", "チームバトルで{0}回勝つ", "ぼうけんのモンスターを{0}ひきたおす", "ボスを{0}たいたおす", "たからを{0}こ見つける", "ショップで{0}こ買う", "{0}回パワーアップする", "キャラを{0}にんそろえる", "ぶきを{0}こそろえる", "おたすけどうぶつを{0}ひきそろえる", "たからばこを{0}こ開ける", "まい日プレゼントを{0}回もらう", "{0}₪ためる"], "zh": ["🏆 任务", "领取奖励", "✅ 已领取", "🎉 你获得了：", "进行{0}场战斗", "赢得{0}场战斗", "达到敌人等级{0}", "赢得{0}场相扑", "赢得{0}场动物战斗", "赢得{0}场团队战", "打败{0}只冒险怪物", "打败{0}个首领", "找到{0}个宝藏", "在商店买{0}件东西", "升级{0}次", "拥有{0}个角色", "拥有{0}件武器", "拥有{0}只助手动物", "打开{0}个宝箱", "领取{0}份每日礼物", "攒到{0}₪"]};
+function QT(i, ...args) {
+  const arr = QTXT[uiLang] || QTXT.en;
+  let t = arr[i] !== undefined ? arr[i] : QTXT.en[i];
+  args.forEach((a, k) => { t = t.split('{' + k + '}').join(a); });
+  return t;
+}
+// stat -> [אינדקס טקסט, אייקון, [[יעד, פרס], ...]]. פרס: m=כסף, c=תיבה, ch=דמות חדשה (עד מחיר), w=נשק חדש (עד מחיר), n=כמות
+const QUEST_DEFS = [
+  ['fights', 4, '⚔️', [[1, { m: 2000 }], [10, { c: 'common' }], [50, { m: 50000 }], [200, { m: 1000000 }], [1000, { ch: 5e6 }]]],
+  ['wins', 5, '🏆', [[1, { m: 5000 }], [5, { c: 'common' }], [25, { w: 5e5 }], [100, { m: 5e6 }], [500, { c: 'huge' }]]],
+  ['level', 6, '📈', [[3, { m: 10000 }], [10, { c: 'rare' }], [25, { ch: 2e6 }], [50, { m: 5e7 }], [83, { ch: 1e8, n: 2 }]]],
+  ['sumo', 7, '🤼', [[1, { m: 3000 }], [5, { c: 'common' }], [25, { w: 1e6 }]]],
+  ['pets', 8, '🐾', [[1, { m: 3000 }], [5, { c: 'common' }], [20, { c: 'rare' }]]],
+  ['team', 9, '👥', [[1, { m: 3000 }], [5, { c: 'rare' }], [20, { ch: 3e6 }]]],
+  ['monsters', 10, '👹', [[1, { m: 5000 }], [5, { c: 'rare' }], [15, { m: 2e6 }]]],
+  ['bosses', 11, '👑', [[1, { m: 10000 }], [5, { c: 'legendary' }]]],
+  ['treasure', 12, '💎', [[1, { m: 20000 }], [4, { c: 'rare' }], [10, { c: 'legendary' }]]],
+  ['buys', 13, '🛒', [[1, { m: 1000 }], [10, { c: 'common' }], [50, { m: 2e7 }]]],
+  ['upgrades', 14, '⬆️', [[1, { m: 2000 }], [10, { c: 'rare' }], [40, { w: 1e7, n: 2 }]]],
+  ['ownChars', 15, '👤', [[3, { m: 5000 }], [10, { c: 'rare' }], [25, { c: 'huge' }]]],
+  ['ownWeapons', 16, '🗡️', [[3, { m: 5000 }], [10, { c: 'rare' }], [25, { c: 'huge' }]]],
+  ['ownPets', 17, '🐶', [[1, { m: 5000 }], [5, { c: 'rare' }], [15, { c: 'legendary' }]]],
+  ['chestsOpened', 18, '🎁', [[1, { m: 1000 }], [10, { c: 'common' }], [30, { ch: 5e6 }]]],
+  ['dailies', 19, '📅', [[1, { m: 2000 }], [7, { c: 'rare' }], [30, { c: 'ultra' }]]],
+  ['maxMoney', 20, '💰', [[100000, { c: 'common' }], [1e7, { c: 'rare' }], [1e9, { m: 1e8 }]]],
+];
+const countInv = (prefix) => [...inventory].filter((id) => id.startsWith(prefix)).length;
+function questValue(stat) {
+  switch (stat) {
+    case 'level': return enemyLevel + 1;
+    case 'ownChars': return countInv('characters:');
+    case 'ownWeapons': return countInv('weapons:');
+    case 'ownPets': return countInv('pets:');
+    default: return questStats[stat] || 0;
+  }
+}
+const QUEST_LIST = [];
+QUEST_DEFS.forEach(([stat, ti, icon, tiers]) => tiers.forEach(([goal, reward]) => QUEST_LIST.push({ id: stat + ':' + goal, stat, ti, icon, goal, reward })));
+const fmtNum = (n) => n.toLocaleString('en-US');
+function questRewardHtml(r) {
+  const n = r.n && r.n > 1 ? ' ×' + r.n : '';
+  if (r.m) return '💰 +' + fmtNum(r.m) + '₪';
+  if (r.c) return CHEST_TYPES[r.c].icon + ' ' + TM(CHEST_MSG_IDX[r.c]);
+  if (r.ch) return '👤 ' + TM(CAT_MSG_IDX.characters) + n;
+  return '⚔️ ' + TM(CAT_MSG_IDX.weapons) + n;
+}
+function questClaimable() { return QUEST_LIST.filter((q) => !questClaimed[q.id] && questValue(q.stat) >= q.goal); }
+function updateQuestBtn() {
+  const b = document.getElementById('openQuestsBtn');
+  if (b) b.textContent = QT(0) + (questClaimable().length ? ' ❗' : '');
+}
+function claimQuest(id) {
+  const q = QUEST_LIST.find((x) => x.id === id);
+  if (!q || questClaimed[id] || questValue(q.stat) < q.goal) return;
+  questClaimed[id] = true;
+  const r = q.reward;
+  let html;
+  if (r.m) { money += r.m; updateMoneyUI(); html = '💰 +' + fmtNum(r.m) + '₪'; }
+  else if (r.c) { chests[r.c]++; html = CHEST_TYPES[r.c].icon + ' ' + TM(CHEST_MSG_IDX[r.c]); }
+  else {
+    const key = r.ch ? 'characters' : 'weapons';
+    const got = [];
+    for (let i = 0; i < (r.n || 1); i++) {
+      const pool = unownedItems(key, r[r.ch ? 'ch' : 'w']);
+      if (!pool.length) break;
+      const name = pool[Math.floor(Math.random() * pool.length)];
+      inventory.add(key + ':' + name); got.push(trName(name));
+    }
+    if (got.length) { applyRewardUI({ cat: key }); html = (r.ch ? '👤 ' : '⚔️ ') + got.join(', '); }
+    else { chests.rare++; html = CHEST_TYPES.rare.icon + ' ' + TM(CHEST_MSG_IDX.rare); }   // כבר יש הכל - תיבה במקום
+  }
+  document.getElementById('questResult').textContent = QT(3) + ' ' + html.replace(/<[^>]*>/g, '');
+  saveCloudState();
+  renderQuests(true);
+}
+function renderQuests(keepResult) {
+  document.getElementById('questsTitle').textContent = QT(0);
+  document.getElementById('questsBackBtn').textContent = TM(19);
+  if (!keepResult) document.getElementById('questResult').textContent = '';
+  const rank = (q) => (questClaimed[q.id] ? 2 : questValue(q.stat) >= q.goal ? 0 : 1);
+  const sorted = QUEST_LIST.slice().sort((a, b) => rank(a) - rank(b) || (questValue(b.stat) / b.goal) - (questValue(a.stat) / a.goal));
+  document.getElementById('questList').innerHTML = sorted.map((q) => {
+    const v = questValue(q.stat), done = !!questClaimed[q.id], ready = !done && v >= q.goal;
+    const pct = Math.min(100, Math.floor(v / q.goal * 100));
+    return '<div class="questCard' + (ready ? ' ready' : '') + (done ? ' done' : '') + '"><div class="questIcon">' + q.icon + '</div>' +
+      '<div class="questBody"><div class="questText">' + QT(q.ti, fmtNum(q.goal)) + '</div>' +
+      '<div class="questBar"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="questRew">' + fmtNum(Math.min(v, q.goal)) + ' / ' + fmtNum(q.goal) + ' · ' + questRewardHtml(q.reward) + '</div></div>' +
+      '<button data-q="' + q.id + '"' + (ready ? '' : ' disabled') + '>' + (done ? QT(2) : QT(1)) + '</button></div>';
+  }).join('');
+  updateQuestBtn();
+}
+document.getElementById('openQuestsBtn').addEventListener('click', () => showScreen('quests'));
+document.getElementById('questsBackBtn').addEventListener('click', () => showScreen('lobby'));
+document.getElementById('questList').addEventListener('click', (e) => { const b = e.target.closest('button[data-q]'); if (b) claimQuest(b.dataset.q); });
+updateQuestBtn();
+   // אם עוברים חצות בזמן שהמשחק פתוח
 
 // ============================================================================
 //  ענן: שמירה/טעינה ב-Firestore — אופציונלי לגמרי
@@ -36866,6 +37008,8 @@ function resetLocalPlayerStateForAccountSwitch() {
   myUsername = '';
   chests = { common: 0, rare: 0, legendary: 0, huge: 0, ultra: 0 };
   lastDailyClaim = '';
+  Object.keys(questStats).forEach((k) => { questStats[k] = 0; });
+  questClaimed = {};
   // switchPlayerCharacter/switchPlayerWeapon כותבות saveCloudState() בעצמן -
   // cloudUser כבר null בשלב הזה (ראה onAuthStateChanged למטה) כדי שזה לא
   // יכתוב בטעות מצב-איפוס לחשבון הקודם או לחשבון החדש לפני שנטען בפועל.
@@ -36882,6 +37026,7 @@ function buildCloudState() {
     selectedCharacterName, selectedWeaponName, enemyLevel, wins, losses,
     selectedPetName,
     chests, lastDailyClaim,
+    questStats, questClaimed,
     username: myUsername,
     displayName: cloudUser?.displayName || '',
     updatedAt: serverTimestamp(),
@@ -36908,6 +37053,9 @@ function applyCloudState(data) {
   if (data.username) myUsername = data.username;
   if (data.chests) chests = { common: 0, rare: 0, legendary: 0, huge: 0, ultra: 0, ...data.chests };
   if (data.lastDailyClaim) lastDailyClaim = data.lastDailyClaim;
+  if (data.questStats) Object.assign(questStats, data.questStats);
+  if (data.questClaimed) questClaimed = { ...data.questClaimed };
+  updateQuestBtn();
   updateDailyBtn();
   updateMoneyUI();
   updateCloudUI();   // מרענן את "🎁 שם-משתמש" ליד כפתור ההתחברות אם החשבון כבר שמר שם
@@ -37737,6 +37885,7 @@ function buyItem(btn) {
   if (money < price) { flashCantAfford(btn); return; }
   money -= price;
   inventory.add(id);
+  qAdd('buys');
   updateMoneyUI();
   renderShopCategory(key);
   // דמות/נשק שני שנקנה מפעיל את חצי המעבר המתאימים בלובי
@@ -38295,6 +38444,8 @@ function applyLanguage() {
   updateModeLabel();
   updateDailyBtn();
   if (uiScreen === 'daily') renderDailyScreen(true);
+  updateQuestBtn();
+  if (uiScreen === 'quests') renderQuests(true);
   if (uiScreen === 'petBattle' && pbMe) { pbSetTexts(); pbUpdateHud(); }
   updateLoadoutUI();     // שם הדמות/נשק בלובי ובפס החיים
   updateBattleLabel();   // הכותרת "X מול Y - רמה N" בקרב הרגיל
@@ -39776,7 +39927,7 @@ window.game = {
   refreshPlayerCombatStats, startJump,
   SUMO_RADIUS, SUMO_OFFSET, enterSumo, exitSumo, endSumo,
   enterPetBattle, exitPetBattle, updatePetBattle, pbStartBite, get pbMe() { return pbMe; }, get pbOpp() { return pbOpp; }, get pbOver() { return pbOver; },
-  get chests() { return chests; }, openChest, claimDailyGift, rollChestReward, dailyClaimedToday,
+  get chests() { return chests; }, get questStats() { return questStats; }, qAdd, claimQuest, renderQuests, openChest, claimDailyGift, rollChestReward, dailyClaimedToday,
   BATTLE_MODES, cycleBattleMode, startSelectedBattle, get selectedModeIndex() { return selectedModeIndex; },
   get lastInvites() { return lastInvites; }, get uiScreenName() { return uiScreen; }, startInviteListener, openFriendsScreen, openTeamOnline, joinTeamInvite, hostStartTeamBattle, hostCreateTeamMatch, get teamSetup() { return teamSetup; },
   get onlineTeam() { return onlineTeam; }, onlineApplySnapshot, onlineSendState, onlineUpdateGhosts, startOnlineTeamBattle, onTeamSnapshot,
