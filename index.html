@@ -911,6 +911,7 @@
   #inviteBar { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 90; display: none; flex-direction: column; gap: 8px; align-items: center; }
   #inviteBar.show { display: flex; }
   .inviteItem { background: rgba(20,30,60,0.96); color: #fff; border: 2px solid #ffcf4d; border-radius: 14px; padding: 10px 16px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+  .inviteItem button.inviteNo { background: #fff; color: #e0463c; margin-inline-start: 8px; }
   .inviteItem button { margin-inline-start: 12px; background: #ffcf4d; color: #1a1a1a; border: none; border-radius: 10px; padding: 6px 14px; font-weight: bold; cursor: pointer; }
   #teamOnlineBackBtn { margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
   #giftBackBtn, #friendsBackBtn { margin-top: 16px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 10px; padding: 8px 20px; cursor: pointer; }
@@ -39902,8 +39903,15 @@ function renderInviteBar() {
   const hide = !lastInvites.length || uiScreen === 'battle' || uiScreen === 'teamBattle' || uiScreen === 'friendArena' || uiScreen === 'match' || uiScreen === 'teamOnline';
   inviteBarEl.classList.toggle('show', !hide);
   if (hide) { inviteBarEl.innerHTML = ''; return; }
-  inviteBarEl.innerHTML = lastInvites.map((inv) => '<div class="inviteItem">' + escHtml(TM(47, inv.fromUsername || '?')) + '<button data-uid="' + escHtml(inv.uid) + '" data-match="' + escHtml(inv.matchId || '') + '" data-name="' + escHtml(inv.fromUsername || '') + '">' + escHtml(TM(48)) + '</button></div>').join('');
-  inviteBarEl.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+  inviteBarEl.innerHTML = lastInvites.map((inv) => '<div class="inviteItem">' + escHtml(TM(47, inv.fromUsername || '?')) + '<button data-uid="' + escHtml(inv.uid) + '" data-match="' + escHtml(inv.matchId || '') + '" data-name="' + escHtml(inv.fromUsername || '') + '">' + escHtml(TM(48)) + '</button><button class="inviteNo" data-decline="' + escHtml(inv.uid) + '">❌</button></div>').join('');
+  inviteBarEl.querySelectorAll('button[data-decline]').forEach((b) => b.addEventListener('click', async () => {
+    b.disabled = true;
+    const fromUid = b.dataset.decline;
+    lastInvites = lastInvites.filter((i) => i.uid !== fromUid);
+    renderInviteBar();
+    if (cloudUser) { try { await deleteDoc(doc(db, 'players', cloudUser.uid, 'battleInvites', fromUid)); } catch (e) { console.error('דחיית הזמנה נכשלה:', e); } }
+  }));
+  inviteBarEl.querySelectorAll('button[data-uid]').forEach((b) => b.addEventListener('click', () => {
     b.disabled = true;
     if (isTeamMatchId(b.dataset.match)) joinTeamInvite(b.dataset.uid, b.dataset.match);
     else joinBattleInvite(b.dataset.uid, b.dataset.name, b.dataset.match);
