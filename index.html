@@ -6837,6 +6837,185 @@ const WEAPON_CFGS = {
       return g;
     },
   },
+  // מצלמון - מצלמה שחורה עם עדשה גדולה ופלאש.
+  'מצלמון': {
+    dmg: 30500, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.14, 0.016, 0x2a2a34, leatherTex));
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.17, 0.12), new THREE.MeshStandardMaterial({ color: 0x1c1c22, roughness: 0.4, metalness: 0.5 }));
+      body.position.y = 0.23; body.castShadow = true; g.add(body);
+      const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.08, 18), new THREE.MeshStandardMaterial({ color: 0x8a8a96, roughness: 0.25, metalness: 0.9 }));
+      lens.rotation.x = Math.PI / 2; lens.position.set(0, 0.23, 0.09); g.add(lens);
+      const glass = new THREE.Mesh(new THREE.CircleGeometry(0.045, 16), new THREE.MeshStandardMaterial({ color: 0x3060c0, emissive: 0x1830a0, emissiveIntensity: 0.6 }));
+      glass.position.set(0, 0.23, 0.132); g.add(glass);
+      const flash = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, 0.03), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffc0, emissiveIntensity: 0.9 }));
+      flash.position.set(-0.08, 0.33, 0.04); g.add(flash);
+      return g;
+    },
+  },
+  // שעונון - שעון מעורר אדום עם פעמונים.
+  'שעונון': {
+    dmg: 32000, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.14, 0.016, 0x4a2e14, woodGrainTex));
+      const red = new THREE.MeshStandardMaterial({ color: 0xc02020, roughness: 0.35, metalness: 0.5 });
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.07, 24), red);
+      body.rotation.x = Math.PI / 2; body.position.y = 0.30; body.castShadow = true; g.add(body);
+      const face = new THREE.Mesh(new THREE.CircleGeometry(0.1, 24), new THREE.MeshStandardMaterial({ color: 0xf8f4e8, roughness: 0.6 }));
+      face.position.set(0, 0.30, 0.037); g.add(face);
+      [[0, 0.07, 0], [-0.0, 0.0, 0]].forEach(() => {});
+      const h1 = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.07, 0.004), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+      h1.position.set(0, 0.335, 0.04); g.add(h1);
+      const h2 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.01, 0.004), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+      h2.position.set(0.025, 0.30, 0.04); g.add(h2);
+      [-0.08, 0.08].forEach(x => {
+        const bell = new THREE.Mesh(new THREE.SphereGeometry(0.04, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xd8a820, roughness: 0.3, metalness: 0.9 }));
+        bell.position.set(x, 0.40, 0); bell.rotation.z = x < 0 ? 0.5 : -0.5; g.add(bell);
+      });
+      return g;
+    },
+  },
+  // לפידון - לפיד בוער עם להבה זוהרת.
+  'לפידון': {
+    dmg: 33500, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.40, 0.022, 0x4a2e14, woodGrainTex));
+      const wrap = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.028, 0.12, 12), new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.9 }));
+      wrap.position.y = 0.44; g.add(wrap);
+      [[0.075, 0xff5010, 0.07], [0.11, 0xff9020, 0.055], [0.15, 0xffe060, 0.035]].forEach(([y, c, r]) => {
+        const f = new THREE.Mesh(new THREE.ConeGeometry(r, 0.12, 10), new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 1 }));
+        f.position.y = 0.46 + y; g.add(f);
+      });
+      return g;
+    },
+  },
+  // מניפון - מניפה פתוחה אדומה עם צלעות.
+  'מניפון': {
+    dmg: 35000, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.18, 0.016, 0x2a1a10, woodGrainTex));
+      const shape = new THREE.Shape();
+      shape.moveTo(0, 0);
+      shape.absarc(0, 0, 0.30, Math.PI * 0.18, Math.PI * 0.82, false);
+      shape.lineTo(0, 0);
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.008, bevelEnabled: false });
+      geo.translate(0, 0.18, -0.004);
+      const fan = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xc02030, roughness: 0.6, side: THREE.DoubleSide }));
+      fan.castShadow = true; g.add(fan);
+      for (let i = 0; i < 7; i++) {
+        const a = Math.PI * (0.18 + 0.64 * i / 6);
+        const rib = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.30, 5), new THREE.MeshStandardMaterial({ color: 0xd8b040, roughness: 0.4, metalness: 0.5 }));
+        rib.position.set(Math.cos(a) * 0.15, 0.18 + Math.sin(a) * 0.15, 0.006);
+        rib.rotation.z = a - Math.PI / 2; g.add(rib);
+      }
+      return g;
+    },
+  },
+  // גלשון - גלשן צבעוני עם פס.
+  'גלשון': {
+    dmg: 36500, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.12, 0.016, 0x2a2a34, leatherTex));
+      const board = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.40, 6, 14), new THREE.MeshStandardMaterial({ color: 0x1890d0, roughness: 0.3, metalness: 0.2 }));
+      board.scale.z = 0.25; board.position.y = 0.36; board.castShadow = true; g.add(board);
+      const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.46, 0.022), new THREE.MeshStandardMaterial({ color: 0xffd030, roughness: 0.4 }));
+      stripe.position.set(0, 0.36, 0.0); g.add(stripe);
+      const fin = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.08, 4), new THREE.MeshStandardMaterial({ color: 0x10507a, roughness: 0.4 }));
+      fin.position.set(0, 0.14, -0.03); fin.rotation.x = Math.PI; g.add(fin);
+      return g;
+    },
+  },
+  // כובעון - כובע ליצן/קוסם גבוה סגול עם סרט זהב.
+  'כובעון': {
+    dmg: 38000, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.14, 0.016, 0x2a1a10, woodGrainTex));
+      const purple = new THREE.MeshStandardMaterial({ color: 0x4a1a80, roughness: 0.55 });
+      const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.015, 24), purple);
+      brim.position.y = 0.20; g.add(brim);
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.095, 0.26, 20), purple);
+      top.position.y = 0.34; top.castShadow = true; g.add(top);
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(0.097, 0.097, 0.04, 20), new THREE.MeshStandardMaterial({ color: 0xd8a820, roughness: 0.3, metalness: 0.7 }));
+      band.position.y = 0.245; g.add(band);
+      const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.03), new THREE.MeshStandardMaterial({ color: 0xffe060, emissive: 0xc89010, emissiveIntensity: 0.8 }));
+      star.position.set(0, 0.34, 0.09); g.add(star);
+      return g;
+    },
+  },
+  // משקפון - משקפי שמש ענקיים עם מסגרת זהב ועדשות כהות.
+  'משקפון': {
+    dmg: 39500, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.16, 0.016, 0x2a2a34, leatherTex));
+      const gold = new THREE.MeshStandardMaterial({ color: 0xd8a820, roughness: 0.25, metalness: 0.9 });
+      [-0.105, 0.105].forEach(x => {
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.012, 8, 24), gold);
+        rim.position.set(x, 0.30, 0); rim.castShadow = true; g.add(rim);
+        const lens = new THREE.Mesh(new THREE.CircleGeometry(0.085, 20), new THREE.MeshStandardMaterial({ color: 0x14141c, roughness: 0.15, metalness: 0.5, side: THREE.DoubleSide }));
+        lens.position.set(x, 0.30, 0); g.add(lens);
+      });
+      const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.05, 6), gold);
+      bridge.rotation.z = Math.PI / 2; bridge.position.set(0, 0.33, 0); g.add(bridge);
+      return g;
+    },
+  },
+  // טבעתון - טבעת זהב ענקית עם יהלום כחול.
+  'טבעתון': {
+    dmg: 41000, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.14, 0.016, 0x2a1a10, leatherTex));
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.03, 10, 28), new THREE.MeshStandardMaterial({ color: 0xe0b030, roughness: 0.2, metalness: 0.95 }));
+      ring.position.y = 0.30; ring.castShadow = true; g.add(ring);
+      const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.06), new THREE.MeshStandardMaterial({ color: 0x40b8ff, emissive: 0x1070c0, emissiveIntensity: 0.9, roughness: 0.1, metalness: 0.3 }));
+      gem.position.y = 0.47; g.add(gem);
+      return g;
+    },
+  },
+  // חצוצרון - חצוצרת זהב עם שלושה לחצנים ופעמון רחב.
+  'חצוצרון': {
+    dmg: 42500, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      const brass = new THREE.MeshStandardMaterial({ color: 0xd8a820, roughness: 0.2, metalness: 0.95 });
+      const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.38, 12), brass);
+      tube.position.y = 0.19; tube.castShadow = true; g.add(tube);
+      const bell = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.10, 0.20, 18, 1, true), brass);
+      bell.material.side = THREE.DoubleSide; bell.position.y = 0.48; g.add(bell);
+      const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.01, 6, 14), brass);
+      mouth.rotation.x = Math.PI / 2; mouth.position.y = 0.02; g.add(mouth);
+      [0.14, 0.2, 0.26].forEach(y => {
+        const v = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.05, 8), new THREE.MeshStandardMaterial({ color: 0xe8e8f0, roughness: 0.2, metalness: 0.9 }));
+        v.position.set(0.04, y, 0); g.add(v);
+      });
+      return g;
+    },
+  },
+  // קונכיון - קונכיית ים ורודה-קרם ספירלית.
+  'קונכיון': {
+    dmg: 45000, gripOffset: 0.05,
+    build: () => {
+      const g = new THREE.Group();
+      g.add(weaponShaft(0.16, 0.016, 0x2a2a34, leatherTex));
+      const cream = new THREE.MeshStandardMaterial({ color: 0xf0c8b0, roughness: 0.3, metalness: 0.2 });
+      const shell = new THREE.Mesh(new THREE.SphereGeometry(0.13, 20, 14), cream);
+      shell.scale.set(1, 1.1, 0.8); shell.position.y = 0.30; shell.castShadow = true; g.add(shell);
+      for (let i = 0; i < 6; i++) {
+        const rib = new THREE.Mesh(new THREE.TorusGeometry(0.12 - i * 0.012, 0.007, 6, 20, Math.PI), new THREE.MeshStandardMaterial({ color: 0xd08a70, roughness: 0.4 }));
+        rib.position.set(0, 0.30, 0.06); rib.rotation.set(0, 0, Math.PI * (0.1 + i * 0.12)); g.add(rib);
+      }
+      const spire = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.2, 12), cream);
+      spire.position.set(0, 0.50, 0); g.add(spire);
+      return g;
+    },
+  },
 };
 
 function addWeaponProp(f, name) {
@@ -14786,6 +14965,16 @@ const NAME_EN = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -15307,6 +15496,16 @@ const NAME_DA = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -15828,6 +16027,16 @@ const NAME_ES = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -16351,6 +16560,16 @@ const NAME_JA = {
   "טלסקופון": "テレスコポン",
   "הגהון": "ハンドルン",
   "מגנטון": "マグネトン",
+  "מצלמון": "カメロン",
+  "שעונון": "クロコン",
+  "לפידון": "トーチョン",
+  "מניפון": "ファノン",
+  "גלשון": "サーフォン",
+  "כובעון": "ハットン",
+  "משקפון": "スペコン",
+  "טבעתון": "リンゴン",
+  "חצוצרון": "トランペトン",
+  "קונכיון": "シェロン",
   "פיראטון": "ピラトン",
   "נינג'ון": "ニンジョン",
   "רקסוזאור": "レクソザウル",
@@ -16873,6 +17092,16 @@ const NAME_FR = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -17395,6 +17624,16 @@ const NAME_PT = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -17917,6 +18156,16 @@ const NAME_DE = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -18440,6 +18689,16 @@ const NAME_RU = {
   "טלסקופון": "Телескопон",
   "הגהון": "Штурвалон",
   "מגנטון": "Магнетон",
+  "מצלמון": "Камерон",
+  "שעונון": "Клокон",
+  "לפידון": "Торчон",
+  "מניפון": "Фанон",
+  "גלשון": "Серфон",
+  "כובעון": "Хаттон",
+  "משקפון": "Спекон",
+  "טבעתון": "Рингон",
+  "חצוצרון": "Трумпетон",
+  "קונכיון": "Шеллон",
   "פיראטון": "Пиратон",
   "נינג'ון": "Нинджон",
   "רקסוזאור": "Рексозавр",
@@ -18963,6 +19222,16 @@ const NAME_AR = {
   "טלסקופון": "تلسكوبون",
   "הגהון": "دفتون",
   "מגנטון": "مغناطون",
+  "מצלמון": "كاميرون",
+  "שעונון": "كلوكون",
+  "לפידון": "تورشون",
+  "מניפון": "فانون",
+  "גלשון": "سيرفون",
+  "כובעון": "هاتون",
+  "משקפון": "سبيكون",
+  "טבעתון": "رينغون",
+  "חצוצרון": "ترمبيتون",
+  "קונכיון": "شيلون",
   "פיראטון": "بيراتون",
   "נינג'ון": "نينجون",
   "רקסוזאור": "ريكسوصور",
@@ -19486,6 +19755,16 @@ const NAME_TH = {
   "טלסקופון": "กล้องโทรทรรศน์",
   "הגהון": "พวงมาลัยอน",
   "מגנטון": "แมกนีตอน",
+  "מצלמון": "คาเมรอน",
+  "שעונון": "คล็อกคอน",
+  "לפידון": "ทอร์ชชอน",
+  "מניפון": "ฟานอน",
+  "גלשון": "เซิร์ฟอน",
+  "כובעון": "แฮตตัน",
+  "משקפון": "สเปกคอน",
+  "טבעתון": "ริงกอน",
+  "חצוצרון": "ทรัมเปตอน",
+  "קונכיון": "เชลลอน",
   "פיראטון": "พิราตอน",
   "נינג'ון": "นินจอน",
   "רקסוזאור": "เร็กโซซอร์",
@@ -20008,6 +20287,16 @@ const NAME_PL = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -20530,6 +20819,16 @@ const NAME_IT = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -21052,6 +21351,16 @@ const NAME_RO = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -21575,6 +21884,16 @@ const NAME_ZH = {
   "טלסקופון": "望远镜",
   "הגהון": "船舵",
   "מגנטון": "磁铁",
+  "מצלמון": "卡梅隆",
+  "שעונון": "克洛孔",
+  "לפידון": "托尔雄",
+  "מניפון": "法农",
+  "גלשון": "瑟丰",
+  "כובעון": "哈顿",
+  "משקפון": "斯佩孔",
+  "טבעתון": "林贡",
+  "חצוצרון": "特朗佩顿",
+  "קונכיון": "谢隆",
   "פיראטון": "海盗侠",
   "נינג'ון": "忍者侠",
   "רקסוזאור": "雷克龙",
@@ -22098,6 +22417,16 @@ const NAME_KO = {
   "טלסקופון": "텔레스코폰",
   "הגהון": "핸들론",
   "מגנטון": "마그네톤",
+  "מצלמון": "카메론",
+  "שעונון": "클로콘",
+  "לפידון": "토촌",
+  "מניפון": "파논",
+  "גלשון": "서폰",
+  "כובעון": "해튼",
+  "משקפון": "스펙콘",
+  "טבעתון": "링곤",
+  "חצוצרון": "트럼페톤",
+  "קונכיון": "셸론",
   "פיראטון": "피라톤",
   "נינג'ון": "닌존",
   "רקסוזאור": "렉소사우르",
@@ -22621,6 +22950,16 @@ const NAME_HI = {
   "טלסקופון": "टेलीस्कोपॉन",
   "הגהון": "पहियोन",
   "מגנטון": "चुंबकोन",
+  "מצלמון": "कैमरॉन",
+  "שעונון": "क्लॉकॉन",
+  "לפידון": "टॉर्चॉन",
+  "מניפון": "फैनॉन",
+  "גלשון": "सर्फ़ॉन",
+  "כובעון": "हैटन",
+  "משקפון": "स्पेकॉन",
+  "טבעתון": "रिंगॉन",
+  "חצוצרון": "ट्रम्पेटन",
+  "קונכיון": "शेलॉन",
   "פיראטון": "पिराटन",
   "נינג'ון": "निंजोन",
   "רקסוזאור": "रेक्सोसौर",
@@ -23144,6 +23483,16 @@ const NAME_TR = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -23666,6 +24015,16 @@ const NAME_NL = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -24188,6 +24547,16 @@ const NAME_SV = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -24710,6 +25079,16 @@ const NAME_UK = {
   "טלסקופון": "Телескопон",
   "הגהון": "Штурвалон",
   "מגנטון": "Магнетон",
+  "מצלמון": "Камерон",
+  "שעונון": "Клокон",
+  "לפידון": "Торчон",
+  "מניפון": "Фанон",
+  "גלשון": "Серфон",
+  "כובעון": "Хаттон",
+  "משקפון": "Спекон",
+  "טבעתון": "Рінгон",
+  "חצוצרון": "Трумпетон",
+  "קונכיון": "Шеллон",
   "פיראטון": "Піратон",
   "נינג'ון": "Нінджон",
   "רקסוזאור": "Рексозавр",
@@ -25219,6 +25598,16 @@ const NAME_CS = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -25728,6 +26117,16 @@ const NAME_HU = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -26238,6 +26637,16 @@ const NAME_EL = {
   "טלסקופון": "Τηλεσκόπιον",
   "הגהון": "Τιμόνιον",
   "מגנטון": "Μαγνήτον",
+  "מצלמון": "Κάμερον",
+  "שעונון": "Κλόκον",
+  "לפידון": "Τόρτσον",
+  "מניפון": "Φάνον",
+  "גלשון": "Σέρφον",
+  "כובעון": "Χάτον",
+  "משקפון": "Σπέκον",
+  "טבעתון": "Ρίνγκον",
+  "חצוצרון": "Τρούμπετον",
+  "קונכיון": "Σέλον",
   "פיראטון": "Πιρατών",
   "נינג'ון": "Νίντζον",
   "רקסוזאור": "Ρεξόσαυρος",
@@ -26747,6 +27156,16 @@ const NAME_BG = {
   "טלסקופון": "Телескопон",
   "הגהון": "Щурвалон",
   "מגנטון": "Магнетон",
+  "מצלמון": "Камерон",
+  "שעונון": "Клокон",
+  "לפידון": "Торчон",
+  "מניפון": "Фанон",
+  "גלשון": "Сърфон",
+  "כובעון": "Хатън",
+  "משקפון": "Спекон",
+  "טבעתון": "Рингон",
+  "חצוצרון": "Тръмпетон",
+  "קונכיון": "Шелон",
   "פיראטון": "Пиратон",
   "נינג'ון": "Нинджон",
   "רקסוזאור": "Рексозавър",
@@ -27256,6 +27675,16 @@ const NAME_SR = {
   "טלסקופון": "Телескопон",
   "הגהון": "Кормиларон",
   "מגנטון": "Магнетон",
+  "מצלמון": "Камерон",
+  "שעונון": "Клокон",
+  "לפידון": "Торчон",
+  "מניפון": "Фанон",
+  "גלשון": "Серфон",
+  "כובעון": "Хатон",
+  "משקפון": "Спекон",
+  "טבעתון": "Рингон",
+  "חצוצרון": "Трумпетон",
+  "קונכיון": "Шелон",
   "פיראטון": "Пиратон",
   "נינג'ון": "Нинџон",
   "רקסוזאור": "Рексозаур",
@@ -27765,6 +28194,16 @@ const NAME_HR = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -28274,6 +28713,16 @@ const NAME_SK = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -28783,6 +29232,16 @@ const NAME_SQ = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -29292,6 +29751,16 @@ const NAME_SL = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -29802,6 +30271,16 @@ const NAME_GD = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -30312,6 +30791,16 @@ const NAME_PTPT = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -30821,6 +31310,16 @@ const NAME_AM = {
   "טלסקופון": "ቴሌስኮፖን",
   "הגהון": "መሪን",
   "מגנטון": "ማግኔቶን",
+  "מצלמון": "ካሜሮን",
+  "שעונון": "ክሎኮን",
+  "לפידון": "ቶርቾን",
+  "מניפון": "ፋኖን",
+  "גלשון": "ሰርፎን",
+  "כובעון": "ሃቶን",
+  "משקפון": "ስፔኮን",
+  "טבעתון": "ሪንጎን",
+  "חצוצרון": "ትሩምፔቶን",
+  "קונכיון": "ሸሎን",
   "פיראטון": "ፒራቶን",
   "נינג'ון": "ኒንጆን",
   "רקסוזאור": "ሬክሶሳውር",
@@ -31330,6 +31829,16 @@ const NAME_FI = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -31839,6 +32348,16 @@ const NAME_NO = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -32347,6 +32866,16 @@ const NAME_GSW = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -32909,6 +33438,16 @@ const NAME_VI = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -33471,6 +34010,16 @@ const NAME_ID = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -34033,6 +34582,16 @@ const NAME_ET = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -34595,6 +35154,16 @@ const NAME_IS = {
   "טלסקופון": "Telescopon",
   "הגהון": "Wheelon",
   "מגנטון": "Magneton",
+  "מצלמון": "Camerron",
+  "שעונון": "Clockon",
+  "לפידון": "Torchon",
+  "מניפון": "Fanon",
+  "גלשון": "Surfon",
+  "כובעון": "Hatton",
+  "משקפון": "Specson",
+  "טבעתון": "Ringon",
+  "חצוצרון": "Trumpeton",
+  "קונכיון": "Shellon",
   "פיראטון": "Piraton",
   "נינג'ון": "Ninjon",
   "רקסוזאור": "Rexosaur",
@@ -35157,6 +35726,16 @@ const NAME_FA = {
   "טלסקופון": "تلسکوپون",
   "הגהון": "فرمانون",
   "מגנטון": "آهنربا",
+  "מצלמון": "کامرون",
+  "שעונון": "کلوکون",
+  "לפידון": "تورچون",
+  "מניפון": "فانون",
+  "גלשון": "سرفون",
+  "כובעון": "هاتون",
+  "משקפון": "اسپکون",
+  "טבעתון": "رینگون",
+  "חצוצרון": "ترومپتون",
+  "קונכיון": "شلون",
   "פיראטון": "پیراتون",
   "נינג'ון": "نینجون",
   "רקסוזאור": "رکسوسور",
@@ -36192,6 +36771,16 @@ const SHOP_DATA = {
     ["טלסקופון", 'נזק 25200', '9700000₪'],
     ["הגהון", 'נזק 26800', '10800000₪'],
     ["מגנטון", 'נזק 28500', '12000000₪'],
+    ["מצלמון", 'נזק 30500', '13500000₪'],
+    ["שעונון", 'נזק 32000', '15000000₪'],
+    ["לפידון", 'נזק 33500', '16500000₪'],
+    ["מניפון", 'נזק 35000', '18500000₪'],
+    ["גלשון", 'נזק 36500', '20500000₪'],
+    ["כובעון", 'נזק 38000', '22500000₪'],
+    ["משקפון", 'נזק 39500', '24500000₪'],
+    ["טבעתון", 'נזק 41000', '27000000₪'],
+    ["חצוצרון", 'נזק 42500', '29500000₪'],
+    ["קונכיון", 'נזק 45000', '33000000₪'],
   ]},
   shields: { label: '🛡️ מגנים', labelEn: '🛡️ Shields', labelEs: '🛡️ Escudos', labelJa: '🛡️ たて', labelFr: '🛡️ Boucliers', labelPt: '🛡️ Escudos', labelDe: '🛡️ Schilde', labelRu: '🛡️ Щиты', labelAr: '🛡️ الدروع', labelTh: '🛡️ โล่', labelPl: '🛡️ Tarcze', labelIt: '🛡️ Scudi', labelRo: '🛡️ Scuturi', labelZh: '🛡️ 盾牌', labelKo: '🛡️ 방패', labelHi: '🛡️ ढालें', labelTr: '🛡️ Kalkanlar', labelNl: '🛡️ Schilden', labelSv: '🛡️ Sköldar', labelUk: '🛡️ Щити', labelCs: '🛡️ Štíty', labelHu: '🛡️ Pajzsok', labelEl: '🛡️ Ασπίδες', labelBg: '🛡️ Щитове', labelSr: '🛡️ Штитови', labelHr: '🛡️ Štitovi', labelSk: '🛡️ Štíty', labelSq: '🛡️ Mburoja', labelSl: '🛡️ Ščiti', labelGd: '🛡️ Sgiathan', labelPtpt: '🛡️ Escudos', labelAm: '🛡️ ጋሻዎች', labelFi: '🛡️ Kilvet', labelNo: '🛡️ Skjold', labelGsw: '🛡️ Schilder', labelVi: '🛡️ Khiên', labelId: '🛡️ Perisai', labelEt: '🛡️ Kilbid', labelIs: '🛡️ Skildir', labelFa: '🛡️ سپرها', labelDa: '🛡️ Skjolde', rows: [
     ['אבן קצת גדולה אבל שבירה', 'הגנה בסיסית', 'חינם'],
@@ -36802,7 +37391,7 @@ const WEAPON_ICON = {
   'סכינון': '🔪', 'מספרון': '✂️', 'מסורון': '🪚', 'אנקור': '⚓', 'ברקן': '⚡',
   "פטישון": '🔨', "ביליארד": '🎱', "מגפון": '📢', "מטאטון": '🧹', "ארטיקון": '🍦', "פלאנג'ר": '🪠', "קרחון": '🧊', "קקטוס": '🌵', "פנסון": '🔦', "גלידון": '🍨',
   "פיצון": '🍕', "קוביון": '🧩', "בלונון": '🎈', "לבבון": '💖', "כוכבון": '⭐', "פרחון": '🌸', "חולון": '⏳', "תופון": '🥁', "צלמון": '📷', "סולמון": '🪜',
-  "מזלגון": '🍴', "מקלדון": '⌨️', "כינורון": '🎻', "גזרון": '🥕', "ספריון": '📖', "תותחון": '💣', "פעמונון": '🔔', "טלסקופון": '🔭', "הגהון": '☸️', "מגנטון": '🧲',
+  "מזלגון": '🍴', "מקלדון": '⌨️', "כינורון": '🎻', "גזרון": '🥕', "ספריון": '📖', "תותחון": '💣', "פעמונון": '🔔', "טלסקופון": '🔭', "הגהון": '☸️', "מגנטון": '🧲', "מצלמון": '📷', "שעונון": '⏰', "לפידון": '🔥', "מניפון": '🪭', "גלשון": '🏄', "כובעון": '🎩', "משקפון": '🕶️', "טבעתון": '💍', "חצוצרון": '🎺', "קונכיון": '🐚',
 };
 
 function removeWeaponProp(f) {
