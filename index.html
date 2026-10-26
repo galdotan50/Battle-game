@@ -10690,6 +10690,8 @@ function poseFighter(f, t, dt) {
     rot('spine', -0.05 * k, 0, 0);
   }
 
+  bob += applyUseAnimPose(f, dt, rot);
+
   // ---------- חסימה: איקס עם הידיים ----------
   // הזוויות נמצאו בניסוי (רונדרו כמה אפשרויות וצולמו ישר מהחזית, לא נוחשו
   // "בעיניים עצומות"): כל כתף מסתובבת חזק גם קדימה-מעלה (x שלילי) וגם לצד
@@ -11488,7 +11490,7 @@ function resetGame() {
     f.blocking = false; f.blockAmt = 0;
     f.mv = 0; f.cool = 0; f.think = 0; f.mode = 'wait'; f.blockTimer = 0;
     f.damageDealt = 0;
-    f.jumping = false; f.jumpY = 0; f.jumpVel = 0; f.celebrate = 0;
+    f.jumping = false; f.jumpY = 0; f.jumpVel = 0; f.celebrate = 0; clearUseAnim(f);
     f.fightTime = 0; f.hurtFlash = 0; f.flush = 0;
     clearBlood(f);
     // שלב 4: קרב חדש תמיד מתחיל בעמידה - בלי הדף/הלם/נפילה שנשארו מהקרב הקודם.
@@ -37247,6 +37249,93 @@ function renderLootSelectScreen() {
   });
 }
 
+// ============================================================================
+//  אנימציית שימוש בפריט (אוכל/משקה/מגן): הדמות מחזיקה את הפריט ביד.
+//  אוכל - מביאה ליד הפה ונוגסת כמה פעמים; משקה - מרימה ושותה עם ראש לאחור;
+//  מגן - מחזיקה מגן מולה כל עוד הוא פעיל. הפריט הוא ספרייט (תמונה שטוחה
+//  שתמיד פונה למצלמה) שתלוי על עצם כף היד, כמו הנשקים.
+// ============================================================================
+const USE_ANIM_SECONDS = { food: 1.9, drinks: 1.9 };
+function useAnimTexture(key, name) {
+  let cv;
+  if (key === 'shields') cv = shieldCanvas(name, true);
+  else {
+    cv = document.createElement('canvas'); cv.width = cv.height = 128;
+    const cx = cv.getContext('2d');
+    cx.font = '100px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText(shopEmojiFor(key, name), 64, 70);
+  }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+function clearUseAnim(f) {
+  if (!f.useAnim) return;
+  const sp = f.useAnim.sprite;
+  if (sp && sp.parent) sp.parent.remove(sp);
+  if (sp) { sp.material.map.dispose(); sp.material.dispose(); }
+  f.useAnim = null;
+}
+function startUseAnim(f, key, name) {
+  clearUseAnim(f);
+  const wristKey = 'wrist' + f.near, elbowKey = 'elbow' + f.near;
+  const wrist = f.byName[wristKey];
+  if (!wrist) return;
+  const dir = J[wristKey].clone().sub(J[elbowKey]).normalize();
+  const mat = new THREE.SpriteMaterial({ map: useAnimTexture(key, name), transparent: true, depthWrite: false });
+  const sp = new THREE.Sprite(mat);
+  const big = key === 'shields';
+  sp.scale.set(big ? 0.62 : 0.3, big ? 0.62 : 0.3, 1);
+  sp.position.copy(dir.multiplyScalar(big ? 0.2 : 0.1));
+  wrist.add(sp);
+  f.useAnim = { key, t: 0, dur: USE_ANIM_SECONDS[key] || 0, sprite: sp };
+}
+// מוסיף את תנוחת השימוש על התנוחה הרגילה (נקרא מתוך poseFighter)
+function applyUseAnimPose(f, dt, rot) {
+  const ua = f.useAnim;
+  if (!ua) return 0;
+  if (ua.key === 'shields') {
+    if (!(f.guardTimer > 0)) { clearUseAnim(f); return 0; }
+    ua.t += dt;
+  } else {
+    ua.t += dt;
+    if (ua.t >= ua.dur) { clearUseAnim(f); return 0; }
+  }
+  if (f.action || f.down) { return 0; }
+  const S = f.near === 'L' ? 1 : -1;         // כיוון "פנימה" לכיוון הגוף
+  const sm = (a, b, x) => { const u = Math.max(0, Math.min(1, (x - a) / (b - a))); return u * u * (3 - 2 * u); };
+  const sh = 'shoulder' + f.near, el = 'elbow' + f.near;
+  let bob = 0;
+  if (ua.key === 'shields') {
+    // המגן מוחזק קדימה ביד אחת, מעט מוגבה
+    const k = sm(0, 0.25, ua.t);
+    rot(sh, -0.95 * k, 0, 0.25 * S * k);
+    rot(el, 1.15 * k, 0, 0);
+    rot('spine', -0.04 * k, 0, 0);
+    return 0;
+  }
+  const u = ua.t / ua.dur;
+  const raise = sm(0, 0.2, u) * (1 - sm(0.86, 1, u));
+  if (ua.key === 'food') {
+    const bite = raise * (0.5 + 0.5 * Math.sin(ua.t * 10));
+    rot(sh, -1.05 * raise, 0, 0.55 * S * raise);
+    rot(el, 2.0 * raise + 0.18 * bite, 0, 0);
+    rot('head', 0.16 * bite, 0, 0);
+    rot('neck', 0.06 * bite, 0, 0);
+    rot('spine', 0.05 * raise, 0, 0);
+    bob -= 0.01 * raise;
+  } else {
+    // שתייה: הכוס מורמת והראש נטוי לאחור
+    const tilt = raise * (0.6 + 0.4 * Math.sin(ua.t * 5));
+    rot(sh, -1.4 * raise, 0, 0.5 * S * raise);
+    rot(el, 2.15 * raise, 0, 0);
+    rot('head', -0.5 * tilt, 0, 0);
+    rot('neck', -0.12 * tilt, 0, 0);
+    rot('spine', -0.07 * raise, 0, 0);
+  }
+  return bob;
+}
+
 function useLootItem(key, name) {
   const id = key + ':' + name;
   if (lootUsed.has(id) || gameOver || uiScreen !== 'battle') return;
@@ -37256,15 +37345,18 @@ function useLootItem(key, name) {
     const heal = firstNum(SHOP_DATA.food.rows.find((r) => r[0] === name)[1]);
     player.hp = Math.min(player.maxHp, player.hp + heal);
     updateHealthUI(player, 'player');
+    startUseAnim(player, 'food', name);
   } else if (key === 'drinks') {
     const bonus = drinkBonus(name);
     player.powerBonus = (player.powerBonus || 0) + bonus.power;
     player.speedBonus = (player.speedBonus || 0) + bonus.speed;
+    startUseAnim(player, 'drinks', name);
   } else if (key === 'shields') {
     // מצטבר, כדי ששני מגנים ברצף לא "יבטלו" זה את זה
     player.guardTimer = (player.guardTimer || 0) + (SHIELD_SECONDS[name] ?? 3);
     player.activeShield = name;          // קובע איזו יכולת מיוחדת תופעל
     applyInvisibility(player);
+    startUseAnim(player, 'shields', name);
   }
   renderLootBar();
   updateBuffRow();
@@ -39142,10 +39234,11 @@ function emojiThumb(key, name) {
   return c.toDataURL('image/png');
 }
 function nameHash(name) { let h = 7; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0; return h; }
-function shieldThumb(name) {
+function shieldThumb(name) { return shieldCanvas(name, false).toDataURL('image/png'); }
+function shieldCanvas(name, transparent) {
   const c = document.createElement('canvas'); c.width = c.height = SHOP_THUMB_SIZE;
   const ctx = c.getContext('2d');
-  canvasThumbBase(c, ctx, '#2a3450', '#161c2e');
+  if (!transparent) canvasThumbBase(c, ctx, '#2a3450', '#161c2e');
   const ab = SHIELD_ABILITY[name];
   const baseHue = ({ bolt: 52, glue: 285, reflect: 200, freeze: 190, heal: 130, cosmos: 265 })[ab && ab.kind];
   const hue = baseHue !== undefined ? (baseHue + (nameHash(name) % 30) - 15 + 360) % 360 : nameHash(name) % 360;
@@ -39174,7 +39267,7 @@ function shieldThumb(name) {
   const icon = ab ? ({ bolt: '⚡', glue: '🧲', reflect: '🔁', freeze: '🧊', heal: '💚', cosmos: '🌌' })[ab.kind] : '⭐';
   ctx.font = '84px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(icon, 128, 112);
-  return c.toDataURL('image/png');
+  return c;
 }
 function weaponThumb(name) {
   const wCfg = WEAPON_CFGS[name];
@@ -39243,8 +39336,11 @@ function renderShopCategory(key) {
       media = thumb
         ? `<img class="itemThumb" src="${thumb}">`
         : `<div class="itemThumb itemThumbPlaceholder">${soonLabel}</div>`;    } else {
-      const thumb = getShopItemThumb(key, name);
-      if (thumb) media = `<img class="itemThumb" src="${thumb}">`;
+      // תמונות נוצרות בהדרגה (כמה בכל פריים) כדי שהחנות לא תיתקע בפתיחה
+      const cached = shopItemThumbs[key + ':' + name];
+      media = cached
+        ? `<img class="itemThumb" src="${cached}">`
+        : `<img class="itemThumb itemThumbPending" data-lazy-name="${name.replace(/"/g, '&quot;')}">`;
     }
     // בזמן איוונט - 30% הנחה על כל פריט שלא חינם. data-price הוא המחיר
     // שבאמת יורד מהכסף (buyItem פשוט קורא אותו), כדי שההנחה תיאכף גם בקנייה.
@@ -39269,6 +39365,24 @@ function renderShopCategory(key) {
   shopGridEl.querySelectorAll('.buyBtn:not(.owned)').forEach((btn) => {
     btn.addEventListener('click', () => buyItem(btn));
   });
+  fillShopThumbsLazily(key);
+}
+
+let shopThumbToken = 0;
+function fillShopThumbsLazily(key) {
+  const token = ++shopThumbToken;
+  const pending = [...shopGridEl.querySelectorAll('img[data-lazy-name]')];
+  const step = () => {
+    if (token !== shopThumbToken) return;      // עברו לקטגוריה אחרת
+    const t0 = performance.now();
+    while (pending.length && performance.now() - t0 < 12) {
+      const img = pending.shift();
+      const url = getShopItemThumb(key, img.dataset.lazyName);
+      if (url) { img.src = url; img.classList.remove('itemThumbPending'); }
+    }
+    if (pending.length) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 // ============================================================================
@@ -41199,7 +41313,7 @@ window.game = {
   BOSS_LEVELS, startBossFight, get isBossFight() { return isBossFight; },
   switchPlayerCharacter, cycleCharacter, switchPlayerWeapon, cycleWeapon,
   CHARACTER_CFGS, WEAPON_CFGS, ENEMY_LEVELS, switchEnemy,
-  useLootItem, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY, triggerShieldAbility,
+  useLootItem, startUseAnim, renderLootBar, lootUsed, SHIELD_SECONDS, SHIELD_ABILITY, triggerShieldAbility,
   selectedLoot, LOOT_CAPS, toggleLootSelection, renderLootSelectScreen, lootItemsFor,
   upgradeCharacter, getLevels, characterLevels, upgradeCost, MAX_UPGRADE_LEVEL,
   refreshPlayerCombatStats, startJump,
