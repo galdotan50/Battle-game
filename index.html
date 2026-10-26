@@ -37318,8 +37318,9 @@ function applyUseAnimPose(f, dt, rot) {
   const raise = sm(0, 0.2, u) * (1 - sm(0.86, 1, u));
   if (ua.key === 'food') {
     const bite = raise * (0.5 + 0.5 * Math.sin(ua.t * 10));
-    rot(sh, -1.05 * raise, 0, 0.55 * S * raise);
-    rot(el, 2.0 * raise + 0.18 * bite, 0, 0);
+    // זוויות שחושבו מספרית: כף היד מגיעה בדיוק לפה
+    rot(sh, (-0.7 - 0.08 * bite) * raise, 0.6 * S * raise, 0.7 * S * raise);
+    rot(el, 0.15 * bite, 0, 0);
     rot('head', 0.16 * bite, 0, 0);
     rot('neck', 0.06 * bite, 0, 0);
     rot('spine', 0.05 * raise, 0, 0);
@@ -37327,8 +37328,8 @@ function applyUseAnimPose(f, dt, rot) {
   } else {
     // שתייה: הכוס מורמת והראש נטוי לאחור
     const tilt = raise * (0.6 + 0.4 * Math.sin(ua.t * 5));
-    rot(sh, -1.4 * raise, 0, 0.5 * S * raise);
-    rot(el, 2.15 * raise, 0, 0);
+    rot(sh, -0.8 * raise, 0.4 * S * raise, 1.0 * S * raise);
+    rot(el, 0, 0, 0);
     rot('head', -0.5 * tilt, 0, 0);
     rot('neck', -0.12 * tilt, 0, 0);
     rot('spine', -0.07 * raise, 0, 0);
