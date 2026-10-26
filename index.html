@@ -39082,6 +39082,137 @@ function onUpgradeClick(btn) {
   renderShopCategory('upgrades');   // מרעננת מיד - הרמה והמחיר הבא מתעדכנים
 }
 
+// ============================================================================
+//  תמונות לכל פריט בחנות (נשקים/מגנים/אוכל/משקאות) - לדמויות כבר היו תמונות.
+//  נשק: רינדור תלת-מימדי אמיתי של הנשק (אותה שיטה כמו תמונות החיות).
+//  מגן/אוכל/משקה: ציור על קנבס (אין להם מודל תלת-מימדי במשחק).
+// ============================================================================
+const shopItemThumbs = {};
+const SHOP_THUMB_SIZE = 256;
+const FOOD_EMOJI = {
+  'תפוח': '🍎', 'מלפפון': '🥒', 'לחם עם חמאה': '🍞', 'קורנפלקס': '🥣', 'פיצה': '🍕', 'המבורגר': '🍔', 'פסטה': '🍝', 'קפקייקס': '🧁',
+  'טוסט': '🥪', 'חטיף אנרגיה': '🍫', 'נקניקייה': '🌭', 'סטייק': '🥩', 'גלידה': '🍦', 'סושי': '🍣', 'טאקו': '🌮', 'דונאט': '🍩',
+  'פנקייק': '🥞', 'וופל': '🧇', 'לזניה': '🥘', 'פלאפל': '🧆', 'ראמן': '🍜', 'קרואסון': '🥐', 'בוריטו': '🌯', 'שווארמה': '🥙',
+  'פאייה': '🥘', 'קארי': '🍛', 'פונדו': '🧀', 'רולדה': '🍰', 'באקלווה': '🥮', 'קרפ': '🥞', 'טיראמיסו': '🍮', 'פרפה': '🍨',
+  'אמברוזיה': '🍯', 'ספגטי': '🍝', 'לובסטר': '🦞', 'קוסקוס': '🍚', 'מוסקה': '🍆', 'שניצל': '🍗', 'סופלה': '🍮', 'קוויאר': '🥫',
+  'ריזוטו': '🍚', 'גולש': '🍲', 'כופתאות': '🥟', 'פאד תאי': '🍜', 'ביריאני': '🍛', 'רביולי': '🥟', 'קסדיה': '🌮', 'טורטייה': '🌯',
+  'דים סאם': '🥟', 'טונקטסו': '🍖', 'שקשוקה': '🍳', 'מוצרלה': '🧀', 'קנולי': '🥖', 'סביח': '🥙', 'מלאווח': '🥞', 'קובה': '🧆',
+  'בורקס': '🥐', 'כנאפה': '🍮', 'מקלובה': '🍛', 'פירושקי': '🥟', 'גיוזה': '🥟',
+};
+const DRINK_EMOJI = {
+  'מים': '💧', 'מיץ ענבים': '🍇', 'מיץ תפוזים': '🍊', 'לימונדה': '🍋', 'לימונענע': '🌿', 'מיץ סלק': '🍠', 'מיץ מלפפונים חמוצים': '🥒',
+  'מיץ תפוחים': '🍏', 'קולה': '🥤', 'קולה זירו': '🥤', 'פיוזטי': '🍵', 'משקה אנרגיה': '⚡', 'מילקשייק': '🥛', 'סמוזי': '🍓',
+  'אייס טי': '🧋', 'קקאו': '☕', 'סלאש': '🧊', 'נקטר': '🍯', 'סודה': '💦', 'לאטה': '☕', 'שוקו': '🍫', 'טוניק': '🍾', 'ספרסו': '☕',
+  'קוקטייל': '🍹', 'מוחיטו': '🍸', 'מאצ׳ה': '🍵', 'קומבוצ׳ה': '🍶', 'אליקסיר': '🧪', 'טוניק פלוס': '🍾', 'תה פירות': '🍵',
+  'מי קוקוס': '🥥', 'קפה קר': '🧊', 'תה ירוק': '🍵', 'סיידר': '🍎', 'רימונדה': '🍋', 'סופר שייק': '🥤', 'ויטמינון': '🍹',
+  'נקטר זהב': '🍯', 'סופר אליקסיר': '🧪', 'לאסי': '🥛', 'בובה': '🧋', 'פלט וייט': '☕', 'יוגורט': '🍦', 'מי ורדים': '🌹',
+  'גזר תפוח': '🥕', 'חלב שקדים': '🥛', 'אפרסמון': '🍊', 'פסיפלורה': '🍹', 'סחלב': '🥛', 'תה נענע': '🍵', 'שייק תות': '🍓',
+  'תה לימון': '🍋', 'שוקו חם': '☕', 'שייק אבטיח': '🍉', 'שייק בננה': '🍌', 'תה אפרסק': '🍑', 'מיץ אשכוליות': '🍊',
+  'שייק מנגו': '🥭', 'מיץ רימונים': '🍎',
+};
+function shopEmojiFor(key, name) {
+  if (key === 'food') return FOOD_EMOJI[name] || '🍽️';
+  if (key === 'drinks') {
+    if (DRINK_EMOJI[name]) return DRINK_EMOJI[name];
+    if (name.startsWith('פנץ') || name.includes('פאנץ')) return '🍹';
+    if (name.includes('קפוצ')) return '☕';
+    if (name.includes('ג׳ינג') || name.includes("ג'ינג")) return '🍵';
+    if (name.includes('תה')) return '🍵';
+    if (name.includes('שייק')) return '🥤';
+    if (name.includes('מיץ')) return '🧃';
+    return '🥤';
+  }
+  return '❓';
+}
+function canvasThumbBase(c, ctx, top, bottom) {
+  const g = ctx.createLinearGradient(0, 0, 0, c.height);
+  g.addColorStop(0, top); g.addColorStop(1, bottom);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
+}
+function emojiThumb(key, name) {
+  const c = document.createElement('canvas'); c.width = c.height = SHOP_THUMB_SIZE;
+  const ctx = c.getContext('2d');
+  const warm = key === 'food';
+  canvasThumbBase(c, ctx, warm ? '#5a3a24' : '#24505a', warm ? '#2a1a12' : '#12282e');
+  const rg = ctx.createRadialGradient(128, 118, 10, 128, 118, 120);
+  rg.addColorStop(0, 'rgba(255,255,255,0.28)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0, 0, 256, 256);
+  ctx.font = '130px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(shopEmojiFor(key, name), 128, 134);
+  return c.toDataURL('image/png');
+}
+function nameHash(name) { let h = 7; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0; return h; }
+function shieldThumb(name) {
+  const c = document.createElement('canvas'); c.width = c.height = SHOP_THUMB_SIZE;
+  const ctx = c.getContext('2d');
+  canvasThumbBase(c, ctx, '#2a3450', '#161c2e');
+  const ab = SHIELD_ABILITY[name];
+  const baseHue = ({ bolt: 52, glue: 285, reflect: 200, freeze: 190, heal: 130, cosmos: 265 })[ab && ab.kind];
+  const hue = baseHue !== undefined ? (baseHue + (nameHash(name) % 30) - 15 + 360) % 360 : nameHash(name) % 360;
+  const sat = ab ? 70 : 45;
+  const path = () => {
+    ctx.beginPath();
+    ctx.moveTo(128, 18);
+    ctx.bezierCurveTo(170, 40, 205, 42, 222, 40);
+    ctx.bezierCurveTo(226, 120, 200, 205, 128, 244);
+    ctx.bezierCurveTo(56, 205, 30, 120, 34, 40);
+    ctx.bezierCurveTo(51, 42, 86, 40, 128, 18);
+    ctx.closePath();
+  };
+  path();
+  const g = ctx.createLinearGradient(40, 20, 216, 240);
+  g.addColorStop(0, `hsl(${hue},${sat}%,62%)`); g.addColorStop(1, `hsl(${hue},${sat}%,24%)`);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 12; ctx.strokeStyle = '#d8dce4'; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.save(); path(); ctx.clip();
+  ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath(); ctx.moveTo(128, 20); ctx.lineTo(128, 240); ctx.moveTo(34, 100); ctx.lineTo(222, 100); ctx.stroke();
+  const hl = ctx.createLinearGradient(34, 0, 130, 0);
+  hl.addColorStop(0, 'rgba(255,255,255,0.25)'); hl.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = hl; ctx.fillRect(34, 20, 96, 230);
+  ctx.restore();
+  const icon = ab ? ({ bolt: '⚡', glue: '🧲', reflect: '🔁', freeze: '🧊', heal: '💚', cosmos: '🌌' })[ab.kind] : '⭐';
+  ctx.font = '84px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(icon, 128, 112);
+  return c.toDataURL('image/png');
+}
+function weaponThumb(name) {
+  const wCfg = WEAPON_CFGS[name];
+  if (!wCfg) return null;
+  const sc = new THREE.Scene();
+  sc.background = new THREE.Color(0x2a3450);
+  sc.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.4));
+  const light = new THREE.DirectionalLight(0xffffff, 1.8); light.position.set(3, 5, 4); sc.add(light);
+  const wrap = new THREE.Group();
+  const w = wCfg.build();
+  wrap.add(w); wrap.rotation.z = -0.55; wrap.rotation.y = 0.5;
+  sc.add(wrap);
+  sc.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(wrap);
+  const ctr = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3()).length();
+  const cam = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
+  cam.position.set(ctr.x, ctr.y, ctr.z + size * 1.9); cam.lookAt(ctr);
+  const prevSize = new THREE.Vector2(); renderer.getSize(prevSize);
+  renderer.setSize(SHOP_THUMB_SIZE, SHOP_THUMB_SIZE, false);
+  renderer.render(sc, cam);
+  const url = renderer.domElement.toDataURL('image/png');
+  renderer.setSize(prevSize.x, prevSize.y, false);
+  w.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+  return url;
+}
+function getShopItemThumb(key, name) {
+  const id = key + ':' + name;
+  if (shopItemThumbs[id]) return shopItemThumbs[id];
+  let url = null;
+  try {
+    if (key === 'weapons') url = weaponThumb(name);
+    else if (key === 'shields') url = shieldThumb(name);
+    else if (key === 'food' || key === 'drinks') url = emojiThumb(key, name);
+  } catch (e) { console.error('תמונת פריט נכשלה:', name, e); }
+  if (url) shopItemThumbs[id] = url;
+  return url;
+}
+
 function renderShopCategory(key) {
   [...shopTabsEl.children].forEach((btn) => btn.classList.toggle('active', btn.dataset.key === key));
   shopGridEl.innerHTML = '';
@@ -39111,7 +39242,9 @@ function renderShopCategory(key) {
       const soonLabel = T('🚧<br>בקרוב', '🚧<br>Soon', '🚧<br>Pronto', '🚧<br>もうすぐ', '🚧<br>Bientôt', '🚧<br>Em breve', '🚧<br>Bald', '🚧<br>Скоро', '🚧<br>قريبًا', '🚧<br>เร็วๆ นี้', '🚧<br>Wkrótce', '🚧<br>Presto', '🚧<br>În curând', '🚧<br>即将推出', '🚧<br>곧 출시', '🚧<br>जल्द', '🚧<br>Yakında', '🚧<br>Binnenkort', '🚧<br>Snart', '🚧<br>Скоро', '🚧<br>Brzy', '🚧<br>Hamarosan', '🚧<br>Σύντομα', '🚧<br>Скоро', '🚧<br>Ускоро', '🚧<br>Uskoro', '🚧<br>Čoskoro', '🚧<br>Së shpejti', '🚧<br>Kmalu', '🚧<br>A dh\'aithghearr', '🚧<br>Em breve', '🚧<br>በቅርቡ', '🚧<br>Pian', '🚧<br>Snart', '🚧<br>Bald', '🚧<br>Sắp có', '🚧<br>Segera', '🚧<br>Peagi', '🚧<br>Fljótlega', '🚧<br>به‌زودی', '🚧<br>Snart');
       media = thumb
         ? `<img class="itemThumb" src="${thumb}">`
-        : `<div class="itemThumb itemThumbPlaceholder">${soonLabel}</div>`;
+        : `<div class="itemThumb itemThumbPlaceholder">${soonLabel}</div>`;    } else {
+      const thumb = getShopItemThumb(key, name);
+      if (thumb) media = `<img class="itemThumb" src="${thumb}">`;
     }
     // בזמן איוונט - 30% הנחה על כל פריט שלא חינם. data-price הוא המחיר
     // שבאמת יורד מהכסף (buyItem פשוט קורא אותו), כדי שההנחה תיאכף גם בקנייה.
