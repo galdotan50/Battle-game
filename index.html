@@ -1411,6 +1411,7 @@ document.body.appendChild(renderer.domElement);
 // ===== סגנון "פורטנייט" (בקשת הבן): צבעים חיים, אור-שפה (rim) על כל גוף, ותאורה כתומה-תכלת מאחור =====
 // כדי לחזור לסגנון הקודם - לשנות ל-false.
 const FORTNITE_LOOK = true;
+const FORTNITE_HEAD_SCALE = 1.4;   // כמה גדול הראש (1 = רגיל)
 if (FORTNITE_LOOK) {
   renderer.domElement.style.filter = 'saturate(1.4) contrast(1.1) brightness(1.0)';
   renderer.toneMappingExposure = 1.12;
@@ -5505,6 +5506,8 @@ function makeFighter(cfg, startX, facing, maxHp) {
     }
   });
 
+  // סגנון פורטנייט: ראש גדול יותר ("קריקטורה משחקית") - מקטינים את הגוף ביחס לראש
+  if (FORTNITE_LOOK && byName.head) byName.head.scale.setScalar(FORTNITE_HEAD_SCALE);
   const near = facing > 0 ? 'L' : 'R';   // הצד שקרוב למצלמה — שם המכות נראות הכי טוב
   return {
     group, byName, skeleton,
