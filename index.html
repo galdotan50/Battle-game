@@ -1414,14 +1414,14 @@ const FORTNITE_LOOK = true;
 const FORTNITE_HEAD_SCALE = 1.15;   // כמה גדול הראש (1 = רגיל)
 if (FORTNITE_LOOK) {
   renderer.domElement.style.filter = 'saturate(1.4) contrast(1.1) brightness(1.0)';
-  renderer.toneMappingExposure = 1.12;
+  renderer.toneMappingExposure = 0.82;
   // אור-שפה: קצוות הגוף (שפונים הצידה מהמצלמה) מקבלים ברק בהיר - מוסיף "פופ" ועומק
   THREE.ShaderChunk.opaque_fragment = THREE.ShaderChunk.opaque_fragment.replace(
     'gl_FragColor = vec4( outgoingLight, diffuseColor.a );',
     `#if defined( STANDARD )
     {
       float fnRim = pow( 1.0 - clamp( dot( normalize( normal ), normalize( vViewPosition ) ), 0.0, 1.0 ), 2.6 );
-      outgoingLight += vec3( 1.0, 0.93, 0.82 ) * fnRim * 0.42;
+      outgoingLight += vec3( 1.0, 0.93, 0.82 ) * fnRim * 0.30;
     }
     #endif
     gl_FragColor = vec4( outgoingLight, diffuseColor.a );`);
@@ -1440,7 +1440,7 @@ window.addEventListener('resize', () => {
 // צל, אז השטח המוצל עדיין מקבל מהם אור מלא. התוצאה: אין כמעט צל נראה על
 // הבמה מתחת ללוחמים, והגוף שלהם נראה שטוח כמעט בלי הבדל אור/צל. נבדק
 // ברינדור לפני ואחרי (לא ניחוש) - ראו יומן הפיתוח.
-scene.add(new THREE.HemisphereLight(0xaec6e8, 0x2f2a24, FORTNITE_LOOK ? 0.5 : 0.28));
+scene.add(new THREE.HemisphereLight(0xaec6e8, 0x2f2a24, FORTNITE_LOOK ? 0.38 : 0.28));
 scene.add(new THREE.AmbientLight(0xffffff, FORTNITE_LOOK ? 0.22 : 0.10));
 if (FORTNITE_LOOK) {
   // אורות שפה כתום/תכלת מאחורי הלוחמים - תחושת "פוסטר" של משחק
@@ -11577,7 +11577,7 @@ const labelEl = document.getElementById('label');
 const moveKeyLegendEl = document.getElementById('moveKeyLegend');
 
 // מיקום המצלמה הרגיל בזירה - נשמר כאן כדי שאפשר לחזור אליו אחרי הלובי.
-const BATTLE_CAM = { pos: V(0, 3.9, 8.0), look: V(0, 1.45, 0) };
+const BATTLE_CAM = { pos: V(0, 3.2, 6.0), look: V(0, 1.3, 0) };   // סגנון פורטנייט: מצלמה קרובה יותר (היתה 3.9,8.0)
 
 function focusLobbyCamera() {
   const p = player.group.position;
@@ -42001,16 +42001,17 @@ function withLinearAdditive(fn) {
   try { fn(); } finally { _addMats.forEach((m) => { m.opacity = m.userData._od; }); }
 }
 // כבוי (הבן דיווח פעמיים שהמשחק מטושטש בהתחלה) - כדי להחזיר את הטשטוש/נוצץ: USE_POST = true
-const USE_POST = false;
+const USE_POST = true;
 (async function setupPost() {
   if (REAL_LITE || !USE_POST) return;
   try {
-    const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { BokehPass }, { OutputPass }] = await Promise.all([
+    const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { GTAOPass }, { OutputPass }, { SMAAPass }] = await Promise.all([
       import('three/addons/postprocessing/EffectComposer.js'),
       import('three/addons/postprocessing/RenderPass.js'),
       import('three/addons/postprocessing/UnrealBloomPass.js'),
-      import('three/addons/postprocessing/BokehPass.js'),
+      import('three/addons/postprocessing/GTAOPass.js'),
       import('three/addons/postprocessing/OutputPass.js'),
+      import('three/addons/postprocessing/SMAAPass.js'),
     ]);
     const size = renderer.getSize(new THREE.Vector2());
     const pr = renderer.getPixelRatio();
@@ -42018,16 +42019,21 @@ const USE_POST = false;
     const c = new EffectComposer(renderer, rt);
     c.setPixelRatio(pr); c.setSize(size.x, size.y);
     c.addPass(new RenderPass(scene, camera));
-    bokehPass = new BokehPass(scene, camera, { focus: 9, aperture: 0.0005, maxblur: 0.012 });
-    const origBokeh = bokehPass.render.bind(bokehPass);
-    bokehPass.render = (...a) => hideTransparentFor(() => origBokeh(...a));
-    c.addPass(bokehPass);
-    bloomPass = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.16, 0.5, 1.4);
+    // צל-סביבה (ambient occlusion): מחשיך פינות וחריצים (בין הזרוע לגוף, מתחת לרגליים) - נותן עומק "אמיתי"
+    gtaoPass = new GTAOPass(scene, camera, size.x, size.y);
+    gtaoPass.output = GTAOPass.OUTPUT.Default;
+    gtaoPass.blendIntensity = 1.0;
+    gtaoPass.updateGtaoMaterial({ radius: 0.6, distanceExponent: 1.5, thickness: 1.5, scale: 1.2, samples: 16 });
+    const origAO = gtaoPass.render.bind(gtaoPass);
+    gtaoPass.render = (...a) => hideTransparentFor(() => origAO(...a));
+    c.addPass(gtaoPass);
+    bloomPass = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.22, 0.55, 1.2);
     c.addPass(bloomPass);
     c.addPass(new OutputPass());
+    c.addPass(new SMAAPass(size.x * pr, size.y * pr));
     composer = c;
-    window.addEventListener('resize', () => { c.setSize(window.innerWidth, window.innerHeight); });
-  } catch (e) { composer = null; }
+    window.addEventListener('resize', () => { c.setSize(window.innerWidth, window.innerHeight); gtaoPass.setSize(window.innerWidth, window.innerHeight); });
+  } catch (e) { console.warn('post failed', e); composer = null; }
 })();
 function updateFocus(dt) {
   // מתמקדים בלוחמים (או בדמות שבלובי/חנות)
