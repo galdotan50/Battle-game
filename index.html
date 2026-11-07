@@ -2908,14 +2908,14 @@ function canvasTex(size, draw, rx = 1, ry = 1) {
 const ribbedKnit = (hex) => canvasTex(128, (ctx, n) => {
   ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
   for (let x = 0; x < n; x += 6) {
-    ctx.fillStyle = 'rgba(0,0,0,0.10)'; ctx.fillRect(x, 0, 2, n);
-    ctx.fillStyle = 'rgba(255,255,255,0.10)'; ctx.fillRect(x + 3, 0, 1, n);
+    ctx.fillStyle = 'rgba(0,0,0,0.20)'; ctx.fillRect(x, 0, 2, n);
+    ctx.fillStyle = 'rgba(255,255,255,0.16)'; ctx.fillRect(x + 3, 0, 1, n);
   }
 }, 14, 1);
 
 const denimTex = (hex) => canvasTex(128, (ctx, n) => {
   ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
-  ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.16)'; ctx.lineWidth = 1.5;
   for (let k = -n; k < n * 2; k += 4) {            // אריגת טוויל אלכסונית
     ctx.beginPath(); ctx.moveTo(k, 0); ctx.lineTo(k + n, n); ctx.stroke();
   }
@@ -2969,13 +2969,45 @@ const skinTex = (hex) => canvasTex(256, (ctx, n) => {
 // קווצות שיער: פסים דקים לאורך כל תלתול/קוץ (לא סביבו) שיוצרים גוון בהיר
 // וכהה לסירוגין, במקום כתם צבע אחיד. אותו עיקרון הכפלה כמו skinTex.
 // אופציונלי (cfg.hairTex).
-const hairTex = (hex) => canvasTex(64, (ctx, n) => {
+const hairTex = (hex) => canvasTex(128, (ctx, n) => {
   ctx.fillStyle = hex; ctx.fillRect(0, 0, n, n);
-  for (let y = 0; y < n; y += 4) {
-    ctx.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.14)' : 'rgba(255,255,255,0.11)';
-    ctx.fillRect(0, y, n, 2);
+  // קווצות אמיתיות: הרבה קווים דקים בגוונים שונים (כהים ובהירים), חלקם רחבים יותר
+  for (let y = 0; y < n; y += 1) {
+    const r = Math.random();
+    const a = 0.18 + Math.random() * 0.34;
+    ctx.fillStyle = r < 0.5 ? `rgba(0,0,0,${a})` : `rgba(255,255,255,${a * 0.8})`;
+    ctx.fillRect(0, y, n, 1 + (Math.random() < 0.25 ? 1 : 0));
   }
-}, 2, 10);
+  for (let i = 0; i < 10; i++) {   // קווצה רחבה כהה (צל בין קווצות)
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fillRect(0, Math.random() * n, n, 3 + Math.random() * 3);
+  }
+}, 2, 12);
+// בליטות של קווצות (בשחור-לבן): מוסיפות עומק אמיתי לאור
+const hairBumpTex = () => canvasTex(128, (ctx, n) => {
+  ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, n, n);
+  for (let y = 0; y < n; y += 1) {
+    const g = Math.floor(70 + Math.random() * 120);
+    ctx.fillStyle = `rgb(${g},${g},${g})`;
+    ctx.fillRect(0, y, n, 1);
+  }
+}, 2, 12);
+// בליטות אריגה לבדים: crossed = אריגה רגילה (חולצה/ז'קט), twill = אלכסון (ג'ינס), rib = צלעות (סריג)
+const fabricBumpTex = (kind, rx, ry) => canvasTex(128, (ctx, n) => {
+  ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, n, n);
+  if (kind === 'rib') {
+    for (let x = 0; x < n; x += 6) { ctx.fillStyle = '#d0d0d0'; ctx.fillRect(x, 0, 3, n); ctx.fillStyle = '#303030'; ctx.fillRect(x + 3, 0, 3, n); }
+  } else if (kind === 'twill') {
+    ctx.lineWidth = 2;
+    for (let k = -n; k < n * 2; k += 5) { ctx.strokeStyle = '#d8d8d8'; ctx.beginPath(); ctx.moveTo(k, 0); ctx.lineTo(k + n, n); ctx.stroke(); }
+    for (let i = 0; i < 900; i++) { ctx.fillStyle = Math.random() < 0.5 ? '#606060' : '#a0a0a0'; ctx.fillRect(Math.random() * n, Math.random() * n, 1, 1); }
+  } else {
+    for (let y = 0; y < n; y += 4) for (let x = 0; x < n; x += 4) {
+      ctx.fillStyle = ((x + y) / 4) % 2 ? '#d0d0d0' : '#383838'; ctx.fillRect(x, y, 4, 2);
+      ctx.fillStyle = ((x + y) / 4) % 2 ? '#383838' : '#d0d0d0'; ctx.fillRect(x, y + 2, 4, 2);
+    }
+  }
+}, rx, ry);
 
 // אבן טבעית: כתמי אפור/חום לא-אחידים כמו סלע אמיתי, פלוס נקבוביות גס
 // יותר מעור (חצץ). מוכפל בצבע האבן האמיתי בדיוק כמו skinTex/leatherTex.
@@ -3849,9 +3881,11 @@ function createFighter(cfg) {
   }) : skinMat;
   // ריאליזם עור (2026-10-02): נקבוביות (bump), וסימון החומר כדי שזיעה/אדמומיות יעבדו עליו (ראה updateFighterRealism)
   if (!cfg.crystalSkin) [skinMat, headMat].forEach((m) => { m.userData.isSkin = true; m.bumpMap = skinBumpTexture(); m.bumpScale = 0.55; });
-  const hairMat = cfg.hairTex
-    ? new THREE.MeshStandardMaterial({ color: cfg.hair, roughness: 0.88, map: hairTex('#ffffff') })
-    : M(cfg.hair, 0.88);
+  // קווצות לכל השיער (2026-11-07): מרקם קווצות + בליטות + מעט ברק
+  const hairMat = new THREE.MeshStandardMaterial({
+    color: cfg.hair, roughness: 0.7, map: hairTex('#ffffff'),
+    bumpMap: hairBumpTex(), bumpScale: 5,
+  });
   // cfg.topTex מחליף את מרקם הסריג הרגיל בטקסטורה משלו (למשל הקוביות של
   // זיק). טקסטורה כזו נושאת את הצבע בעצמה, ולכן צבע החומר נשאר לבן ניטרלי -
   // בדיוק כמו stripeTex/textBandTex (ראה הלקח על colorSpace ב-CLAUDE.md).
@@ -3862,6 +3896,7 @@ function createFighter(cfg) {
       ? cfg.topTex('#' + new THREE.Color(cfg.top).getHexString())
       : ribbedKnit('#ffffff'),
     side: THREE.DoubleSide,          // לקצה המחשוף יש צד פנימי שנראה
+    bumpMap: cfg.topTex ? fabricBumpTex('weave', 8, 8) : fabricBumpTex('rib', 14, 1), bumpScale: 5,
   }) : null;
   // הצבע על החומר עצמו (לא רק על המרקם) ישכפל את הגוון על פני הפסים ויעמעם
   // אותם - ולכן כאן, בניגוד לבגדים האחרים, הבסיס האפור נצבע *בתוך* המרקם
@@ -3871,6 +3906,7 @@ function createFighter(cfg) {
     map: stripeTex('#' + new THREE.Color(cfg.jacket).getHexString(),
       cfg.jacketStripes ?? ['#e4573d', '#f2b632', '#3fa7a0', '#e85fa0']),
     side: THREE.DoubleSide,
+    bumpMap: fabricBumpTex('weave', 8, 8), bumpScale: 5,
   }) : null;
   // cfg.pantsLeather (חדש, לסטנבר - "מכנסיים מעור שור") מחליף את מרקם
   // האריגה של הג'ינס במרקם עור מחוספס. שניהם משתמשים ב-'#ffffff' כבסיס
@@ -3882,6 +3918,7 @@ function createFighter(cfg) {
     : new THREE.MeshStandardMaterial({
         color: cfg.pants, roughness: cfg.pantsLeather ? 0.55 : 0.94,
         map: cfg.pantsLeather ? leatherTex('#ffffff') : denimTex('#ffffff'),
+        bumpMap: cfg.pantsLeather ? null : fabricBumpTex('twill', 5, 5), bumpScale: 5,
       })) : null;
   const boxerMat = cfg.boxers ? M(cfg.boxers, 0.85) : null;
   const bootMat = cfg.boots ? new THREE.MeshPhysicalMaterial({
